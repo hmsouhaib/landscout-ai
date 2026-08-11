@@ -3,7 +3,7 @@
 ## Current project state
 
 - Current phase: French cadastral data ingestion
-- Latest completed step: STEP 7B.4.1 — centralize parcel shape metrics
+- Latest completed step: STEP 7B.5 — profile BESS parcel shape distribution
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: next LandScout implementation step, not yet specified
@@ -257,3 +257,95 @@ Highest `length_width_ratio` parcels (geometry omitted):
 - Maximum absolute difference versus STEP 7B.4 for `length_width_ratio`: 0
 - Maximum absolute difference versus STEP 7B.4 for `compactness`: 0
 - Metric min / median / max values: unchanged from STEP 7B.4
+
+## STEP 7B.5 — Profile BESS parcel shape distribution
+
+- Status: Complete
+- Implementation summary: Added a non-mutating shape profiler with percentiles, disjoint buckets, diagnostic scenarios, and representative parcel samples.
+- Important files: `src/landscout/stages/profile_shape.py`, `tests/unit/test_profile_shape.py`
+- Tests/checks: Covered percentiles, bucket completeness, scenario counts, immutability, required metrics, CRS, and parcel identity; pytest, Ruff, and mypy pass.
+- Important decisions: Diagnostic scenarios are analysis only; no threshold was selected, persisted, or applied; median samples minimize normalized deviation across five metrics, while extreme samples emphasize high ratio, low width, and low compactness.
+- Known issues: None.
+
+### Real Muret shape distribution (4,013 candidates)
+
+| Metric | min | p01 | p05 | p10 | p25 | p50 | p75 | p90 | p95 | p99 | max |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `area_m2` | 2,001.499661 | 2,014.733986 | 2,111.726147 | 2,257.174309 | 2,716.518957 | 3,915.028783 | 6,633.124319 | 10,238.716584 | 12,348.081108 | 14,320.736428 | 14,973.105182 |
+| `length_m` | 45.922054 | 53.154294 | 63.383902 | 71.559474 | 95.609423 | 131.207909 | 180.176206 | 242.927683 | 283.324796 | 399.451809 | 994.057897 |
+| `width_m` | 5.578234 | 9.487703 | 16.112164 | 19.976713 | 30.257069 | 44.612654 | 64.828342 | 88.799674 | 102.363064 | 129.745629 | 317.221485 |
+| `length_width_ratio` | 1.000677 | 1.020187 | 1.107411 | 1.219572 | 1.608094 | 2.576522 | 5.040910 | 9.572230 | 14.355207 | 29.747604 | 70.334491 |
+| `compactness` | 0.015827 | 0.054627 | 0.136849 | 0.202288 | 0.342403 | 0.532606 | 0.684481 | 0.756590 | 0.775246 | 0.801175 | 0.883103 |
+
+Width buckets:
+
+| Bucket | Count |
+| --- | ---: |
+| width < 5 m | 0 |
+| 5–10 m | 44 |
+| 10–15 m | 115 |
+| 15–20 m | 245 |
+| 20–25 m | 288 |
+| 25–30 m | 287 |
+| 30–40 m | 704 |
+| 40–50 m | 648 |
+| width >= 50 m | 1,682 |
+
+Length/width ratio buckets:
+
+| Bucket | Count |
+| --- | ---: |
+| ratio <= 2 | 1,487 |
+| 2–3 | 786 |
+| 3–4 | 438 |
+| 4–5 | 283 |
+| 5–7 | 357 |
+| 7–10 | 287 |
+| 10–15 | 189 |
+| 15–25 | 120 |
+| ratio > 25 | 66 |
+
+Compactness buckets:
+
+| Bucket | Count |
+| --- | ---: |
+| compactness < 0.05 | 35 |
+| 0.05–0.10 | 75 |
+| 0.10–0.20 | 282 |
+| 0.20–0.30 | 409 |
+| 0.30–0.40 | 485 |
+| 0.40–0.50 | 544 |
+| 0.50–0.60 | 612 |
+| 0.60–0.70 | 685 |
+| compactness >= 0.70 | 886 |
+
+Diagnostic scenarios (not applied):
+
+| Scenario | Diagnostic condition | Retained | Retained percentage |
+| --- | --- | ---: | ---: |
+| A | width >= 10 m | 3,969 | 98.903563% |
+| B | width >= 15 m | 3,854 | 96.037877% |
+| C | width >= 20 m | 3,609 | 89.932719% |
+| D | width >= 15 m and ratio <= 10 | 3,638 | 90.655370% |
+| E | width >= 20 m and ratio <= 7 | 3,329 | 82.955395% |
+| F | width >= 20 m, ratio <= 5, and compactness >= 0.20 | 2,903 | 72.339895% |
+
+Representative median-shape parcels (geometry omitted):
+
+| parcel_id | area_m2 | length_m | width_m | ratio | compactness | centroid_lat | centroid_lon |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `31395000AE0107` | 3,769.752364 | 130.791396 | 49.659919 | 2.633742 | 0.532806 | 43.477477 | 1.318787 |
+| `31395000CM0034` | 3,797.865646 | 119.382511 | 44.007068 | 2.712803 | 0.533889 | 43.421749 | 1.319704 |
+| `313950000I0217` | 4,089.041536 | 117.704209 | 43.949066 | 2.678196 | 0.531772 | 43.400689 | 1.309433 |
+| `31395000CD0009` | 3,698.472835 | 126.082728 | 48.373716 | 2.606430 | 0.543704 | 43.422481 | 1.322639 |
+| `31395000BS0042` | 4,335.275483 | 124.523783 | 46.877474 | 2.656367 | 0.532606 | 43.441195 | 1.344145 |
+
+Representative extreme/problematic parcels (geometry omitted):
+
+| parcel_id | area_m2 | length_m | width_m | ratio | compactness | centroid_lat | centroid_lon |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `313950000K1259` | 2,001.873974 | 392.342257 | 5.578234 | 70.334491 | 0.039888 | 43.419217 | 1.303238 |
+| `31395000EC0002` | 2,075.541146 | 440.928455 | 6.370519 | 69.213904 | 0.032907 | 43.464875 | 1.288404 |
+| `313950000K1263` | 2,124.726244 | 391.903893 | 5.602324 | 69.953812 | 0.042381 | 43.419288 | 1.303371 |
+| `313950000K1237` | 2,182.107274 | 394.694144 | 5.845761 | 67.518010 | 0.043004 | 43.418377 | 1.302782 |
+| `313950000K1261` | 2,152.836718 | 392.107473 | 6.035972 | 64.961776 | 0.042869 | 43.419241 | 1.303348 |
