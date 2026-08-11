@@ -3,7 +3,7 @@
 ## Current project state
 
 - Current phase: French cadastral data ingestion
-- Latest completed step: STEP 7B.1 — load French cadastral parcels
+- Latest completed step: STEP 7B.1.1 — record Muret cadastre schema
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: next LandScout implementation step, not yet specified
@@ -106,3 +106,31 @@
 - Tests/checks: Covered plain and gzipped GeoJSON, empty/missing/invalid datasets, missing geometry, and unsupported geometry types; real Muret archive loaded with 17,200 parcels; pytest, Ruff, and mypy pass.
 - Important decisions: Accepts Polygon and MultiPolygon without reprojection or derived metrics; uses GDAL `/vsigzip/` on compressed inputs for reliable Windows loading; never invents a CRS.
 - Known issues: GeoPandas and Pyogrio lack bundled typing metadata, handled with localized mypy annotations.
+
+### Observed Muret schema (`31395`)
+
+- Parcel count: 17,200
+- Detected CRS: `EPSG:4326`
+- Geometry types: Polygon 17,200; MultiPolygon 0
+- Geometry health: null 0; empty 0; invalid 2
+
+| Column | dtype | Null count | Null percentage |
+| --- | --- | ---: | ---: |
+| `id` | `str` | 0 | 0% |
+| `commune` | `str` | 0 | 0% |
+| `prefixe` | `str` | 0 | 0% |
+| `section` | `str` | 0 | 0% |
+| `numero` | `str` | 0 | 0% |
+| `contenance` | `float64` | 1 | 0.005814% |
+| `arpente` | `bool` | 0 | 0% |
+| `created` | `datetime64[ms]` | 0 | 0% |
+| `updated` | `datetime64[ms]` | 0 | 0% |
+| `geometry` | `geometry` | 0 | 0% |
+
+Example attribute records (geometry omitted):
+
+| id | commune | prefixe | section | numero | contenance | arpente | created | updated |
+| --- | --- | --- | --- | --- | ---: | --- | --- | --- |
+| `313950000A0033` | `31395` | `000` | `A` | `33` | 7,533 | false | `2004-12-02 00:00:00` | `2017-01-31 00:00:00` |
+| `313950000A0561` | `31395` | `000` | `A` | `561` | 2,081 | false | `2004-12-02 00:00:00` | `2017-01-31 00:00:00` |
+| `313950000A0558` | `31395` | `000` | `A` | `558` | 125,371 | false | `2004-12-02 00:00:00` | `2017-01-31 00:00:00` |
