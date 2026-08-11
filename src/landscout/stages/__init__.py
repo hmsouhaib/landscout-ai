@@ -10,6 +10,7 @@ from landscout.stages.normalize_cadastre import (
 )
 from landscout.stages.normalize_grid_ign import (
     IgnGridNormalizationError,
+    IgnGridSourceContext,
     IgnVoltageNormalization,
     NormalizedIgnElectricityData,
     normalize_ign_electric_lines,
@@ -26,6 +27,7 @@ from landscout.stages.profile_shape import (
 __all__ = [
     "CadastreNormalizationError",
     "IgnGridNormalizationError",
+    "IgnGridSourceContext",
     "IgnVoltageNormalization",
     "NormalizedIgnElectricityData",
     "ParcelFilterError",

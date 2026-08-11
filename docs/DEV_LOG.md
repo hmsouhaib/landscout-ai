@@ -3,10 +3,10 @@
 ## Current project state
 
 - Current phase: French electricity-grid source ingestion
-- Latest completed step: STEP 7C.3 — normalize IGN electricity proxy layers
+- Latest completed step: STEP 7C.3.1 — harden IGN grid normalization lineage, geometry semantics, and numeric integrity
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: review of normalized IGN electricity proxy datasets
+- Next step waiting for review: review of hardened IGN electricity proxy normalization
 
 ## STEP 0 — Environment check
 
@@ -957,3 +957,80 @@ Exact numeric line voltage is source-derived, but proximity to a line does not e
 IGN transformation posts have no source voltage in the D031 dataset; LandScout therefore keeps their voltage `UNKNOWN`.
 
 `TRANSFORMATION_POST` means only an IGN BD TOPO transformation-post proxy. It does not mean an RTE substation, BESS connection point, source substation, available grid node, or available-capacity location. No parcel distance, parcel rejection, source matching, voltage threshold, grid score, or capacity inference was added.
+
+## STEP 7C.3.1 — Harden IGN grid normalization lineage, geometry semantics, and numeric integrity
+
+- Status: Complete
+- Implementation summary: Reworked IGN grid normalization around an immutable source context and the complete `IgnBdTopoElectricityData` bundle. Normalized rows now carry auditable package lineage, discovered layer names, strict feature geometry semantics, finite numeric values, authoritative source IDs, and deterministic indexes.
+- Important files: `src/landscout/stages/normalize_grid_ign.py`, `src/landscout/stages/__init__.py`, `tests/unit/test_normalize_grid_ign.py`
+- Tests/checks: 78 focused tests cover high-level bundle normalization, lineage, bundle-summary consistency, geometry contracts, voltage parsing, precision validation, identifier hygiene, deterministic indexes and schemas, and input immutability. The full suite passes with 304 tests; Ruff and mypy pass.
+- Important decisions: The high-level bundle API is the production normalization entry point. Source layer names come from validated extraction discovery rather than constants. `cleabs` remains authoritative and unmodified. Geometry is classified and preserved without repair or reprojection. Only finite positive voltage values and finite non-negative source precision values are accepted as numeric values.
+- Known issues: IGN data remains `PROXY_GEOMETRY`. Package lineage and stronger validation improve auditability but do not establish exact RTE assets, connection feasibility, capacity, proximity suitability, or a connection point.
+
+### Lineage and bundle integrity
+
+Every normalized row now includes:
+
+- `source_department_code`
+- `source_edition`
+- `source_product_version`
+- `source_download_timestamp`
+- `source_archive_sha256`
+- `source_url`
+
+The normalizer validates the source, archive, extraction, and both layer summaries as one consistent bundle. It rejects mismatched spatial roles, logical or physical layer names, feature counts, CRS values, geometry-quality counts, and geometry-type summaries before producing output. Local cache paths and cache-hit state are intentionally excluded from row-level lineage.
+
+### Geometry, numeric, and identity semantics
+
+- Valid electric-line geometry is limited to `LineString` and `MultiLineString`.
+- Valid transformation-post geometry is limited to `Polygon` and `MultiPolygon`.
+- Null, empty, and invalid source geometries are preserved and classified; no geometry is silently repaired.
+- Z coordinates are preserved.
+- Scalar voltage values are parsed only when positive and finite. Collection-like values and numeric overflow are preserved as `UNPARSED`; infinity is never emitted.
+- Planimetric and altimetric precision accept only finite, non-negative real values. Missing values remain missing, while negative, infinite, Boolean, and numeric-string values fail with a controlled error.
+- `cleabs` must be a unique, non-null, non-empty string without leading/trailing whitespace, colons, or Unicode control characters. No arbitrary length limit is imposed.
+- Output row order is stable and the output uses a deterministic zero-based `RangeIndex`, independent of the source index.
+
+### Real D031 high-level regression
+
+The real cached package was normalized only through `normalize_ign_electricity()` and both GeoParquets were read back successfully.
+
+Shared package lineage:
+
+- Department: `31`
+- Edition: `2026-06-15`
+- Product version: `3.5`
+- Download timestamp: `2026-08-11T15:32:03.110837+00:00`
+- Archive SHA256: `4fcd6d1234495c5e38f3a671159aa7c8da88c70fa1b8747c9f93f0a7a3001ab0`
+- Source URL: `https://data.geopf.fr/telechargement/download/BDTOPO/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15.7z`
+- Spatial role: `PROXY_GEOMETRY`
+
+Electric lines:
+
+- Discovered source layer: `ligne_electrique`
+- Input/output/read-back rows: 333 / 333 / 333
+- Duplicate normalized IDs: 0
+- Lost/extra source IDs: 0 / 0
+- Geometry status: `VALID` 333
+- CRS and read-back CRS: `EPSG:2154`
+- Stable output columns verified: yes
+- Voltage status: `EXACT` 325; `BELOW` 2; `UNKNOWN` 5; `DEENERGIZED` 1; `UNPARSED` 0
+- Exact voltage counts: 63 kV = 223; 150 kV = 9; 225 kV = 65; 400 kV = 28
+- GeoParquet: `data/processed/grid/ign_bdtopo_d031_electric_lines.parquet`
+- GeoParquet size: 143,554 bytes
+
+Transformation posts:
+
+- Discovered source layer: `poste_de_transformation`
+- Input/output/read-back rows: 84 / 84 / 84
+- Duplicate normalized IDs: 0
+- Lost/extra source IDs: 0 / 0
+- Geometry status: `VALID` 84
+- CRS and read-back CRS: `EPSG:2154`
+- Stable output columns verified: yes
+- Voltage status: `UNKNOWN` 84
+- Non-null `voltage_kv`: 0
+- GeoParquet: `data/processed/grid/ign_bdtopo_d031_transformation_posts.parquet`
+- GeoParquet size: 43,181 bytes
+
+The generated GeoParquets remain ignored by Git. This hardening adds no distance calculation, parcel filtering, RTE/IGN matching, voltage threshold, grid scoring, or capacity inference.

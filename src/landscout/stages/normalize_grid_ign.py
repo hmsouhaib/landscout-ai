@@ -5,22 +5,35 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass
+from math import isfinite
+from numbers import Real
 from typing import Literal
 
 import geopandas as gpd  # type: ignore[import-untyped]
 import pandas as pd  # type: ignore[import-untyped]
+from pandas.api.types import is_scalar  # type: ignore[import-untyped]
 from pyproj import CRS
 
-from landscout.sources.ign_bdtopo_fr import IgnBdTopoElectricityData
+from landscout.sources.ign_bdtopo_fr import (
+    IgnBdTopoElectricityData,
+    IgnBdTopoLayerSummary,
+)
 
 SOURCE_PROVIDER = "IGN"
 SOURCE_PRODUCT = "BD_TOPO"
 SPATIAL_ROLE = "PROXY_GEOMETRY"
-ELECTRIC_LINE_SOURCE_LAYER = "ligne_electrique"
-TRANSFORMATION_POST_SOURCE_LAYER = "poste_de_transformation"
 
 VoltageStatus = Literal["EXACT", "BELOW", "UNKNOWN", "DEENERGIZED", "UNPARSED"]
 GeometryStatus = Literal["VALID", "NULL", "EMPTY", "INVALID"]
+
+PACKAGE_LINEAGE_COLUMNS = (
+    "source_department_code",
+    "source_edition",
+    "source_product_version",
+    "source_download_timestamp",
+    "source_archive_sha256",
+    "source_url",
+)
 
 LINE_OUTPUT_COLUMNS = (
     "grid_feature_id",
@@ -29,6 +42,7 @@ LINE_OUTPUT_COLUMNS = (
     "source_product",
     "source_layer",
     "source_feature_id",
+    *PACKAGE_LINEAGE_COLUMNS,
     "voltage_raw",
     "voltage_status",
     "voltage_kv",
@@ -55,6 +69,7 @@ TRANSFORMATION_POST_OUTPUT_COLUMNS = (
     "source_product",
     "source_layer",
     "source_feature_id",
+    *PACKAGE_LINEAGE_COLUMNS,
     "name",
     "name_status_raw",
     "importance_raw",
@@ -109,6 +124,9 @@ TRANSFORMATION_POST_SOURCE_FIELDS = frozenset(
     }
 )
 
+LINE_GEOMETRY_TYPES = frozenset({"LineString", "MultiLineString"})
+TRANSFORMATION_POST_GEOMETRY_TYPES = frozenset({"Polygon", "MultiPolygon"})
+
 _EXACT_VOLTAGE_PATTERN = re.compile(
     r"^(?P<value>\d+(?:[.,]\d+)?)\s*kv$", re.IGNORECASE
 )
@@ -123,6 +141,19 @@ _DEENERGIZED_VOLTAGE_TERMS = frozenset({"hors tension"})
 
 class IgnGridNormalizationError(ValueError):
     """Raised when IGN electricity data cannot be normalized safely."""
+
+
+@dataclass(frozen=True)
+class IgnGridSourceContext:
+    """Immutable source-package context persisted on every normalized row."""
+
+    source_layer: str
+    department_code: str
+    edition: str
+    product_version: str | None
+    download_timestamp: str
+    archive_sha256: str
+    source_url: str
 
 
 @dataclass(frozen=True)
@@ -153,13 +184,28 @@ def _normalized_term(value: str) -> str:
 
 def _positive_voltage(match: re.Match[str]) -> float | None:
     value = float(match.group("value").replace(",", "."))
-    return value if value > 0 else None
+    return value if value > 0 and isfinite(value) else None
+
+
+def _is_missing_scalar(value: object) -> bool:
+    if value is None:
+        return True
+    if not is_scalar(value):
+        return False
+    return bool(pd.isna(value))
 
 
 def parse_ign_voltage(value: object) -> IgnVoltageNormalization:
-    """Parse IGN voltage vocabulary without inventing numeric precision."""
+    """Parse scalar IGN voltage vocabulary without inventing precision.
 
-    if value is None or pd.isna(value):
+    Unsupported list-like or array-like inputs are preserved as text and
+    classified ``UNPARSED`` rather than reaching Pandas' ambiguous truth-value
+    handling.
+    """
+
+    if not is_scalar(value):
+        return IgnVoltageNormalization(str(value), "UNPARSED", None, None)
+    if _is_missing_scalar(value):
         return IgnVoltageNormalization(None, "UNKNOWN", None, None)
 
     raw = value if isinstance(value, str) else str(value)
@@ -184,6 +230,35 @@ def parse_ign_voltage(value: object) -> IgnVoltageNormalization:
     return IgnVoltageNormalization(raw, "UNPARSED", None, None)
 
 
+def _validated_lambert93(crs_value: object, label: str) -> CRS:
+    if crs_value is None:
+        raise IgnGridNormalizationError(f"{label} CRS is required")
+    try:
+        source_crs = CRS.from_user_input(crs_value)
+    except Exception as error:
+        raise IgnGridNormalizationError(f"{label} CRS is unreadable") from error
+    expected_crs = CRS.from_epsg(2154)
+    if not source_crs.is_projected or not source_crs.equals(expected_crs):
+        raise IgnGridNormalizationError(f"{label} must use EPSG:2154")
+    return source_crs
+
+
+def _validate_context(context: IgnGridSourceContext) -> None:
+    required_values = {
+        "source_layer": context.source_layer,
+        "department_code": context.department_code,
+        "edition": context.edition,
+        "download_timestamp": context.download_timestamp,
+        "archive_sha256": context.archive_sha256,
+        "source_url": context.source_url,
+    }
+    missing = [name for name, value in required_values.items() if not value.strip()]
+    if missing:
+        raise IgnGridNormalizationError(
+            "IGN source context values must not be empty: " + ", ".join(missing)
+        )
+
+
 def _validate_input(
     frame: gpd.GeoDataFrame,
     required_columns: frozenset[str],
@@ -199,19 +274,7 @@ def _validate_input(
         raise IgnGridNormalizationError(
             f"IGN {source_layer} requires an active geometry column"
         )
-    if frame.crs is None:
-        raise IgnGridNormalizationError(f"IGN {source_layer} CRS is required")
-    try:
-        source_crs = CRS.from_user_input(frame.crs)
-    except Exception as error:
-        raise IgnGridNormalizationError(
-            f"IGN {source_layer} CRS is unreadable"
-        ) from error
-    expected_crs = CRS.from_epsg(2154)
-    if not source_crs.is_projected or not source_crs.equals(expected_crs):
-        raise IgnGridNormalizationError(
-            f"IGN {source_layer} must use EPSG:2154"
-        )
+    _validated_lambert93(frame.crs, f"IGN {source_layer}")
 
     identifiers = frame["cleabs"]
     if identifiers.isna().any():
@@ -225,6 +288,20 @@ def _validate_input(
     if identifiers.str.strip().eq("").any():
         raise IgnGridNormalizationError(
             f"IGN {source_layer} cleabs values must not be empty"
+        )
+    if identifiers.map(lambda value: value != value.strip()).any():
+        raise IgnGridNormalizationError(
+            f"IGN {source_layer} cleabs values must not contain edge whitespace"
+        )
+    if identifiers.str.contains(":", regex=False).any():
+        raise IgnGridNormalizationError(
+            f"IGN {source_layer} cleabs values must not contain ':'"
+        )
+    if identifiers.map(
+        lambda value: any(unicodedata.category(character) == "Cc" for character in value)
+    ).any():
+        raise IgnGridNormalizationError(
+            f"IGN {source_layer} cleabs values must not contain control characters"
         )
     if identifiers.duplicated().any():
         raise IgnGridNormalizationError(
@@ -243,11 +320,66 @@ def _geometry_status(geometry: gpd.GeoSeries) -> pd.Series:
     return status
 
 
+def _geometry_summary(
+    frame: gpd.GeoDataFrame,
+) -> tuple[int, int, int, tuple[str, ...]]:
+    geometry = frame.geometry
+    null_mask = geometry.isna()
+    empty_mask = ~null_mask & geometry.is_empty
+    invalid_mask = ~null_mask & ~geometry.is_empty & ~geometry.is_valid
+    geometry_types = tuple(
+        sorted(str(value) for value in geometry[~null_mask].geom_type.dropna().unique())
+    )
+    return (
+        int(null_mask.sum()),
+        int(empty_mask.sum()),
+        int(invalid_mask.sum()),
+        geometry_types,
+    )
+
+
+def _validate_valid_geometry_types(
+    frame: gpd.GeoDataFrame,
+    status: pd.Series,
+    allowed_types: frozenset[str],
+    source_layer: str,
+) -> None:
+    valid_types = frame.loc[status == "VALID", "geometry"].geom_type
+    unsupported = sorted(set(valid_types.dropna()) - allowed_types)
+    if unsupported:
+        raise IgnGridNormalizationError(
+            f"IGN {source_layer} has unsupported VALID geometry types: "
+            + ", ".join(unsupported)
+        )
+
+
+def _normalized_precision(
+    source: pd.Series,
+    source_layer: str,
+) -> pd.Series:
+    normalized: list[float] = []
+    for value in source.tolist():
+        if _is_missing_scalar(value):
+            normalized.append(float("nan"))
+            continue
+        if isinstance(value, bool) or not isinstance(value, Real):
+            raise IgnGridNormalizationError(
+                f"IGN {source_layer} precision_planimetrique must be numeric or null"
+            )
+        numeric = float(value)
+        if not isfinite(numeric) or numeric < 0:
+            raise IgnGridNormalizationError(
+                f"IGN {source_layer} precision_planimetrique must be finite and >= 0"
+            )
+        normalized.append(numeric)
+    return pd.Series(normalized, index=source.index, dtype="float64")
+
+
 def _base_output(
     frame: gpd.GeoDataFrame,
     *,
     feature_type: str,
-    source_layer: str,
+    context: IgnGridSourceContext,
 ) -> pd.DataFrame:
     source_ids = frame["cleabs"].copy()
     output = pd.DataFrame(index=frame.index.copy())
@@ -257,18 +389,25 @@ def _base_output(
     output["grid_feature_type"] = feature_type
     output["source_provider"] = SOURCE_PROVIDER
     output["source_product"] = SOURCE_PRODUCT
-    output["source_layer"] = source_layer
+    output["source_layer"] = context.source_layer
     output["source_feature_id"] = source_ids
+    output["source_department_code"] = context.department_code
+    output["source_edition"] = context.edition
+    output["source_product_version"] = context.product_version
+    output["source_download_timestamp"] = context.download_timestamp
+    output["source_archive_sha256"] = context.archive_sha256
+    output["source_url"] = context.source_url
     return output
 
 
 def _validated_geodataframe(
     output: pd.DataFrame,
     frame: gpd.GeoDataFrame,
+    status: pd.Series,
     columns: tuple[str, ...],
 ) -> gpd.GeoDataFrame:
     output["spatial_role"] = SPATIAL_ROLE
-    output["geometry_status"] = _geometry_status(frame.geometry)
+    output["geometry_status"] = status
     output["geometry"] = frame.geometry.copy()
     normalized = gpd.GeoDataFrame(
         output.loc[:, list(columns)], geometry="geometry", crs=frame.crs
@@ -280,87 +419,206 @@ def _validated_geodataframe(
         )
     if len(normalized) != len(frame):
         raise IgnGridNormalizationError("IGN normalization changed the row count")
+    if not isinstance(normalized.index, pd.RangeIndex):
+        raise IgnGridNormalizationError("IGN normalized output must use a RangeIndex")
     return normalized
 
 
 def normalize_ign_electric_lines(
     lines: gpd.GeoDataFrame,
+    context: IgnGridSourceContext,
 ) -> gpd.GeoDataFrame:
-    """Normalize the IGN electric-line source layer without changing geometry."""
+    """Normalize one discovered IGN electric-line layer."""
 
-    _validate_input(lines, LINE_SOURCE_FIELDS, ELECTRIC_LINE_SOURCE_LAYER)
-    output = _base_output(
-        lines,
-        feature_type="ELECTRIC_LINE",
-        source_layer=ELECTRIC_LINE_SOURCE_LAYER,
+    _validate_context(context)
+    _validate_input(lines, LINE_SOURCE_FIELDS, context.source_layer)
+    working = lines.reset_index(drop=True).copy()
+    status = _geometry_status(working.geometry)
+    _validate_valid_geometry_types(
+        working, status, LINE_GEOMETRY_TYPES, context.source_layer
     )
-    parsed = [parse_ign_voltage(value) for value in lines["voltage"].tolist()]
+    precision = _normalized_precision(
+        working["precision_planimetrique"], context.source_layer
+    )
+    output = _base_output(
+        working,
+        feature_type="ELECTRIC_LINE",
+        context=context,
+    )
+    parsed = [parse_ign_voltage(value) for value in working["voltage"].tolist()]
     output["voltage_raw"] = [result.raw for result in parsed]
     output["voltage_status"] = [result.status for result in parsed]
     output["voltage_kv"] = [result.voltage_kv for result in parsed]
     output["voltage_upper_bound_kv"] = [
         result.voltage_upper_bound_kv for result in parsed
     ]
-    output["manager_name"] = lines["gestionnaire"].copy()
-    output["manager_siren"] = lines["siren_gestionnaire"].copy()
-    output["asset_status_raw"] = lines["etat_de_l_objet"].copy()
-    output["source_name_raw"] = lines["sources"].copy()
-    output["source_identifiers_raw"] = lines["identifiants_sources"].copy()
-    output["source_created_at"] = lines["date_creation"].copy()
-    output["source_modified_at"] = lines["date_modification"].copy()
-    output["source_confirmed_at"] = lines["date_de_confirmation"].copy()
-    output["planimetric_acquisition_method"] = lines[
+    output["manager_name"] = working["gestionnaire"].copy()
+    output["manager_siren"] = working["siren_gestionnaire"].copy()
+    output["asset_status_raw"] = working["etat_de_l_objet"].copy()
+    output["source_name_raw"] = working["sources"].copy()
+    output["source_identifiers_raw"] = working["identifiants_sources"].copy()
+    output["source_created_at"] = working["date_creation"].copy()
+    output["source_modified_at"] = working["date_modification"].copy()
+    output["source_confirmed_at"] = working["date_de_confirmation"].copy()
+    output["planimetric_acquisition_method"] = working[
         "methode_d_acquisition_planimetrique"
     ].copy()
-    output["planimetric_precision_m"] = lines["precision_planimetrique"].copy()
-    return _validated_geodataframe(output, lines, LINE_OUTPUT_COLUMNS)
+    output["planimetric_precision_m"] = precision
+    return _validated_geodataframe(
+        output, working, status, LINE_OUTPUT_COLUMNS
+    )
 
 
 def normalize_ign_transformation_posts(
     posts: gpd.GeoDataFrame,
+    context: IgnGridSourceContext,
 ) -> gpd.GeoDataFrame:
-    """Normalize IGN transformation-post proxies without inferring voltage."""
+    """Normalize one discovered IGN transformation-post proxy layer."""
 
-    _validate_input(
-        posts,
-        TRANSFORMATION_POST_SOURCE_FIELDS,
-        TRANSFORMATION_POST_SOURCE_LAYER,
+    _validate_context(context)
+    _validate_input(posts, TRANSFORMATION_POST_SOURCE_FIELDS, context.source_layer)
+    working = posts.reset_index(drop=True).copy()
+    status = _geometry_status(working.geometry)
+    _validate_valid_geometry_types(
+        working,
+        status,
+        TRANSFORMATION_POST_GEOMETRY_TYPES,
+        context.source_layer,
+    )
+    precision = _normalized_precision(
+        working["precision_planimetrique"], context.source_layer
     )
     output = _base_output(
-        posts,
+        working,
         feature_type="TRANSFORMATION_POST",
-        source_layer=TRANSFORMATION_POST_SOURCE_LAYER,
+        context=context,
     )
-    output["name"] = posts["toponyme"].copy()
-    output["name_status_raw"] = posts["statut_du_toponyme"].copy()
-    output["importance_raw"] = posts["importance"].copy()
-    output["asset_status_raw"] = posts["etat_de_l_objet"].copy()
-    output["source_name_raw"] = posts["sources"].copy()
-    output["source_identifiers_raw"] = posts["identifiants_sources"].copy()
-    output["source_created_at"] = posts["date_creation"].copy()
-    output["source_modified_at"] = posts["date_modification"].copy()
-    output["source_confirmed_at"] = posts["date_de_confirmation"].copy()
-    output["planimetric_acquisition_method"] = posts[
+    output["name"] = working["toponyme"].copy()
+    output["name_status_raw"] = working["statut_du_toponyme"].copy()
+    output["importance_raw"] = working["importance"].copy()
+    output["asset_status_raw"] = working["etat_de_l_objet"].copy()
+    output["source_name_raw"] = working["sources"].copy()
+    output["source_identifiers_raw"] = working["identifiants_sources"].copy()
+    output["source_created_at"] = working["date_creation"].copy()
+    output["source_modified_at"] = working["date_modification"].copy()
+    output["source_confirmed_at"] = working["date_de_confirmation"].copy()
+    output["planimetric_acquisition_method"] = working[
         "methode_d_acquisition_planimetrique"
     ].copy()
-    output["planimetric_precision_m"] = posts["precision_planimetrique"].copy()
+    output["planimetric_precision_m"] = precision
     output["voltage_status"] = "UNKNOWN"
     output["voltage_kv"] = float("nan")
     return _validated_geodataframe(
         output,
-        posts,
+        working,
+        status,
         TRANSFORMATION_POST_OUTPUT_COLUMNS,
+    )
+
+
+def _validate_layer_summary(
+    frame: gpd.GeoDataFrame,
+    summary: IgnBdTopoLayerSummary,
+    *,
+    expected_layer: str,
+    expected_logical_name: str,
+) -> None:
+    if summary.source_layer_name != expected_layer:
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} summary layer does not match extraction"
+        )
+    if summary.logical_name != expected_logical_name:
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} summary has the wrong logical name"
+        )
+    if summary.feature_count != len(frame):
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} summary row count does not match frame"
+        )
+    if frame.active_geometry_name != "geometry":
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} requires an active geometry column"
+        )
+    frame_crs = _validated_lambert93(frame.crs, f"IGN {expected_logical_name}")
+    summary_crs = _validated_lambert93(
+        summary.crs, f"IGN {expected_logical_name} summary"
+    )
+    if not frame_crs.equals(summary_crs):
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} summary CRS does not match frame"
+        )
+    observed_geometry = _geometry_summary(frame)
+    expected_geometry = (
+        summary.null_geometry_count,
+        summary.empty_geometry_count,
+        summary.invalid_geometry_count,
+        summary.geometry_types,
+    )
+    if observed_geometry != expected_geometry:
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} geometry summary does not match frame"
+        )
+
+
+def _validate_source_bundle(source: IgnBdTopoElectricityData) -> None:
+    roles = (
+        source.spatial_role,
+        source.extraction.spatial_role,
+        source.extraction.archive.spatial_role,
+        source.electric_lines_summary.spatial_role,
+        source.transformation_posts_summary.spatial_role,
+    )
+    if any(role != SPATIAL_ROLE for role in roles):
+        raise IgnGridNormalizationError(
+            "IGN source bundle spatial roles must all be PROXY_GEOMETRY"
+        )
+    _validate_layer_summary(
+        source.electric_lines,
+        source.electric_lines_summary,
+        expected_layer=source.extraction.electric_lines_layer,
+        expected_logical_name="electric_lines",
+    )
+    _validate_layer_summary(
+        source.transformation_posts,
+        source.transformation_posts_summary,
+        expected_layer=source.extraction.transformation_posts_layer,
+        expected_logical_name="transformation_posts",
+    )
+
+
+def _source_context(
+    source: IgnBdTopoElectricityData,
+    source_layer: str,
+) -> IgnGridSourceContext:
+    archive = source.extraction.archive
+    return IgnGridSourceContext(
+        source_layer=source_layer,
+        department_code=archive.department_code,
+        edition=archive.edition,
+        product_version=archive.product_version,
+        download_timestamp=archive.download_timestamp,
+        archive_sha256=archive.sha256,
+        source_url=archive.source_url,
     )
 
 
 def normalize_ign_electricity(
     source: IgnBdTopoElectricityData,
 ) -> NormalizedIgnElectricityData:
-    """Normalize both already-loaded IGN electricity layers independently."""
+    """Validate and normalize a complete already-loaded IGN source bundle."""
 
+    _validate_source_bundle(source)
+    line_context = _source_context(
+        source, source.extraction.electric_lines_layer
+    )
+    post_context = _source_context(
+        source, source.extraction.transformation_posts_layer
+    )
     return NormalizedIgnElectricityData(
-        electric_lines=normalize_ign_electric_lines(source.electric_lines),
+        electric_lines=normalize_ign_electric_lines(
+            source.electric_lines, line_context
+        ),
         transformation_posts=normalize_ign_transformation_posts(
-            source.transformation_posts
+            source.transformation_posts, post_context
         ),
     )
