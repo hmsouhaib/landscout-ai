@@ -12,7 +12,7 @@ import pyogrio
 import pytest
 import yaml
 from pydantic import ValidationError
-from shapely.geometry import LineString, Polygon
+from shapely.geometry import LineString, MultiPolygon, Polygon
 
 from landscout.sources import ign_bdtopo_fr
 from landscout.sources.ign_bdtopo_fr import (
@@ -25,6 +25,7 @@ from landscout.sources.ign_bdtopo_fr import (
     download_ign_bdtopo_archive,
     extract_ign_bdtopo_archive,
     list_ign_bdtopo_layers,
+    load_ign_bdtopo_department_coverage,
     load_ign_bdtopo_electricity,
     load_ign_bdtopo_layer,
     load_ign_bdtopo_source_config,
@@ -36,6 +37,7 @@ CONFIG_PATH = PROJECT_ROOT / "configs/sources/ign_bdtopo_fr.yaml"
 SYNTHETIC_SOURCE_URL = "https://example.test/BDTOPO_TEST_D031.7z"
 LINE_LAYER = "LIGNE_ELECTRIQUE"
 POST_LAYER = "POSTE_DE_TRANSFORMATION"
+DEPARTMENT_LAYER = "DEPARTEMENT"
 
 
 def _config_data() -> dict:
@@ -72,6 +74,10 @@ def _write_gpkg(
     post_layer: str = POST_LAYER,
     crs: str | None = "EPSG:2154",
     invalid_post: bool = False,
+    include_department: bool = False,
+    department_layer: str = DEPARTMENT_LAYER,
+    department_codes: list[str] | None = None,
+    department_geometries: list[object] | None = None,
 ) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     layer_written = False
@@ -117,6 +123,42 @@ def _write_gpkg(
             driver="GPKG",
             append=layer_written,
         )
+        layer_written = True
+    if include_department:
+        codes = department_codes or ["31", "32"]
+        geometries = department_geometries or [
+            MultiPolygon(
+                [Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)])]
+            ),
+            MultiPolygon(
+                [
+                    Polygon(
+                        [
+                            (1000, 0),
+                            (1000, 1000),
+                            (2000, 1000),
+                            (2000, 0),
+                            (1000, 0),
+                        ]
+                    )
+                ]
+            ),
+        ][: len(codes)]
+        departments = gpd.GeoDataFrame(
+            {
+                "code_insee": codes,
+                "nom_officiel": [f"Department {code}" for code in codes],
+            },
+            geometry=geometries,
+            crs=crs,
+        )
+        pyogrio.write_dataframe(
+            departments,
+            path,
+            layer=department_layer,
+            driver="GPKG",
+            append=layer_written,
+        )
 
 
 def _pack_7z(
@@ -136,6 +178,7 @@ def _synthetic_archive_bytes(
     include_lines: bool = True,
     include_posts: bool = True,
     invalid_post: bool = False,
+    include_department: bool = False,
 ) -> bytes:
     gpkg_path = root / "fixture" / "BDTOPO_TEST.gpkg"
     _write_gpkg(
@@ -143,6 +186,7 @@ def _synthetic_archive_bytes(
         include_lines=include_lines,
         include_posts=include_posts,
         invalid_post=invalid_post,
+        include_department=include_department,
     )
     return _pack_7z(
         root / "fixture.7z",
@@ -178,6 +222,25 @@ def test_valid_source_config_loads(source_config: IgnBdTopoSourceConfig) -> None
     assert source_config.projection == "EPSG:2154"
     assert source_config.format == "GPKG"
     assert source_config.edition == "2026-06-15"
+    assert source_config.coverage.department_layer.match_tokens == ("departement",)
+    assert (
+        source_config.coverage.department_layer.department_code_field
+        == "code_insee"
+    )
+
+
+@pytest.mark.parametrize("mutation", ["missing", "blank_field", "empty_tokens"])
+def test_invalid_department_coverage_config_fails(mutation: str) -> None:
+    content = _config_data()
+    if mutation == "missing":
+        del content["coverage"]
+    elif mutation == "blank_field":
+        content["coverage"]["department_layer"]["department_code_field"] = " "
+    else:
+        content["coverage"]["department_layer"]["match_tokens"] = []
+
+    with pytest.raises(ValidationError):
+        IgnBdTopoSourceConfig.model_validate(content)
 
 
 @pytest.mark.parametrize("field", ["source_url", "edition"])
@@ -662,3 +725,164 @@ def test_electricity_loader_retains_both_layer_counts(
     assert electricity.electric_lines.crs.to_epsg() == 2154
     assert electricity.transformation_posts.crs.to_epsg() == 2154
     assert electricity.transformation_posts_summary.invalid_geometry_count == 1
+
+
+def test_department_coverage_loader_selects_configured_identity(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    archive_content = _synthetic_archive_bytes(
+        tmp_path / "source",
+        include_department=True,
+    )
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+    extraction = extract_ign_bdtopo_archive(
+        download,
+        config,
+        extraction_dir=tmp_path / "extracted",
+    )
+
+    loaded = load_ign_bdtopo_department_coverage(extraction, config)
+
+    assert loaded.source_layer == DEPARTMENT_LAYER
+    assert loaded.source_department_code == "31"
+    assert loaded.spatial_role == "SOURCE_COVERAGE_BOUNDARY"
+    assert len(loaded.coverage) == 1
+    assert loaded.coverage.loc[0, "code_insee"] == "31"
+    assert loaded.coverage.loc[0, "source_department_code"] == "31"
+    assert loaded.coverage.loc[0, "source_archive_sha256"] == download.sha256
+    assert loaded.coverage.loc[0, "spatial_role"] == "SOURCE_COVERAGE_BOUNDARY"
+    assert loaded.coverage.crs.to_epsg() == 2154
+    assert loaded.summary.source_feature_count == 2
+    assert loaded.summary.selected_feature_count == 1
+    assert loaded.summary.department_code_field == "code_insee"
+    assert loaded.summary.geometry_types == ("MultiPolygon",)
+
+
+@pytest.mark.parametrize(
+    "department_codes",
+    [["32"], ["31", "31"]],
+    ids=["missing", "duplicate"],
+)
+def test_department_coverage_requires_one_authoritative_feature(
+    tmp_path: Path,
+    source_config: IgnBdTopoSourceConfig,
+    department_codes: list[str],
+) -> None:
+    gpkg_path = tmp_path / "source" / "coverage.gpkg"
+    geometries = [
+        Polygon([(0, 0), (0, 100), (100, 100), (100, 0), (0, 0)])
+        for _ in department_codes
+    ]
+    _write_gpkg(
+        gpkg_path,
+        include_department=True,
+        department_codes=department_codes,
+        department_geometries=geometries,
+    )
+    archive_content = _pack_7z(
+        tmp_path / "coverage.7z",
+        [(gpkg_path, "PACKAGE/coverage.gpkg")],
+    )
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+    extraction = extract_ign_bdtopo_archive(
+        download,
+        config,
+        extraction_dir=tmp_path / "extracted",
+    )
+
+    with pytest.raises(IgnBdTopoLayerError, match="exactly one|found"):
+        load_ign_bdtopo_department_coverage(extraction, config)
+
+
+def test_department_coverage_requires_configured_identity_field(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    archive_content = _synthetic_archive_bytes(
+        tmp_path / "source",
+        include_department=True,
+    )
+    content = _synthetic_config(source_config).model_dump(mode="json")
+    content["coverage"]["department_layer"]["department_code_field"] = (
+        "missing_code"
+    )
+    config = IgnBdTopoSourceConfig.model_validate(content)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+    extraction = extract_ign_bdtopo_archive(
+        download,
+        config,
+        extraction_dir=tmp_path / "extracted",
+    )
+
+    with pytest.raises(IgnBdTopoLayerError, match="identity field|missing_code"):
+        load_ign_bdtopo_department_coverage(extraction, config)
+
+
+def test_missing_department_coverage_layer_fails(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    archive_content = _synthetic_archive_bytes(tmp_path / "source")
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+    extraction = extract_ign_bdtopo_archive(
+        download,
+        config,
+        extraction_dir=tmp_path / "extracted",
+    )
+
+    with pytest.raises(IgnBdTopoLayerError, match="department|found 0"):
+        load_ign_bdtopo_department_coverage(extraction, config)
+
+
+def test_department_coverage_layer_discovery_must_be_unambiguous(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    gpkg_path = tmp_path / "source" / "ambiguous.gpkg"
+    _write_gpkg(gpkg_path, include_department=True)
+    second = gpd.GeoDataFrame(
+        {"code_insee": ["31"]},
+        geometry=[Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])],
+        crs="EPSG:2154",
+    )
+    pyogrio.write_dataframe(
+        second,
+        gpkg_path,
+        layer="DEPARTEMENT_SECONDAIRE",
+        driver="GPKG",
+        append=True,
+    )
+    archive_content = _pack_7z(
+        tmp_path / "ambiguous.7z",
+        [(gpkg_path, "PACKAGE/ambiguous.gpkg")],
+    )
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+    extraction = extract_ign_bdtopo_archive(
+        download,
+        config,
+        extraction_dir=tmp_path / "extracted",
+    )
+
+    with pytest.raises(IgnBdTopoLayerError, match="unambiguous|found 2"):
+        load_ign_bdtopo_department_coverage(extraction, config)

@@ -41,8 +41,10 @@ DEFAULT_CONFIG_PATH = Path("configs/sources/ign_bdtopo_fr.yaml")
 DEFAULT_CACHE_DIR = Path("data/cache/ign_bdtopo")
 DOWNLOAD_CHUNK_SIZE = 1024 * 1024
 SPATIAL_ROLE = "PROXY_GEOMETRY"
+COVERAGE_SPATIAL_ROLE = "SOURCE_COVERAGE_BOUNDARY"
 
 SpatialRole = Literal["PROXY_GEOMETRY"]
+CoverageSpatialRole = Literal["SOURCE_COVERAGE_BOUNDARY"]
 LogicalLayerName = Literal["electric_lines", "transformation_posts"]
 Projection = Literal["EPSG:2154"]
 PackageFormat = Literal["GPKG"]
@@ -106,6 +108,18 @@ class IgnBdTopoLogicalLayersConfig(BaseModel):
         return self
 
 
+class IgnBdTopoDepartmentLayerConfig(IgnBdTopoLogicalLayerConfig):
+    """Configured department layer and its observed identity field."""
+
+    department_code_field: NonEmptyString
+
+
+class IgnBdTopoCoverageConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    department_layer: IgnBdTopoDepartmentLayerConfig
+
+
 class IgnBdTopoSourceConfig(BaseModel):
     """Strict, reproducible description of one official IGN package."""
 
@@ -126,6 +140,7 @@ class IgnBdTopoSourceConfig(BaseModel):
     expected_archive_size_bytes: int | None = Field(default=None, gt=0)
     cache_max_age_hours: float = Field(ge=0, allow_inf_nan=False)
     logical_layers: IgnBdTopoLogicalLayersConfig
+    coverage: IgnBdTopoCoverageConfig
 
     @field_validator("edition")
     @classmethod
@@ -263,6 +278,41 @@ class IgnBdTopoElectricityData:
     electric_lines_summary: IgnBdTopoLayerSummary
     transformation_posts_summary: IgnBdTopoLayerSummary
     spatial_role: SpatialRole = "PROXY_GEOMETRY"
+
+
+@dataclass(frozen=True)
+class IgnBdTopoCoverageLayerSummary:
+    """Observed source-layer schema plus the authoritative selected feature."""
+
+    source_layer_name: str
+    crs: str
+    source_feature_count: int
+    selected_feature_count: int
+    columns: tuple[str, ...]
+    dtypes: tuple[tuple[str, str], ...]
+    null_geometry_count: int
+    empty_geometry_count: int
+    invalid_geometry_count: int
+    geometry_types: tuple[str, ...]
+    department_code_field: str
+    selected_department_code: str
+    spatial_role: CoverageSpatialRole = "SOURCE_COVERAGE_BOUNDARY"
+
+
+@dataclass(frozen=True)
+class IgnBdTopoDepartmentCoverage:
+    """Selected department coverage with package lineage and source schema."""
+
+    coverage: gpd.GeoDataFrame
+    summary: IgnBdTopoCoverageLayerSummary
+    source_provider: str
+    source_product: str
+    source_department_code: str
+    source_edition: str
+    source_product_version: str | None
+    source_archive_sha256: str
+    source_layer: str
+    spatial_role: CoverageSpatialRole = "SOURCE_COVERAGE_BOUNDARY"
 
 
 class _CacheMetadata(BaseModel):
@@ -769,6 +819,20 @@ def discover_ign_bdtopo_layers(
     )
 
 
+def _discover_department_coverage_layer(
+    layer_names: tuple[str, ...],
+    config: IgnBdTopoSourceConfig,
+) -> str:
+    matches = _matching_layers(layer_names, config.coverage.department_layer)
+    if len(matches) != 1:
+        raise IgnBdTopoLayerError(
+            "Expected one unambiguous department coverage layer for "
+            f"'{config.coverage.department_layer.class_label}', found "
+            f"{len(matches)}: {matches}"
+        )
+    return matches[0]
+
+
 def _safe_relative_path(path: Path, root: Path) -> str:
     try:
         return path.resolve().relative_to(root.resolve()).as_posix()
@@ -1061,4 +1125,140 @@ def load_ign_bdtopo_electricity(
         transformation_posts=transformation_posts.data,
         electric_lines_summary=electric_lines.summary,
         transformation_posts_summary=transformation_posts.summary,
+    )
+
+
+def load_ign_bdtopo_department_coverage(
+    extraction: IgnBdTopoExtraction,
+    config: IgnBdTopoSourceConfig,
+) -> IgnBdTopoDepartmentCoverage:
+    """Load the one authoritative configured department coverage feature."""
+
+    archive = extraction.archive
+    if config.department_code != archive.department_code:
+        raise IgnBdTopoLayerError(
+            "IGN coverage config department does not match archive lineage"
+        )
+    actual_layers = list_ign_bdtopo_layers(extraction.geopackage_path)
+    if actual_layers != extraction.all_layer_names:
+        raise IgnBdTopoLayerError(
+            "IGN extraction layer inventory changed before coverage loading"
+        )
+    layer_name = _discover_department_coverage_layer(actual_layers, config)
+    try:
+        frame = gpd.read_file(
+            extraction.geopackage_path,
+            layer=layer_name,
+            engine="pyogrio",
+        )
+    except Exception as error:
+        raise IgnBdTopoLayerError(
+            f"Cannot load IGN department coverage layer: {layer_name}"
+        ) from error
+    if not isinstance(frame, gpd.GeoDataFrame):
+        raise IgnBdTopoLayerError(
+            f"IGN department coverage layer is not spatial: {layer_name}"
+        )
+    try:
+        geometry_name = frame.geometry.name
+    except (AttributeError, ValueError) as error:
+        raise IgnBdTopoLayerError(
+            f"IGN department coverage layer has no active geometry: {layer_name}"
+        ) from error
+    if geometry_name not in frame.columns:
+        raise IgnBdTopoLayerError(
+            f"IGN department coverage geometry column is missing: {layer_name}"
+        )
+    crs = _validate_lambert93(frame.crs, layer_name)
+    if frame.empty:
+        raise IgnBdTopoLayerError(
+            f"IGN department coverage layer contains no features: {layer_name}"
+        )
+
+    geometry = frame.geometry
+    null_mask = geometry.isna()
+    non_null_mask = ~null_mask
+    empty_mask = non_null_mask & geometry.is_empty
+    measurable_mask = non_null_mask & ~geometry.is_empty
+    invalid_mask = measurable_mask & ~geometry.is_valid
+    geometry_types = tuple(
+        sorted(
+            str(value)
+            for value in geometry[non_null_mask].geom_type.dropna().unique()
+        )
+    )
+
+    department_field = config.coverage.department_layer.department_code_field
+    if department_field not in frame.columns:
+        raise IgnBdTopoLayerError(
+            "Configured department identity field is missing from IGN coverage "
+            f"layer: {department_field}"
+        )
+    selected_mask = frame[department_field].eq(archive.department_code)
+    selected_count = int(selected_mask.sum())
+    if selected_count != 1:
+        raise IgnBdTopoLayerError(
+            "Expected exactly one authoritative department coverage feature for "
+            f"{archive.department_code}, found {selected_count}"
+        )
+    selected = frame.loc[selected_mask].reset_index(drop=True).copy()
+    selected_geometry = selected.geometry
+    if selected_geometry.isna().any():
+        raise IgnBdTopoLayerError("Selected department coverage geometry is null")
+    if selected_geometry.is_empty.any():
+        raise IgnBdTopoLayerError("Selected department coverage geometry is empty")
+    if not selected_geometry.is_valid.all():
+        raise IgnBdTopoLayerError("Selected department coverage geometry is invalid")
+    selected_types = set(selected_geometry.geom_type.dropna())
+    if not selected_types <= {"Polygon", "MultiPolygon"}:
+        raise IgnBdTopoLayerError(
+            "Selected department coverage geometry must be Polygon or MultiPolygon"
+        )
+
+    lineage = {
+        "source_provider": archive.provider,
+        "source_product": archive.product,
+        "source_department_code": archive.department_code,
+        "source_edition": archive.edition,
+        "source_product_version": archive.product_version,
+        "source_archive_sha256": archive.sha256,
+        "source_layer": layer_name,
+        "spatial_role": COVERAGE_SPATIAL_ROLE,
+    }
+    collisions = set(lineage) & set(selected.columns)
+    if collisions:
+        raise IgnBdTopoLayerError(
+            "IGN department coverage attributes collide with lineage columns: "
+            + ", ".join(sorted(collisions))
+        )
+    for column, value in lineage.items():
+        selected[column] = value
+
+    summary = IgnBdTopoCoverageLayerSummary(
+        source_layer_name=layer_name,
+        crs=crs.to_string(),
+        source_feature_count=len(frame),
+        selected_feature_count=selected_count,
+        columns=tuple(str(column) for column in frame.columns),
+        dtypes=tuple(
+            (str(column), str(dtype))
+            for column, dtype in frame.dtypes.items()
+        ),
+        null_geometry_count=int(null_mask.sum()),
+        empty_geometry_count=int(empty_mask.sum()),
+        invalid_geometry_count=int(invalid_mask.sum()),
+        geometry_types=geometry_types,
+        department_code_field=department_field,
+        selected_department_code=archive.department_code,
+    )
+    return IgnBdTopoDepartmentCoverage(
+        coverage=selected,
+        summary=summary,
+        source_provider=archive.provider,
+        source_product=archive.product,
+        source_department_code=archive.department_code,
+        source_edition=archive.edition,
+        source_product_version=archive.product_version,
+        source_archive_sha256=archive.sha256,
+        source_layer=layer_name,
     )

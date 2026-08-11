@@ -25,3 +25,10 @@ logical_layers:
     match_tokens:
       - "poste"
       - "transformation"
+
+coverage:
+  department_layer:
+    class_label: "Département"
+    match_tokens:
+      - "departement"
+    department_code_field: "code_insee"

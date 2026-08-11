@@ -1,3 +1,13 @@
+from landscout.stages.assess_grid_coverage import (
+    BoundaryDistanceProfile,
+    CoverageStatusCounts,
+    GridCoverageAssessmentError,
+    GridCoverageAssessmentResult,
+    GridCoverageProfile,
+    VoltageCoverageStatusProfile,
+    assess_grid_coverage,
+    profile_grid_coverage,
+)
 from landscout.stages.enrich_grid_proximity import (
     DistanceProfile,
     GridProximityError,
@@ -32,8 +42,13 @@ from landscout.stages.profile_shape import (
 )
 
 __all__ = [
+    "BoundaryDistanceProfile",
     "CadastreNormalizationError",
+    "CoverageStatusCounts",
     "DistanceProfile",
+    "GridCoverageAssessmentError",
+    "GridCoverageAssessmentResult",
+    "GridCoverageProfile",
     "GridProximityError",
     "GridProximityProfile",
     "GridProximityResult",
@@ -44,8 +59,10 @@ __all__ = [
     "ShapeDistributionProfile",
     "ShapeEnrichmentError",
     "ShapeProfileError",
+    "VoltageCoverageStatusProfile",
     "VoltageLevelCoverage",
     "VoltageLevelDistanceProfile",
+    "assess_grid_coverage",
     "enrich_parcel_grid_proximity",
     "enrich_parcel_shapes",
     "filter_parcels_by_area",
@@ -53,6 +70,7 @@ __all__ = [
     "normalize_cadastre_parcels",
     "normalize_ign_electricity",
     "parse_ign_voltage",
+    "profile_grid_coverage",
     "profile_grid_proximity",
     "profile_shape_distribution",
 ]

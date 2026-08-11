@@ -2,11 +2,11 @@
 
 ## Current project state
 
-- Current phase: French electricity-grid proximity diagnostics
-- Latest completed step: STEP 7C.4.2 — cross-validated exact-line proximity representations
+- Current phase: French electricity-grid proximity coverage diagnostics
+- Latest completed step: STEP 7C.5 — diagnosed IGN grid proxy coverage boundaries
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: review of fully validated diagnostic grid-proximity distributions
+- Next step waiting for review: review of boundary-aware grid-proximity diagnostics
 
 ## STEP 0 — Environment check
 
@@ -1280,6 +1280,111 @@ All distances remain 2D planar proxy distances calculated in EPSG:2154 from full
 Distance to an IGN electric line or transformation post does not establish grid connection feasibility, capacity, connection cost, or an RTE/DSO connection point.
 
 No BESS grid-distance threshold is selected here.
+
+## STEP 7C.5 — Diagnose IGN grid proxy coverage boundaries
+
+- Status: Complete
+- Implementation summary: Added config-driven loading of the authoritative D031 department geometry and a separate immutable stage that diagnoses whether each existing nearest-proxy result could be limited by the loaded package boundary.
+- Important files: `configs/sources/ign_bdtopo_fr.yaml`, `src/landscout/sources/ign_bdtopo_fr.py`, `src/landscout/stages/assess_grid_coverage.py`, `tests/unit/test_ign_bdtopo_fr.py`, `tests/unit/test_assess_grid_coverage.py`
+- Tests/checks: 61 focused IGN-source and coverage tests pass. The full suite passes with 516 tests; Ruff and mypy pass.
+- Important decisions: Physical coverage-layer discovery and its department identity field are configuration-driven. Parcels touching, crossing, or lying outside the selected coverage are handled conservatively and receive a deterministic boundary distance of `0 m`. For strictly internal parcels, full parcel geometry—not the centroid—is measured against the full coverage boundary in planar EPSG:2154.
+- Known issues: The existing Pyogrio warnings for unsupported declared GeoPackage field formats remain; layer discovery and loading succeed. This diagnostic does not measure source completeness inside D031.
+
+### Real department-layer inspection
+
+- Actual source layer: `departement`
+- Source feature count: 7
+- CRS: `EPSG:2154`
+- Geometry types: `MultiPolygon` 7
+- Null / empty / invalid geometries: 0 / 0 / 0
+- Columns and dtypes:
+  - `cleabs`: `str`
+  - `nom_officiel`: `str`
+  - `code_insee`: `str`
+  - `code_insee_de_la_region`: `str`
+  - `code_siren`: `str`
+  - `date_creation`: `datetime64[ms]`
+  - `date_modification`: `datetime64[ms]`
+  - `date_d_apparition`: `datetime64[ms]`
+  - `date_de_confirmation`: `datetime64[ms]`
+  - `liens_vers_autorite_administrative`: `str`
+  - `geometry`: `geometry`
+- Authoritative identity field: `code_insee`
+- Selected feature: exactly one row with `code_insee = "31"` and `nom_officiel = "Haute-Garonne"`
+- Selected geometry: valid `MultiPolygon`; no union or row-position inference was used
+
+The coverage source result preserves provider, product, department, edition, product version, archive SHA256, actual source layer, and `SOURCE_COVERAGE_BOUNDARY` spatial role. All original source attributes remain available on the selected feature.
+
+### Diagnostic semantics
+
+For strictly internal parcels, `grid_source_boundary_distance_m` is the minimum planar XY distance from the full parcel geometry to the selected D031 boundary. A matched proxy is `NOT_BOUNDARY_LIMITED` only when its distance is strictly smaller than that boundary distance. Equality remains `BOUNDARY_LIMITED`, because an outside feature could tie. Matched parcels that are not strictly internal are `OUTSIDE_OR_CROSSING_COVERAGE`; a legitimately absent proximity class is `NO_MATCH`.
+
+The stage returns new parcel and voltage frames. Parcel count, parcel IDs/order, geometry, storage CRS, parcel-voltage pairs/order, distances, selected features, tie counts, voltages, and existing lineage remain unchanged. Coverage provenance is added explicitly to both outputs. The long-form voltage vocabulary remains dynamic.
+
+### Real Muret/D031 results
+
+- Input/output parcels: 3,638 / 3,638
+- Voltage proximity rows: 14,552
+- Fully covered parcels: 3,638
+- Outside or crossing parcels: 0
+- Assessment wall-clock duration: 16.667 seconds
+
+Main proximity status counts:
+
+| Proximity class | NOT_BOUNDARY_LIMITED | BOUNDARY_LIMITED | OUTSIDE_OR_CROSSING_COVERAGE | NO_MATCH |
+| --- | ---: | ---: | ---: | ---: |
+| Nearest line | 3,638 | 0 | 0 | 0 |
+| Nearest exact-voltage line | 3,638 | 0 | 0 | 0 |
+| Nearest transformation post | 3,638 | 0 | 0 | 0 |
+
+Dynamic exact-voltage results:
+
+| Voltage | Parcels | NOT_BOUNDARY_LIMITED | BOUNDARY_LIMITED | OUTSIDE_OR_CROSSING_COVERAGE |
+| ---: | ---: | ---: | ---: | ---: |
+| 63 kV | 3,638 | 3,638 | 0 | 0 |
+| 150 kV | 3,638 | 0 | 3,638 | 0 |
+| 225 kV | 3,638 | 3,638 | 0 | 0 |
+| 400 kV | 3,638 | 3,638 | 0 | 0 |
+
+The observed 150 kV proximity distribution is therefore boundary-limited for every current Muret candidate. This is a coverage diagnostic, not a distance or voltage suitability judgment.
+
+Boundary-distance distribution:
+
+| Statistic | Distance (m) |
+| --- | ---: |
+| Minimum | 8,450.250 |
+| p01 | 9,183.982 |
+| p05 | 9,859.522 |
+| p10 | 10,903.477 |
+| p25 | 12,494.960 |
+| p50 | 14,003.103 |
+| p75 | 14,961.993 |
+| p90 | 15,660.464 |
+| p95 | 16,074.718 |
+| p99 | 16,418.363 |
+| Maximum | 16,712.165 |
+
+### Outputs and read-back
+
+- Coverage GeoParquet: `data/processed/grid/muret_bess_grid_proximity_coverage.parquet` (1,272,692 bytes)
+- Coverage long-form Parquet: `data/processed/grid/muret_bess_grid_voltage_proximity_coverage.parquet` (221,705 bytes)
+- Read-back rows: 3,638 parcels and 14,552 parcel-voltage rows
+- Duplicate parcel-voltage pairs: 0
+- Parcel CRS: `EPSG:4326`
+- Original geometry and every prior proximity value: unchanged
+- Coverage statuses, boundary distances, dynamic Cartesian product, and coverage lineage: verified after read-back
+
+Generated outputs remain ignored by Git.
+
+`NOT_BOUNDARY_LIMITED` does not prove that IGN contains every real electrical asset.
+
+It only means an asset outside the loaded D031 geographic coverage cannot be geometrically closer than the selected in-coverage proxy.
+
+IGN infrastructure geometry is `PROXY_GEOMETRY`.
+
+The department geometry is `SOURCE_COVERAGE_BOUNDARY`, not infrastructure geometry.
+
+No BESS distance or voltage suitability threshold is selected.
 
 ## STEP 7C.4.2 — Cross-validate exact-line proximity representations
 
