@@ -5,6 +5,19 @@ parcel:
   min_area_m2: 2000
   max_area_m2: 15000
 
+shape_screening:
+  enabled: true
+  min_width_m: 15
+  max_length_width_ratio: 10
+  calibration:
+    policy_version: "muret_empirical_v1"
+    method: "empirical_distribution"
+    calibration_scope: "Muret 31395"
+    sample_size: 4013
+    calibrated_at: "2026-08-11"
+    target_retention_pct: 90
+    observed_retention_pct: 90.655370
+
 crs:
   storage: EPSG:4326
   calculation: EPSG:2154

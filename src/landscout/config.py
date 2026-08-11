@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Annotated, Any
 
 import yaml  # type: ignore[import-untyped]
-from pydantic import BaseModel, Field, StringConstraints, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 CommuneCode = Annotated[str, StringConstraints(pattern=r"^\d{5}$")]
@@ -19,6 +19,45 @@ class ParcelConfig(BaseModel):
         return self
 
 
+class ShapeCalibrationConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    policy_version: NonEmptyString
+    method: NonEmptyString
+    calibration_scope: NonEmptyString
+    sample_size: int = Field(gt=0)
+    calibrated_at: NonEmptyString
+    target_retention_pct: float = Field(gt=0, le=100, allow_inf_nan=False)
+    observed_retention_pct: float = Field(ge=0, le=100, allow_inf_nan=False)
+
+
+class ShapeScreeningConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool
+    min_width_m: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    max_length_width_ratio: float | None = Field(
+        default=None, ge=1, allow_inf_nan=False
+    )
+    calibration: ShapeCalibrationConfig | None = None
+
+    @model_validator(mode="after")
+    def validate_enabled_policy(self) -> "ShapeScreeningConfig":
+        if not self.enabled:
+            return self
+
+        required_values = {
+            "min_width_m": self.min_width_m,
+            "max_length_width_ratio": self.max_length_width_ratio,
+            "calibration": self.calibration,
+        }
+        missing = [name for name, value in required_values.items() if value is None]
+        if missing:
+            formatted = ", ".join(missing)
+            raise ValueError(f"enabled shape screening requires: {formatted}")
+        return self
+
+
 class CrsConfig(BaseModel):
     storage: NonEmptyString
     calculation: NonEmptyString
@@ -28,6 +67,7 @@ class BessProfile(BaseModel):
     country: NonEmptyString
     technology: NonEmptyString
     parcel: ParcelConfig
+    shape_screening: ShapeScreeningConfig
     crs: CrsConfig
 
 

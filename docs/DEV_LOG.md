@@ -2,11 +2,11 @@
 
 ## Current project state
 
-- Current phase: French cadastral data ingestion
-- Latest completed step: STEP 7B.5.1 — handle shape profiling errors explicitly
+- Current phase: BESS parcel screening
+- Latest completed step: STEP 7B.6 — configurable calibrated shape screening
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: next LandScout implementation step, not yet specified
+- Next step waiting for review: post-screening LandScout implementation step
 
 ## STEP 0 — Environment check
 
@@ -370,3 +370,49 @@ Representative extreme/problematic parcels (geometry omitted):
 - Ratio bucket counts: unchanged from STEP 7B.5
 - Compactness bucket counts: unchanged from STEP 7B.5
 - Diagnostic scenario counts: unchanged from STEP 7B.5
+
+## STEP 7B.6 — Configurable calibrated BESS shape screening
+
+- Status: Complete
+- Implementation summary: Added a validated, configuration-driven shape policy and a lossless retained/rejected partition for shape-enriched parcels.
+- Important files: `src/landscout/config.py`, `configs/profiles/bess_default_fr.yaml`, `src/landscout/stages/filter_parcels.py`, `src/landscout/stages/__init__.py`, `tests/unit/test_config.py`, `tests/unit/test_filter_shape.py`
+- Tests/checks: Covered configuration bounds and completeness, disabled behavior, inclusive thresholds, rejection precedence, policy provenance, CRS and parcel-ID integrity, configuration-driven output changes, and input immutability; 160 tests, Ruff, and mypy pass.
+- Important decisions: YAML owns all active policy values and calibration evidence; Python contains only the generic screening mechanism. Compactness is preserved but is not a rejection rule. A disabled policy is an exact pass-through without fabricated rejection or active-policy columns.
+- Known issues: None.
+
+### Active calibration
+
+- Policy version: `muret_empirical_v1`
+- Method: `empirical_distribution`
+- Calibration scope: `Muret 31395`
+- Sample size: 4,013
+- Calibration date: `2026-08-11`
+- Target retention: 90%
+- Observed calibration retention: 90.655370%
+- Minimum width: 15 m
+- Maximum length/width ratio: 10
+
+These thresholds are **pilot calibration parameters derived from the Muret empirical distribution**. They are not universal BESS engineering constraints and can be changed through profile configuration without modifying Python code.
+
+### Real Muret shape screening (`31395`)
+
+- Input parcels: 4,013
+- Retained parcels: 3,638
+- Rejected parcels: 375
+- Retained percentage: 90.655370%
+- `SHAPE_ERROR`: 0
+- `WIDTH_UNKNOWN`: 0
+- `RATIO_UNKNOWN`: 0
+- `WIDTH_BELOW_MIN`: 159
+- `RATIO_ABOVE_MAX`: 216
+- Minimum retained width: 15.111883 m
+- Maximum retained length/width ratio: 9.997098
+- Duplicate input parcel IDs: 0
+- Duplicate retained parcel IDs: 0
+- Duplicate rejected parcel IDs: 0
+- Overlapping retained/rejected parcel IDs: 0
+- Lost parcel IDs: 0
+- Extra parcel IDs: 0
+- Output CRS: `EPSG:4326`
+- Retained GeoParquet: `data/processed/cadastre/muret_bess_shape_filtered_candidates.parquet`
+- Rejected GeoParquet: `data/processed/cadastre/muret_bess_shape_rejected.parquet`
