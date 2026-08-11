@@ -1,0 +1,10 @@
+country: FR
+technology: BESS
+
+parcel:
+  min_area_m2: 2000
+  max_area_m2: 15000
+
+crs:
+  storage: EPSG:4326
+  calculation: EPSG:2154

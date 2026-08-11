@@ -1,0 +1,14 @@
+scan:
+  name: bess_muret
+  country: FR
+  technology: BESS
+
+aoi:
+  commune_codes:
+    - "31395"
+
+profile:
+  path: configs/profiles/bess_default_fr.yaml
+
+output:
+  directory: outputs
