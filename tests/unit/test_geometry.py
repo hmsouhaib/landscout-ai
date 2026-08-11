@@ -1,14 +1,20 @@
 import pytest
+from shapely.affinity import rotate
 from shapely.geometry import MultiPolygon, Polygon
 
 from landscout.geo import (
     LAMBERT93,
     WGS84,
     EmptyGeometryError,
+    GeometryError,
     InvalidGeometryError,
     MetricCrsError,
+    approximate_length_m,
+    approximate_width_m,
     area_m2,
     centroid,
+    compactness_score,
+    length_width_ratio,
     perimeter_m,
 )
 
@@ -65,3 +71,101 @@ def test_multipolygon() -> None:
 
     assert area_m2(geometry, LAMBERT93) == pytest.approx(200.0)
     assert perimeter_m(geometry, LAMBERT93) == pytest.approx(80.0)
+
+
+def test_square_shape_metrics(square: Polygon) -> None:
+    assert approximate_length_m(square, LAMBERT93) == pytest.approx(10.0)
+    assert approximate_width_m(square, LAMBERT93) == pytest.approx(10.0)
+    assert length_width_ratio(square, LAMBERT93) == pytest.approx(1.0)
+    assert compactness_score(square, LAMBERT93) == pytest.approx(0.785398)
+
+
+def test_simple_rectangle_shape_metrics() -> None:
+    rectangle = Polygon([(0, 0), (20, 0), (20, 10), (0, 10)])
+
+    assert approximate_length_m(rectangle, LAMBERT93) == pytest.approx(20.0)
+    assert approximate_width_m(rectangle, LAMBERT93) == pytest.approx(10.0)
+    assert length_width_ratio(rectangle, LAMBERT93) == pytest.approx(2.0)
+
+
+def test_rotated_rectangle_is_orientation_independent() -> None:
+    rectangle = Polygon([(0, 0), (30, 0), (30, 10), (0, 10)])
+    rotated = rotate(rectangle, 37)
+
+    assert approximate_length_m(rotated, LAMBERT93) == pytest.approx(30.0)
+    assert approximate_width_m(rotated, LAMBERT93) == pytest.approx(10.0)
+    assert length_width_ratio(rotated, LAMBERT93) == pytest.approx(3.0)
+
+
+def test_elongated_rectangle_is_less_compact_than_square(square: Polygon) -> None:
+    elongated = Polygon([(0, 0), (100, 0), (100, 2), (0, 2)])
+
+    assert length_width_ratio(elongated, LAMBERT93) == pytest.approx(50.0)
+    assert compactness_score(square, LAMBERT93) > compactness_score(
+        elongated, LAMBERT93
+    )
+
+
+def test_multipolygon_shape_metrics() -> None:
+    first = Polygon([(0, 0), (10, 0), (10, 10), (0, 10)])
+    second = Polygon([(20, 0), (30, 0), (30, 10), (20, 10)])
+    geometry = MultiPolygon([first, second])
+
+    assert approximate_length_m(geometry, LAMBERT93) == pytest.approx(30.0)
+    assert approximate_width_m(geometry, LAMBERT93) == pytest.approx(10.0)
+    assert 0 < compactness_score(geometry, LAMBERT93) <= 1
+
+
+def test_shape_metrics_reject_geographic_crs(square: Polygon) -> None:
+    with pytest.raises(MetricCrsError):
+        approximate_length_m(square, WGS84)
+    with pytest.raises(MetricCrsError):
+        approximate_width_m(square, WGS84)
+    with pytest.raises(MetricCrsError):
+        length_width_ratio(square, WGS84)
+    with pytest.raises(MetricCrsError):
+        compactness_score(square, WGS84)
+
+
+def test_shape_metrics_reject_invalid_geometry() -> None:
+    bow_tie = Polygon([(0, 0), (10, 10), (0, 10), (10, 0)])
+
+    with pytest.raises(InvalidGeometryError):
+        approximate_length_m(bow_tie, LAMBERT93)
+
+
+def test_shape_metrics_reject_empty_geometry() -> None:
+    with pytest.raises(EmptyGeometryError):
+        compactness_score(Polygon(), LAMBERT93)
+
+
+def test_zero_area_geometry_raises_controlled_error() -> None:
+    zero_area = Polygon([(0, 0), (1, 0), (2, 0), (0, 0)])
+
+    with pytest.raises(GeometryError):
+        length_width_ratio(zero_area, LAMBERT93)
+
+
+@pytest.mark.parametrize(
+    "geometry",
+    [
+        Polygon([(0, 0), (10, 0), (10, 10), (0, 10)]),
+        Polygon([(0, 0), (40, 0), (40, 5), (0, 5)]),
+        rotate(Polygon([(0, 0), (30, 0), (30, 10), (0, 10)]), 23),
+    ],
+)
+def test_length_is_always_at_least_width(geometry: Polygon) -> None:
+    assert approximate_length_m(geometry, LAMBERT93) >= approximate_width_m(
+        geometry, LAMBERT93
+    )
+
+
+@pytest.mark.parametrize(
+    "geometry",
+    [
+        Polygon([(0, 0), (10, 0), (10, 10), (0, 10)]),
+        Polygon([(0, 0), (100, 0), (100, 2), (0, 2)]),
+    ],
+)
+def test_compactness_range(geometry: Polygon) -> None:
+    assert 0 < compactness_score(geometry, LAMBERT93) <= 1

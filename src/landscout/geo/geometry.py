@@ -1,3 +1,6 @@
+from itertools import pairwise
+from math import hypot, pi
+
 from pyproj import CRS, Transformer
 from pyproj.exceptions import CRSError
 from shapely.geometry import (  # type: ignore[import-untyped]
@@ -31,6 +34,10 @@ class UnsupportedGeometryError(GeometryError):
 
 class MetricCrsError(GeometryError):
     """Raised when a CRS is unsafe for metric calculations."""
+
+
+class ZeroAreaGeometryError(GeometryError):
+    """Raised when a shape metric receives a zero-area geometry."""
 
 
 def _validate_geometry(geometry: BaseGeometry) -> Geometry:
@@ -83,6 +90,52 @@ def perimeter_m(geometry: BaseGeometry, crs: CRS | str | int) -> float:
     validated = _validate_geometry(geometry)
     _validate_metric_crs(crs)
     return float(validated.length)
+
+
+def _parcel_dimensions_m(
+    geometry: BaseGeometry, crs: CRS | str | int
+) -> tuple[float, float]:
+    validated = _validate_geometry(geometry)
+    _validate_metric_crs(crs)
+    if validated.area <= 0:
+        raise ZeroAreaGeometryError("Parcel geometry must have a positive area")
+
+    rectangle = validated.minimum_rotated_rectangle
+    coordinates = list(rectangle.exterior.coords)
+    edge_lengths = [
+        hypot(end[0] - start[0], end[1] - start[1])
+        for start, end in pairwise(coordinates)
+    ]
+    length = max(edge_lengths)
+    width = min(edge_lengths)
+    if width <= 0:
+        raise ZeroAreaGeometryError("Parcel width must be greater than zero")
+    return float(length), float(width)
+
+
+def approximate_length_m(geometry: BaseGeometry, crs: CRS | str | int) -> float:
+    return _parcel_dimensions_m(geometry, crs)[0]
+
+
+def approximate_width_m(geometry: BaseGeometry, crs: CRS | str | int) -> float:
+    return _parcel_dimensions_m(geometry, crs)[1]
+
+
+def length_width_ratio(geometry: BaseGeometry, crs: CRS | str | int) -> float:
+    length, width = _parcel_dimensions_m(geometry, crs)
+    return length / width
+
+
+def compactness_score(geometry: BaseGeometry, crs: CRS | str | int) -> float:
+    validated = _validate_geometry(geometry)
+    _validate_metric_crs(crs)
+    area = float(validated.area)
+    perimeter = float(validated.length)
+    if area <= 0 or perimeter <= 0:
+        raise ZeroAreaGeometryError("Compactness requires a positive-area geometry")
+
+    score = 4 * pi * area / perimeter**2
+    return min(float(score), 1.0)
 
 
 def centroid(geometry: BaseGeometry) -> Point:
