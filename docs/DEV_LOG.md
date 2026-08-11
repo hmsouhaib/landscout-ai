@@ -2,8 +2,8 @@
 
 ## Current project state
 
-- Current phase: GIS foundation and parcel geometry metrics
-- Latest completed step: STEP 7A.3 — cadastre gzip integrity
+- Current phase: French cadastral data ingestion
+- Latest completed step: STEP 7B.1 — load French cadastral parcels
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: next LandScout implementation step, not yet specified
@@ -97,3 +97,12 @@
 - Tests/checks: Covered valid, truncated, corrupted-cache, and corrupted-refresh archives; pytest, Ruff, and mypy pass.
 - Important decisions: Reads decompressed data in 1 MiB chunks to verify gzip structure and CRC without loading the archive into memory; invalid refreshes never replace an existing archive.
 - Known issues: None.
+
+## STEP 7B.1 — Load French cadastral parcels
+
+- Status: Complete
+- Implementation summary: Added a validated GeoPandas loader that preserves source attributes, geometries, and reported CRS.
+- Important files: `src/landscout/sources/cadastre_loader_fr.py`, `tests/unit/test_cadastre_loader_fr.py`
+- Tests/checks: Covered plain and gzipped GeoJSON, empty/missing/invalid datasets, missing geometry, and unsupported geometry types; real Muret archive loaded with 17,200 parcels; pytest, Ruff, and mypy pass.
+- Important decisions: Accepts Polygon and MultiPolygon without reprojection or derived metrics; uses GDAL `/vsigzip/` on compressed inputs for reliable Windows loading; never invents a CRS.
+- Known issues: GeoPandas and Pyogrio lack bundled typing metadata, handled with localized mypy annotations.
