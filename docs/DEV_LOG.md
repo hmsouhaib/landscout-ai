@@ -3,7 +3,7 @@
 ## Current project state
 
 - Current phase: French cadastral data ingestion
-- Latest completed step: STEP 7B.3.1 — strengthen parcel filter validation
+- Latest completed step: STEP 7B.4 — enrich BESS parcel shape metrics
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: next LandScout implementation step, not yet specified
@@ -193,3 +193,43 @@ Example attribute records (geometry omitted):
 - Tests/checks: Covered missing, null, and duplicate parcel IDs, disjoint outputs, and exact ID preservation; pytest, Ruff, and mypy pass.
 - Important decisions: Requires `parcel_id`, `geometry_status`, and `area_m2`; candidate and rejected IDs must be unique, disjoint, and have a union equal to the input ID set.
 - Known issues: None.
+
+## STEP 7B.4 — Enrich BESS parcel shape metrics
+
+- Status: Complete
+- Implementation summary: Added shape dimensions, aspect ratio, Polsby-Popper compactness, and projected centroids for area-filtered candidates.
+- Important files: `src/landscout/stages/enrich_shape.py`, `tests/unit/test_enrich_shape.py`
+- Tests/checks: Covered square, rectangular, rotated, elongated, failed-geometry, identity, CRS, centroid, compactness, and geometry-preservation cases; pytest, Ruff, and mypy pass.
+- Important decisions: Reprojects the measurable subset once to EPSG:2154; keeps output geometry unchanged in EPSG:4326; preserves failed rows with `ERROR` and null derived metrics; applies no shape rejection thresholds.
+- Known issues: None.
+
+### Real Muret BESS shape enrichment (`31395`)
+
+- Input parcels: 4,013
+- Output parcels: 4,013
+- Duplicate parcel IDs: 0
+- `VALID`: 4,013
+- `ERROR`: 0
+- Null `length_m`: 0
+- Null `width_m`: 0
+- Null `length_width_ratio`: 0
+- Null `compactness`: 0
+- Null `centroid_lat`: 0
+- Null `centroid_lon`: 0
+- Centroid-null rows: 0
+- `length_m` min / median / max: 45.922054 / 131.207909 / 994.057897
+- `width_m` min / median / max: 5.578234 / 44.612654 / 317.221485
+- `length_width_ratio` min / median / max: 1.000677 / 2.576522 / 70.334491
+- `compactness` min / median / max: 0.015827 / 0.532606 / 0.883103
+- Output CRS: `EPSG:4326`
+- Output GeoParquet: `data/processed/cadastre/muret_bess_shape_candidates.parquet`
+
+Highest `length_width_ratio` parcels (geometry omitted):
+
+| parcel_id | area_m2 | length_m | width_m | length_width_ratio | compactness |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `313950000K1259` | 2,001.873974 | 392.342257 | 5.578234 | 70.334491 | 0.039888 |
+| `313950000K1263` | 2,124.726244 | 391.903893 | 5.602324 | 69.953812 | 0.042381 |
+| `31395000EC0002` | 2,075.541146 | 440.928455 | 6.370519 | 69.213904 | 0.032907 |
+| `313950000K1237` | 2,182.107274 | 394.694144 | 5.845761 | 67.518010 | 0.043004 |
+| `313950000K1261` | 2,152.836718 | 392.107473 | 6.035972 | 64.961776 | 0.042869 |
