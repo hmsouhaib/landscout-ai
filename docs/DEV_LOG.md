@@ -3,10 +3,10 @@
 ## Current project state
 
 - Current phase: French electricity-grid proximity diagnostics
-- Latest completed step: STEP 7C.4 — parcel-to-IGN grid proxy proximity
+- Latest completed step: STEP 7C.4.1 — hardened grid-proximity integrity contracts
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: review of diagnostic grid-proximity distributions
+- Next step waiting for review: review of hardened diagnostic grid-proximity distributions
 
 ## STEP 0 — Environment check
 
@@ -1234,3 +1234,49 @@ Distance to an IGN electric line or transformation post does not establish grid 
 Nearest distance means nearest feature inside the loaded proxy-source coverage. It does not prove that the feature is the globally nearest electricity asset outside that coverage.
 
 No BESS grid-distance threshold was selected in STEP 7C.4. No parcel was rejected and no grid score or suitability category was created.
+
+## STEP 7C.4.1 — Harden grid-proximity integrity contracts
+
+- Status: Complete
+- Implementation summary: Hardened parcel identity and geometry validation, nearest-match state validation, tie-count validation, dynamic voltage coverage, the complete parcel-by-voltage invariant, and defensive validation in the public profiler without changing the established STRtree distance algorithm.
+- Important files: `src/landscout/stages/enrich_grid_proximity.py`, `tests/unit/test_enrich_grid_proximity.py`
+- Tests/checks: 144 focused proximity tests pass. The full suite passes with 475 tests; Ruff and mypy pass.
+- Important decisions: Valid parcel identifiers are preserved exactly rather than stripped or rewritten. Only valid `Polygon` and `MultiPolygon` parcel geometries enter proximity calculation. Every matched row has a complete, finite, internally consistent match state; an unavailable exact-voltage class has a wholly null state with stable numeric dtypes. Profiling revalidates the complete mutable result before producing statistics.
+- Known issues: Source coverage remains limited to the loaded IGN BD TOPO D031 proxy dataset. The hardening deliberately adds no grid threshold, suitability rule, or connection-feasibility inference.
+
+### Integrity contracts
+
+- `parcel_id` must be a unique, non-null, non-empty string with no leading or trailing whitespace; valid values are preserved exactly.
+- Parcel geometry must be non-null, non-empty, valid `Polygon` or `MultiPolygon`. Z-enabled parcel polygons remain accepted, while calculation-only copies continue to be reduced to planar XY.
+- Required nearest-line and nearest-post matches now require a finite non-negative distance, non-null grid/source feature IDs, and a numeric finite integer tie count of at least one.
+- Exact-line matches obey the same contract and require a finite positive voltage represented by the dynamic source coverage. When no eligible exact-voltage line exists, all exact-match fields remain null; distance and voltage columns remain float-compatible and tie count remains nullable `Int64`.
+- Voltage coverage must contain unique positive finite voltage levels in ascending order with positive integer line counts.
+- The long table must be exactly the input parcel set multiplied by the dynamic voltage-level set. Every level contains each input parcel exactly once and in input order; pairs are unique and every row retains matched IDs and source lineage.
+- `profile_grid_proximity()` now revalidates parcel IDs and geometry, all main match states, coverage, and every long-table row before calculating percentiles. Tests deliberately corrupt IDs, distances, ties, coverage, match fields, and Cartesian rows to prove that misleading partial profiles are rejected with `GridProximityError`.
+- Large or non-finite numeric values are rejected through controlled validation rather than leaking conversion exceptions.
+- The existing full-parcel `STRtree.query_nearest(..., all_matches=True)` algorithm, force-to-2D calculation copies, Lambert-93 calculation CRS, and lexical `grid_feature_id` tie resolution are unchanged.
+
+### Real Muret/D031 regression and read-back
+
+- Input parcels / lines / posts / valid exact lines: 3,638 / 333 / 84 / 325
+- Dynamic exact-voltage levels: 63, 150, 225, and 400 kV
+- Enriched parcel rows / voltage proximity rows: 3,638 / 14,552
+- Lost IDs / extra IDs / duplicate parcel IDs / duplicate parcel-voltage pairs: 0 / 0 / 0 / 0
+- Parcel input, output, and GeoParquet read-back CRS: `EPSG:4326`; calculation CRS: `EPSG:2154`
+- Nearest line / exact line / post p50: 746.824 m / 746.824 m / 2,643.274 m
+- All STEP 7C.4 distance distributions, zero-distance counts, and tie counts remained numerically unchanged.
+- Real proximity computation wall-clock duration: 1.264 seconds
+- GeoParquet read-back: 3,638 rows, original parcel order/IDs and geometry preserved, distance dtypes `float64`, tie-count dtypes `int64`, source lineage complete
+- Long Parquet read-back: 14,552 rows, exact Cartesian coverage, no duplicate pair, voltage/distance dtypes `float64`, tie-count dtype `int64`, matched IDs and source lineage complete
+- Rewritten GeoParquet: `data/processed/grid/muret_bess_grid_proximity.parquet` (1,227,955 bytes)
+- Rewritten long-form Parquet: `data/processed/grid/muret_bess_grid_voltage_proximity.parquet` (176,469 bytes)
+
+Generated outputs remain ignored by Git.
+
+IGN geometry is `PROXY_GEOMETRY`.
+
+All distances remain 2D planar proxy distances calculated in EPSG:2154 from full parcel geometry. IGN Z values are not used in horizontal proximity.
+
+Distance to an IGN electric line or transformation post does not establish grid connection feasibility, capacity, connection cost, or an RTE/DSO connection point.
+
+No BESS grid-distance threshold is selected here.

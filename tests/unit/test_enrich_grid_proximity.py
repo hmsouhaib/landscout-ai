@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import replace
 
 import geopandas as gpd
 import numpy as np
 import pandas as pd
 import pytest
 from geopandas.testing import assert_geodataframe_equal
+from pandas.api.types import is_float_dtype, is_integer_dtype
 from shapely.geometry import (
+    GeometryCollection,
     LineString,
     MultiLineString,
     MultiPolygon,
@@ -18,10 +21,14 @@ from shapely.geometry import (
 from landscout import stages
 from landscout.stages import (
     GridProximityError,
+    GridProximityResult,
+    VoltageLevelCoverage,
     enrich_parcel_grid_proximity,
     profile_grid_proximity,
 )
 from landscout.stages.enrich_grid_proximity import VOLTAGE_PROXIMITY_COLUMNS
+
+OVERFLOWING_INTEGER = 10**10000
 
 
 def _geometry_status(geometry: object) -> str:
@@ -133,6 +140,48 @@ def _posts(
     )
 
 
+def _two_parcel_two_voltage_result() -> GridProximityResult:
+    parcels = _parcels(
+        [
+            Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]),
+            Polygon([(40, 0), (40, 10), (50, 10), (50, 0), (40, 0)]),
+        ],
+        identifiers=["PARCEL-2", "PARCEL-1"],
+    )
+    lines = _lines(
+        [
+            LineString([(200, -20), (200, 30)]),
+            LineString([(100, -20), (100, 30)]),
+        ],
+        identifiers=["LINE-275", "LINE-110"],
+        voltage_statuses=["EXACT", "EXACT"],
+        voltages=[275.0, 110.0],
+    )
+    return enrich_parcel_grid_proximity(parcels, lines, _posts())
+
+
+def _mutate_parcel_result(
+    result: GridProximityResult,
+    column: str,
+    value: object,
+) -> GridProximityResult:
+    parcels = result.parcels.copy()
+    parcels[column] = parcels[column].astype("object")
+    parcels.at[0, column] = value
+    return replace(result, parcels=parcels)
+
+
+def _mutate_voltage_result(
+    result: GridProximityResult,
+    column: str,
+    value: object,
+) -> GridProximityResult:
+    table = result.voltage_level_proximity.copy()
+    table[column] = table[column].astype("object")
+    table.at[0, column] = value
+    return replace(result, voltage_level_proximity=table)
+
+
 def test_clean_high_level_api_is_exported() -> None:
     assert stages.enrich_parcel_grid_proximity is enrich_parcel_grid_proximity
     assert stages.profile_grid_proximity is profile_grid_proximity
@@ -192,6 +241,56 @@ def test_epsg2154_parcel_input_remains_epsg2154() -> None:
 
     assert result.parcels.crs is not None
     assert result.parcels.crs.to_epsg() == 2154
+
+
+def test_valid_parcel_id_is_preserved_exactly() -> None:
+    result = enrich_parcel_grid_proximity(
+        _parcels(identifiers=["FR-31-VALID-ID"]), _lines(), _posts()
+    )
+
+    assert result.parcels["parcel_id"].tolist() == ["FR-31-VALID-ID"]
+
+
+@pytest.mark.parametrize(
+    "identifier",
+    [None, "", "   ", " PARCEL-1", "PARCEL-1 ", 123],
+)
+def test_invalid_parcel_id_hygiene_is_rejected(identifier: object) -> None:
+    with pytest.raises(GridProximityError, match="parcel_id"):
+        enrich_parcel_grid_proximity(
+            _parcels(identifiers=[identifier]), _lines(), _posts()
+        )
+
+
+@pytest.mark.parametrize(
+    "geometry",
+    [
+        Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)]),
+        MultiPolygon(
+            [Polygon([(0, 0), (0, 10), (10, 10), (10, 0), (0, 0)])]
+        ),
+        Polygon([(0, 0, 5), (0, 10, 5), (10, 10, 5), (10, 0, 5), (0, 0, 5)]),
+    ],
+)
+def test_supported_parcel_polygon_geometry_is_preserved(geometry: object) -> None:
+    result = enrich_parcel_grid_proximity(_parcels([geometry]), _lines(), _posts())
+
+    assert result.parcels.geometry.iloc[0].equals_exact(geometry, tolerance=0)
+    assert result.parcels.geometry.iloc[0].has_z == geometry.has_z
+
+
+@pytest.mark.parametrize(
+    "geometry",
+    [
+        Point(1, 1),
+        LineString([(0, 0), (10, 10)]),
+        MultiLineString([[(0, 0), (10, 10)]]),
+        GeometryCollection([Point(1, 1)]),
+    ],
+)
+def test_semantically_wrong_parcel_geometry_is_rejected(geometry: object) -> None:
+    with pytest.raises(GridProximityError, match="Polygon|MultiPolygon"):
+        enrich_parcel_grid_proximity(_parcels([geometry]), _lines(), _posts())
 
 
 @pytest.mark.parametrize("kind", ["parcel", "line", "post"])
@@ -376,6 +475,24 @@ def test_nearest_exact_and_voltage_table_exclude_nonexact_lines() -> None:
     )
 
 
+def test_voltage_table_is_exact_ordered_cartesian_product() -> None:
+    result = _two_parcel_two_voltage_result()
+
+    assert tuple(item.voltage_kv for item in result.voltage_level_coverage) == (
+        110.0,
+        275.0,
+    )
+    assert len(result.voltage_level_proximity) == 4
+    assert not result.voltage_level_proximity.duplicated(
+        ["parcel_id", "voltage_kv"]
+    ).any()
+    for voltage_kv in (110.0, 275.0):
+        rows = result.voltage_level_proximity.loc[
+            result.voltage_level_proximity["voltage_kv"] == voltage_kv
+        ]
+        assert rows["parcel_id"].tolist() == ["PARCEL-2", "PARCEL-1"]
+
+
 def test_invalid_exact_voltage_values_are_not_used_as_exact() -> None:
     lines = _lines(
         [LineString([(20, -20), (20, 30)])] * 4,
@@ -402,6 +519,21 @@ def test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table() -> No
     assert list(result.voltage_level_proximity.columns) == list(
         VOLTAGE_PROXIMITY_COLUMNS
     )
+    assert is_float_dtype(
+        result.parcels["nearest_exact_line_proxy_distance_m"].dtype
+    )
+    assert is_float_dtype(result.parcels["nearest_exact_line_voltage_kv"].dtype)
+    assert is_integer_dtype(result.parcels["nearest_exact_line_tie_count"].dtype)
+    assert str(result.parcels["nearest_exact_line_tie_count"].dtype) == "Int64"
+    assert is_float_dtype(result.voltage_level_proximity["voltage_kv"].dtype)
+    assert is_float_dtype(
+        result.voltage_level_proximity["nearest_line_proxy_distance_m"].dtype
+    )
+    assert str(result.voltage_level_proximity["tie_count"].dtype) == "Int64"
+    assert result.voltage_level_coverage == ()
+    profile = profile_grid_proximity(result)
+    assert profile.nearest_exact_line.count == 0
+    assert profile.nearest_exact_line.missing_count == 1
 
 
 @pytest.mark.parametrize("column", ["parcel_id", "geometry"])
@@ -505,6 +637,281 @@ def test_distance_profile_is_threshold_free_and_tracks_ties() -> None:
     assert profile.voltage_levels[0].voltage_kv == 110.0
     assert profile.voltage_levels[0].line_feature_count == 2
     assert profile.voltage_levels[0].parcel_proximity_count == 2
+
+
+def test_profile_rejects_missing_voltage_cartesian_row() -> None:
+    result = _two_parcel_two_voltage_result()
+    table = result.voltage_level_proximity.iloc[:-1].copy()
+
+    with pytest.raises(GridProximityError):
+        profile_grid_proximity(replace(result, voltage_level_proximity=table))
+
+
+def test_profile_rejects_unknown_voltage_parcel_with_same_total_count() -> None:
+    result = _two_parcel_two_voltage_result()
+    corrupted = _mutate_voltage_result(result, "parcel_id", "UNKNOWN-PARCEL")
+
+    with pytest.raises(GridProximityError):
+        profile_grid_proximity(corrupted)
+
+
+def test_profile_rejects_duplicate_parcel_voltage_pair() -> None:
+    result = _two_parcel_two_voltage_result()
+    table = result.voltage_level_proximity.copy()
+    table.at[1, "parcel_id"] = table.at[0, "parcel_id"]
+
+    with pytest.raises(GridProximityError, match="unique"):
+        profile_grid_proximity(replace(result, voltage_level_proximity=table))
+
+
+def test_profile_rejects_voltage_rows_out_of_parcel_order() -> None:
+    result = _two_parcel_two_voltage_result()
+    table = result.voltage_level_proximity.iloc[[1, 0, 2, 3]].reset_index(drop=True)
+
+    with pytest.raises(GridProximityError, match="exact parcel set"):
+        profile_grid_proximity(replace(result, voltage_level_proximity=table))
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        0,
+        -1,
+        1.5,
+        float("inf"),
+        "2",
+        None,
+        pytest.param(OVERFLOWING_INTEGER, id="overflowing-integer"),
+    ],
+)
+@pytest.mark.parametrize(
+    "column",
+    [
+        "nearest_line_tie_count",
+        "nearest_exact_line_tie_count",
+        "nearest_post_tie_count",
+    ],
+)
+def test_profile_rejects_bad_required_match_tie_count(
+    column: str, value: object
+) -> None:
+    result = _two_parcel_two_voltage_result()
+
+    with pytest.raises(GridProximityError, match="tie_count|match"):
+        profile_grid_proximity(_mutate_parcel_result(result, column, value))
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        0,
+        -1,
+        1.5,
+        float("inf"),
+        "2",
+        None,
+        pytest.param(OVERFLOWING_INTEGER, id="overflowing-integer"),
+    ],
+)
+def test_profile_rejects_bad_long_table_tie_count(value: object) -> None:
+    result = _two_parcel_two_voltage_result()
+
+    with pytest.raises(GridProximityError, match="tie_count|match"):
+        profile_grid_proximity(_mutate_voltage_result(result, "tie_count", value))
+
+
+@pytest.mark.parametrize(
+    "column",
+    [
+        "nearest_line_grid_feature_id",
+        "nearest_line_source_feature_id",
+        "nearest_exact_line_grid_feature_id",
+        "nearest_exact_line_source_feature_id",
+        "nearest_post_grid_feature_id",
+        "nearest_post_source_feature_id",
+    ],
+)
+def test_profile_rejects_missing_main_match_feature_id(column: str) -> None:
+    result = _two_parcel_two_voltage_result()
+
+    with pytest.raises(GridProximityError, match="require"):
+        profile_grid_proximity(_mutate_parcel_result(result, column, None))
+
+
+@pytest.mark.parametrize(
+    ("column", "value"),
+    [
+        ("nearest_line_proxy_distance_m", None),
+        ("nearest_line_proxy_distance_m", "100"),
+        ("nearest_exact_line_proxy_distance_m", float("inf")),
+        ("nearest_post_proxy_distance_m", -1),
+    ],
+)
+def test_profile_rejects_bad_required_match_distance(
+    column: str, value: object
+) -> None:
+    result = _two_parcel_two_voltage_result()
+
+    with pytest.raises(GridProximityError):
+        profile_grid_proximity(_mutate_parcel_result(result, column, value))
+
+
+@pytest.mark.parametrize(
+    "value",
+    [None, 0, -1, float("inf"), "110", 999.0],
+)
+def test_profile_rejects_bad_exact_match_voltage(value: object) -> None:
+    result = _two_parcel_two_voltage_result()
+
+    with pytest.raises(GridProximityError, match="voltage|match"):
+        profile_grid_proximity(
+            _mutate_parcel_result(result, "nearest_exact_line_voltage_kv", value)
+        )
+
+
+def test_profile_rejects_bad_result_parcel_id() -> None:
+    result = _two_parcel_two_voltage_result()
+
+    with pytest.raises(GridProximityError, match="parcel_id"):
+        profile_grid_proximity(_mutate_parcel_result(result, "parcel_id", " BAD "))
+
+
+def test_profile_rejects_missing_required_proximity_column() -> None:
+    result = _two_parcel_two_voltage_result()
+    parcels = result.parcels.drop(columns="nearest_line_grid_feature_id")
+
+    with pytest.raises(GridProximityError, match="Missing proximity"):
+        profile_grid_proximity(replace(result, parcels=parcels))
+
+
+@pytest.mark.parametrize("mutation", ["reversed", "duplicate"])
+def test_profile_rejects_nondeterministic_or_duplicate_coverage(
+    mutation: str,
+) -> None:
+    result = _two_parcel_two_voltage_result()
+    if mutation == "reversed":
+        coverage = tuple(reversed(result.voltage_level_coverage))
+    else:
+        coverage = (*result.voltage_level_coverage, result.voltage_level_coverage[0])
+
+    with pytest.raises(GridProximityError, match="coverage"):
+        profile_grid_proximity(replace(result, voltage_level_coverage=coverage))
+
+
+@pytest.mark.parametrize(
+    "voltage_kv",
+    [
+        0,
+        -1,
+        float("inf"),
+        "110",
+        pytest.param(OVERFLOWING_INTEGER, id="overflowing-integer"),
+    ],
+)
+def test_profile_rejects_invalid_voltage_coverage_level(voltage_kv: object) -> None:
+    result = _two_parcel_two_voltage_result()
+    coverage = (
+        VoltageLevelCoverage(voltage_kv=voltage_kv, line_feature_count=1),
+    )
+
+    with pytest.raises(GridProximityError, match="coverage"):
+        profile_grid_proximity(replace(result, voltage_level_coverage=coverage))
+
+
+@pytest.mark.parametrize(
+    "feature_count", [0, -1, 1.5, float("inf"), True, "2"]
+)
+def test_profile_rejects_invalid_voltage_coverage_feature_count(
+    feature_count: object,
+) -> None:
+    result = _two_parcel_two_voltage_result()
+    coverage = (
+        VoltageLevelCoverage(voltage_kv=110.0, line_feature_count=feature_count),
+    )
+
+    with pytest.raises(GridProximityError, match="line_feature_count"):
+        profile_grid_proximity(replace(result, voltage_level_coverage=coverage))
+
+
+@pytest.mark.parametrize(
+    "value",
+    [None, 0, -1, float("inf"), "110", 220.0],
+)
+def test_profile_rejects_invalid_long_table_voltage(value: object) -> None:
+    result = _two_parcel_two_voltage_result()
+
+    with pytest.raises(GridProximityError, match="Voltage proximity"):
+        profile_grid_proximity(_mutate_voltage_result(result, "voltage_kv", value))
+
+
+@pytest.mark.parametrize(
+    "column",
+    [
+        "nearest_line_grid_feature_id",
+        "nearest_line_source_feature_id",
+        "source_department_code",
+        "source_edition",
+        "source_archive_sha256",
+    ],
+)
+def test_profile_rejects_missing_long_table_match_lineage(column: str) -> None:
+    result = _two_parcel_two_voltage_result()
+
+    with pytest.raises(GridProximityError, match="require"):
+        profile_grid_proximity(_mutate_voltage_result(result, column, None))
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        None,
+        -1,
+        float("inf"),
+        "100",
+        pytest.param(OVERFLOWING_INTEGER, id="overflowing-integer"),
+    ],
+)
+def test_profile_rejects_bad_long_table_distance(value: object) -> None:
+    result = _two_parcel_two_voltage_result()
+
+    with pytest.raises(GridProximityError):
+        profile_grid_proximity(
+            _mutate_voltage_result(
+                result, "nearest_line_proxy_distance_m", value
+            )
+        )
+
+
+def test_profile_allows_missing_long_table_manager_name() -> None:
+    result = _two_parcel_two_voltage_result()
+    mutated = _mutate_voltage_result(result, "manager_name", None)
+
+    profile = profile_grid_proximity(mutated)
+
+    assert profile.parcel_count == 2
+
+
+@pytest.mark.parametrize(
+    ("column", "value"),
+    [
+        ("nearest_exact_line_proxy_distance_m", 1.0),
+        ("nearest_exact_line_grid_feature_id", "LINE"),
+        ("nearest_exact_line_source_feature_id", "SOURCE"),
+        ("nearest_exact_line_tie_count", 1),
+        ("nearest_exact_line_voltage_kv", 110.0),
+    ],
+)
+def test_profile_rejects_nonnull_exact_field_without_exact_coverage(
+    column: str, value: object
+) -> None:
+    result = enrich_parcel_grid_proximity(
+        _parcels(),
+        _lines(voltage_statuses=["UNKNOWN"], voltages=[None]),
+        _posts(),
+    )
+
+    with pytest.raises(GridProximityError, match="unmatched|entirely"):
+        profile_grid_proximity(_mutate_parcel_result(result, column, value))
 
 
 @pytest.mark.parametrize("kind", ["line", "post"])
