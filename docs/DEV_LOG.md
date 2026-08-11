@@ -3,10 +3,10 @@
 ## Current project state
 
 - Current phase: French electricity-grid source ingestion
-- Latest completed step: STEP 7C.1 — RTE / ODRÉ grid source ingestion
+- Latest completed step: STEP 7C.1.1 — strengthen RTE / ODRÉ source integrity
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: review of the official grid-source findings
+- Next step waiting for review: review of strengthened RTE source integrity
 
 ## STEP 0 — Environment check
 
@@ -585,3 +585,53 @@ Geometry inspection:
 - `geometry_precision_status`: `MISSING`
 
 The source currently exposes `type_ouvrage`, `code_ligne`, `etat`, `tension`, and `nombre_circuit`. Its primary name field is `nom_ouvrage_1`, not `nom_ligne`; no normalization was applied.
+
+## STEP 7C.1.1 — Strengthen RTE / ODRÉ source integrity
+
+- Status: Complete
+- Implementation summary: Added metadata/export count consistency, immutable persisted export summaries, cache-summary revalidation, and failure-safe archive/sidecar publication with rollback.
+- Important files: `src/landscout/sources/rte_odre_fr.py`, `src/landscout/sources/__init__.py`, `tests/unit/test_rte_odre_fr.py`
+- Tests/checks: Covered equal, larger, smaller, unavailable, and negative record counts; summary validation and lineage; cache-summary/count invalidation; null geometries; backup cleanup; and an injected archive-success/metadata-failure rollback; 195 tests, Ruff, and mypy pass.
+- Important decisions: A known metadata record count must equal the parsed GeoJSON feature count. Cache lineage never overrides fresh GeoJSON validation. Existing archive and sidecar files are copied to local backups before publication and restored together if either final replacement fails.
+- Known issues: The official exports still contain no non-null geometries. This integrity step makes no connection-feasibility interpretation.
+
+### Persisted integrity model
+
+Each `RteOdreDownload` and JSON sidecar now includes an immutable export summary with:
+
+- `feature_count`
+- `null_geometry_count`
+- `non_null_geometry_count`
+- `geometry_types`
+
+All counts must be non-negative and the two geometry counts must sum exactly to `feature_count`. When source metadata supplies `records_count`, it must equal `feature_count`; `None` remains accepted without fabrication. A cached summary is deserialized and structurally validated, then compared with a fresh full GeoJSON validation before the cache can be reused.
+
+### Transaction and rollback verification
+
+- Publication sequence: validated `.part` archive and sidecar are published as one rollback-protected pair.
+- Before replacement: existing archive and sidecar are copied to same-directory `.bak` files.
+- Injected failure: archive replacement succeeded and metadata replacement persistently raised a Windows-style `PermissionError`.
+- Result: the prior archive bytes and prior sidecar bytes were both restored exactly.
+- Failure cleanup: no `.part` or `.bak` file remained.
+- Successful refresh cleanup: no `.part` or `.bak` file remained.
+
+### Real RTE cache regression
+
+| Logical dataset | Metadata records | Export features | Null geometry | Non-null geometry | Geometry types | Precision status |
+| --- | ---: | ---: | ---: | ---: | --- | --- |
+| `sites` | 5,042 | 5,042 | 5,042 | 0 | none | `MISSING` |
+| `overhead_lines` | 9,221 | 9,221 | 9,221 | 0 | none | `MISSING` |
+| `underground_lines` | 3,825 | 3,825 | 3,825 | 0 | none | `MISSING` |
+
+- Count consistency: confirmed for all three official exports.
+- Export summaries: persisted in all three metadata sidecars.
+- Fresh cache revalidation: summary equality and metadata/export count equality confirmed for all three.
+- First run after lineage migration: all three refreshed because the prior sidecars did not contain export summaries.
+- Second run: all three returned `cache_hit = true`.
+- Temporary/backup artifacts after real refresh: 0.
+- Current checksums and file sizes: unchanged from STEP 7C.1.
+- Refreshed `sites` timestamp: `2026-08-11T14:58:19.738310+00:00`
+- Refreshed `overhead_lines` timestamp: `2026-08-11T14:58:20.821434+00:00`
+- Refreshed `underground_lines` timestamp: `2026-08-11T14:58:21.404259+00:00`
+
+The counts above are real-source regression observations, not production constants. No parcel-grid distance, coordinate inference, available-capacity inference, or connection claim was added.

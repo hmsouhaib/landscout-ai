@@ -3,7 +3,7 @@ from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
-from shutil import copyfileobj
+from shutil import copy2, copyfileobj
 from typing import Annotated, Any, Literal
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
@@ -90,6 +90,38 @@ class RteOdreDatasetMetadata:
     records_count: int | None
     geometry_precision_status: GeometryPrecisionStatus
 
+    def __post_init__(self) -> None:
+        if self.records_count is not None and (
+            not isinstance(self.records_count, int)
+            or isinstance(self.records_count, bool)
+            or self.records_count < 0
+        ):
+            raise ValueError("records_count must be a non-negative integer or None")
+
+
+@dataclass(frozen=True)
+class RteOdreExportSummary:
+    feature_count: int
+    null_geometry_count: int
+    non_null_geometry_count: int
+    geometry_types: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        counts = {
+            "feature_count": self.feature_count,
+            "null_geometry_count": self.null_geometry_count,
+            "non_null_geometry_count": self.non_null_geometry_count,
+        }
+        for name, value in counts.items():
+            if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+                raise ValueError(f"{name} must be a non-negative integer")
+        if self.null_geometry_count + self.non_null_geometry_count != self.feature_count:
+            raise ValueError("Geometry counts must add up to feature_count")
+        if not isinstance(self.geometry_types, tuple) or any(
+            not isinstance(value, str) or not value for value in self.geometry_types
+        ):
+            raise TypeError("geometry_types must be a tuple of non-empty strings")
+
 
 @dataclass(frozen=True)
 class RteOdreDownload:
@@ -106,14 +138,7 @@ class RteOdreDownload:
     path: Path
     cache_hit: bool
     dataset_metadata: RteOdreDatasetMetadata
-
-
-@dataclass(frozen=True)
-class _GeoJsonSummary:
-    feature_count: int
-    null_geometry_count: int
-    non_null_geometry_count: int
-    geometry_types: tuple[str, ...]
+    export_summary: RteOdreExportSummary
 
 
 def load_rte_odre_source_config(
@@ -211,12 +236,16 @@ def fetch_rte_odre_dataset_metadata(
     if not isinstance(default_metas, dict):
         default_metas = {}
     records_count_value = default_metas.get("records_count")
-    records_count = (
-        records_count_value
-        if isinstance(records_count_value, int)
-        and not isinstance(records_count_value, bool)
-        else None
-    )
+    if records_count_value is None:
+        records_count = None
+    elif not isinstance(records_count_value, int) or isinstance(
+        records_count_value, bool
+    ):
+        raise RteOdreDownloadError("RTE/ODRE records_count must be an integer or null")
+    elif records_count_value < 0:
+        raise RteOdreDownloadError("RTE/ODRE records_count must not be negative")
+    else:
+        records_count = records_count_value
     description = _optional_string(default_metas, "description")
     return RteOdreDatasetMetadata(
         dataset_id=dataset.dataset_id,
@@ -239,7 +268,7 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _validate_geojson(path: Path) -> _GeoJsonSummary:
+def _validate_geojson(path: Path) -> RteOdreExportSummary:
     if not path.is_file() or path.stat().st_size == 0:
         raise RteOdreDownloadError(f"GeoJSON export is missing or empty: {path}")
     try:
@@ -263,7 +292,7 @@ def _validate_geojson(path: Path) -> _GeoJsonSummary:
         geometry_type = geometry.get("type")
         if isinstance(geometry_type, str) and geometry_type:
             geometry_types.add(geometry_type)
-    return _GeoJsonSummary(
+    return RteOdreExportSummary(
         feature_count=len(features),
         null_geometry_count=null_geometry_count,
         non_null_geometry_count=len(features) - null_geometry_count,
@@ -314,6 +343,85 @@ def _metadata_from_dict(payload: Any) -> RteOdreDatasetMetadata:
     )
 
 
+def _export_summary_from_dict(payload: Any) -> RteOdreExportSummary:
+    if not isinstance(payload, dict):
+        raise TypeError("Missing cached export summary")
+    geometry_types = payload["geometry_types"]
+    if not isinstance(geometry_types, list) or any(
+        not isinstance(value, str) for value in geometry_types
+    ):
+        raise TypeError("Invalid cached geometry types")
+    return RteOdreExportSummary(
+        feature_count=payload["feature_count"],
+        null_geometry_count=payload["null_geometry_count"],
+        non_null_geometry_count=payload["non_null_geometry_count"],
+        geometry_types=tuple(geometry_types),
+    )
+
+
+def _validate_records_count(
+    dataset_metadata: RteOdreDatasetMetadata,
+    export_summary: RteOdreExportSummary,
+) -> None:
+    records_count = dataset_metadata.records_count
+    if records_count is not None and records_count != export_summary.feature_count:
+        raise RteOdreDownloadError(
+            "RTE/ODRE metadata records_count does not match export feature_count: "
+            f"{records_count} != {export_summary.feature_count}"
+        )
+
+
+def _replace_file(source: Path, target: Path) -> None:
+    source.replace(target)
+
+
+def _publish_cache_pair(
+    temporary_archive: Path,
+    temporary_metadata: Path,
+    archive_path: Path,
+    metadata_path: Path,
+) -> None:
+    archive_backup = archive_path.with_suffix(f"{archive_path.suffix}.bak")
+    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    archive_existed = archive_path.is_file()
+    metadata_existed = metadata_path.is_file()
+
+    archive_backup.unlink(missing_ok=True)
+    metadata_backup.unlink(missing_ok=True)
+    try:
+        if archive_existed:
+            copy2(archive_path, archive_backup)
+        if metadata_existed:
+            copy2(metadata_path, metadata_backup)
+    except OSError:
+        archive_backup.unlink(missing_ok=True)
+        metadata_backup.unlink(missing_ok=True)
+        raise
+
+    archive_published = False
+    try:
+        _replace_file(temporary_archive, archive_path)
+        archive_published = True
+        _replace_file(temporary_metadata, metadata_path)
+    except OSError:
+        try:
+            if archive_published:
+                if archive_existed:
+                    _replace_file(archive_backup, archive_path)
+                else:
+                    archive_path.unlink(missing_ok=True)
+        except OSError as rollback_error:
+            raise RteOdreDownloadError(
+                "RTE/ODRE cache publication and rollback both failed"
+            ) from rollback_error
+        archive_backup.unlink(missing_ok=True)
+        metadata_backup.unlink(missing_ok=True)
+        raise
+    else:
+        archive_backup.unlink(missing_ok=True)
+        metadata_backup.unlink(missing_ok=True)
+
+
 def _load_cached_download(
     archive_path: Path,
     metadata_path: Path,
@@ -328,7 +436,7 @@ def _load_cached_download(
         metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
         if not isinstance(metadata, dict):
             return None
-        _validate_geojson(archive_path)
+        fresh_summary = _validate_geojson(archive_path)
         file_size = archive_path.stat().st_size
         checksum = _sha256(archive_path)
         download_timestamp = str(metadata["download_timestamp"])
@@ -353,8 +461,12 @@ def _load_cached_download(
         if not valid:
             return None
         dataset_metadata = _metadata_from_dict(metadata["dataset_metadata"])
+        cached_summary = _export_summary_from_dict(metadata["export_summary"])
         if dataset_metadata.dataset_id != dataset.dataset_id:
             return None
+        if fresh_summary != cached_summary:
+            return None
+        _validate_records_count(dataset_metadata, cached_summary)
         return RteOdreDownload(
             logical_name=logical_name,
             dataset_id=dataset.dataset_id,
@@ -369,6 +481,7 @@ def _load_cached_download(
             path=archive_path,
             cache_hit=True,
             dataset_metadata=dataset_metadata,
+            export_summary=cached_summary,
         )
     except (
         KeyError,
@@ -412,6 +525,7 @@ def download_rte_odre_dataset(
         ):
             copyfileobj(response, output, length=DOWNLOAD_CHUNK_SIZE)
         summary = _validate_geojson(temporary_archive)
+        _validate_records_count(dataset_metadata, summary)
         if summary.feature_count > 0 and summary.non_null_geometry_count == 0:
             dataset_metadata = replace(
                 dataset_metadata, geometry_precision_status="MISSING"
@@ -431,6 +545,7 @@ def download_rte_odre_dataset(
             path=archive_path,
             cache_hit=False,
             dataset_metadata=dataset_metadata,
+            export_summary=summary,
         )
         lineage = asdict(result)
         lineage.pop("path")
@@ -438,8 +553,9 @@ def download_rte_odre_dataset(
         temporary_metadata.write_text(
             json.dumps(lineage, indent=2, sort_keys=True) + "\n", encoding="utf-8"
         )
-        temporary_archive.replace(archive_path)
-        temporary_metadata.replace(metadata_path)
+        _publish_cache_pair(
+            temporary_archive, temporary_metadata, archive_path, metadata_path
+        )
         return result
     except (HTTPError, URLError, OSError) as error:
         raise RteOdreDownloadError(f"RTE/ODRE download failed: {source_url}") from error

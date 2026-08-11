@@ -10,8 +10,10 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
+from landscout.sources import rte_odre_fr
 from landscout.sources.rte_odre_fr import (
     RteOdreDownloadError,
+    RteOdreExportSummary,
     RteOdreSourceConfig,
     build_rte_odre_export_url,
     build_rte_odre_metadata_url,
@@ -35,7 +37,7 @@ def _config_data() -> dict:
         return yaml.safe_load(stream)
 
 
-def _metadata_content(dataset_id: str) -> bytes:
+def _metadata_content(dataset_id: str, records_count: int | None = 2) -> bytes:
     payload = {
         "dataset_id": dataset_id,
         "metas": {
@@ -46,7 +48,7 @@ def _metadata_content(dataset_id: str) -> bytes:
                 "data_processed": "2026-06-16T12:01:00+00:00",
                 "metadata_processed": "2026-06-16T12:01:01+00:00",
                 "license": "Licence Ouverte v2.0 (Etalab)",
-                "records_count": 2,
+                "records_count": records_count,
                 "description": (
                     "RTE a fait évoluer l'accès aux données GPS pour des raisons "
                     "de sécurité publique."
@@ -208,6 +210,94 @@ def test_successful_download(
     assert result.sha256 == sha256(export_content).hexdigest()
     assert result.cache_hit is False
     assert result.dataset_metadata.title == "Official RTE dataset"
+    assert result.dataset_metadata.records_count == result.export_summary.feature_count
+    assert result.export_summary == RteOdreExportSummary(
+        feature_count=2,
+        null_geometry_count=1,
+        non_null_geometry_count=1,
+        geometry_types=("Point",),
+    )
+
+
+@pytest.mark.parametrize("records_count", [1, 3])
+def test_metadata_export_record_count_mismatch_is_rejected(
+    tmp_path: Path,
+    source_config: RteOdreSourceConfig,
+    records_count: int,
+) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with (
+        patch(
+            "landscout.sources.rte_odre_fr.urlopen",
+            side_effect=[
+                _response(_metadata_content(dataset_id, records_count)),
+                _response(_feature_collection()),
+            ],
+        ),
+        pytest.raises(RteOdreDownloadError, match="records_count"),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert not list(tmp_path.glob("*.geojson"))
+    assert not list(tmp_path.glob("*.part"))
+    assert not list(tmp_path.glob("*.bak"))
+
+
+def test_unavailable_metadata_record_count_is_accepted(
+    tmp_path: Path, source_config: RteOdreSourceConfig
+) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with patch(
+        "landscout.sources.rte_odre_fr.urlopen",
+        side_effect=[
+            _response(_metadata_content(dataset_id, records_count=None)),
+            _response(_feature_collection()),
+        ],
+    ):
+        result = download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert result.dataset_metadata.records_count is None
+    assert result.export_summary.feature_count == 2
+
+
+def test_negative_source_record_count_is_rejected(
+    tmp_path: Path, source_config: RteOdreSourceConfig
+) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with (
+        patch(
+            "landscout.sources.rte_odre_fr.urlopen",
+            return_value=_response(_metadata_content(dataset_id, records_count=-1)),
+        ),
+        pytest.raises(RteOdreDownloadError, match="must not be negative"),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert not list(tmp_path.glob("*.part"))
+    assert not list(tmp_path.glob("*.bak"))
+
+
+@pytest.mark.parametrize(
+    ("feature_count", "null_geometry_count", "non_null_geometry_count"),
+    [
+        (-1, 0, 0),
+        (1, -1, 2),
+        (1, 0, -1),
+        (2, 0, 1),
+    ],
+)
+def test_export_summary_rejects_invalid_geometry_counts(
+    feature_count: int,
+    null_geometry_count: int,
+    non_null_geometry_count: int,
+) -> None:
+    with pytest.raises(ValueError):
+        RteOdreExportSummary(
+            feature_count=feature_count,
+            null_geometry_count=null_geometry_count,
+            non_null_geometry_count=non_null_geometry_count,
+            geometry_types=(),
+        )
 
 
 def test_fresh_cache_is_reused(
@@ -254,7 +344,7 @@ def test_expired_cache_is_refreshed(
     with patch(
         "landscout.sources.rte_odre_fr.urlopen",
         side_effect=[
-            _response(_metadata_content(dataset_id)),
+            _response(_metadata_content(dataset_id, records_count=3)),
             _response(refreshed_content),
         ],
     ) as opener:
@@ -264,6 +354,9 @@ def test_expired_cache_is_refreshed(
     assert refreshed.cache_hit is False
     assert refreshed.path.read_bytes() == refreshed_content
     assert refreshed.sha256 != first.sha256
+    assert refreshed.export_summary.feature_count == 3
+    assert not list(tmp_path.glob("*.bak"))
+    assert not list(tmp_path.glob("*.part"))
 
 
 def test_http_failure_raises_and_cleans_temporary_files(
@@ -351,6 +444,57 @@ def test_corrupted_refresh_preserves_previous_valid_cache(
     assert not list(tmp_path.glob("*.part"))
 
 
+def test_metadata_publication_failure_restores_previous_pair(
+    tmp_path: Path, source_config: RteOdreSourceConfig
+) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with patch(
+        "landscout.sources.rte_odre_fr.urlopen",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(_feature_collection()),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+    metadata_path = _metadata_path(tmp_path, dataset_id)
+    _expire_cache(metadata_path)
+    old_archive = first.path.read_bytes()
+    old_metadata = metadata_path.read_bytes()
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    original_replace = rte_odre_fr._replace_file
+    failure_injected = False
+
+    def fail_metadata_publication(source: Path, target: Path) -> None:
+        nonlocal failure_injected
+        if source == temporary_metadata and target == metadata_path:
+            failure_injected = True
+            raise PermissionError("simulated persistent metadata file lock")
+        original_replace(source, target)
+
+    with (
+        patch(
+            "landscout.sources.rte_odre_fr.urlopen",
+            side_effect=[
+                _response(_metadata_content(dataset_id)),
+                _response(_feature_collection(all_null_geometry=True)),
+            ],
+        ),
+        patch.object(
+            rte_odre_fr,
+            "_replace_file",
+            side_effect=fail_metadata_publication,
+        ),
+        pytest.raises(RteOdreDownloadError),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert failure_injected
+    assert first.path.read_bytes() == old_archive
+    assert metadata_path.read_bytes() == old_metadata
+    assert not list(tmp_path.glob("*.part"))
+    assert not list(tmp_path.glob("*.bak"))
+
+
 @pytest.mark.parametrize(
     "invalid_content",
     [
@@ -397,6 +541,12 @@ def test_null_feature_geometries_are_accepted(
 
     assert result.path.is_file()
     assert result.dataset_metadata.geometry_precision_status == "MISSING"
+    assert result.export_summary == RteOdreExportSummary(
+        feature_count=2,
+        null_geometry_count=2,
+        non_null_geometry_count=0,
+        geometry_types=(),
+    )
 
 
 def test_lineage_sidecar_records_integrity(
@@ -419,8 +569,89 @@ def test_lineage_sidecar_records_integrity(
     assert lineage["file_size"] == len(export_content)
     assert lineage["sha256"] == sha256(export_content).hexdigest()
     assert lineage["dataset_metadata"]["publisher"] == "RTE"
+    assert lineage["export_summary"] == {
+        "feature_count": 2,
+        "geometry_types": ["Point"],
+        "non_null_geometry_count": 1,
+        "null_geometry_count": 1,
+    }
+    assert (
+        lineage["export_summary"]["null_geometry_count"]
+        + lineage["export_summary"]["non_null_geometry_count"]
+        == lineage["export_summary"]["feature_count"]
+    )
     assert "path" not in lineage
     assert "cache_hit" not in lineage
+
+
+@pytest.mark.parametrize("cached_records_count", [-1, 1])
+def test_invalid_cached_record_count_invalidates_cache(
+    tmp_path: Path,
+    source_config: RteOdreSourceConfig,
+    cached_records_count: int,
+) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    valid_content = _feature_collection()
+    with patch(
+        "landscout.sources.rte_odre_fr.urlopen",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+    metadata_path = _metadata_path(tmp_path, dataset_id)
+    lineage = json.loads(metadata_path.read_text(encoding="utf-8"))
+    lineage["dataset_metadata"]["records_count"] = cached_records_count
+    metadata_path.write_text(json.dumps(lineage), encoding="utf-8")
+
+    with patch(
+        "landscout.sources.rte_odre_fr.urlopen",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ) as opener:
+        refreshed = download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.cache_hit is False
+    assert refreshed.path.read_bytes() == first.path.read_bytes()
+    assert refreshed.dataset_metadata.records_count == 2
+
+
+def test_cached_export_summary_mismatch_invalidates_cache(
+    tmp_path: Path, source_config: RteOdreSourceConfig
+) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    valid_content = _feature_collection()
+    with patch(
+        "landscout.sources.rte_odre_fr.urlopen",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+    metadata_path = _metadata_path(tmp_path, dataset_id)
+    lineage = json.loads(metadata_path.read_text(encoding="utf-8"))
+    lineage["export_summary"]["null_geometry_count"] = 2
+    lineage["export_summary"]["non_null_geometry_count"] = 0
+    lineage["export_summary"]["geometry_types"] = []
+    metadata_path.write_text(json.dumps(lineage), encoding="utf-8")
+
+    with patch(
+        "landscout.sources.rte_odre_fr.urlopen",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ) as opener:
+        refreshed = download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.cache_hit is False
+    assert refreshed.export_summary.geometry_types == ("Point",)
 
 
 def test_corrupted_cached_export_triggers_refresh(
