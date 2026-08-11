@@ -2,11 +2,11 @@
 
 ## Current project state
 
-- Current phase: French electricity-grid source ingestion
-- Latest completed step: STEP 7C.3.2 — close the IGN normalization API boundary and validate lineage context
+- Current phase: French electricity-grid proximity diagnostics
+- Latest completed step: STEP 7C.4 — parcel-to-IGN grid proxy proximity
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: STEP 7C.4 parcel-to-grid distance design
+- Next step waiting for review: review of diagnostic grid-proximity distributions
 
 ## STEP 0 — Environment check
 
@@ -1077,3 +1077,160 @@ Before canonical lineage is emitted, archive metadata must identify a punctuatio
 - Transformation-post GeoParquet: `data/processed/grid/ign_bdtopo_d031_transformation_posts.parquet` (43,607 bytes)
 
 Generated GeoParquets remain ignored by Git. No distance, threshold, parcel rejection, grid scoring, post-voltage inference, RTE matching, capacity data, Enedis integration, or altimetric-precision normalization was added.
+
+## STEP 7C.4 — Parcel-to-IGN grid proxy proximity
+
+- Status: Complete
+- Implementation summary: Added validated parcel-to-proxy enrichment using Shapely spatial indexes, deterministic nearest-feature tie resolution, calculation-only 2D Lambert-93 geometries, dynamic exact-voltage proximity rows, and threshold-free profiling.
+- Important files: `src/landscout/stages/enrich_grid_proximity.py`, `src/landscout/stages/__init__.py`, `tests/unit/test_enrich_grid_proximity.py`
+- Tests/checks: 44 focused tests cover exact edge and polygon distances, touching geometries, CRS behavior, Z removal, ties, grid quality, voltage semantics, dynamic voltage levels, no-exact behavior, parcel integrity, immutability, profiling, and the public API. The full suite passes with 375 tests; Ruff and mypy pass.
+- Important decisions: Full parcel geometry—not parcel centroids—is used. `STRtree.query_nearest` provides indexed vectorized matching. Exactly equidistant matches are counted and resolved by ascending `grid_feature_id`. Loops are limited to dynamically observed exact-voltage levels.
+- Known issues: The loaded source covers IGN BD TOPO department 31 only. A nearest result means nearest inside that loaded proxy coverage and may not be the globally nearest electricity asset, especially near coverage boundaries.
+
+### Inputs and integrity
+
+- Shape-screened parcel count: 3,638
+- Normalized electric-line count: 333
+- Normalized transformation-post count: 84
+- Valid exact-voltage electric-line count: 325
+- Dynamically observed exact voltage levels: 63, 150, 225, and 400 kV
+- Enriched parcel count: 3,638
+- Voltage-level proximity rows: 14,552
+- Lost parcel IDs: 0
+- Extra parcel IDs: 0
+- Duplicate output parcel IDs: 0
+- Duplicate `(parcel_id, voltage_kv)` pairs: 0
+- Parcel input CRS: `EPSG:4326`
+- Parcel output/read-back CRS: `EPSG:4326`
+- Calculation CRS: `EPSG:2154`
+- Original parcel geometry preserved through GeoParquet read-back: yes
+- Real proximity computation wall-clock duration: 1.211 seconds
+
+Profile `tie count` means the number of parcel matches for which more than one proxy feature shared the exact nearest distance. The selected match is the lexically smallest `grid_feature_id`.
+
+### Nearest electric-line proxy profile
+
+| Statistic | Value (m unless count) |
+| --- | ---: |
+| Count | 3,638 |
+| Missing count | 0 |
+| Minimum | 0.000 |
+| p01 | 0.000 |
+| p05 | 0.000 |
+| p10 | 50.142 |
+| p25 | 265.121 |
+| p50 | 746.824 |
+| p75 | 1,339.712 |
+| p90 | 2,866.724 |
+| p95 | 4,397.159 |
+| p99 | 6,064.828 |
+| Maximum | 6,417.713 |
+| Zero-distance count | 224 |
+| Tie count | 62 |
+
+The nearest-any-line calculation includes every `VALID` line regardless of whether its voltage status is `EXACT`, `BELOW`, `UNKNOWN`, `DEENERGIZED`, or `UNPARSED`; the selected feature's status and raw voltage remain explicit in the enriched dataset.
+
+### Nearest exact-voltage electric-line proxy profile
+
+| Statistic | Value (m unless count) |
+| --- | ---: |
+| Count | 3,638 |
+| Missing count | 0 |
+| Minimum | 0.000 |
+| p01 | 0.000 |
+| p05 | 0.000 |
+| p10 | 50.142 |
+| p25 | 265.121 |
+| p50 | 746.824 |
+| p75 | 1,339.712 |
+| p90 | 2,866.724 |
+| p95 | 4,397.159 |
+| p99 | 6,064.828 |
+| Maximum | 6,417.713 |
+| Zero-distance count | 224 |
+| Tie count | 62 |
+
+For this pinned D031 observation, nearest-any-line and nearest-exact-line profiles are identical because none of the eight non-exact-status lines is the nearest line for these parcels. This is an observation, not a production assumption.
+
+### Nearest transformation-post proxy profile
+
+| Statistic | Value (m unless count) |
+| --- | ---: |
+| Count | 3,638 |
+| Missing count | 0 |
+| Minimum | 0.000 |
+| p01 | 210.743 |
+| p05 | 488.496 |
+| p10 | 806.727 |
+| p25 | 1,527.617 |
+| p50 | 2,643.274 |
+| p75 | 3,942.982 |
+| p90 | 5,493.856 |
+| p95 | 5,953.047 |
+| p99 | 6,503.975 |
+| Maximum | 6,972.433 |
+| Zero-distance count | 5 |
+| Tie count | 0 |
+
+### Exact-voltage proximity profiles
+
+#### 63 kV
+
+- Source line features: 223
+- Parcel proximity rows: 3,638
+- Count/missing: 3,638 / 0
+- Min/p01/p05/p10: 0.000 / 0.000 / 0.000 / 64.527 m
+- p25/p50/p75: 292.591 / 746.824 / 1,339.712 m
+- p90/p95/p99/max: 2,866.724 / 4,397.159 / 6,064.828 / 6,417.713 m
+- Zero-distance count: 196
+- Tie count: 56
+
+#### 150 kV
+
+- Source line features: 9
+- Parcel proximity rows: 3,638
+- Count/missing: 3,638 / 0
+- Min/p01/p05/p10: 68,210.960 / 69,196.820 / 69,925.882 / 70,306.798 m
+- p25/p50/p75: 71,324.540 / 73,299.982 / 75,227.244 m
+- p90/p95/p99/max: 76,635.219 / 77,056.775 / 77,764.933 / 78,170.390 m
+- Zero-distance count: 0
+- Tie count: 0
+
+#### 225 kV
+
+- Source line features: 65
+- Parcel proximity rows: 3,638
+- Count/missing: 3,638 / 0
+- Min/p01/p05/p10: 0.000 / 16.488 / 557.396 / 1,005.906 m
+- p25/p50/p75: 2,162.172 / 3,990.063 / 5,388.479 m
+- p90/p95/p99/max: 6,718.453 / 7,308.618 / 8,278.292 / 9,192.183 m
+- Zero-distance count: 34
+- Tie count: 0
+
+#### 400 kV
+
+- Source line features: 28
+- Parcel proximity rows: 3,638
+- Count/missing: 3,638 / 0
+- Min/p01/p05/p10: 2,919.575 / 3,708.506 / 4,479.750 / 5,499.350 m
+- p25/p50/p75: 7,133.889 / 8,631.311 / 9,892.190 m
+- p90/p95/p99/max: 11,093.324 / 11,708.181 / 12,535.949 / 12,960.288 m
+- Zero-distance count: 0
+- Tie count: 0
+
+### Outputs and semantics
+
+- Enriched GeoParquet: `data/processed/grid/muret_bess_grid_proximity.parquet` (1,228,383 bytes)
+- Long-form Parquet: `data/processed/grid/muret_bess_grid_voltage_proximity.parquet` (176,469 bytes)
+- Both outputs were read back successfully with row counts, IDs, schemas, lineage, finite non-negative distances, and CRS verified.
+- Matched line and post source departments are `31`; matched source edition is `2026-06-15`.
+
+All distances are 2D planar proxy distances calculated in EPSG:2154. IGN Z values are not used in horizontal proximity.
+
+IGN BD TOPO geometry is `PROXY_GEOMETRY`.
+
+Distance to an IGN electric line or transformation post does not establish grid connection feasibility, capacity, connection cost, or an RTE/DSO connection point.
+
+Nearest distance means nearest feature inside the loaded proxy-source coverage. It does not prove that the feature is the globally nearest electricity asset outside that coverage.
+
+No BESS grid-distance threshold was selected in STEP 7C.4. No parcel was rejected and no grid score or suitability category was created.
