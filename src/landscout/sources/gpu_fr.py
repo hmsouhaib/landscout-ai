@@ -43,6 +43,8 @@ DEFAULT_CONFIG_PATH = Path("configs/sources/gpu_fr.yaml")
 DEFAULT_CACHE_DIR = Path("data/cache/gpu")
 DOWNLOAD_CHUNK_SIZE = 1024 * 1024
 USER_AGENT = "LandScout-AI/0.1"
+EXTRACTION_MANIFEST_NAME = ".landscout-gpu-extraction.json"
+EXTRACTION_MANIFEST_SCHEMA_VERSION = 2
 
 NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 CommuneCode = Annotated[
@@ -235,6 +237,7 @@ class GpuExtractedFile:
     relative_path: str
     file_type: str
     size_bytes: int
+    sha256: str
     category: FileCategory
 
 
@@ -442,19 +445,38 @@ def discover_current_gpu_document(
     selected = current[0]
     document_id = _required_string(selected, "id", "document ID")
     archive_name = _required_string(selected, "originalName", "archive name")
+    listing_type = _required_string(selected, "type", "listing document type")
+    try:
+        _safe_gpu_archive_filename(archive_name)
+    except GpuDownloadError as error:
+        raise GpuDiscoveryError("GPU archive name is unsafe") from error
     details_url = _api_url(config, f"document/{quote(document_id)}/details")
     files_url = _api_url(config, f"document/{quote(document_id)}/files")
     details_payload = _request_json(details_url, timeout)
-    files_payload = _request_json(files_url, timeout)
     if not isinstance(details_payload, dict):
         raise GpuDiscoveryError("GPU document details are not an object")
     details = details_payload
     if details.get("id") != document_id or details.get("originalName") != archive_name:
         raise GpuDiscoveryError("GPU document details do not match the selected document")
+    expected_state = {
+        "status": "document.production",
+        "legalStatus": "APPROVED",
+        "effectiveStatus": "EN_VIGUEUR",
+    }
+    if any(details.get(key) != value for key, value in expected_state.items()):
+        raise GpuDiscoveryError(
+            "GPU document details no longer describe a current approved and "
+            "in-force document"
+        )
     detail_grid = details.get("grid")
     if not isinstance(detail_grid, dict) or detail_grid.get("name") != code:
         raise GpuDiscoveryError("GPU document details do not match the commune")
+    if details.get("name") != partition:
+        raise GpuDiscoveryError("GPU document details do not match the partition")
     document_type = _required_string(details, "type", "document type")
+    if listing_type != document_type:
+        raise GpuDiscoveryError("GPU document type changed between listing and details")
+    files_payload = _request_json(files_url, timeout)
     source_url = build_gpu_partition_download_url(config, code)
     return GpuDocumentMetadata(
         provider=config.provider,
@@ -482,12 +504,158 @@ def discover_current_gpu_document(
     )
 
 
+_WINDOWS_RESERVED_BASENAMES = {
+    "con",
+    "prn",
+    "aux",
+    "nul",
+    *(f"com{index}" for index in range(1, 10)),
+    *(f"lpt{index}" for index in range(1, 10)),
+}
+
+
+def _safe_gpu_archive_filename(archive_name: object) -> str:
+    if not isinstance(archive_name, str):
+        raise GpuDownloadError("GPU archive name must be a string")
+    if not archive_name or archive_name != archive_name.strip():
+        raise GpuDownloadError("GPU archive name is empty or has edge whitespace")
+    if any(ord(character) < 32 or ord(character) == 127 for character in archive_name):
+        raise GpuDownloadError("GPU archive name contains control characters")
+
+    normalized = unicodedata.normalize("NFKC", archive_name)
+    if (
+        normalized in {".", ".."}
+        or "/" in normalized
+        or "\\" in normalized
+        or PurePosixPath(normalized).is_absolute()
+        or PureWindowsPath(normalized).is_absolute()
+        or bool(PureWindowsPath(normalized).drive)
+        or normalized.endswith((" ", "."))
+        or any(character in '<>:"/\\|?*' for character in normalized)
+    ):
+        raise GpuDownloadError("GPU archive name is not a safe local basename")
+
+    if normalized.casefold().endswith(".zip"):
+        basename = archive_name[:-4]
+        normalized_basename = normalized[:-4]
+        if normalized_basename.casefold().endswith(".zip"):
+            raise GpuDownloadError("GPU archive name contains repeated .zip suffixes")
+    else:
+        basename = archive_name
+        normalized_basename = normalized
+    if (
+        not basename
+        or normalized_basename in {".", ".."}
+        or normalized_basename.endswith((" ", "."))
+    ):
+        raise GpuDownloadError("GPU archive name has no safe logical basename")
+    windows_stem = normalized_basename.split(".", 1)[0].casefold()
+    if windows_stem in _WINDOWS_RESERVED_BASENAMES:
+        raise GpuDownloadError("GPU archive name is reserved on Windows")
+    filename = f"{basename}.zip"
+    if len(unicodedata.normalize("NFKC", filename).encode("utf-16-le")) // 2 > 255:
+        raise GpuDownloadError("GPU archive filename exceeds Windows component limits")
+    return filename
+
+
+def _validate_gpu_document_for_config(
+    document: GpuDocumentMetadata, config: GpuSourceConfig
+) -> str:
+    if not isinstance(document, GpuDocumentMetadata):
+        raise GpuDownloadError("GPU document metadata object is invalid")
+    if document.provider != config.provider or document.portal != config.portal:
+        raise GpuDownloadError("GPU document provider/portal does not match configuration")
+    code = document.commune_code
+    if not isinstance(code, str) or re.fullmatch(r"[0-9]{5}", code) is None:
+        raise GpuDownloadError("GPU document commune code is invalid")
+    if code != config.pilot.commune_code:
+        raise GpuDownloadError("GPU document commune does not match configured pilot")
+    try:
+        expected_partition = build_gpu_partition(config, code)
+        expected_url = build_gpu_partition_download_url(config, code)
+    except GpuConfigError as error:
+        raise GpuDownloadError("GPU document commune/partition is invalid") from error
+    if document.partition != expected_partition:
+        raise GpuDownloadError("GPU document partition does not match configuration")
+    if document.document_family != "DU":
+        raise GpuDownloadError("GPU document family is not a planning document")
+    if (
+        document.status != "document.production"
+        or document.legal_status != "APPROVED"
+        or document.effective_status != "EN_VIGUEUR"
+    ):
+        raise GpuDownloadError("GPU document is not current, approved, and in force")
+    if not isinstance(document.source_url, str) or document.source_url != expected_url:
+        raise GpuDownloadError("GPU document source URL is not the official partition URL")
+    parsed = urlparse(document.source_url)
+    expected_parsed = urlparse(expected_url)
+    if (
+        parsed.scheme not in {"http", "https"}
+        or parsed.hostname != "www.geoportail-urbanisme.gouv.fr"
+        or parsed.path != expected_parsed.path
+        or parsed.params
+        or parsed.query
+        or parsed.fragment
+        or parsed.username is not None
+        or parsed.password is not None
+    ):
+        raise GpuDownloadError("GPU document source URL has an unsafe identity")
+    return _safe_gpu_archive_filename(document.archive_name)
+
+
 def _sha256(path: Path) -> str:
     digest = sha256()
     with path.open("rb") as stream:
         while chunk := stream.read(DOWNLOAD_CHUNK_SIZE):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _is_link_or_junction(path: Path) -> bool:
+    return path.is_symlink() or path.is_junction()
+
+
+def _validate_gpu_archive_download(
+    download: GpuArchiveDownload,
+) -> tuple[str, ...]:
+    if not isinstance(download, GpuArchiveDownload):
+        raise GpuArchiveError("GPU archive download object is invalid")
+    if not isinstance(download.document, GpuDocumentMetadata):
+        raise GpuArchiveError("GPU archive document lineage object is invalid")
+    path = download.path
+    if not isinstance(path, Path) or _is_link_or_junction(path) or not path.is_file():
+        raise GpuArchiveError("GPU archive path is not a regular local file")
+    if download.archive_format != "zip":
+        raise GpuArchiveError("GPU archive object does not declare ZIP format")
+    if not isinstance(download.filename, str) or download.filename != path.name:
+        raise GpuArchiveError("GPU archive filename does not match its path")
+    if type(download.file_size) is not int or download.file_size <= 0:
+        raise GpuArchiveError("GPU archive object has an invalid file size")
+    if (
+        not isinstance(download.sha256, str)
+        or re.fullmatch(r"[0-9a-f]{64}", download.sha256) is None
+    ):
+        raise GpuArchiveError("GPU archive object has an invalid SHA256")
+    try:
+        expected_filename = _safe_gpu_archive_filename(download.document.archive_name)
+    except (AttributeError, GpuDownloadError) as error:
+        raise GpuArchiveError("GPU archive document identity is invalid") from error
+    if download.filename != expected_filename:
+        raise GpuArchiveError("GPU archive filename does not match document lineage")
+    try:
+        actual_size = path.stat().st_size
+        actual_sha256 = _sha256(path)
+    except OSError as error:
+        raise GpuArchiveError("Cannot read GPU archive bytes") from error
+    if actual_size != download.file_size:
+        raise GpuArchiveError(
+            "GPU archive size does not match immutable download lineage"
+        )
+    if actual_sha256 != download.sha256:
+        raise GpuArchiveError(
+            "GPU archive SHA256 does not match immutable download lineage"
+        )
+    return validate_gpu_archive(path)
 
 
 def _safe_archive_member(name: str) -> bool:
@@ -503,6 +671,88 @@ def _safe_archive_member(name: str) -> bool:
     )
 
 
+def _windows_member_component(component: str) -> str:
+    normalized = unicodedata.normalize("NFKC", component)
+    if (
+        not normalized
+        or normalized in {".", ".."}
+        or normalized.endswith((" ", "."))
+        or any(ord(character) < 32 or ord(character) == 127 for character in normalized)
+        or any(character in '<>:"/\\|?*' for character in normalized)
+    ):
+        raise GpuArchiveError(f"Unsafe Windows-compatible ZIP component: {component}")
+    stem = normalized.split(".", 1)[0].casefold()
+    if stem in _WINDOWS_RESERVED_BASENAMES:
+        raise GpuArchiveError(f"Reserved Windows ZIP component: {component}")
+    return normalized.casefold()
+
+
+def _validated_zip_destinations(
+    members: list[zipfile.ZipInfo],
+) -> tuple[tuple[zipfile.ZipInfo, PurePosixPath], ...]:
+    raw_names: set[str] = set()
+    explicit_destinations: dict[tuple[str, ...], str] = {}
+    file_destinations: set[tuple[str, ...]] = set()
+    directory_destinations: set[tuple[str, ...]] = set()
+    result: list[tuple[zipfile.ZipInfo, PurePosixPath]] = []
+
+    for member in members:
+        raw_name = member.filename
+        if raw_name in raw_names:
+            raise GpuArchiveError(f"Duplicate member name in GPU ZIP: {raw_name}")
+        raw_names.add(raw_name)
+        if not _safe_archive_member(raw_name):
+            raise GpuArchiveError(f"Unsafe path in GPU archive: {raw_name}")
+        mode = member.external_attr >> 16
+        if stat.S_ISLNK(mode):
+            raise GpuArchiveError(
+                f"Symbolic links are not allowed in GPU archive: {raw_name}"
+            )
+        file_type = stat.S_IFMT(mode)
+        if member.create_system == 3 and file_type not in {
+            0,
+            stat.S_IFREG,
+            stat.S_IFDIR,
+        }:
+            raise GpuArchiveError(f"Special files are not allowed in GPU archive: {raw_name}")
+
+        destination = PurePosixPath(raw_name.replace("\\", "/"))
+        parts = tuple(part for part in destination.parts if part not in {"", "."})
+        if not parts:
+            raise GpuArchiveError(f"GPU ZIP member has no extraction target: {raw_name}")
+        canonical = tuple(_windows_member_component(part) for part in parts)
+        if canonical[0] == EXTRACTION_MANIFEST_NAME.casefold():
+            raise GpuArchiveError("GPU ZIP member collides with extraction manifest")
+        if canonical in explicit_destinations:
+            previous = explicit_destinations[canonical]
+            raise GpuArchiveError(
+                "GPU ZIP members collide at one Windows-compatible destination: "
+                f"{previous} / {raw_name}"
+            )
+        explicit_destinations[canonical] = raw_name
+        parents = tuple(canonical[:index] for index in range(1, len(canonical)))
+        if any(parent in file_destinations for parent in parents):
+            raise GpuArchiveError(
+                f"GPU ZIP file/directory destination collision: {raw_name}"
+            )
+        is_directory = member.is_dir() or raw_name.endswith(("/", "\\"))
+        if is_directory:
+            if canonical in file_destinations:
+                raise GpuArchiveError(
+                    f"GPU ZIP file/directory destination collision: {raw_name}"
+                )
+            directory_destinations.add(canonical)
+        else:
+            if canonical in directory_destinations:
+                raise GpuArchiveError(
+                    f"GPU ZIP file/directory destination collision: {raw_name}"
+                )
+            file_destinations.add(canonical)
+        directory_destinations.update(parents)
+        result.append((member, PurePosixPath(*parts)))
+    return tuple(result)
+
+
 def validate_gpu_archive(path: Path) -> tuple[str, ...]:
     """Fully validate a ZIP archive and return its deterministic member inventory."""
 
@@ -515,18 +765,7 @@ def validate_gpu_archive(path: Path) -> tuple[str, ...]:
             members = archive.infolist()
             if not members:
                 raise GpuArchiveError("GPU ZIP contains no members")
-            names: list[str] = []
-            for member in members:
-                if not _safe_archive_member(member.filename):
-                    raise GpuArchiveError(
-                        f"Unsafe path in GPU archive: {member.filename}"
-                    )
-                mode = member.external_attr >> 16
-                if stat.S_ISLNK(mode):
-                    raise GpuArchiveError(
-                        f"Symbolic links are not allowed in GPU archive: {member.filename}"
-                    )
-                names.append(member.filename)
+            destinations = _validated_zip_destinations(members)
             bad_member = archive.testzip()
             if bad_member is not None:
                 raise GpuArchiveError(f"Corrupt GPU ZIP member: {bad_member}")
@@ -534,7 +773,9 @@ def validate_gpu_archive(path: Path) -> tuple[str, ...]:
         raise
     except (OSError, zipfile.BadZipFile, RuntimeError) as error:
         raise GpuArchiveError(f"Cannot validate GPU ZIP archive: {path}") from error
-    return tuple(sorted(names, key=str.casefold))
+    return tuple(
+        sorted((destination.as_posix() for _, destination in destinations), key=str.casefold)
+    )
 
 
 def _document_identity(document: GpuDocumentMetadata) -> dict[str, Any]:
@@ -671,7 +912,7 @@ def download_gpu_document(
 ) -> GpuArchiveDownload:
     """Download and transactionally cache one discovered official GPU ZIP."""
 
-    filename = f"{document.archive_name}.zip"
+    filename = _validate_gpu_document_for_config(document, config)
     archive_path = cache_dir / filename
     metadata_path = cache_dir / f"{filename}.metadata.json"
     cached = _load_cached_archive(
@@ -749,26 +990,149 @@ def _classify_file(path: Path) -> FileCategory:
 
 
 def _inventory(root: Path) -> tuple[GpuExtractedFile, ...]:
+    if _is_link_or_junction(root) or not root.is_dir():
+        raise GpuArchiveError(f"GPU extraction root is not a regular directory: {root}")
+    for path in root.rglob("*"):
+        if _is_link_or_junction(path):
+            raise GpuArchiveError(f"Extracted GPU symbolic link is forbidden: {path}")
     files: list[GpuExtractedFile] = []
     for path in sorted((item for item in root.rglob("*") if item.is_file()), key=str):
+        if path.parent == root and path.name == EXTRACTION_MANIFEST_NAME:
+            continue
         resolved = path.resolve()
         try:
             relative = resolved.relative_to(root.resolve())
         except ValueError as error:
             raise GpuArchiveError(f"Extracted GPU file escapes cache: {path}") from error
-        if path.is_symlink():
-            raise GpuArchiveError(f"Extracted GPU symbolic link is forbidden: {path}")
         files.append(
             GpuExtractedFile(
                 relative_path=relative.as_posix(),
                 file_type=path.suffix.casefold().lstrip(".") or "none",
                 size_bytes=path.stat().st_size,
+                sha256=_sha256(path),
                 category=_classify_file(path),
             )
         )
     if not files:
         raise GpuArchiveError("Extracted GPU package contains no files")
+    files.sort(key=lambda item: item.relative_path)
     return tuple(files)
+
+
+def _manifest_payload(
+    download: GpuArchiveDownload, files: tuple[GpuExtractedFile, ...]
+) -> dict[str, Any]:
+    return {
+        "schema_version": EXTRACTION_MANIFEST_SCHEMA_VERSION,
+        "archive_sha256": download.sha256,
+        "files": [
+            {
+                "relative_path": item.relative_path,
+                "size_bytes": item.size_bytes,
+                "sha256": item.sha256,
+            }
+            for item in files
+        ],
+    }
+
+
+def _validate_extraction_manifest(
+    root: Path, download: GpuArchiveDownload
+) -> tuple[GpuExtractedFile, ...]:
+    marker = root / EXTRACTION_MANIFEST_NAME
+    if _is_link_or_junction(marker) or not marker.is_file():
+        raise GpuArchiveError("GPU extraction manifest is missing or unsafe")
+    try:
+        payload = json.loads(marker.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise GpuArchiveError("GPU extraction manifest is unreadable") from error
+    if not isinstance(payload, dict) or set(payload) != {
+        "schema_version",
+        "archive_sha256",
+        "files",
+    }:
+        raise GpuArchiveError("GPU extraction manifest has an invalid structure")
+    if (
+        type(payload["schema_version"]) is not int
+        or payload["schema_version"] != EXTRACTION_MANIFEST_SCHEMA_VERSION
+    ):
+        raise GpuArchiveError("GPU extraction manifest schema is unsupported")
+    if payload["archive_sha256"] != download.sha256:
+        raise GpuArchiveError("GPU extraction manifest archive lineage differs")
+    entries = payload["files"]
+    if not isinstance(entries, list):
+        raise GpuArchiveError("GPU extraction manifest files are invalid")
+
+    expected: list[tuple[str, int, str]] = []
+    previous_path: str | None = None
+    for entry in entries:
+        if not isinstance(entry, dict) or set(entry) != {
+            "relative_path",
+            "size_bytes",
+            "sha256",
+        }:
+            raise GpuArchiveError("GPU extraction manifest file entry is invalid")
+        relative_path = entry["relative_path"]
+        size_bytes = entry["size_bytes"]
+        checksum = entry["sha256"]
+        if (
+            not isinstance(relative_path, str)
+            or not _safe_archive_member(relative_path)
+            or relative_path == EXTRACTION_MANIFEST_NAME
+            or type(size_bytes) is not int
+            or size_bytes < 0
+            or not isinstance(checksum, str)
+            or re.fullmatch(r"[0-9a-f]{64}", checksum) is None
+        ):
+            raise GpuArchiveError("GPU extraction manifest file value is invalid")
+        if previous_path is not None and relative_path <= previous_path:
+            raise GpuArchiveError(
+                "GPU extraction manifest paths are duplicated or not deterministic"
+            )
+        previous_path = relative_path
+        expected.append((relative_path, size_bytes, checksum))
+
+    actual_files = _inventory(root)
+    actual = [
+        (item.relative_path, item.size_bytes, item.sha256) for item in actual_files
+    ]
+    if actual != expected:
+        raise GpuArchiveError(
+            "GPU extraction files do not match the versioned integrity manifest"
+        )
+    return actual_files
+
+
+def _remove_extraction_path(path: Path) -> None:
+    if path.is_junction():
+        path.rmdir()
+    elif path.is_symlink() or path.is_file():
+        path.unlink(missing_ok=True)
+    elif path.exists():
+        shutil.rmtree(path)
+
+
+def _publish_extraction_directory(temporary_root: Path, root: Path) -> None:
+    backup = root.with_name(f"{root.name}.bak")
+    _remove_extraction_path(backup)
+    old_moved = False
+    try:
+        if root.exists() or _is_link_or_junction(root):
+            shutil.move(str(root), str(backup))
+            old_moved = True
+        shutil.move(str(temporary_root), str(root))
+    except OSError as error:
+        try:
+            _remove_extraction_path(root)
+            if old_moved:
+                shutil.move(str(backup), str(root))
+        except OSError as rollback_error:
+            raise GpuArchiveError(
+                "GPU extraction publication and rollback both failed"
+            ) from rollback_error
+        raise GpuArchiveError("GPU extraction publication failed") from error
+    else:
+        _remove_extraction_path(backup)
 
 
 def _discover_standard_models(root: Path) -> tuple[str, ...]:
@@ -790,71 +1154,61 @@ def extract_gpu_document(
 ) -> GpuExtraction:
     """Safely extract a validated GPU ZIP into a content-addressed cache."""
 
-    validate_gpu_archive(download.path)
+    _validate_gpu_archive_download(download)
     root = cache_dir / "x" / download.sha256[:16]
-    marker = root / ".landscout-gpu-extraction.json"
-    if root.is_dir() and marker.is_file():
+    if root.is_dir() and not _is_link_or_junction(root):
         try:
-            payload = json.loads(marker.read_text(encoding="utf-8"))
-            files = _inventory(root)
-            visible_count = sum(
-                item.relative_path != marker.name for item in files
+            files = _validate_extraction_manifest(root, download)
+            return GpuExtraction(
+                archive=download,
+                extraction_root=root,
+                files=files,
+                standard_models=_discover_standard_models(root),
+                cache_hit=True,
             )
-            if (
-                payload.get("archive_sha256") == download.sha256
-                and payload.get("file_count") == visible_count
-            ):
-                return GpuExtraction(
-                    archive=download,
-                    extraction_root=root,
-                    files=tuple(item for item in files if item.relative_path != marker.name),
-                    standard_models=_discover_standard_models(root),
-                    cache_hit=True,
-                )
-        except (OSError, ValueError, json.JSONDecodeError, GpuArchiveError):
+        except (GpuArchiveError, OSError):
             pass
     root.parent.mkdir(parents=True, exist_ok=True)
     temporary_root = root.with_name(f"{root.name}.part")
-    if temporary_root.exists():
-        shutil.rmtree(temporary_root)
+    _remove_extraction_path(temporary_root)
     temporary_root.mkdir()
     try:
         with zipfile.ZipFile(download.path) as archive:
-            for member in archive.infolist():
-                target = (temporary_root / member.filename).resolve()
-                try:
-                    target.relative_to(temporary_root.resolve())
-                except ValueError as error:
-                    raise GpuArchiveError(
-                        f"Unsafe extraction target: {member.filename}"
-                    ) from error
-            archive.extractall(temporary_root)
+            destinations = _validated_zip_destinations(archive.infolist())
+            for member, destination in destinations:
+                target = temporary_root.joinpath(*destination.parts)
+                if member.is_dir() or member.filename.endswith(("/", "\\")):
+                    target.mkdir(parents=True, exist_ok=True)
+                    continue
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with archive.open(member) as source, target.open("xb") as output:
+                    copyfileobj(source, output, length=DOWNLOAD_CHUNK_SIZE)
         files = _inventory(temporary_root)
-        marker_payload = {
-            "archive_sha256": download.sha256,
-            "file_count": len(files),
-        }
-        (temporary_root / marker.name).write_text(
-            json.dumps(marker_payload, indent=2, sort_keys=True) + "\n",
+        _validate_gpu_archive_download(download)
+        marker = temporary_root / EXTRACTION_MANIFEST_NAME
+        marker.write_text(
+            json.dumps(
+                _manifest_payload(download, files), indent=2, sort_keys=True
+            )
+            + "\n",
             encoding="utf-8",
         )
-        if root.exists():
-            shutil.rmtree(root)
-        shutil.move(str(temporary_root), str(root))
+        files = _validate_extraction_manifest(temporary_root, download)
+        standard_models = _discover_standard_models(temporary_root)
+        _publish_extraction_directory(temporary_root, root)
         return GpuExtraction(
             archive=download,
             extraction_root=root,
             files=files,
-            standard_models=_discover_standard_models(root),
+            standard_models=standard_models,
             cache_hit=False,
         )
-    except (OSError, zipfile.BadZipFile, GpuArchiveError) as error:
+    except (OSError, zipfile.BadZipFile, RuntimeError, GpuArchiveError) as error:
         if isinstance(error, GpuArchiveError):
             raise
         raise GpuArchiveError("Cannot safely extract GPU document") from error
     finally:
-        if temporary_root.exists():
-            shutil.rmtree(temporary_root)
+        _remove_extraction_path(temporary_root)
 
 
 def discover_gpu_spatial_layers(

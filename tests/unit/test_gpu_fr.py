@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import warnings
 import zipfile
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
@@ -33,6 +34,25 @@ from landscout.sources.gpu_fr import (
     inspect_gpu_planning_document,
     load_gpu_source_config,
     validate_gpu_archive,
+)
+
+_UNSAFE_ARCHIVE_NAMES = (
+    "../escape",
+    r"..\escape",
+    "/absolute",
+    r"C:\absolute",
+    ".",
+    "..",
+    " leading",
+    "trailing ",
+    "nul\x00name",
+    "CON",
+    "nul.txt",
+    "bad:name",
+    "bad?.zip",
+    "trailing.",
+    "archive.zip.zip",
+    "a" * 252,
 )
 
 
@@ -103,6 +123,16 @@ def _zip_bytes(files: dict[str, bytes] | None = None) -> bytes:
     with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for name, content in (files or {"document/readme.txt": b"GPU"}).items():
             archive.writestr(name, content)
+    return stream.getvalue()
+
+
+def _zip_member_bytes(members: list[tuple[str, bytes]]) -> bytes:
+    stream = io.BytesIO()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for name, content in members:
+                archive.writestr(name, content)
     return stream.getvalue()
 
 
@@ -202,7 +232,7 @@ def test_ambiguous_current_documents_are_rejected(monkeypatch: pytest.MonkeyPatc
         discover_current_gpu_document(_config())
 
 
-@pytest.mark.parametrize("field", ["id", "originalName"])
+@pytest.mark.parametrize("field", ["id", "originalName", "type"])
 def test_missing_document_identity_is_rejected(
     monkeypatch: pytest.MonkeyPatch, field: str
 ) -> None:
@@ -210,6 +240,69 @@ def test_missing_document_identity_is_rejected(
     item.pop(field)
     _patch_json_responses(monkeypatch, [[item]])
     with pytest.raises(GpuDiscoveryError, match="missing"):
+        discover_current_gpu_document(_config())
+
+
+@pytest.mark.parametrize(
+    ("field", "different_value"),
+    [
+        ("id", "doc-2"),
+        ("originalName", "31395_PLU_OTHER"),
+        ("name", "DU_99999"),
+        ("type", "CC"),
+        ("status", "document.deleted"),
+        ("legalStatus", "CANCELLED"),
+        ("effectiveStatus", "ANNULE"),
+    ],
+)
+def test_document_details_must_match_selected_listing(
+    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+    different_value: str,
+) -> None:
+    _patch_json_responses(
+        monkeypatch,
+        [[_listing_item()], _details(**{field: different_value}), _files()],
+    )
+
+    with pytest.raises(GpuDiscoveryError, match="match|changed|current"):
+        discover_current_gpu_document(_config())
+
+
+def test_document_details_commune_must_match_selected_listing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _patch_json_responses(
+        monkeypatch,
+        [
+            [_listing_item()],
+            _details(grid={"name": "99999", "title": "OTHER"}),
+            _files(),
+        ],
+    )
+
+    with pytest.raises(GpuDiscoveryError, match="match"):
+        discover_current_gpu_document(_config())
+
+
+@pytest.mark.parametrize(
+    "archive_name",
+    _UNSAFE_ARCHIVE_NAMES,
+)
+def test_discovery_rejects_unsafe_archive_name(
+    monkeypatch: pytest.MonkeyPatch,
+    archive_name: str,
+) -> None:
+    _patch_json_responses(
+        monkeypatch,
+        [
+            [_listing_item(originalName=archive_name)],
+            _details(originalName=archive_name),
+            _files(),
+        ],
+    )
+
+    with pytest.raises(GpuDiscoveryError, match="archive name|safe"):
         discover_current_gpu_document(_config())
 
 
@@ -224,6 +317,84 @@ def test_successful_download_persists_sha_and_sidecar(
     assert sidecar["sha256"] == result.sha256
     assert sidecar["document"]["document_id"] == "doc-1"
     assert not list(tmp_path.glob("*.part"))
+
+
+@pytest.mark.parametrize(
+    ("field", "different_value"),
+    [
+        ("provider", "OTHER PROVIDER"),
+        ("portal", "OTHER PORTAL"),
+        ("commune_code", "99999"),
+        ("partition", "DU_99999"),
+        ("status", "document.deleted"),
+        ("legal_status", "CANCELLED"),
+        ("effective_status", "ANNULE"),
+        ("source_url", "https://example.test/not-the-gpu.zip"),
+        (
+            "source_url",
+            (
+                "https://www.geoportail-urbanisme.gouv.fr/api/document/"
+                "download-by-partition/DU_99999"
+            ),
+        ),
+    ],
+)
+def test_download_rejects_document_inconsistent_with_config(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+    different_value: str,
+) -> None:
+    document = replace(_document(monkeypatch), **{field: different_value})
+    monkeypatch.setattr(
+        gpu,
+        "urlopen",
+        lambda *args, **kwargs: pytest.fail("invalid document reached network"),
+    )
+
+    with pytest.raises(GpuDownloadError, match="document|identity|config"):
+        download_gpu_document(document, _config(), tmp_path)
+
+    assert not any(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize(
+    "archive_name",
+    _UNSAFE_ARCHIVE_NAMES,
+)
+def test_download_rejects_forged_unsafe_archive_name_before_io(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    archive_name: str,
+) -> None:
+    document = replace(_document(monkeypatch), archive_name=archive_name)
+    monkeypatch.setattr(
+        gpu,
+        "urlopen",
+        lambda *args, **kwargs: pytest.fail("unsafe archive name reached network"),
+    )
+
+    with pytest.raises(GpuDownloadError, match="archive name|archive filename|safe"):
+        download_gpu_document(document, _config(), tmp_path / "cache")
+
+    assert not (tmp_path / "escape.zip").exists()
+
+
+def test_archive_name_with_one_zip_suffix_is_not_duplicated(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    document = replace(_document(monkeypatch), archive_name="safe-name.zip")
+    monkeypatch.setattr(
+        gpu,
+        "urlopen",
+        lambda *args, **kwargs: _Response(_zip_bytes()),
+    )
+
+    result = download_gpu_document(document, _config(), tmp_path)
+
+    assert result.filename == "safe-name.zip"
+    assert result.path == tmp_path / "safe-name.zip"
 
 
 def test_fresh_cache_is_reused(
@@ -345,6 +516,48 @@ def test_archive_symlink_is_rejected(tmp_path: Path) -> None:
         validate_gpu_archive(path)
 
 
+@pytest.mark.parametrize(
+    "members",
+    [
+        [("duplicate.txt", b"first"), ("duplicate.txt", b"second")],
+        [("folder/file.txt", b"first"), (r"folder\file.txt", b"second")],
+        [("folder/file.txt", b"first"), ("folder/./file.txt", b"second")],
+        [("Folder/File.txt", b"first"), ("folder/file.txt", b"second")],
+    ],
+)
+def test_duplicate_zip_extraction_targets_are_rejected(
+    tmp_path: Path,
+    members: list[tuple[str, bytes]],
+) -> None:
+    path = tmp_path / "collision.zip"
+    path.write_bytes(_zip_member_bytes(members))
+
+    with pytest.raises(GpuArchiveError, match="(?i)duplicate|collid"):
+        validate_gpu_archive(path)
+
+
+def test_zip_file_directory_target_collision_is_rejected(tmp_path: Path) -> None:
+    path = tmp_path / "collision.zip"
+    path.write_bytes(
+        _zip_member_bytes(
+            [("blocked", b"file"), ("blocked/child.txt", b"child")]
+        )
+    )
+
+    with pytest.raises(GpuArchiveError, match="collision|target"):
+        validate_gpu_archive(path)
+
+
+def test_zip_cannot_claim_extraction_manifest_path(tmp_path: Path) -> None:
+    path = tmp_path / "collision.zip"
+    path.write_bytes(
+        _zip_bytes({f"{gpu.EXTRACTION_MANIFEST_NAME}/child": b"forbidden"})
+    )
+
+    with pytest.raises(GpuArchiveError, match="manifest"):
+        validate_gpu_archive(path)
+
+
 def test_extraction_inventory_and_cache(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -363,7 +576,98 @@ def test_extraction_inventory_and_cache(
         "WRITTEN_REGULATION",
     }
     assert extract_gpu_document(first, tmp_path / "cache").cache_hit
+    manifest = json.loads(
+        (
+            extracted.extraction_root / gpu.EXTRACTION_MANIFEST_NAME
+        ).read_text(encoding="utf-8")
+    )
+    assert manifest["schema_version"] == 2
+    assert manifest["archive_sha256"] == first.sha256
+    assert manifest["files"] == [
+        {
+            "relative_path": item.relative_path,
+            "size_bytes": item.size_bytes,
+            "sha256": item.sha256,
+        }
+        for item in extracted.files
+    ]
     assert not list((tmp_path / "cache" / "x").glob("*.part"))
+
+
+def test_stale_download_object_rejects_replaced_valid_archive(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    download = _download(
+        tmp_path / "cache",
+        monkeypatch,
+        _zip_bytes({"data/value.txt": b"A"}),
+    )
+    replacement = _zip_bytes({"data/value.txt": b"B"})
+    assert len(replacement) == download.file_size
+    download.path.write_bytes(replacement)
+
+    with pytest.raises(GpuArchiveError, match="checksum|SHA|stale|metadata"):
+        extract_gpu_document(download, tmp_path / "cache")
+
+    assert not (tmp_path / "cache" / "x" / download.sha256[:16]).exists()
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("sha256", "0" * 64),
+        ("file_size", 1),
+        ("filename", "other.zip"),
+        ("archive_format", "7z"),
+    ],
+)
+def test_extraction_rejects_archive_object_inconsistent_with_path(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+    value: object,
+) -> None:
+    download = _download(tmp_path / "cache", monkeypatch)
+    stale = replace(download, **{field: value})
+
+    with pytest.raises(GpuArchiveError, match="archive|metadata|checksum|size"):
+        extract_gpu_document(stale, tmp_path / "cache")
+
+
+@pytest.mark.parametrize("mutation", ["content", "deleted", "added", "path"])
+def test_tampered_extraction_is_rebuilt_from_verified_archive(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mutation: str,
+) -> None:
+    download = _download(
+        tmp_path / "cache",
+        monkeypatch,
+        _zip_bytes(
+            {
+                "data/value.txt": b"source",
+                "docs/reglement.pdf": b"pdf",
+            }
+        ),
+    )
+    first = extract_gpu_document(download, tmp_path / "cache")
+    original = first.extraction_root / "data" / "value.txt"
+    if mutation == "content":
+        original.write_bytes(b"forged")
+    elif mutation == "deleted":
+        original.unlink()
+    elif mutation == "added":
+        (first.extraction_root / "unexpected.txt").write_bytes(b"unexpected")
+    else:
+        original.rename(original.with_name("renamed.txt"))
+
+    refreshed = extract_gpu_document(download, tmp_path / "cache")
+
+    assert not refreshed.cache_hit
+    assert (refreshed.extraction_root / "data" / "value.txt").read_bytes() == b"source"
+    assert not (refreshed.extraction_root / "data" / "renamed.txt").exists()
+    assert not (refreshed.extraction_root / "unexpected.txt").exists()
 
 
 def _extraction_from_archive(path: Path, tmp_path: Path) -> GpuExtraction:
@@ -380,7 +684,7 @@ def _extraction_from_archive(path: Path, tmp_path: Path) -> GpuExtraction:
         legal_status="APPROVED",
         effective_status="EN_VIGUEUR",
         version=None,
-        archive_name="archive",
+        archive_name=path.stem,
         publication_timestamp=None,
         update_timestamp=None,
         revision_date=None,

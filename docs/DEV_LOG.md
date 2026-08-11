@@ -2,11 +2,11 @@
 
 ## Current project state
 
-- Current phase: French electricity-grid proximity coverage diagnostics
-- Latest completed step: STEP 7C.5 — diagnosed IGN grid proxy coverage boundaries
+- Current phase: French urban-planning source integrity
+- Latest completed step: STEP 7D.1.1 — hardened GPU document, archive, and extraction integrity
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: review of boundary-aware grid-proximity diagnostics
+- Next step waiting for review: parcel-to-zoning normalization and intersection design
 
 ## STEP 0 — Environment check
 
@@ -1280,6 +1280,83 @@ All distances remain 2D planar proxy distances calculated in EPSG:2154 from full
 Distance to an IGN electric line or transformation post does not establish grid connection feasibility, capacity, connection cost, or an RTE/DSO connection point.
 
 No BESS grid-distance threshold is selected here.
+
+## STEP 7D.1.1 — Harden GPU source and extraction integrity
+
+- Status: Complete
+- Implementation summary: Closed every remaining GPU source trust boundary before parcel-to-zoning work. Current state is now revalidated across listing and details; document identity is checked against strict source configuration before cache or network access; archive names are treated as hostile metadata; immutable download size/SHA/format/filename are verified against real bytes before extraction; ZIP destinations are collision-checked; and extraction reuse requires a versioned per-file SHA256 manifest.
+- Important files: `src/landscout/sources/gpu_fr.py`, `tests/unit/test_gpu_fr.py`
+- Tests/checks: 93 focused offline GPU tests pass, including independent same-size modification, deletion, addition, and rename attacks against the extraction cache. Full suite: 609 passed; Ruff and mypy passed.
+- Important decisions: The official ZIP remains the sole source of truth. A corrupt derived extraction is regenerated locally only after the ZIP object and bytes pass size, SHA256, filename, format, and full ZIP CRC validation. The raw GPU `archive_name` remains unchanged in lineage; only the local filename normalizes one optional case-insensitive `.zip` suffix to exactly one `.zip`.
+- Known issues: None for this ticket. This integrity work does not interpret zoning or planning rules.
+
+### Listing/details and document/config identity
+
+The discovery listing still requires `document.production`, `APPROVED`, and `EN_VIGUEUR`. The selected details response must independently repeat those states and exactly match the listing document ID, raw archive name, requested commune, partition, and supplied document type. Any race or mismatch raises `GpuDiscoveryError`; it is never resolved by filename order or guesswork.
+
+Before cache lookup or network access, the immutable document must match:
+
+- configured provider and portal;
+- configured five-digit pilot commune;
+- the partition generated from that commune;
+- the `DU` document family and current legal/effective state;
+- the exact official GPU partition URL on `www.geoportail-urbanisme.gouv.fr` with no credentials, query, or fragment.
+
+Cross-platform local archive naming rejects empty/dot/path/drive/control/edge-whitespace names, Windows device names, forbidden characters, trailing dot/space, repeated `.zip`, Unicode-normalized unsafe components, and oversized Windows components. No unsafe name is stripped into a different basename.
+
+### Archive, ZIP-target, and extraction-manifest integrity
+
+Every `GpuArchiveDownload` is revalidated before extraction:
+
+- path is a regular non-link/non-junction file;
+- real size equals immutable `file_size`;
+- streaming SHA256 equals immutable `sha256`;
+- format is `zip`;
+- filename equals both `path.name` and the safe filename derived from source lineage;
+- full ZIP integrity remains valid.
+
+ZIP validation rejects exact duplicate names, normalized/case-insensitive Windows destination collisions, slash/backslash and dot-path equivalence, ancestor file/directory collisions, traversal, absolute/drive paths, controls, reserved names, links/special files, and any collision with LandScout's extraction manifest.
+
+The former count-only marker was replaced by schema version 2:
+
+```json
+{
+  "schema_version": 2,
+  "archive_sha256": "<official cached archive SHA256>",
+  "files": [
+    {
+      "relative_path": "<deterministically sorted source path>",
+      "size_bytes": 123,
+      "sha256": "<source-file SHA256>"
+    }
+  ]
+}
+```
+
+The marker is not a source file. Cache reuse inventories the complete source tree and requires the exact same path set, size, and SHA256 for every source file. A same-size byte change, missing file, additional file, rename, malformed marker, or archive-lineage mismatch forces a safe local regeneration. Extraction is completed and revalidated under `<hash>.part` before directory publication; an existing extraction is backed up and rollback-protected during replacement.
+
+### Real Muret regression
+
+- Document ID: `33edb4c9f6943c88d8d92518bff20bec`
+- Archive: `31395_PLU_20240215`
+- State: `document.production` / `APPROVED` / `EN_VIGUEUR`
+- Source URL: `https://www.geoportail-urbanisme.gouv.fr/api/document/download-by-partition/DU_31395`
+- Download timestamp retained: `2026-08-11T20:27:22.943318+00:00`
+- Archive SHA256 retained: `9d6677cd6634b56b712311042f0cc714d5ca42a38f82a417b27dd473255d7d93`
+- Archive acquisition: cache hit after complete revalidation
+- First hardened extraction: safe offline regeneration from the valid ZIP (old marker migration)
+- Second hardened extraction: cache hit after checking 73 paths, sizes, and file hashes
+- Extraction manifest: schema 2, archive SHA matches, 73 entries, exact inventory match
+- Zoning / prescription surface / line / point: 221 / 320 / 5 / 5
+- Written PDFs: 35
+- Detected standard: `CNIG PLU v2017`
+
+Raw zoning vocabulary is unchanged:
+
+- `TYPEZONE`: `A` 6, `AUc` 9, `AUs` 7, `N` 143, `U` 56.
+- `LIBELLE`: `A`, `AU`, `AU0`, `AUa`, `AUf`, `AUfa`, `AUfb`, `AUfc`, `AUfd`, `AUfo`, `AUp`, `N`, `NL`, `Ne`, `Nh`, `Nr`, `UA`, `UAa`, `UAb`, `UB`, `UBa`, `UBb`, `UC`, `UD`, `UF`, `UFa`, `UFc`, `UFd`, `UP`.
+
+No BESS urban-planning suitability rule is selected.
 
 ## STEP 7D.1 — GPU Muret urban-planning source ingestion
 
