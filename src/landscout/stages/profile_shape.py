@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from math import isfinite
 
 import geopandas as gpd  # type: ignore[import-untyped]
 
@@ -48,6 +49,8 @@ class DiagnosticScenario:
 @dataclass(frozen=True)
 class ShapeDistributionProfile:
     input_count: int
+    valid_count: int
+    error_count: int
     distributions: dict[str, dict[str, float]]
     width_buckets: dict[str, int]
     ratio_buckets: dict[str, int]
@@ -75,7 +78,22 @@ def profile_shape_distribution(
     if parcels["parcel_id"].duplicated().any():
         raise ShapeProfileError("parcel_id values must be unique")
 
+    statuses = set(parcels["shape_status"].dropna().unique())
+    if parcels["shape_status"].isna().any() or not statuses <= {"VALID", "ERROR"}:
+        unexpected = sorted(str(status) for status in statuses - {"VALID", "ERROR"})
+        formatted = ", ".join(unexpected) if unexpected else "null"
+        raise ShapeProfileError(f"Unexpected shape_status values: {formatted}")
+
     valid_shapes = parcels["shape_status"] == "VALID"
+    error_shapes = parcels["shape_status"] == "ERROR"
+    input_count = len(parcels)
+    valid_count = int(valid_shapes.sum())
+    error_count = int(error_shapes.sum())
+    if input_count != valid_count + error_count:
+        raise ShapeProfileError("Shape status counts do not match input count")
+    if valid_count == 0:
+        raise ShapeProfileError("At least one VALID shape row is required")
+
     required_valid_metrics = [
         *PROFILE_METRICS,
         "centroid_lat",
@@ -83,8 +101,22 @@ def profile_shape_distribution(
     ]
     if parcels.loc[valid_shapes, required_valid_metrics].isna().any().any():
         raise ShapeProfileError("VALID shape rows must have complete shape metrics")
+    for column in required_valid_metrics:
+        try:
+            values_are_finite = all(
+                isfinite(float(value))
+                for value in parcels.loc[valid_shapes, column]
+            )
+        except (TypeError, ValueError) as error:
+            raise ShapeProfileError(
+                f"VALID shape metric must be numeric and finite: {column}"
+            ) from error
+        if not values_are_finite:
+            raise ShapeProfileError(
+                f"VALID shape metric must be finite: {column}"
+            )
 
-    working = parcels.copy()
+    working = parcels.loc[valid_shapes].copy()
     distributions = {
         metric: {
             label: float(working[metric].quantile(quantile))
@@ -131,6 +163,12 @@ def profile_shape_distribution(
         "0.60–0.70": int(((compactness >= 0.60) & (compactness < 0.70)).sum()),
         "compactness >= 0.70": int((compactness >= 0.70).sum()),
     }
+    if sum(width_buckets.values()) != valid_count:
+        raise ShapeProfileError("Width buckets do not cover every VALID row")
+    if sum(ratio_buckets.values()) != valid_count:
+        raise ShapeProfileError("Ratio buckets do not cover every VALID row")
+    if sum(compactness_buckets.values()) != valid_count:
+        raise ShapeProfileError("Compactness buckets do not cover every VALID row")
 
     scenario_masks = {
         "A": width >= 10,
@@ -140,11 +178,10 @@ def profile_shape_distribution(
         "E": (width >= 20) & (ratio <= 7),
         "F": (width >= 20) & (ratio <= 5) & (compactness >= 0.20),
     }
-    count = len(working)
     scenarios = {
         name: DiagnosticScenario(
             retained_count=int(mask.sum()),
-            retained_percentage=float(mask.sum() / count * 100) if count else 0.0,
+            retained_percentage=float(mask.sum() / valid_count * 100),
         )
         for name, mask in scenario_masks.items()
     }
@@ -169,7 +206,9 @@ def profile_shape_distribution(
     extreme_frame = extreme_pool.nlargest(5, "_extreme_score")
 
     return ShapeDistributionProfile(
-        input_count=count,
+        input_count=input_count,
+        valid_count=valid_count,
+        error_count=error_count,
         distributions=distributions,
         width_buckets=width_buckets,
         ratio_buckets=ratio_buckets,

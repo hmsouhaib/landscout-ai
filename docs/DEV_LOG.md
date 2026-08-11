@@ -3,7 +3,7 @@
 ## Current project state
 
 - Current phase: French cadastral data ingestion
-- Latest completed step: STEP 7B.5 — profile BESS parcel shape distribution
+- Latest completed step: STEP 7B.5.1 — handle shape profiling errors explicitly
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: next LandScout implementation step, not yet specified
@@ -349,3 +349,24 @@ Representative extreme/problematic parcels (geometry omitted):
 | `313950000K1263` | 2,124.726244 | 391.903893 | 5.602324 | 69.953812 | 0.042381 | 43.419288 | 1.303371 |
 | `313950000K1237` | 2,182.107274 | 394.694144 | 5.845761 | 67.518010 | 0.043004 | 43.418377 | 1.302782 |
 | `313950000K1261` | 2,152.836718 | 392.107473 | 6.035972 | 64.961776 | 0.042869 | 43.419241 | 1.303348 |
+
+## STEP 7B.5.1 — Explicit VALID and ERROR profiling
+
+- Status: Complete
+- Implementation summary: Made shape-status accounting explicit and restricted every statistic, bucket, scenario, and representative sample to VALID rows.
+- Important files: `src/landscout/stages/profile_shape.py`, `tests/unit/test_profile_shape.py`
+- Tests/checks: Covered mixed VALID/ERROR inputs, exclusion from statistics and buckets, valid-count scenario percentages, count integrity, status validation, finite metrics, zero-VALID behavior, all-VALID regression, and input immutability; pytest, Ruff, and mypy pass.
+- Important decisions: Only `VALID` and `ERROR` statuses are accepted; ERROR rows contribute only to `error_count`; bucket sums must equal `valid_count`; scenario percentages use `valid_count`; inputs with zero VALID rows raise a clear `ShapeProfileError`.
+- Known issues: None.
+
+### Real Muret regression
+
+- `input_count`: 4,013
+- `valid_count`: 4,013
+- `error_count`: 0
+- Count integrity (`input_count == valid_count + error_count`): confirmed
+- Percentile values: unchanged from STEP 7B.5
+- Width bucket counts: unchanged from STEP 7B.5
+- Ratio bucket counts: unchanged from STEP 7B.5
+- Compactness bucket counts: unchanged from STEP 7B.5
+- Diagnostic scenario counts: unchanged from STEP 7B.5

@@ -4,9 +4,18 @@ import pytest
 from shapely.geometry import Point
 
 from landscout.stages.profile_shape import (
+    PROFILE_METRICS,
     ShapeProfileError,
     profile_shape_distribution,
 )
+
+
+def _with_error_row(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    mixed = parcels.copy()
+    mixed.loc[9, "shape_status"] = "ERROR"
+    for column in (*PROFILE_METRICS, "centroid_lat", "centroid_lon"):
+        mixed.loc[9, column] = None
+    return mixed
 
 
 @pytest.fixture
@@ -57,6 +66,15 @@ def test_bucket_counts_sum_to_input_count(parcels: gpd.GeoDataFrame) -> None:
     assert sum(profile.width_buckets.values()) == len(parcels)
     assert sum(profile.ratio_buckets.values()) == len(parcels)
     assert sum(profile.compactness_buckets.values()) == len(parcels)
+
+
+def test_existing_all_valid_behavior_is_unchanged(parcels: gpd.GeoDataFrame) -> None:
+    profile = profile_shape_distribution(parcels)
+
+    assert profile.input_count == 10
+    assert profile.valid_count == 10
+    assert profile.error_count == 0
+    assert profile.distributions["area_m2"]["max"] == pytest.approx(1000.0)
 
 
 def test_diagnostic_scenario_counts(parcels: gpd.GeoDataFrame) -> None:
@@ -114,3 +132,57 @@ def test_null_metric_on_valid_shape_fails(parcels: gpd.GeoDataFrame) -> None:
 
     with pytest.raises(ShapeProfileError, match="complete"):
         profile_shape_distribution(with_null_metric)
+
+
+def test_mixed_valid_and_error_rows_are_counted(parcels: gpd.GeoDataFrame) -> None:
+    profile = profile_shape_distribution(_with_error_row(parcels))
+
+    assert profile.input_count == 10
+    assert profile.valid_count == 9
+    assert profile.error_count == 1
+    assert profile.input_count == profile.valid_count + profile.error_count
+
+
+def test_error_rows_are_excluded_from_percentiles(parcels: gpd.GeoDataFrame) -> None:
+    profile = profile_shape_distribution(_with_error_row(parcels))
+
+    assert profile.distributions["area_m2"]["max"] == pytest.approx(900.0)
+
+
+def test_error_rows_are_excluded_from_buckets(parcels: gpd.GeoDataFrame) -> None:
+    profile = profile_shape_distribution(_with_error_row(parcels))
+
+    assert sum(profile.width_buckets.values()) == profile.valid_count == 9
+    assert sum(profile.ratio_buckets.values()) == profile.valid_count
+    assert sum(profile.compactness_buckets.values()) == profile.valid_count
+
+
+def test_scenario_percentages_use_valid_count(parcels: gpd.GeoDataFrame) -> None:
+    profile = profile_shape_distribution(_with_error_row(parcels))
+
+    assert profile.scenarios["A"].retained_count == 7
+    assert profile.scenarios["A"].retained_percentage == pytest.approx(7 / 9 * 100)
+
+
+def test_unexpected_shape_status_fails(parcels: gpd.GeoDataFrame) -> None:
+    unexpected = parcels.copy()
+    unexpected.loc[0, "shape_status"] = "UNKNOWN"
+
+    with pytest.raises(ShapeProfileError, match="Unexpected"):
+        profile_shape_distribution(unexpected)
+
+
+def test_non_finite_metric_on_valid_row_fails(parcels: gpd.GeoDataFrame) -> None:
+    non_finite = parcels.copy()
+    non_finite.loc[0, "length_m"] = float("inf")
+
+    with pytest.raises(ShapeProfileError, match="finite"):
+        profile_shape_distribution(non_finite)
+
+
+def test_zero_valid_rows_fails_clearly(parcels: gpd.GeoDataFrame) -> None:
+    errors_only = parcels.copy()
+    errors_only["shape_status"] = "ERROR"
+
+    with pytest.raises(ShapeProfileError, match="At least one VALID"):
+        profile_shape_distribution(errors_only)
