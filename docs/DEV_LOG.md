@@ -3,10 +3,10 @@
 ## Current project state
 
 - Current phase: French electricity-grid source ingestion
-- Latest completed step: STEP 7C.2 — ingest and inspect IGN BD TOPO electricity spatial data
+- Latest completed step: STEP 7C.3 — normalize IGN electricity proxy layers
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: review of the IGN electricity spatial-source adapter and real Haute-Garonne findings
+- Next step waiting for review: review of normalized IGN electricity proxy datasets
 
 ## STEP 0 — Environment check
 
@@ -862,3 +862,98 @@ The inspection does **not**:
 - repair or alter any source geometry.
 
 The package edition is recent, but individual features carry heterogeneous source labels and confirmation dates. Package recency must therefore not be interpreted as uniform feature-level recency. No scoring, filtering, nearest-feature matching, capacity inference, or business rule was added in this step.
+
+## STEP 7C.3 — Normalize IGN electricity proxy layers
+
+- Status: Complete
+- Implementation summary: Added independent, immutable normalization for the already-loaded IGN electric-line and transformation-post layers, including strict source identity and EPSG:2154 validation, namespaced LandScout IDs, geometry-quality classification, stable output schemas, source lineage, and generic voltage parsing.
+- Important files: `src/landscout/stages/normalize_grid_ign.py`, `src/landscout/stages/__init__.py`, `tests/unit/test_normalize_grid_ign.py`
+- Tests/checks: 40 focused normalization tests cover generic exact and bounded voltage parsing, unknown/de-energized/unparsed vocabulary, ID failures, CRS failures, geometry-quality preservation, lineage, deterministic columns, and input immutability. The full suite passes with 266 tests; Ruff and mypy pass.
+- Important decisions: Source `cleabs` is preserved as `source_feature_id`; normalized IDs use the `IGN_BDTOPO:<feature type>:<cleabs>` namespace and never use DataFrame indexes. Source geometry is neither reprojected nor repaired. Transformation-post voltage remains explicitly unknown because the real source layer contains no voltage field.
+- Known issues: IGN transformation-post names are sparse and their voltage is absent. Exact numeric line voltage is source-derived only; it does not establish proximity suitability, connection feasibility, available capacity, or a connection point.
+
+### Stable normalization semantics
+
+Shared lineage values for every normalized feature:
+
+- `source_provider = IGN`
+- `source_product = BD_TOPO`
+- `spatial_role = PROXY_GEOMETRY`
+- Source CRS and output CRS: `EPSG:2154`
+- Geometry states: `VALID`, `NULL`, `EMPTY`, `INVALID`
+
+Feature types and ID formats:
+
+- Electric line: `ELECTRIC_LINE`; `IGN_BDTOPO:ELECTRIC_LINE:<cleabs>`
+- Transformation post: `TRANSFORMATION_POST`; `IGN_BDTOPO:TRANSFORMATION_POST:<cleabs>`
+
+The generic voltage parser accepts positive numeric kV values without a fixed voltage list. `<N kV` is represented as `BELOW` with only `voltage_upper_bound_kv`; it is never converted into an exact voltage. Null or explicitly unknown vocabulary is `UNKNOWN`, `Hors tension` is `DEENERGIZED`, and any other non-null vocabulary is preserved as `UNPARSED`.
+
+### Real D031 electric-line regression
+
+- Input rows: 333
+- Output rows: 333
+- Duplicate source IDs: 0
+- Duplicate normalized IDs: 0
+- Lost source IDs: 0
+- Extra source IDs: 0
+- CRS: `EPSG:2154`
+- Geometry status: `VALID` 333; `NULL` 0; `EMPTY` 0; `INVALID` 0
+- Known manager: 281
+- Unknown manager: 52
+- Unexpected/unparsed voltage vocabulary: none
+
+Voltage-status counts:
+
+| Status | Count |
+| --- | ---: |
+| `EXACT` | 325 |
+| `BELOW` | 2 |
+| `UNKNOWN` | 5 |
+| `DEENERGIZED` | 1 |
+| `UNPARSED` | 0 |
+
+Exact source-derived voltage counts:
+
+| `voltage_kv` | Count |
+| ---: | ---: |
+| 63 | 223 |
+| 150 | 9 |
+| 225 | 65 |
+| 400 | 28 |
+
+- Minimum exact voltage: 63 kV
+- Median exact voltage: 63 kV
+- Maximum exact voltage: 400 kV
+- GeoParquet: `data/processed/grid/ign_bdtopo_d031_electric_lines.parquet`
+- GeoParquet size: 138,795 bytes
+- Read-back verification: 333 rows, EPSG:2154
+
+### Real D031 transformation-post regression
+
+- Input rows: 84
+- Output rows: 84
+- Duplicate source IDs: 0
+- Duplicate normalized IDs: 0
+- Lost source IDs: 0
+- Extra source IDs: 0
+- CRS: `EPSG:2154`
+- Geometry status: `VALID` 84; `NULL` 0; `EMPTY` 0; `INVALID` 0
+- Voltage status: `UNKNOWN` 84
+- Non-null `voltage_kv`: 0
+- Non-null normalized names: 4
+- GeoParquet: `data/processed/grid/ign_bdtopo_d031_transformation_posts.parquet`
+- GeoParquet size: 38,432 bytes
+- Read-back verification: 84 rows, EPSG:2154
+
+Generated GeoParquet outputs remain ignored by Git.
+
+### Explicit spatial interpretation
+
+IGN geometry is `PROXY_GEOMETRY`.
+
+Exact numeric line voltage is source-derived, but proximity to a line does not establish connection feasibility.
+
+IGN transformation posts have no source voltage in the D031 dataset; LandScout therefore keeps their voltage `UNKNOWN`.
+
+`TRANSFORMATION_POST` means only an IGN BD TOPO transformation-post proxy. It does not mean an RTE substation, BESS connection point, source substation, available grid node, or available-capacity location. No parcel distance, parcel rejection, source matching, voltage threshold, grid score, or capacity inference was added.
