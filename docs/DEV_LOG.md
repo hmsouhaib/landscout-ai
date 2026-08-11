@@ -3,7 +3,7 @@
 ## Current project state
 
 - Current phase: French cadastral data ingestion
-- Latest completed step: STEP 7B.2 — normalize Muret parcels
+- Latest completed step: STEP 7B.3 — filter BESS parcels by area
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: next LandScout implementation step, not yet specified
@@ -157,3 +157,30 @@ Example attribute records (geometry omitted):
 - Maximum `area_m2`: 304,924.087291
 - Output CRS: `EPSG:4326`
 - Output GeoParquet: `data/processed/cadastre/muret_parcels.parquet`
+
+## STEP 7B.3 — Filter BESS parcels by area
+
+- Status: Complete
+- Implementation summary: Added a lossless candidate/rejected partition using parcel-area thresholds from the validated BESS profile.
+- Important files: `src/landscout/stages/filter_parcels.py`, `tests/unit/test_filter_parcels.py`
+- Tests/checks: Covered inclusive boundaries, every rejection reason, lossless partitioning, retained CRS, and configuration-driven thresholds; pytest, Ruff, and mypy pass.
+- Important decisions: Uses no hardcoded area thresholds; invalid geometry takes rejection precedence over unknown area; every input parcel appears in exactly one output; generated GeoParquet files remain ignored by Git.
+- Known issues: None.
+
+### Real Muret BESS area filter (`31395`)
+
+- Profile thresholds: 2,000–15,000 m² inclusive
+- Total parcels: 17,200
+- Candidates: 4,013
+- Rejected: 13,187
+- Percentage retained: 23.331395%
+- `AREA_BELOW_MIN`: 12,453
+- `AREA_ABOVE_MAX`: 732
+- `INVALID_GEOMETRY`: 2
+- `AREA_UNKNOWN`: 0
+- Candidate minimum area: 2,001.499661 m²
+- Candidate median area: 3,915.028783 m²
+- Candidate maximum area: 14,973.105182 m²
+- Candidate CRS: `EPSG:4326`
+- Candidate GeoParquet: `data/processed/cadastre/muret_bess_candidates.parquet`
+- Rejected GeoParquet: `data/processed/cadastre/muret_bess_rejected.parquet`
