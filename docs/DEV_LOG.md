@@ -3,10 +3,10 @@
 ## Current project state
 
 - Current phase: French electricity-grid source ingestion
-- Latest completed step: STEP 7C.3.1 — harden IGN grid normalization lineage, geometry semantics, and numeric integrity
+- Latest completed step: STEP 7C.3.2 — close the IGN normalization API boundary and validate lineage context
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: review of hardened IGN electricity proxy normalization
+- Next step waiting for review: STEP 7C.4 parcel-to-grid distance design
 
 ## STEP 0 — Environment check
 
@@ -987,7 +987,7 @@ The normalizer validates the source, archive, extraction, and both layer summari
 - Null, empty, and invalid source geometries are preserved and classified; no geometry is silently repaired.
 - Z coordinates are preserved.
 - Scalar voltage values are parsed only when positive and finite. Collection-like values and numeric overflow are preserved as `UNPARSED`; infinity is never emitted.
-- Planimetric and altimetric precision accept only finite, non-negative real values. Missing values remain missing, while negative, infinite, Boolean, and numeric-string values fail with a controlled error.
+- Source `precision_planimetrique` is exposed as `planimetric_precision_m` only when it is a finite, non-negative real value. Missing values remain missing, while negative, infinite, Boolean, and numeric-string values fail with a controlled error. Altimetric precision is not normalized in this step.
 - `cleabs` must be a unique, non-null, non-empty string without leading/trailing whitespace, colons, or Unicode control characters. No arbitrary length limit is imposed.
 - Output row order is stable and the output uses a deterministic zero-based `RangeIndex`, independent of the source index.
 
@@ -1034,3 +1034,46 @@ Transformation posts:
 - GeoParquet size: 43,181 bytes
 
 The generated GeoParquets remain ignored by Git. This hardening adds no distance calculation, parcel filtering, RTE/IGN matching, voltage threshold, grid scoring, or capacity inference.
+
+## STEP 7C.3.2 — Close IGN normalization API boundary and validate lineage context
+
+- Status: Complete
+- Implementation summary: Made `normalize_ign_electricity()` the sole public production entry point for IGN electricity normalization. Layer-specific normalizers and their immutable context are now internal implementation details.
+- Important files: `src/landscout/stages/normalize_grid_ign.py`, `src/landscout/stages/__init__.py`, `tests/unit/test_normalize_grid_ign.py`
+- Tests/checks: 105 focused normalization tests cover the closed public API, private context validation, archive identity, and all retained STEP 7C.3.1 behavior. The full suite passes with 331 tests; Ruff and mypy pass.
+- Important decisions: Context validation preserves source values rather than trimming or canonicalizing them. The normalizer reuses the IGN adapter's department-code type and validates archive compatibility before stamping canonical `IGN` / `BD_TOPO` lineage.
+- Known issues: Loading the real GeoPackage still emits existing Pyogrio warnings for unsupported declared SQL field formats; both required layers load and normalize successfully. IGN geometries remain `PROXY_GEOMETRY` and do not establish connection feasibility.
+
+### API and lineage validation
+
+The `landscout.stages` package continues to expose:
+
+- `IgnGridNormalizationError`
+- `IgnVoltageNormalization`
+- `NormalizedIgnElectricityData`
+- `parse_ign_voltage`
+- `normalize_ign_electricity`
+
+It no longer exposes the source-context class or either layer-specific normalizer. The high-level entry point alone constructs validated contexts from the complete `IgnBdTopoElectricityData` bundle and invokes the internal helpers.
+
+Context validation now requires an exact non-empty layer name, a supported French department code, a real ISO calendar edition date, a timezone-aware ISO download timestamp, an exact 64-digit hexadecimal SHA256 value, an HTTP(S) source URL, and a non-empty edge-whitespace-free product version when present. Invalid runtime types produce controlled `IgnGridNormalizationError` failures.
+
+Before canonical lineage is emitted, archive metadata must identify a punctuation/case/accent-normalized IGN provider and BD TOPO product and use a CRS equivalent to EPSG:2154. The discovered extraction layer names remain the authoritative `source_layer` values.
+
+### Real D031 regression and GeoParquet read-back
+
+- Archive and extraction cache hits: yes / yes
+- Discovered electric-line layer: `ligne_electrique`
+- Electric-line input/output/read-back rows: 333 / 333 / 333
+- Electric-line voltage status: `EXACT` 325; `BELOW` 2; `UNKNOWN` 5; `DEENERGIZED` 1; `UNPARSED` 0
+- Discovered transformation-post layer: `poste_de_transformation`
+- Transformation-post input/output/read-back rows: 84 / 84 / 84
+- Transformation-post voltage status: `UNKNOWN` 84
+- Lost/extra IDs: 0 / 0 for both layers
+- Duplicate normalized IDs: 0 for both layers
+- Output and read-back CRS: `EPSG:2154`
+- Package lineage, deterministic schemas, geometry statuses, and discovered layer values verified after read-back
+- Electric-line GeoParquet: `data/processed/grid/ign_bdtopo_d031_electric_lines.parquet` (143,981 bytes)
+- Transformation-post GeoParquet: `data/processed/grid/ign_bdtopo_d031_transformation_posts.parquet` (43,607 bytes)
+
+Generated GeoParquets remain ignored by Git. No distance, threshold, parcel rejection, grid scoring, post-voltage inference, RTE matching, capacity data, Enedis integration, or altimetric-precision normalization was added.

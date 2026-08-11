@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass
+from datetime import date, datetime
 from math import isfinite
 from numbers import Real
 from typing import Literal
@@ -12,9 +13,12 @@ from typing import Literal
 import geopandas as gpd  # type: ignore[import-untyped]
 import pandas as pd  # type: ignore[import-untyped]
 from pandas.api.types import is_scalar  # type: ignore[import-untyped]
+from pydantic import HttpUrl, TypeAdapter, ValidationError
 from pyproj import CRS
 
 from landscout.sources.ign_bdtopo_fr import (
+    DepartmentCode,
+    EditionString,
     IgnBdTopoElectricityData,
     IgnBdTopoLayerSummary,
 )
@@ -137,6 +141,17 @@ _UNKNOWN_VOLTAGE_TERMS = frozenset(
     {"inconnu", "inconnue", "unknown", "non renseigne", "non renseignee"}
 )
 _DEENERGIZED_VOLTAGE_TERMS = frozenset({"hors tension"})
+_DEPARTMENT_CODE_VALIDATOR = TypeAdapter(DepartmentCode)
+_EDITION_VALIDATOR = TypeAdapter(EditionString)
+_HTTP_URL_VALIDATOR = TypeAdapter(HttpUrl)
+_SHA256_PATTERN = re.compile(r"^[0-9a-fA-F]{64}$")
+_IGN_PROVIDER_IDENTITIES = frozenset(
+    {
+        "ign",
+        "institut national de l information geographique et forestiere",
+        "institut national de l information geographique et forestiere ign",
+    }
+)
 
 
 class IgnGridNormalizationError(ValueError):
@@ -144,7 +159,7 @@ class IgnGridNormalizationError(ValueError):
 
 
 @dataclass(frozen=True)
-class IgnGridSourceContext:
+class _IgnGridSourceContext:
     """Immutable source-package context persisted on every normalized row."""
 
     source_layer: str
@@ -243,20 +258,80 @@ def _validated_lambert93(crs_value: object, label: str) -> CRS:
     return source_crs
 
 
-def _validate_context(context: IgnGridSourceContext) -> None:
-    required_values = {
-        "source_layer": context.source_layer,
-        "department_code": context.department_code,
-        "edition": context.edition,
-        "download_timestamp": context.download_timestamp,
-        "archive_sha256": context.archive_sha256,
-        "source_url": context.source_url,
-    }
-    missing = [name for name, value in required_values.items() if not value.strip()]
-    if missing:
+def _required_exact_string(value: object, label: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise IgnGridNormalizationError(f"IGN source context {label} must be a string")
+    if value != value.strip():
         raise IgnGridNormalizationError(
-            "IGN source context values must not be empty: " + ", ".join(missing)
+            f"IGN source context {label} must not contain edge whitespace"
         )
+    return value
+
+
+def _validate_source_context(context: _IgnGridSourceContext) -> None:
+    _required_exact_string(context.source_layer, "source_layer")
+    department_code = _required_exact_string(
+        context.department_code, "department_code"
+    )
+    edition = _required_exact_string(context.edition, "edition")
+    download_timestamp = _required_exact_string(
+        context.download_timestamp, "download_timestamp"
+    )
+    archive_sha256 = _required_exact_string(
+        context.archive_sha256, "archive_sha256"
+    )
+    source_url = _required_exact_string(context.source_url, "source_url")
+
+    try:
+        validated_department = _DEPARTMENT_CODE_VALIDATOR.validate_python(
+            department_code
+        )
+    except ValidationError as error:
+        raise IgnGridNormalizationError(
+            "IGN source context department_code is invalid"
+        ) from error
+    if validated_department != department_code:
+        raise IgnGridNormalizationError(
+            "IGN source context department_code must not be rewritten"
+        )
+
+    try:
+        validated_edition = _EDITION_VALIDATOR.validate_python(edition)
+        date.fromisoformat(validated_edition)
+    except (ValidationError, ValueError) as error:
+        raise IgnGridNormalizationError(
+            "IGN source context edition must be a valid ISO calendar date"
+        ) from error
+    if validated_edition != edition:
+        raise IgnGridNormalizationError(
+            "IGN source context edition must not be rewritten"
+        )
+
+    try:
+        timestamp = datetime.fromisoformat(download_timestamp)
+    except ValueError as error:
+        raise IgnGridNormalizationError(
+            "IGN source context download_timestamp must be a valid ISO datetime"
+        ) from error
+    if timestamp.tzinfo is None or timestamp.utcoffset() is None:
+        raise IgnGridNormalizationError(
+            "IGN source context download_timestamp must be timezone-aware"
+        )
+
+    if _SHA256_PATTERN.fullmatch(archive_sha256) is None:
+        raise IgnGridNormalizationError(
+            "IGN source context archive_sha256 must contain 64 hexadecimal characters"
+        )
+
+    try:
+        _HTTP_URL_VALIDATOR.validate_python(source_url)
+    except ValidationError as error:
+        raise IgnGridNormalizationError(
+            "IGN source context source_url must be a valid HTTP(S) URL"
+        ) from error
+
+    if context.product_version is not None:
+        _required_exact_string(context.product_version, "product_version")
 
 
 def _validate_input(
@@ -379,7 +454,7 @@ def _base_output(
     frame: gpd.GeoDataFrame,
     *,
     feature_type: str,
-    context: IgnGridSourceContext,
+    context: _IgnGridSourceContext,
 ) -> pd.DataFrame:
     source_ids = frame["cleabs"].copy()
     output = pd.DataFrame(index=frame.index.copy())
@@ -424,13 +499,13 @@ def _validated_geodataframe(
     return normalized
 
 
-def normalize_ign_electric_lines(
+def _normalize_ign_electric_lines(
     lines: gpd.GeoDataFrame,
-    context: IgnGridSourceContext,
+    context: _IgnGridSourceContext,
 ) -> gpd.GeoDataFrame:
     """Normalize one discovered IGN electric-line layer."""
 
-    _validate_context(context)
+    _validate_source_context(context)
     _validate_input(lines, LINE_SOURCE_FIELDS, context.source_layer)
     working = lines.reset_index(drop=True).copy()
     status = _geometry_status(working.geometry)
@@ -469,13 +544,13 @@ def normalize_ign_electric_lines(
     )
 
 
-def normalize_ign_transformation_posts(
+def _normalize_ign_transformation_posts(
     posts: gpd.GeoDataFrame,
-    context: IgnGridSourceContext,
+    context: _IgnGridSourceContext,
 ) -> gpd.GeoDataFrame:
     """Normalize one discovered IGN transformation-post proxy layer."""
 
-    _validate_context(context)
+    _validate_source_context(context)
     _validate_input(posts, TRANSFORMATION_POST_SOURCE_FIELDS, context.source_layer)
     working = posts.reset_index(drop=True).copy()
     status = _geometry_status(working.geometry)
@@ -560,7 +635,35 @@ def _validate_layer_summary(
         )
 
 
+def _normalized_identity(value: object, label: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise IgnGridNormalizationError(f"IGN archive {label} must be a string")
+    decomposed = unicodedata.normalize("NFKD", value.casefold())
+    without_accents = "".join(
+        character
+        for character in decomposed
+        if not unicodedata.combining(character)
+    )
+    return " ".join(re.findall(r"[a-z0-9]+", without_accents))
+
+
+def _validate_archive_identity(source: IgnBdTopoElectricityData) -> None:
+    archive = source.extraction.archive
+    provider = _normalized_identity(archive.provider, "provider")
+    product = _normalized_identity(archive.product, "product")
+    if provider not in _IGN_PROVIDER_IDENTITIES:
+        raise IgnGridNormalizationError(
+            "IGN archive provider is incompatible with the IGN normalizer"
+        )
+    if product.replace(" ", "") != "bdtopo":
+        raise IgnGridNormalizationError(
+            "IGN archive product is incompatible with the BD TOPO normalizer"
+        )
+    _validated_lambert93(archive.projection, "IGN archive projection")
+
+
 def _validate_source_bundle(source: IgnBdTopoElectricityData) -> None:
+    _validate_archive_identity(source)
     roles = (
         source.spatial_role,
         source.extraction.spatial_role,
@@ -589,9 +692,9 @@ def _validate_source_bundle(source: IgnBdTopoElectricityData) -> None:
 def _source_context(
     source: IgnBdTopoElectricityData,
     source_layer: str,
-) -> IgnGridSourceContext:
+) -> _IgnGridSourceContext:
     archive = source.extraction.archive
-    return IgnGridSourceContext(
+    return _IgnGridSourceContext(
         source_layer=source_layer,
         department_code=archive.department_code,
         edition=archive.edition,
@@ -615,10 +718,10 @@ def normalize_ign_electricity(
         source, source.extraction.transformation_posts_layer
     )
     return NormalizedIgnElectricityData(
-        electric_lines=normalize_ign_electric_lines(
+        electric_lines=_normalize_ign_electric_lines(
             source.electric_lines, line_context
         ),
-        transformation_posts=normalize_ign_transformation_posts(
+        transformation_posts=_normalize_ign_transformation_posts(
             source.transformation_posts, post_context
         ),
     )

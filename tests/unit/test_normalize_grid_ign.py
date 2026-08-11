@@ -19,6 +19,8 @@ from shapely.geometry import (
     Polygon,
 )
 
+import landscout.stages.normalize_grid_ign as grid_normalization
+from landscout import stages
 from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoDownload,
     IgnBdTopoElectricityData,
@@ -29,11 +31,17 @@ from landscout.stages.normalize_grid_ign import (
     LINE_OUTPUT_COLUMNS,
     TRANSFORMATION_POST_OUTPUT_COLUMNS,
     IgnGridNormalizationError,
-    IgnGridSourceContext,
-    normalize_ign_electric_lines,
     normalize_ign_electricity,
-    normalize_ign_transformation_posts,
     parse_ign_voltage,
+)
+from landscout.stages.normalize_grid_ign import (
+    _IgnGridSourceContext as IgnGridSourceContext,
+)
+from landscout.stages.normalize_grid_ign import (
+    _normalize_ign_electric_lines as normalize_ign_electric_lines,
+)
+from landscout.stages.normalize_grid_ign import (
+    _normalize_ign_transformation_posts as normalize_ign_transformation_posts,
 )
 
 LINE_LAYER = "LIGNE_ELECTRIQUE_V2"
@@ -214,6 +222,88 @@ def _source_bundle(
             post_frame, "transformation_posts", POST_LAYER
         ),
     )
+
+
+def _source_bundle_with_archive(**changes: object) -> IgnBdTopoElectricityData:
+    source = _source_bundle()
+    archive = replace(source.extraction.archive, **changes)
+    return replace(source, extraction=replace(source.extraction, archive=archive))
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "IgnGridSourceContext",
+        "normalize_ign_electric_lines",
+        "normalize_ign_transformation_posts",
+    ],
+)
+def test_low_level_normalization_is_not_part_of_stages_public_api(name: str) -> None:
+    assert name not in stages.__all__
+    assert not hasattr(stages, name)
+
+
+def test_supported_package_api_keeps_high_level_normalization() -> None:
+    expected_names = {
+        "IgnGridNormalizationError",
+        "IgnVoltageNormalization",
+        "NormalizedIgnElectricityData",
+        "parse_ign_voltage",
+        "normalize_ign_electricity",
+    }
+
+    assert expected_names <= set(stages.__all__)
+    normalized = stages.normalize_ign_electricity(_source_bundle())
+    assert normalized.electric_lines["source_layer"].unique().tolist() == [LINE_LAYER]
+    assert normalized.transformation_posts["source_layer"].unique().tolist() == [
+        POST_LAYER
+    ]
+
+
+@pytest.mark.parametrize("department_code", ["31", "2A", "2B", "971", "976"])
+def test_internal_source_context_accepts_supported_department_codes(
+    department_code: str,
+) -> None:
+    context = replace(_context(LINE_LAYER), department_code=department_code)
+
+    grid_normalization._validate_source_context(context)
+
+
+def test_internal_source_context_preserves_valid_uppercase_sha256() -> None:
+    archive_sha256 = "A" * 64
+    context = replace(_context(LINE_LAYER), archive_sha256=archive_sha256)
+
+    normalized = normalize_ign_electric_lines(_line_source(), context)
+
+    assert normalized["source_archive_sha256"].unique().tolist() == [archive_sha256]
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("source_layer", ""),
+        ("source_layer", " LIGNE_ELECTRIQUE "),
+        ("source_layer", 42),
+        ("department_code", "XYZ"),
+        ("edition", "2026-02-31"),
+        ("download_timestamp", "not-a-datetime"),
+        ("download_timestamp", "2026-08-11T15:32:03"),
+        ("archive_sha256", "a" * 63),
+        ("archive_sha256", "g" * 64),
+        ("source_url", "not-a-url"),
+        ("source_url", "file:///tmp/archive.7z"),
+        ("product_version", ""),
+        ("product_version", " 3.5 "),
+    ],
+)
+def test_internal_source_context_rejects_invalid_lineage_values(
+    field: str,
+    value: object,
+) -> None:
+    context = replace(_context(LINE_LAYER), **{field: value})
+
+    with pytest.raises(IgnGridNormalizationError):
+        grid_normalization._validate_source_context(context)
 
 
 @pytest.mark.parametrize(
@@ -628,6 +718,39 @@ def test_high_level_path_uses_discovered_layer_names_and_archive_lineage() -> No
         assert frame["source_product_version"].unique().tolist() == ["3.5"]
         assert frame["source_archive_sha256"].unique().tolist() == [ARCHIVE_SHA256]
         assert frame["source_url"].unique().tolist() == [SOURCE_URL]
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("provider", "Unrelated data vendor", "provider"),
+        ("product", "OTHER PRODUCT", "product"),
+        ("projection", "EPSG:4326", "2154"),
+    ],
+)
+def test_high_level_rejects_incompatible_archive_identity(
+    field: str,
+    value: str,
+    message: str,
+) -> None:
+    source = _source_bundle_with_archive(**{field: value})
+
+    with pytest.raises(IgnGridNormalizationError, match=message):
+        normalize_ign_electricity(source)
+
+
+def test_archive_identity_comparison_is_case_accent_and_punctuation_tolerant() -> None:
+    source = _source_bundle_with_archive(
+        provider=(
+            "INSTITUT NATIONAL DE L'INFORMATION GEOGRAPHIQUE ET FORESTIERE (ign)"
+        ),
+        product="bd-topo",
+    )
+
+    normalized = normalize_ign_electricity(source)
+
+    assert len(normalized.electric_lines) == 1
+    assert len(normalized.transformation_posts) == 1
 
 
 def test_high_level_rejects_summary_row_count_mismatch() -> None:
