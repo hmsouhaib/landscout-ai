@@ -1,10 +1,10 @@
-from itertools import pairwise
-from math import hypot, isfinite, pi
+from math import isfinite
 
 import geopandas as gpd  # type: ignore[import-untyped]
 from shapely.errors import GEOSException  # type: ignore[import-untyped]
 
 from landscout.geo.crs import LAMBERT93, WGS84
+from landscout.geo.geometry import parcel_shape_metrics_m
 
 REQUIRED_COLUMNS = frozenset(
     {"parcel_id", "geometry_status", "area_m2", "geometry"}
@@ -53,8 +53,6 @@ def enrich_parcel_shapes(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         & output.geometry.geom_type.isin(SUPPORTED_GEOMETRY_TYPES)
     )
     projected = output.loc[measurable].to_crs(LAMBERT93)
-    projected_areas = projected.geometry.area
-    projected_perimeters = projected.geometry.length
     projected_centroids = projected.geometry.centroid
     centroids_wgs84 = gpd.GeoSeries(
         projected_centroids, index=projected.index, crs=LAMBERT93
@@ -62,36 +60,19 @@ def enrich_parcel_shapes(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     for index, geometry in projected.geometry.items():
         try:
-            rectangle_coordinates = list(
-                geometry.minimum_rotated_rectangle.exterior.coords
-            )
-            edge_lengths = [
-                hypot(end[0] - start[0], end[1] - start[1])
-                for start, end in pairwise(rectangle_coordinates)
-            ]
-            length = float(max(edge_lengths))
-            width = float(min(edge_lengths))
-            area = float(projected_areas.loc[index])
-            perimeter = float(projected_perimeters.loc[index])
-            compactness = min(float(4 * pi * area / perimeter**2), 1.0)
+            shape = parcel_shape_metrics_m(geometry, LAMBERT93)
             center = centroids_wgs84.loc[index]
             latitude = float(center.y)
             longitude = float(center.x)
             metrics = (
-                length,
-                width,
-                length / width,
-                compactness,
+                shape.length_m,
+                shape.width_m,
+                shape.length_width_ratio,
+                shape.compactness,
                 latitude,
                 longitude,
             )
-            if (
-                width <= 0
-                or area <= 0
-                or perimeter <= 0
-                or compactness <= 0
-                or not all(isfinite(value) for value in metrics)
-            ):
+            if not all(isfinite(value) for value in metrics):
                 continue
         except (AttributeError, GEOSException, IndexError, TypeError, ValueError, ZeroDivisionError):
             continue

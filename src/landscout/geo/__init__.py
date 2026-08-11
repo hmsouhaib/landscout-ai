@@ -4,6 +4,7 @@ from landscout.geo.geometry import (
     GeometryError,
     InvalidGeometryError,
     MetricCrsError,
+    ParcelShapeMetrics,
     UnsupportedGeometryError,
     ZeroAreaGeometryError,
     approximate_length_m,
@@ -13,6 +14,7 @@ from landscout.geo.geometry import (
     centroid_to_latlon,
     compactness_score,
     length_width_ratio,
+    parcel_shape_metrics_m,
     perimeter_m,
     reproject_to_lambert93,
 )
@@ -24,6 +26,7 @@ __all__ = [
     "GeometryError",
     "InvalidGeometryError",
     "MetricCrsError",
+    "ParcelShapeMetrics",
     "UnsupportedGeometryError",
     "ZeroAreaGeometryError",
     "approximate_length_m",
@@ -33,6 +36,7 @@ __all__ = [
     "centroid_to_latlon",
     "compactness_score",
     "length_width_ratio",
+    "parcel_shape_metrics_m",
     "perimeter_m",
     "reproject_to_lambert93",
 ]

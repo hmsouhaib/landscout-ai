@@ -4,6 +4,7 @@ from shapely.affinity import rotate
 from shapely.geometry import Point, Polygon
 from shapely.geometry.base import BaseGeometry
 
+from landscout.geo import LAMBERT93, parcel_shape_metrics_m
 from landscout.stages.enrich_shape import (
     DERIVED_METRIC_COLUMNS,
     ShapeEnrichmentError,
@@ -142,3 +143,16 @@ def test_exact_parcel_ids_are_preserved(square: Polygon) -> None:
 
     assert len(enriched) == len(source)
     assert set(enriched["parcel_id"]) == set(source["parcel_id"])
+
+
+def test_enrichment_matches_centralized_shape_metrics(square: Polygon) -> None:
+    source = _candidate_frame([square])
+    expected_geometry = source.to_crs(LAMBERT93).geometry.iloc[0]
+    expected = parcel_shape_metrics_m(expected_geometry, LAMBERT93)
+
+    row = enrich_parcel_shapes(source).iloc[0]
+
+    assert row["length_m"] == pytest.approx(expected.length_m)
+    assert row["width_m"] == pytest.approx(expected.width_m)
+    assert row["length_width_ratio"] == pytest.approx(expected.length_width_ratio)
+    assert row["compactness"] == pytest.approx(expected.compactness)

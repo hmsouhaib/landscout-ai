@@ -3,7 +3,7 @@
 ## Current project state
 
 - Current phase: French cadastral data ingestion
-- Latest completed step: STEP 7B.4 — enrich BESS parcel shape metrics
+- Latest completed step: STEP 7B.4.1 — centralize parcel shape metrics
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: next LandScout implementation step, not yet specified
@@ -233,3 +233,27 @@ Highest `length_width_ratio` parcels (geometry omitted):
 | `31395000EC0002` | 2,075.541146 | 440.928455 | 6.370519 | 69.213904 | 0.032907 |
 | `313950000K1237` | 2,182.107274 | 394.694144 | 5.845761 | 67.518010 | 0.043004 |
 | `313950000K1261` | 2,152.836718 | 392.107473 | 6.035972 | 64.961776 | 0.042869 |
+
+## STEP 7B.4.1 — Centralize parcel shape metrics
+
+- Status: Complete
+- Implementation summary: Consolidated length, width, aspect ratio, and compactness into the geometry core and made both legacy helpers and enrichment delegate to it.
+- Important files: `src/landscout/geo/geometry.py`, `src/landscout/geo/__init__.py`, `src/landscout/stages/enrich_shape.py`, `tests/unit/test_geometry.py`, `tests/unit/test_enrich_shape.py`
+- Tests/checks: Covered centralized square, rectangle, rotated, elongated, MultiPolygon, invalid, zero-area, and CRS cases; verified legacy APIs, enrichment equivalence, and exact ID preservation; pytest, Ruff, and mypy pass.
+- Important decisions: `parcel_shape_metrics_m` performs one geometry/CRS validation, one minimum rotated rectangle, one area calculation, and one perimeter calculation; the stage retains only orchestration, centroid transformation, and per-row failure isolation.
+- Known issues: None.
+
+### Real Muret refactor verification
+
+- Input parcels: 4,013
+- Output parcels: 4,013
+- Lost parcel IDs: 0
+- Extra parcel IDs: 0
+- `VALID`: 4,013
+- `ERROR`: 0
+- Output CRS: `EPSG:4326`
+- Maximum absolute difference versus STEP 7B.4 for `length_m`: 0
+- Maximum absolute difference versus STEP 7B.4 for `width_m`: 0
+- Maximum absolute difference versus STEP 7B.4 for `length_width_ratio`: 0
+- Maximum absolute difference versus STEP 7B.4 for `compactness`: 0
+- Metric min / median / max values: unchanged from STEP 7B.4

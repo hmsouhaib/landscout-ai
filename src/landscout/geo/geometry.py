@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from itertools import pairwise
 from math import hypot, pi
 
@@ -14,6 +15,14 @@ from shapely.ops import transform  # type: ignore[import-untyped]
 from landscout.geo.crs import LAMBERT93, WGS84
 
 type Geometry = Polygon | MultiPolygon
+
+
+@dataclass(frozen=True)
+class ParcelShapeMetrics:
+    length_m: float
+    width_m: float
+    length_width_ratio: float
+    compactness: float
 
 
 class GeometryError(ValueError):
@@ -92,12 +101,14 @@ def perimeter_m(geometry: BaseGeometry, crs: CRS | str | int) -> float:
     return float(validated.length)
 
 
-def _parcel_dimensions_m(
+def parcel_shape_metrics_m(
     geometry: BaseGeometry, crs: CRS | str | int
-) -> tuple[float, float]:
+) -> ParcelShapeMetrics:
     validated = _validate_geometry(geometry)
     _validate_metric_crs(crs)
-    if validated.area <= 0:
+    area = float(validated.area)
+    perimeter = float(validated.length)
+    if area <= 0 or perimeter <= 0:
         raise ZeroAreaGeometryError("Parcel geometry must have a positive area")
 
     rectangle = validated.minimum_rotated_rectangle
@@ -106,36 +117,38 @@ def _parcel_dimensions_m(
         hypot(end[0] - start[0], end[1] - start[1])
         for start, end in pairwise(coordinates)
     ]
-    length = max(edge_lengths)
-    width = min(edge_lengths)
+    length = float(max(edge_lengths))
+    width = float(min(edge_lengths))
     if width <= 0:
         raise ZeroAreaGeometryError("Parcel width must be greater than zero")
-    return float(length), float(width)
+    if length < width:
+        raise GeometryError("Parcel length must be greater than or equal to width")
+
+    compactness = min(float(4 * pi * area / perimeter**2), 1.0)
+    if compactness <= 0:
+        raise ZeroAreaGeometryError("Parcel compactness must be positive")
+    return ParcelShapeMetrics(
+        length_m=length,
+        width_m=width,
+        length_width_ratio=length / width,
+        compactness=compactness,
+    )
 
 
 def approximate_length_m(geometry: BaseGeometry, crs: CRS | str | int) -> float:
-    return _parcel_dimensions_m(geometry, crs)[0]
+    return parcel_shape_metrics_m(geometry, crs).length_m
 
 
 def approximate_width_m(geometry: BaseGeometry, crs: CRS | str | int) -> float:
-    return _parcel_dimensions_m(geometry, crs)[1]
+    return parcel_shape_metrics_m(geometry, crs).width_m
 
 
 def length_width_ratio(geometry: BaseGeometry, crs: CRS | str | int) -> float:
-    length, width = _parcel_dimensions_m(geometry, crs)
-    return length / width
+    return parcel_shape_metrics_m(geometry, crs).length_width_ratio
 
 
 def compactness_score(geometry: BaseGeometry, crs: CRS | str | int) -> float:
-    validated = _validate_geometry(geometry)
-    _validate_metric_crs(crs)
-    area = float(validated.area)
-    perimeter = float(validated.length)
-    if area <= 0 or perimeter <= 0:
-        raise ZeroAreaGeometryError("Compactness requires a positive-area geometry")
-
-    score = 4 * pi * area / perimeter**2
-    return min(float(score), 1.0)
+    return parcel_shape_metrics_m(geometry, crs).compactness
 
 
 def centroid(geometry: BaseGeometry) -> Point:

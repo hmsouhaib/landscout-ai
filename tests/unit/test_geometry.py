@@ -15,6 +15,7 @@ from landscout.geo import (
     centroid,
     compactness_score,
     length_width_ratio,
+    parcel_shape_metrics_m,
     perimeter_m,
 )
 
@@ -169,3 +170,57 @@ def test_length_is_always_at_least_width(geometry: Polygon) -> None:
 )
 def test_compactness_range(geometry: Polygon) -> None:
     assert 0 < compactness_score(geometry, LAMBERT93) <= 1
+
+
+@pytest.mark.parametrize(
+    ("geometry", "expected_length", "expected_width"),
+    [
+        (Polygon([(0, 0), (10, 0), (10, 10), (0, 10)]), 10.0, 10.0),
+        (Polygon([(0, 0), (20, 0), (20, 10), (0, 10)]), 20.0, 10.0),
+        (
+            rotate(Polygon([(0, 0), (30, 0), (30, 10), (0, 10)]), 37),
+            30.0,
+            10.0,
+        ),
+        (Polygon([(0, 0), (100, 0), (100, 2), (0, 2)]), 100.0, 2.0),
+    ],
+)
+def test_centralized_shape_metrics(
+    geometry: Polygon, expected_length: float, expected_width: float
+) -> None:
+    metrics = parcel_shape_metrics_m(geometry, LAMBERT93)
+
+    assert metrics.length_m == pytest.approx(expected_length)
+    assert metrics.width_m == pytest.approx(expected_width)
+    assert metrics.length_m >= metrics.width_m
+    assert metrics.length_width_ratio == pytest.approx(expected_length / expected_width)
+    assert 0 < metrics.compactness <= 1
+
+
+def test_centralized_shape_metrics_support_multipolygon() -> None:
+    first = Polygon([(0, 0), (10, 0), (10, 10), (0, 10)])
+    second = Polygon([(20, 0), (30, 0), (30, 10), (20, 10)])
+
+    metrics = parcel_shape_metrics_m(MultiPolygon([first, second]), LAMBERT93)
+
+    assert metrics.length_m == pytest.approx(30.0)
+    assert metrics.width_m == pytest.approx(10.0)
+
+
+def test_centralized_shape_metrics_reject_invalid_geometry() -> None:
+    bow_tie = Polygon([(0, 0), (10, 10), (0, 10), (10, 0)])
+
+    with pytest.raises(InvalidGeometryError):
+        parcel_shape_metrics_m(bow_tie, LAMBERT93)
+
+
+def test_centralized_shape_metrics_reject_zero_area_geometry() -> None:
+    zero_area = Polygon([(0, 0), (1, 0), (2, 0), (0, 0)])
+
+    with pytest.raises(GeometryError):
+        parcel_shape_metrics_m(zero_area, LAMBERT93)
+
+
+def test_centralized_shape_metrics_reject_geographic_crs(square: Polygon) -> None:
+    with pytest.raises(MetricCrsError):
+        parcel_shape_metrics_m(square, WGS84)
