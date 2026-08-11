@@ -1,0 +1,27 @@
+provider: "Institut national de l'information géographique et forestière (IGN)"
+product: "BD TOPO"
+department_code: "31"
+edition: "2026-06-15"
+product_version: "3.5"
+projection: "EPSG:2154"
+format: "GPKG"
+archive_format: "7z"
+source_url: "https://data.geopf.fr/telechargement/download/BDTOPO/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15.7z"
+checksum_url: null
+official_checksum_algorithm: "md5"
+official_checksum: "24d4a50b7eae3c0d55bb55ffd5b525a6"
+expected_archive_size_bytes: 494818677
+cache_max_age_hours: 168
+
+logical_layers:
+  electric_lines:
+    class_label: "Ligne électrique"
+    match_tokens:
+      - "ligne"
+      - "électrique"
+
+  transformation_posts:
+    class_label: "Poste de transformation"
+    match_tokens:
+      - "poste"
+      - "transformation"

@@ -3,10 +3,10 @@
 ## Current project state
 
 - Current phase: French electricity-grid source ingestion
-- Latest completed step: STEP 7C.1.1 — strengthen RTE / ODRÉ source integrity
+- Latest completed step: STEP 7C.2 — ingest and inspect IGN BD TOPO electricity spatial data
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: review of strengthened RTE source integrity
+- Next step waiting for review: review of the IGN electricity spatial-source adapter and real Haute-Garonne findings
 
 ## STEP 0 — Environment check
 
@@ -635,3 +635,230 @@ All counts must be non-negative and the two geometry counts must sum exactly to 
 - Refreshed `underground_lines` timestamp: `2026-08-11T14:58:21.404259+00:00`
 
 The counts above are real-source regression observations, not production constants. No parcel-grid distance, coordinate inference, available-capacity inference, or connection claim was added.
+
+## STEP 7C.2 — IGN BD TOPO electricity spatial source ingestion
+
+- Status: Complete
+- Implementation summary: Added a strictly validated, configuration-driven IGN BD TOPO source adapter for archive download/cache integrity, safe 7z extraction, unique GeoPackage discovery, electricity-layer discovery, and read-only inspection of line and transformation-post geometries.
+- Important files: `configs/sources/ign_bdtopo_fr.yaml`, `src/landscout/sources/ign_bdtopo_fr.py`, `src/landscout/sources/__init__.py`, `tests/unit/test_ign_bdtopo_fr.py`, `pyproject.toml`, `uv.lock`
+- Tests/checks: 31 offline IGN tests cover strict source configuration, download/cache behavior, archive and checksum validation, safe refresh and rollback, temporary cleanup, synthetic archive/GeoPackage discovery, missing and ambiguous electricity layers, CRS/geometry validation, row counts, and null/empty/invalid geometry reporting. The full suite passes with 226 tests; Ruff and mypy pass.
+- Important decisions: The pinned source is the smallest official department-level GeoPackage package that contains both required electricity layers. Archive extraction uses the Python `py7zr` library rather than an external `7z.exe`. Layer names are discovered from the real GeoPackage without assuming case or accents. A short content-addressed extraction path (`x/<SHA256 prefix>`) avoids Windows legacy path-length failures while retaining IGN's internal paths. IGN electricity geometries have the explicit spatial role `PROXY_GEOMETRY` and are suitable for broad spatial screening only.
+- Known issues: IGN publishes an inline MD5 in its package manifest but no checksum URL/file for this package. The archive exposes no per-member CRC through `py7zr`, so integrity is established by the exact official size and MD5 plus successful safe extraction and GeoPackage opening. `pyogrio.list_layers()` emits non-fatal warnings for several unsupported declared SQL field formats in the package metadata tables. Source lineage and confirmation dates are mixed. The transformation-post layer has no voltage attribute. These geometries do not replace exact/current RTE asset data and provide no connection-point or available-capacity evidence.
+
+### Official source package and lineage
+
+- Provider: `IGN`
+- Portal: `Géoplateforme / cartes.gouv.fr`
+- Product: `BD TOPO`
+- Product version: `3.5`
+- Package scope: all themes, department `D031` (Haute-Garonne)
+- Edition: `2026-06-15`
+- Package catalog update observed: `2026-07-09`
+- Projection: Lambert-93, `EPSG:2154`
+- Distribution format: GeoPackage inside a 7z archive
+- Archive filename: `BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15.7z`
+- Official source URL: `https://data.geopf.fr/telechargement/download/BDTOPO/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15.7z`
+- Official package manifest URL: `https://data.geopf.fr/telechargement/resource/BDTOPO/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15?page=1&limit=50`
+- Official manifest checksum: MD5 `24d4a50b7eae3c0d55bb55ffd5b525a6`
+- Official checksum URL/file: absent; the checksum is supplied inline by the official package manifest
+- Downloaded archive size: 494,818,677 bytes
+- Local SHA256: `4fcd6d1234495c5e38f3a671159aa7c8da88c70fa1b8747c9f93f0a7a3001ab0`
+- Adapter archive cache path: `data/cache/ign_bdtopo/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15.7z`
+- Adapter extraction cache path: `data/cache/ign_bdtopo/x/4fcd6d1234495c5e/`
+- Adapter download timestamp: `2026-08-11T15:32:03.110837+00:00`
+- Second-run cache result: archive `cache_hit = true`; extraction `cache_hit = true`
+- Cache root: `data/cache/ign_bdtopo/`; generated archives, extraction content, and sidecars remain ignored by Git
+
+The source URL, edition, package scope, projection, archive format, and expected official checksum are pinned in YAML. The downloaded bytes are also identified independently by SHA256. The package URL and edition are not guessed dynamically at runtime.
+
+### Archive and GeoPackage inspection
+
+- Archive type: 7z
+- Archive integrity: official size and MD5 validated; archive safely extracted and its GeoPackage opened successfully (the official 7z exposes no per-member CRC through `py7zr`)
+- GeoPackage discovery result: exactly one intended `.gpkg` found
+- Internal GeoPackage filename: `BDT_3-5_GPKG_LAMB93_D031-ED2026-06-15.gpkg`
+- Internal archive member path: `BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15/BDTOPO/1_DONNEES_LIVRAISON_2026-06-00418/BDT_3-5_GPKG_LAMB93_D031_ED2026-06-15/BDT_3-5_GPKG_LAMB93_D031-ED2026-06-15.gpkg`
+- Extracted GeoPackage size: 2,955,161,600 bytes
+- GeoPackage layer count: 57 discoverable layers (53 feature layers and 4 non-spatial tables)
+- Selected line layer: `ligne_electrique`
+- Selected transformation-post layer: `poste_de_transformation`
+- Selected layer CRS: `EPSG:2154`
+
+Complete GeoPackage layer inventory:
+
+```text
+troncon_de_route
+route_numerotee_ou_nommee
+itineraire_autre
+troncon_de_voie_ferree
+equipement_de_transport
+piste_d_aerodrome
+aerodrome
+point_de_repere
+non_communication
+point_du_reseau
+transport_par_cable
+batiment
+cimetiere
+construction_lineaire
+construction_ponctuelle
+construction_surfacique
+reservoir
+ligne_orographique
+pylone
+terrain_de_sport
+cours_d_eau
+troncon_hydrographique
+bassin_versant_topographique
+plan_d_eau
+surface_hydrographique
+noeud_hydrographique
+detail_hydrographique
+zone_d_habitation
+lieu_dit_non_habite
+detail_orographique
+canalisation
+ligne_electrique
+poste_de_transformation
+erp
+zone_d_activite_ou_d_interet
+voie_nommee
+parc_ou_reserve
+foret_publique
+haie
+zone_de_vegetation
+arrondissement
+commune_associee_ou_deleguee
+commune
+epci
+collectivite_territoriale
+departement
+region
+adresse_ban
+batiment_rnb_lien_bdtopo
+canton
+lien_adresse_vers_bdtopo
+section_de_points_de_repere
+toponymie
+info_metadonnees
+metadonnees_lot
+metadonnees_theme
+layer_styles
+```
+
+### `ligne_electrique` — electricity-line proxy geometry
+
+- Row count: 333
+- Active geometry column: `geometry`
+- CRS: `EPSG:2154` (projected Lambert-93)
+- Geometry types: `LineString Z` = 333
+- Null geometries: 0
+- Empty geometries: 0
+- Invalid geometries: 0
+- `spatial_role`: `PROXY_GEOMETRY`
+- Usable for broad spatial screening: yes
+
+Column schema and null diagnostics:
+
+| Column | dtype | Null count | Null percentage |
+| --- | --- | ---: | ---: |
+| `cleabs` | `str` | 0 | 0.0000% |
+| `voltage` | `str` | 0 | 0.0000% |
+| `gestionnaire` | `str` | 52 | 15.6156% |
+| `siren_gestionnaire` | `str` | 52 | 15.6156% |
+| `etat_de_l_objet` | `str` | 0 | 0.0000% |
+| `date_creation` | `datetime64[ms]` | 0 | 0.0000% |
+| `date_modification` | `datetime64[ms]` | 9 | 2.7027% |
+| `date_d_apparition` | `datetime64[ms]` | 333 | 100.0000% |
+| `date_de_confirmation` | `datetime64[ms]` | 43 | 12.9129% |
+| `sources` | `str` | 14 | 4.2042% |
+| `identifiants_sources` | `str` | 299 | 89.7898% |
+| `methode_d_acquisition_planimetrique` | `str` | 0 | 0.0000% |
+| `precision_planimetrique` | `float64` | 0 | 0.0000% |
+| `methode_d_acquisition_altimetrique` | `str` | 0 | 0.0000% |
+| `precision_altimetrique` | `float64` | 0 | 0.0000% |
+| `geometry` | `geometry` | 0 | 0.0000% |
+
+Observed categorical values and counts:
+
+- `voltage`: `63 kV` 223; `225 kV` 65; `400 kV` 28; `150 kV` 9; `Inconnue` 5; `<63 kV` 2; `Hors tension` 1
+- `etat_de_l_objet`: `En service` 333
+- `gestionnaire`: `Réseau de Transport d'Électricité` 281; null 52
+- `siren_gestionnaire`: `444619258` 281; null 52
+- `sources`: `RTE 2024` 281; `RTE 2022` 33; null 14; `non RTE (EDF)` 3; `RTE` 2
+- `methode_d_acquisition_planimetrique`: `Photogrammétrie` 324; `BDTopo` 5; `Orthophotographie` 3; `Fichier numérique non métrique` 1
+- `methode_d_acquisition_altimetrique`: `Photogrammétrie` 324; `BDTopo` 5; `Pas de Z` 3; `Z corrigé` 1
+
+Observed date lineage:
+
+- `date_creation`: minimum `2008-11-03T14:43:19.522`, maximum `2026-06-11T16:17:20.863`
+- `date_modification`: minimum `2017-02-22T13:52:57.158`, maximum `2026-06-16T19:33:50.619`; 9 null
+- `date_d_apparition`: entirely null
+- `date_de_confirmation`: minimum `2014-07-01`, maximum `2024-12-18`; 43 null
+
+### `poste_de_transformation` — transformation-post proxy geometry
+
+- Row count: 84
+- Active geometry column: `geometry`
+- CRS: `EPSG:2154` (projected Lambert-93)
+- Geometry types: `MultiPolygon Z` = 84
+- Null geometries: 0
+- Empty geometries: 0
+- Invalid geometries: 0
+- `spatial_role`: `PROXY_GEOMETRY`
+- Usable for broad spatial screening: yes
+- Voltage field: absent; no voltage value is inferred from another layer
+
+Column schema and null diagnostics:
+
+| Column | dtype | Null count | Null percentage |
+| --- | --- | ---: | ---: |
+| `cleabs` | `str` | 0 | 0.0000% |
+| `toponyme` | `str` | 80 | 95.2381% |
+| `statut_du_toponyme` | `str` | 80 | 95.2381% |
+| `importance` | `str` | 4 | 4.7619% |
+| `etat_de_l_objet` | `str` | 0 | 0.0000% |
+| `date_creation` | `datetime64[ms]` | 0 | 0.0000% |
+| `date_modification` | `datetime64[ms]` | 69 | 82.1429% |
+| `date_d_apparition` | `datetime64[ms]` | 84 | 100.0000% |
+| `date_de_confirmation` | `datetime64[ms]` | 64 | 76.1905% |
+| `sources` | `str` | 83 | 98.8095% |
+| `identifiants_sources` | `str` | 63 | 75.0000% |
+| `methode_d_acquisition_planimetrique` | `str` | 0 | 0.0000% |
+| `precision_planimetrique` | `float64` | 0 | 0.0000% |
+| `methode_d_acquisition_altimetrique` | `str` | 0 | 0.0000% |
+| `precision_altimetrique` | `float64` | 0 | 0.0000% |
+| `geometry` | `geometry` | 0 | 0.0000% |
+
+Observed categorical values and counts:
+
+- `etat_de_l_objet`: `En service` 84
+- `importance`: `5` 75; null 4; `4` 4; `6` 1
+- `toponyme`: null 80; `Poste d'Issel` 1; `Poste Électrique de Fontenilles` 1; `Poste Électrique de Ginestous` 1; `Poste Électrique de Verfeil` 1
+- `statut_du_toponyme`: null 80; `Validé` 3; `Collecté` 1
+- `sources`: null 83; `RTE 2021` 1
+- `methode_d_acquisition_planimetrique`: `Photogrammétrie` 77; `Orthophotographie` 6; `Fichier numérique non métrique` 1
+- `methode_d_acquisition_altimetrique`: `Photogrammétrie` 78; `Pas de Z` 6
+
+Observed date lineage:
+
+- `date_creation`: minimum `2007-05-04T13:58:02.915`, maximum `2026-06-18T10:36:03.587`
+- `date_modification`: minimum `2012-06-28T15:33:15.234`, maximum `2026-06-11T16:17:28.201`; 69 null
+- `date_d_apparition`: entirely null
+- `date_de_confirmation`: minimum `2006-07-01`, maximum `2025-06-17`; 64 null
+
+### Spatial semantics and explicit limitations
+
+Both selected IGN layers expose non-null, non-empty, valid projected geometries and can support future broad parcel-to-network spatial screening. They are recorded as `PROXY_GEOMETRY`, not as survey-grade or guaranteed-current RTE asset coordinates.
+
+The inspection does **not**:
+
+- replace exact or current RTE infrastructure data;
+- identify an electrical connection point;
+- establish available grid capacity or connection feasibility;
+- calculate parcel-to-grid distances;
+- match IGN objects to ODRE/RTE records;
+- infer a transformation-post voltage from nearby line features;
+- repair or alter any source geometry.
+
+The package edition is recent, but individual features carry heterogeneous source labels and confirmation dates. Package recency must therefore not be interpreted as uniform feature-level recency. No scoring, filtering, nearest-feature matching, capacity inference, or business rule was added in this step.

@@ -1,0 +1,664 @@
+import io
+import json
+from datetime import UTC, datetime, timedelta
+from hashlib import sha256
+from pathlib import Path
+from unittest.mock import patch
+from urllib.error import HTTPError
+
+import geopandas as gpd
+import py7zr
+import pyogrio
+import pytest
+import yaml
+from pydantic import ValidationError
+from shapely.geometry import LineString, Polygon
+
+from landscout.sources import ign_bdtopo_fr
+from landscout.sources.ign_bdtopo_fr import (
+    IgnBdTopoArchiveError,
+    IgnBdTopoDownloadError,
+    IgnBdTopoLayerError,
+    IgnBdTopoSourceConfig,
+    discover_ign_bdtopo_geopackage,
+    discover_ign_bdtopo_layers,
+    download_ign_bdtopo_archive,
+    extract_ign_bdtopo_archive,
+    list_ign_bdtopo_layers,
+    load_ign_bdtopo_electricity,
+    load_ign_bdtopo_layer,
+    load_ign_bdtopo_source_config,
+    validate_ign_bdtopo_archive,
+)
+
+PROJECT_ROOT = Path(__file__).parents[2]
+CONFIG_PATH = PROJECT_ROOT / "configs/sources/ign_bdtopo_fr.yaml"
+SYNTHETIC_SOURCE_URL = "https://example.test/BDTOPO_TEST_D031.7z"
+LINE_LAYER = "LIGNE_ELECTRIQUE"
+POST_LAYER = "POSTE_DE_TRANSFORMATION"
+
+
+def _config_data() -> dict:
+    with CONFIG_PATH.open(encoding="utf-8") as stream:
+        return yaml.safe_load(stream)
+
+
+def _synthetic_config(
+    source_config: IgnBdTopoSourceConfig,
+    *,
+    official_checksum: str | None = None,
+) -> IgnBdTopoSourceConfig:
+    content = source_config.model_dump(mode="json")
+    content.update(
+        {
+            "source_url": SYNTHETIC_SOURCE_URL,
+            "checksum_url": None,
+            "official_checksum_algorithm": (
+                "sha256" if official_checksum is not None else None
+            ),
+            "official_checksum": official_checksum,
+            "expected_archive_size_bytes": None,
+        }
+    )
+    return IgnBdTopoSourceConfig.model_validate(content)
+
+
+def _write_gpkg(
+    path: Path,
+    *,
+    include_lines: bool = True,
+    include_posts: bool = True,
+    line_layer: str = LINE_LAYER,
+    post_layer: str = POST_LAYER,
+    crs: str | None = "EPSG:2154",
+    invalid_post: bool = False,
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    layer_written = False
+    if include_lines:
+        lines = gpd.GeoDataFrame(
+            {
+                "object_id": ["L_VALID", "L_NULL"],
+                "nature": ["HT", "UNKNOWN"],
+                "tension": ["225 kV", None],
+            },
+            geometry=[LineString([(0, 0), (100, 100)]), None],
+            crs=crs,
+        )
+        pyogrio.write_dataframe(
+            lines,
+            path,
+            layer=line_layer,
+            driver="GPKG",
+        )
+        layer_written = True
+    if include_posts:
+        invalid = Polygon([(0, 0), (20, 20), (20, 0), (0, 20), (0, 0)])
+        geometries = [
+            Polygon([(0, 0), (0, 20), (20, 20), (20, 0), (0, 0)]),
+            None,
+        ]
+        object_ids = ["P_VALID", "P_NULL"]
+        if invalid_post:
+            geometries.append(invalid)
+            object_ids.append("P_INVALID")
+        posts = gpd.GeoDataFrame(
+            {
+                "object_id": object_ids,
+                "nature": ["POSTE"] * len(object_ids),
+            },
+            geometry=geometries,
+            crs=crs,
+        )
+        pyogrio.write_dataframe(
+            posts,
+            path,
+            layer=post_layer,
+            driver="GPKG",
+            append=layer_written,
+        )
+
+
+def _pack_7z(
+    archive_path: Path,
+    members: list[tuple[Path, str]],
+) -> bytes:
+    archive_path.parent.mkdir(parents=True, exist_ok=True)
+    with py7zr.SevenZipFile(archive_path, "w") as archive:
+        for source, archive_name in members:
+            archive.write(source, arcname=archive_name)
+    return archive_path.read_bytes()
+
+
+def _synthetic_archive_bytes(
+    root: Path,
+    *,
+    include_lines: bool = True,
+    include_posts: bool = True,
+    invalid_post: bool = False,
+) -> bytes:
+    gpkg_path = root / "fixture" / "BDTOPO_TEST.gpkg"
+    _write_gpkg(
+        gpkg_path,
+        include_lines=include_lines,
+        include_posts=include_posts,
+        invalid_post=invalid_post,
+    )
+    return _pack_7z(
+        root / "fixture.7z",
+        [(gpkg_path, "BDTOPO_TEST/GPKG/BDTOPO_TEST.gpkg")],
+    )
+
+
+def _response(content: bytes) -> io.BytesIO:
+    return io.BytesIO(content)
+
+
+def _metadata_path(archive_path: Path) -> Path:
+    return archive_path.parent / f"{archive_path.name}.metadata.json"
+
+
+def _expire_cache(metadata_path: Path) -> bytes:
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    metadata["download_timestamp"] = (
+        datetime.now(UTC) - timedelta(days=365)
+    ).isoformat()
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+    return metadata_path.read_bytes()
+
+
+@pytest.fixture
+def source_config() -> IgnBdTopoSourceConfig:
+    return load_ign_bdtopo_source_config(CONFIG_PATH)
+
+
+def test_valid_source_config_loads(source_config: IgnBdTopoSourceConfig) -> None:
+    assert "IGN" in source_config.provider
+    assert source_config.department_code == "31"
+    assert source_config.projection == "EPSG:2154"
+    assert source_config.format == "GPKG"
+    assert source_config.edition == "2026-06-15"
+
+
+@pytest.mark.parametrize("field", ["source_url", "edition"])
+def test_missing_required_source_field_fails(field: str) -> None:
+    content = _config_data()
+    del content[field]
+
+    with pytest.raises(ValidationError):
+        IgnBdTopoSourceConfig.model_validate(content)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("department_code", "3"),
+        ("department_code", "XX"),
+        ("projection", "EPSG:4326"),
+        ("format", "SHP"),
+        ("archive_format", "zip"),
+    ],
+)
+def test_invalid_source_configuration_fails(field: str, value: str) -> None:
+    content = _config_data()
+    content[field] = value
+
+    with pytest.raises(ValidationError):
+        IgnBdTopoSourceConfig.model_validate(content)
+
+
+def test_unknown_source_config_field_is_rejected() -> None:
+    content = _config_data()
+    content["invented"] = "not allowed"
+
+    with pytest.raises(ValidationError):
+        IgnBdTopoSourceConfig.model_validate(content)
+
+
+def test_successful_archive_download_persists_sha256(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    archive_content = _synthetic_archive_bytes(tmp_path)
+    config = _synthetic_config(source_config)
+
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        result = download_ign_bdtopo_archive(config, tmp_path / "cache")
+
+    assert result.cache_hit is False
+    assert result.path.read_bytes() == archive_content
+    assert result.file_size == len(archive_content)
+    assert result.sha256 == sha256(archive_content).hexdigest()
+    metadata = json.loads(_metadata_path(result.path).read_text(encoding="utf-8"))
+    assert metadata["sha256"] == result.sha256
+    assert metadata["source_url"] == SYNTHETIC_SOURCE_URL
+    assert metadata["official_checksum"] is None
+
+
+def test_archive_integrity_reports_local_sha256_and_no_fabricated_checksum(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    archive_path = tmp_path / "fixture.7z"
+    archive_content = _synthetic_archive_bytes(tmp_path / "source")
+    archive_path.write_bytes(archive_content)
+
+    integrity = validate_ign_bdtopo_archive(
+        archive_path,
+        _synthetic_config(source_config),
+    )
+
+    assert integrity.file_size == len(archive_content)
+    assert integrity.sha256 == sha256(archive_content).hexdigest()
+    assert integrity.official_checksum is None
+    assert integrity.official_checksum_algorithm is None
+    assert integrity.official_checksum_validated is False
+
+
+def test_fresh_cache_is_reused_without_network(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    content = _synthetic_archive_bytes(tmp_path)
+    config = _synthetic_config(source_config)
+    cache_dir = tmp_path / "cache"
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen", return_value=_response(content)
+    ):
+        first = download_ign_bdtopo_archive(config, cache_dir)
+
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        side_effect=AssertionError("network must not be called"),
+    ):
+        second = download_ign_bdtopo_archive(config, cache_dir)
+
+    assert second.cache_hit is True
+    assert second.path == first.path
+    assert second.sha256 == first.sha256
+    assert second.download_timestamp == first.download_timestamp
+
+
+def test_expired_cache_is_refreshed(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    old_content = _synthetic_archive_bytes(tmp_path / "v1")
+    new_content = _synthetic_archive_bytes(tmp_path / "v2", invalid_post=True)
+    config = _synthetic_config(source_config)
+    cache_dir = tmp_path / "cache"
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(old_content),
+    ):
+        first = download_ign_bdtopo_archive(config, cache_dir)
+    _expire_cache(_metadata_path(first.path))
+
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(new_content),
+    ) as opener:
+        refreshed = download_ign_bdtopo_archive(config, cache_dir)
+
+    assert opener.call_count == 1
+    assert refreshed.cache_hit is False
+    assert refreshed.path.read_bytes() == new_content
+    assert refreshed.sha256 != first.sha256
+    assert not list(cache_dir.glob("*.part"))
+    assert not list(cache_dir.glob("*.bak"))
+
+
+def test_failed_refresh_preserves_valid_cache(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    content = _synthetic_archive_bytes(tmp_path)
+    config = _synthetic_config(source_config)
+    cache_dir = tmp_path / "cache"
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen", return_value=_response(content)
+    ):
+        first = download_ign_bdtopo_archive(config, cache_dir)
+    metadata_path = _metadata_path(first.path)
+    old_archive = first.path.read_bytes()
+    expired_metadata = _expire_cache(metadata_path)
+    error = HTTPError(SYNTHETIC_SOURCE_URL, 503, "Unavailable", None, None)
+
+    with (
+        patch("landscout.sources.ign_bdtopo_fr.urlopen", side_effect=error),
+        pytest.raises(IgnBdTopoDownloadError),
+    ):
+        download_ign_bdtopo_archive(config, cache_dir)
+
+    assert first.path.read_bytes() == old_archive
+    assert metadata_path.read_bytes() == expired_metadata
+    assert not list(cache_dir.glob("*.part"))
+    assert not list(cache_dir.glob("*.bak"))
+
+
+def test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    config = _synthetic_config(source_config)
+    cache_dir = tmp_path / "cache"
+    with (
+        patch(
+            "landscout.sources.ign_bdtopo_fr.urlopen",
+            return_value=_response(b"not a 7z archive"),
+        ),
+        pytest.raises(IgnBdTopoArchiveError),
+    ):
+        download_ign_bdtopo_archive(config, cache_dir)
+
+    assert not list(cache_dir.glob("*.7z"))
+    assert not list(cache_dir.glob("*.part"))
+    assert not list(cache_dir.glob("*.bak"))
+
+
+def test_corrupt_refresh_preserves_valid_cache(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    content = _synthetic_archive_bytes(tmp_path)
+    config = _synthetic_config(source_config)
+    cache_dir = tmp_path / "cache"
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen", return_value=_response(content)
+    ):
+        first = download_ign_bdtopo_archive(config, cache_dir)
+    metadata_path = _metadata_path(first.path)
+    old_archive = first.path.read_bytes()
+    expired_metadata = _expire_cache(metadata_path)
+
+    with (
+        patch(
+            "landscout.sources.ign_bdtopo_fr.urlopen",
+            return_value=_response(b"broken refresh"),
+        ),
+        pytest.raises(IgnBdTopoArchiveError),
+    ):
+        download_ign_bdtopo_archive(config, cache_dir)
+
+    assert first.path.read_bytes() == old_archive
+    assert metadata_path.read_bytes() == expired_metadata
+    assert not list(cache_dir.glob("*.part"))
+
+
+def test_metadata_publication_failure_restores_previous_cache_pair(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    old_content = _synthetic_archive_bytes(tmp_path / "v1")
+    new_content = _synthetic_archive_bytes(tmp_path / "v2", invalid_post=True)
+    config = _synthetic_config(source_config)
+    cache_dir = tmp_path / "cache"
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(old_content),
+    ):
+        first = download_ign_bdtopo_archive(config, cache_dir)
+    metadata_path = _metadata_path(first.path)
+    old_archive = first.path.read_bytes()
+    expired_metadata = _expire_cache(metadata_path)
+    original_replace = ign_bdtopo_fr._replace_file
+    failure_injected = False
+
+    def fail_metadata_publication(source: Path, target: Path) -> None:
+        nonlocal failure_injected
+        if source.name.endswith(".metadata.json.part") and target == metadata_path:
+            failure_injected = True
+            raise PermissionError("simulated persistent metadata lock")
+        original_replace(source, target)
+
+    with (
+        patch(
+            "landscout.sources.ign_bdtopo_fr.urlopen",
+            return_value=_response(new_content),
+        ),
+        patch.object(
+            ign_bdtopo_fr,
+            "_replace_file",
+            side_effect=fail_metadata_publication,
+        ),
+        pytest.raises(IgnBdTopoDownloadError),
+    ):
+        download_ign_bdtopo_archive(config, cache_dir)
+
+    assert failure_injected
+    assert first.path.read_bytes() == old_archive
+    assert metadata_path.read_bytes() == expired_metadata
+    assert not list(cache_dir.glob("*.part"))
+    assert not list(cache_dir.glob("*.bak"))
+
+
+def test_official_checksum_mismatch_is_rejected(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    archive_content = _synthetic_archive_bytes(tmp_path)
+    config = _synthetic_config(source_config, official_checksum="0" * 64)
+    cache_dir = tmp_path / "cache"
+
+    with (
+        patch(
+            "landscout.sources.ign_bdtopo_fr.urlopen",
+            return_value=_response(archive_content),
+        ),
+        pytest.raises(IgnBdTopoArchiveError, match="checksum|SHA"),
+    ):
+        download_ign_bdtopo_archive(config, cache_dir)
+
+    assert not list(cache_dir.glob("*.7z"))
+    assert not list(cache_dir.glob("*.part"))
+
+
+def test_unsafe_parent_archive_member_is_rejected(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    gpkg_path = tmp_path / "unsafe-source.gpkg"
+    _write_gpkg(gpkg_path)
+    archive_content = _pack_7z(
+        tmp_path / "unsafe.7z",
+        [(gpkg_path, "../escape.gpkg")],
+    )
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+
+    with pytest.raises(IgnBdTopoArchiveError, match="unsafe|member|path"):
+        extract_ign_bdtopo_archive(
+            download,
+            config,
+            extraction_dir=tmp_path / "extracted",
+        )
+
+    assert not (tmp_path / "escape.gpkg").exists()
+    assert not list(tmp_path.glob("*.part"))
+
+
+def test_geopackage_is_discovered_recursively(tmp_path: Path) -> None:
+    gpkg_path = tmp_path / "nested" / "data" / "bdtopo.gpkg"
+    _write_gpkg(gpkg_path)
+
+    assert discover_ign_bdtopo_geopackage(tmp_path) == gpkg_path
+
+
+def test_multiple_geopackages_are_rejected_as_ambiguous(tmp_path: Path) -> None:
+    _write_gpkg(tmp_path / "a" / "one.gpkg")
+    _write_gpkg(tmp_path / "b" / "two.gpkg")
+
+    with pytest.raises(IgnBdTopoArchiveError, match="GeoPackage|exactly one|ambiguous"):
+        discover_ign_bdtopo_geopackage(tmp_path)
+
+
+def test_real_layer_names_are_listed_and_discovered(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    gpkg_path = tmp_path / "bdtopo.gpkg"
+    _write_gpkg(gpkg_path)
+
+    all_layers = list_ign_bdtopo_layers(gpkg_path)
+    selection = discover_ign_bdtopo_layers(gpkg_path, source_config)
+
+    assert set(all_layers) == {LINE_LAYER, POST_LAYER}
+    assert selection.electric_lines_layer == LINE_LAYER
+    assert selection.transformation_posts_layer == POST_LAYER
+    assert set(selection.all_layer_names) == {LINE_LAYER, POST_LAYER}
+
+
+def test_missing_electric_line_layer_fails(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    gpkg_path = tmp_path / "posts-only.gpkg"
+    _write_gpkg(gpkg_path, include_lines=False)
+
+    with pytest.raises(IgnBdTopoLayerError, match="electric|line|Ligne"):
+        discover_ign_bdtopo_layers(gpkg_path, source_config)
+
+
+def test_missing_transformation_post_layer_fails(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    gpkg_path = tmp_path / "lines-only.gpkg"
+    _write_gpkg(gpkg_path, include_posts=False)
+
+    with pytest.raises(IgnBdTopoLayerError, match="transformation|post|Poste"):
+        discover_ign_bdtopo_layers(gpkg_path, source_config)
+
+
+def test_ambiguous_electric_line_layers_fail(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    gpkg_path = tmp_path / "ambiguous-lines.gpkg"
+    _write_gpkg(gpkg_path)
+    secondary_lines = gpd.GeoDataFrame(
+        {"object_id": ["L_SECONDARY"]},
+        geometry=[LineString([(0, 0), (50, 50)])],
+        crs="EPSG:2154",
+    )
+    pyogrio.write_dataframe(
+        secondary_lines,
+        gpkg_path,
+        layer="LIGNE_ELECTRIQUE_SECONDAIRE",
+        driver="GPKG",
+        append=True,
+    )
+
+    with pytest.raises(IgnBdTopoLayerError, match="unambiguous|found 2"):
+        discover_ign_bdtopo_layers(gpkg_path, source_config)
+
+
+def test_synthetic_archive_extracts_and_discovers_required_layers(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    archive_content = _synthetic_archive_bytes(tmp_path / "source")
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+
+    extraction = extract_ign_bdtopo_archive(
+        download,
+        config,
+        extraction_dir=tmp_path / "extracted",
+    )
+
+    assert extraction.geopackage_path.is_file()
+    assert extraction.electric_lines_layer == LINE_LAYER
+    assert extraction.transformation_posts_layer == POST_LAYER
+
+
+def test_default_extraction_path_is_short_and_content_addressed(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    archive_content = _synthetic_archive_bytes(tmp_path / "source")
+    config = _synthetic_config(source_config)
+    cache_dir = tmp_path / "cache"
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, cache_dir)
+
+    extraction = extract_ign_bdtopo_archive(download, config)
+
+    assert extraction.extraction_path == cache_dir / "x" / download.sha256[:16]
+    assert len(extraction.extraction_path.name) == 16
+    assert extraction.geopackage_path.is_file()
+
+
+def test_layer_loader_retains_crs_counts_and_null_geometries(tmp_path: Path) -> None:
+    gpkg_path = tmp_path / "bdtopo.gpkg"
+    _write_gpkg(gpkg_path)
+
+    loaded = load_ign_bdtopo_layer(
+        gpkg_path,
+        LINE_LAYER,
+        "electric_lines",
+    )
+    frame = loaded.data
+    summary = loaded.summary
+
+    assert frame.crs is not None
+    assert frame.crs.to_epsg() == 2154
+    assert len(frame) == 2
+    assert frame["object_id"].tolist() == ["L_VALID", "L_NULL"]
+    assert frame.geometry.isna().sum() == 1
+    assert summary.feature_count == 2
+    assert summary.null_geometry_count == 1
+    assert summary.invalid_geometry_count == 0
+
+
+def test_invalid_geometry_is_preserved_without_repair(tmp_path: Path) -> None:
+    gpkg_path = tmp_path / "bdtopo.gpkg"
+    _write_gpkg(gpkg_path, invalid_post=True)
+
+    loaded = load_ign_bdtopo_layer(
+        gpkg_path,
+        POST_LAYER,
+        "transformation_posts",
+    )
+    frame = loaded.data
+    summary = loaded.summary
+
+    invalid_row = frame.loc[frame["object_id"] == "P_INVALID"].iloc[0]
+    assert len(frame) == 3
+    assert invalid_row.geometry.is_valid is False
+    assert summary.feature_count == 3
+    assert summary.null_geometry_count == 1
+    assert summary.invalid_geometry_count == 1
+
+
+def test_geographic_crs_is_rejected(tmp_path: Path) -> None:
+    gpkg_path = tmp_path / "geographic.gpkg"
+    _write_gpkg(gpkg_path, include_posts=False, crs="EPSG:4326")
+
+    with pytest.raises(IgnBdTopoLayerError, match="2154|Lambert|projected|CRS"):
+        load_ign_bdtopo_layer(gpkg_path, LINE_LAYER, "electric_lines")
+
+
+def test_electricity_loader_retains_both_layer_counts(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    archive_content = _synthetic_archive_bytes(
+        tmp_path / "source", invalid_post=True
+    )
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+    extraction = extract_ign_bdtopo_archive(
+        download,
+        config,
+        extraction_dir=tmp_path / "extracted",
+    )
+
+    electricity = load_ign_bdtopo_electricity(extraction)
+
+    assert len(electricity.electric_lines) == 2
+    assert len(electricity.transformation_posts) == 3
+    assert electricity.electric_lines.crs.to_epsg() == 2154
+    assert electricity.transformation_posts.crs.to_epsg() == 2154
+    assert electricity.transformation_posts_summary.invalid_geometry_count == 1
