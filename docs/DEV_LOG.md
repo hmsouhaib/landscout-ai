@@ -3,7 +3,7 @@
 ## Current project state
 
 - Current phase: GIS foundation and parcel geometry metrics
-- Latest completed step: STEP 6 — parcel shape metrics
+- Latest completed step: STEP 7A — French cadastre downloader
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: next LandScout implementation step, not yet specified
@@ -61,3 +61,12 @@
 - Tests/checks: Current suite has 31 passing tests; Ruff and mypy pass.
 - Important decisions: Metric calculations reject geographic or non-metre CRS values; Polygon and MultiPolygon are supported; invalid geometries are never repaired silently; dimensions use the minimum rotated rectangle; compactness uses Polsby-Popper.
 - Known issues: Shapely typing metadata is absent, handled with localized mypy annotations.
+
+## STEP 7A — French cadastre downloader
+
+- Status: Complete
+- Implementation summary: Added an official Cadastre Etalab commune-level parcel archive downloader with validated local caching and metadata.
+- Important files: `src/landscout/sources/cadastre_fr.py`, `src/landscout/sources/__init__.py`, `tests/unit/test_cadastre_fr.py`
+- Tests/checks: Mocked URL, download, cache-hit, HTTP-failure, and checksum cases; real Muret (`31395`) download and cache reuse verified; pytest, Ruff, and mypy pass.
+- Important decisions: Uses the official `latest` compressed GeoJSON URL; validates cached gzip signature, size, URL, filename, and SHA-256; cached archives and metadata remain ignored by Git.
+- Known issues: Direct `uv run python` verification requires `PYTHONPATH=src` because the project is not installed as a package.
