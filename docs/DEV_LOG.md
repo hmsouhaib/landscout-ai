@@ -3,7 +3,7 @@
 ## Current project state
 
 - Current phase: French cadastral data ingestion
-- Latest completed step: STEP 7B.1.1 — record Muret cadastre schema
+- Latest completed step: STEP 7B.2 — normalize Muret parcels
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: next LandScout implementation step, not yet specified
@@ -134,3 +134,26 @@ Example attribute records (geometry omitted):
 | `313950000A0033` | `31395` | `000` | `A` | `33` | 7,533 | false | `2004-12-02 00:00:00` | `2017-01-31 00:00:00` |
 | `313950000A0561` | `31395` | `000` | `A` | `561` | 2,081 | false | `2004-12-02 00:00:00` | `2017-01-31 00:00:00` |
 | `313950000A0558` | `31395` | `000` | `A` | `558` | 125,371 | false | `2004-12-02 00:00:00` | `2017-01-31 00:00:00` |
+
+## STEP 7B.2 — Normalize Muret parcels
+
+- Status: Complete
+- Implementation summary: Added a normalized cadastral schema and vectorized Lambert-93 area calculation while preserving source geometries in WGS84.
+- Important files: `src/landscout/stages/normalize_cadastre.py`, `tests/unit/test_normalize_cadastre.py`
+- Tests/checks: Covered field mapping, metric area, retained WGS84 geometry, invalid-geometry preservation, missing CRS, and duplicate IDs; pytest, Ruff, and mypy pass.
+- Important decisions: Calculates area only for valid, non-empty geometries in a temporary EPSG:2154 copy; invalid geometries remain unchanged with `INVALID` status and null area; generated GeoParquet remains ignored by Git.
+- Known issues: Two source geometries are invalid and intentionally remain unmodified.
+
+### Real Muret normalization (`31395`)
+
+- Input parcels: 17,200
+- Output parcels: 17,200
+- Valid geometries: 17,198
+- Invalid geometries: 2
+- Duplicate parcel IDs: 0
+- Null `area_m2`: 2
+- Minimum `area_m2`: 0.064419
+- Median `area_m2`: 730.474151
+- Maximum `area_m2`: 304,924.087291
+- Output CRS: `EPSG:4326`
+- Output GeoParquet: `data/processed/cadastre/muret_parcels.parquet`
