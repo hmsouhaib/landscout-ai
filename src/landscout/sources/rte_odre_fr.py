@@ -1,0 +1,448 @@
+import json
+from dataclasses import asdict, dataclass, replace
+from datetime import UTC, datetime
+from hashlib import sha256
+from pathlib import Path
+from shutil import copyfileobj
+from typing import Annotated, Any, Literal
+from urllib.error import HTTPError, URLError
+from urllib.parse import quote
+from urllib.request import Request, urlopen
+
+import yaml  # type: ignore[import-untyped]
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, StringConstraints
+
+DEFAULT_CONFIG_PATH = Path("configs/sources/rte_odre_fr.yaml")
+DEFAULT_CACHE_DIR = Path("data/cache/rte_odre")
+DOWNLOAD_CHUNK_SIZE = 1024 * 1024
+LOGICAL_DATASET_NAMES = ("sites", "overhead_lines", "underground_lines")
+
+LogicalDatasetName = Literal["sites", "overhead_lines", "underground_lines"]
+ExportFormat = Literal["geojson"]
+GeometryPrecisionStatus = Literal[
+    "EXACT_NOT_CLAIMED",
+    "GENERALIZED_OR_RESTRICTED",
+    "MISSING",
+    "UNKNOWN",
+]
+
+NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+DatasetIdentifier = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True,
+        min_length=1,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]*$",
+    ),
+]
+
+
+class RteDatasetConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    dataset_id: DatasetIdentifier
+    preferred_format: ExportFormat
+
+
+class RteDatasetsConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    sites: RteDatasetConfig
+    overhead_lines: RteDatasetConfig
+    underground_lines: RteDatasetConfig
+
+
+class RteOdreApiConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    base_url: HttpUrl
+
+
+class RteOdreCacheConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    max_age_hours: float = Field(ge=0, allow_inf_nan=False)
+
+
+class RteOdreSourceConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    provider: NonEmptyString
+    portal: NonEmptyString
+    api: RteOdreApiConfig
+    datasets: RteDatasetsConfig
+    cache: RteOdreCacheConfig
+
+
+class RteOdreDownloadError(RuntimeError):
+    """Raised when RTE/ODRE metadata or exports cannot be retrieved safely."""
+
+
+@dataclass(frozen=True)
+class RteOdreDatasetMetadata:
+    dataset_id: str
+    title: str | None
+    publisher: str | None
+    modified: str | None
+    data_processed: str | None
+    metadata_processed: str | None
+    license: str | None
+    records_count: int | None
+    geometry_precision_status: GeometryPrecisionStatus
+
+
+@dataclass(frozen=True)
+class RteOdreDownload:
+    logical_name: LogicalDatasetName
+    dataset_id: str
+    provider: str
+    portal: str
+    source_url: str
+    export_format: ExportFormat
+    download_timestamp: str
+    filename: str
+    file_size: int
+    sha256: str
+    path: Path
+    cache_hit: bool
+    dataset_metadata: RteOdreDatasetMetadata
+
+
+@dataclass(frozen=True)
+class _GeoJsonSummary:
+    feature_count: int
+    null_geometry_count: int
+    non_null_geometry_count: int
+    geometry_types: tuple[str, ...]
+
+
+def load_rte_odre_source_config(
+    path: Path = DEFAULT_CONFIG_PATH,
+) -> RteOdreSourceConfig:
+    with path.open(encoding="utf-8") as stream:
+        content = yaml.safe_load(stream)
+    if not isinstance(content, dict):
+        raise TypeError(f"Expected a YAML mapping in {path}")
+    return RteOdreSourceConfig.model_validate(content)
+
+
+def _get_dataset_config(
+    config: RteOdreSourceConfig, logical_name: LogicalDatasetName
+) -> RteDatasetConfig:
+    if logical_name not in LOGICAL_DATASET_NAMES:
+        raise ValueError(f"Unsupported RTE/ODRE logical dataset: {logical_name}")
+    return getattr(config.datasets, logical_name)
+
+
+def _dataset_api_url(
+    config: RteOdreSourceConfig,
+    logical_name: LogicalDatasetName,
+    suffix: str,
+) -> str:
+    dataset = _get_dataset_config(config, logical_name)
+    encoded_dataset_id = quote(dataset.dataset_id, safe="")
+    return (
+        f"{str(config.api.base_url).rstrip('/')}/catalog/datasets/"
+        f"{encoded_dataset_id}{suffix}"
+    )
+
+
+def build_rte_odre_metadata_url(
+    config: RteOdreSourceConfig, logical_name: LogicalDatasetName
+) -> str:
+    return _dataset_api_url(config, logical_name, "")
+
+
+def build_rte_odre_export_url(
+    config: RteOdreSourceConfig, logical_name: LogicalDatasetName
+) -> str:
+    dataset = _get_dataset_config(config, logical_name)
+    export_format = quote(dataset.preferred_format, safe="")
+    return _dataset_api_url(config, logical_name, f"/exports/{export_format}")
+
+
+def _optional_string(mapping: dict[str, Any], key: str) -> str | None:
+    value = mapping.get(key)
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    return normalized or None
+
+
+def _metadata_precision_status(description: str | None) -> GeometryPrecisionStatus:
+    if description is None:
+        return "UNKNOWN"
+    normalized = description.casefold()
+    if "données gps" in normalized and "sécurité publique" in normalized:
+        return "GENERALIZED_OR_RESTRICTED"
+    return "UNKNOWN"
+
+
+def _read_response_json(source_url: str, timeout: float) -> dict[str, Any]:
+    request = Request(source_url, headers={"User-Agent": "LandScout-AI/0.1"})
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (HTTPError, URLError, OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise RteOdreDownloadError(f"RTE/ODRE request failed: {source_url}") from error
+    if not isinstance(payload, dict):
+        raise RteOdreDownloadError(
+            f"RTE/ODRE response is not a JSON object: {source_url}"
+        )
+    return payload
+
+
+def fetch_rte_odre_dataset_metadata(
+    config: RteOdreSourceConfig,
+    logical_name: LogicalDatasetName,
+    timeout: float = 60.0,
+) -> RteOdreDatasetMetadata:
+    dataset = _get_dataset_config(config, logical_name)
+    metadata_url = build_rte_odre_metadata_url(config, logical_name)
+    payload = _read_response_json(metadata_url, timeout)
+    response_dataset_id = payload.get("dataset_id")
+    if response_dataset_id != dataset.dataset_id:
+        raise RteOdreDownloadError(
+            f"Unexpected dataset metadata response for {dataset.dataset_id}"
+        )
+
+    metas = payload.get("metas")
+    default_metas = metas.get("default") if isinstance(metas, dict) else None
+    if not isinstance(default_metas, dict):
+        default_metas = {}
+    records_count_value = default_metas.get("records_count")
+    records_count = (
+        records_count_value
+        if isinstance(records_count_value, int)
+        and not isinstance(records_count_value, bool)
+        else None
+    )
+    description = _optional_string(default_metas, "description")
+    return RteOdreDatasetMetadata(
+        dataset_id=dataset.dataset_id,
+        title=_optional_string(default_metas, "title"),
+        publisher=_optional_string(default_metas, "publisher"),
+        modified=_optional_string(default_metas, "modified"),
+        data_processed=_optional_string(default_metas, "data_processed"),
+        metadata_processed=_optional_string(default_metas, "metadata_processed"),
+        license=_optional_string(default_metas, "license"),
+        records_count=records_count,
+        geometry_precision_status=_metadata_precision_status(description),
+    )
+
+
+def _sha256(path: Path) -> str:
+    digest = sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(DOWNLOAD_CHUNK_SIZE), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _validate_geojson(path: Path) -> _GeoJsonSummary:
+    if not path.is_file() or path.stat().st_size == 0:
+        raise RteOdreDownloadError(f"GeoJSON export is missing or empty: {path}")
+    try:
+        with path.open(encoding="utf-8") as stream:
+            payload = json.load(stream)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise RteOdreDownloadError(f"GeoJSON export is not valid UTF-8 JSON: {path}") from error
+    if not isinstance(payload, dict) or payload.get("type") != "FeatureCollection":
+        raise RteOdreDownloadError("GeoJSON export must be a FeatureCollection")
+    features = payload.get("features")
+    if not isinstance(features, list):
+        raise RteOdreDownloadError("GeoJSON FeatureCollection must contain a features list")
+
+    null_geometry_count = 0
+    geometry_types: set[str] = set()
+    for feature in features:
+        geometry = feature.get("geometry") if isinstance(feature, dict) else None
+        if not isinstance(geometry, dict):
+            null_geometry_count += 1
+            continue
+        geometry_type = geometry.get("type")
+        if isinstance(geometry_type, str) and geometry_type:
+            geometry_types.add(geometry_type)
+    return _GeoJsonSummary(
+        feature_count=len(features),
+        null_geometry_count=null_geometry_count,
+        non_null_geometry_count=len(features) - null_geometry_count,
+        geometry_types=tuple(sorted(geometry_types)),
+    )
+
+
+def _metadata_from_dict(payload: Any) -> RteOdreDatasetMetadata:
+    if not isinstance(payload, dict):
+        raise TypeError("Missing cached dataset metadata")
+    precision_status = payload["geometry_precision_status"]
+    allowed_statuses = {
+        "EXACT_NOT_CLAIMED",
+        "GENERALIZED_OR_RESTRICTED",
+        "MISSING",
+        "UNKNOWN",
+    }
+    if precision_status not in allowed_statuses:
+        raise ValueError("Invalid cached geometry precision status")
+    records_count = payload["records_count"]
+    if records_count is not None and (
+        not isinstance(records_count, int) or isinstance(records_count, bool)
+    ):
+        raise TypeError("Invalid cached records count")
+    optional_values: dict[str, str | None] = {}
+    for field_name in (
+        "title",
+        "publisher",
+        "modified",
+        "data_processed",
+        "metadata_processed",
+        "license",
+    ):
+        value = payload[field_name]
+        if value is not None and not isinstance(value, str):
+            raise TypeError(f"Invalid cached metadata value: {field_name}")
+        optional_values[field_name] = value
+    return RteOdreDatasetMetadata(
+        dataset_id=str(payload["dataset_id"]),
+        title=optional_values["title"],
+        publisher=optional_values["publisher"],
+        modified=optional_values["modified"],
+        data_processed=optional_values["data_processed"],
+        metadata_processed=optional_values["metadata_processed"],
+        license=optional_values["license"],
+        records_count=records_count,
+        geometry_precision_status=precision_status,
+    )
+
+
+def _load_cached_download(
+    archive_path: Path,
+    metadata_path: Path,
+    config: RteOdreSourceConfig,
+    logical_name: LogicalDatasetName,
+    source_url: str,
+) -> RteOdreDownload | None:
+    if not archive_path.is_file() or not metadata_path.is_file():
+        return None
+    dataset = _get_dataset_config(config, logical_name)
+    try:
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        if not isinstance(metadata, dict):
+            return None
+        _validate_geojson(archive_path)
+        file_size = archive_path.stat().st_size
+        checksum = _sha256(archive_path)
+        download_timestamp = str(metadata["download_timestamp"])
+        downloaded_at = datetime.fromisoformat(download_timestamp)
+        if downloaded_at.tzinfo is None:
+            return None
+        age_seconds = (
+            datetime.now(UTC) - downloaded_at.astimezone(UTC)
+        ).total_seconds()
+        valid = (
+            0 <= age_seconds <= config.cache.max_age_hours * 3600
+            and metadata["logical_name"] == logical_name
+            and metadata["dataset_id"] == dataset.dataset_id
+            and metadata["provider"] == config.provider
+            and metadata["portal"] == config.portal
+            and metadata["source_url"] == source_url
+            and metadata["export_format"] == dataset.preferred_format
+            and metadata["filename"] == archive_path.name
+            and metadata["file_size"] == file_size
+            and metadata["sha256"] == checksum
+        )
+        if not valid:
+            return None
+        dataset_metadata = _metadata_from_dict(metadata["dataset_metadata"])
+        if dataset_metadata.dataset_id != dataset.dataset_id:
+            return None
+        return RteOdreDownload(
+            logical_name=logical_name,
+            dataset_id=dataset.dataset_id,
+            provider=config.provider,
+            portal=config.portal,
+            source_url=source_url,
+            export_format=dataset.preferred_format,
+            download_timestamp=download_timestamp,
+            filename=archive_path.name,
+            file_size=file_size,
+            sha256=checksum,
+            path=archive_path,
+            cache_hit=True,
+            dataset_metadata=dataset_metadata,
+        )
+    except (
+        KeyError,
+        OSError,
+        TypeError,
+        ValueError,
+        json.JSONDecodeError,
+        RteOdreDownloadError,
+    ):
+        return None
+
+
+def download_rte_odre_dataset(
+    logical_name: LogicalDatasetName,
+    config: RteOdreSourceConfig,
+    cache_dir: Path = DEFAULT_CACHE_DIR,
+    timeout: float = 60.0,
+) -> RteOdreDownload:
+    dataset = _get_dataset_config(config, logical_name)
+    source_url = build_rte_odre_export_url(config, logical_name)
+    filename = f"{dataset.dataset_id}.{dataset.preferred_format}"
+    archive_path = cache_dir / filename
+    metadata_path = cache_dir / f"{filename}.metadata.json"
+    cached = _load_cached_download(
+        archive_path, metadata_path, config, logical_name, source_url
+    )
+    if cached is not None:
+        return cached
+
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    temporary_archive = archive_path.with_suffix(f"{archive_path.suffix}.part")
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    try:
+        dataset_metadata = fetch_rte_odre_dataset_metadata(
+            config, logical_name, timeout=timeout
+        )
+        request = Request(source_url, headers={"User-Agent": "LandScout-AI/0.1"})
+        with (
+            urlopen(request, timeout=timeout) as response,
+            temporary_archive.open("wb") as output,
+        ):
+            copyfileobj(response, output, length=DOWNLOAD_CHUNK_SIZE)
+        summary = _validate_geojson(temporary_archive)
+        if summary.feature_count > 0 and summary.non_null_geometry_count == 0:
+            dataset_metadata = replace(
+                dataset_metadata, geometry_precision_status="MISSING"
+            )
+
+        result = RteOdreDownload(
+            logical_name=logical_name,
+            dataset_id=dataset.dataset_id,
+            provider=config.provider,
+            portal=config.portal,
+            source_url=source_url,
+            export_format=dataset.preferred_format,
+            download_timestamp=datetime.now(UTC).isoformat(),
+            filename=filename,
+            file_size=temporary_archive.stat().st_size,
+            sha256=_sha256(temporary_archive),
+            path=archive_path,
+            cache_hit=False,
+            dataset_metadata=dataset_metadata,
+        )
+        lineage = asdict(result)
+        lineage.pop("path")
+        lineage.pop("cache_hit")
+        temporary_metadata.write_text(
+            json.dumps(lineage, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        temporary_archive.replace(archive_path)
+        temporary_metadata.replace(metadata_path)
+        return result
+    except (HTTPError, URLError, OSError) as error:
+        raise RteOdreDownloadError(f"RTE/ODRE download failed: {source_url}") from error
+    finally:
+        temporary_archive.unlink(missing_ok=True)
+        temporary_metadata.unlink(missing_ok=True)

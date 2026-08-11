@@ -1,0 +1,21 @@
+provider: RTE
+portal: ODRE
+
+api:
+  base_url: "https://odre.opendatasoft.com/api/explore/v2.1"
+
+datasets:
+  sites:
+    dataset_id: "postes-electriques-rte"
+    preferred_format: "geojson"
+
+  overhead_lines:
+    dataset_id: "lignes-aeriennes-rte-nv"
+    preferred_format: "geojson"
+
+  underground_lines:
+    dataset_id: "lignes-souterraines-rte-nv"
+    preferred_format: "geojson"
+
+cache:
+  max_age_hours: 168

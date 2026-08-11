@@ -2,11 +2,11 @@
 
 ## Current project state
 
-- Current phase: BESS parcel screening
-- Latest completed step: STEP 7B.6 — configurable calibrated shape screening
+- Current phase: French electricity-grid source ingestion
+- Latest completed step: STEP 7C.1 — RTE / ODRÉ grid source ingestion
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: post-screening LandScout implementation step
+- Next step waiting for review: review of the official grid-source findings
 
 ## STEP 0 — Environment check
 
@@ -416,3 +416,172 @@ These thresholds are **pilot calibration parameters derived from the Muret empir
 - Output CRS: `EPSG:4326`
 - Retained GeoParquet: `data/processed/cadastre/muret_bess_shape_filtered_candidates.parquet`
 - Rejected GeoParquet: `data/processed/cadastre/muret_bess_shape_rejected.parquet`
+
+## STEP 7C.1 — RTE / ODRÉ grid source ingestion
+
+- Status: Complete
+- Implementation summary: Added a validated ODRE source configuration and one generic adapter for official RTE site, overhead-line, and underground-line metadata and GeoJSON exports.
+- Important files: `configs/sources/rte_odre_fr.yaml`, `src/landscout/sources/rte_odre_fr.py`, `src/landscout/sources/__init__.py`, `tests/unit/test_rte_odre_fr.py`
+- Tests/checks: Covered strict configuration, all configured URLs, metadata extraction, successful downloads, fresh and expired caches, HTTP and content failures, preservation of a valid prior cache, JSON/GeoJSON integrity, lineage, null geometries, and temporary-file cleanup; 183 tests, Ruff, and mypy pass.
+- Important decisions: Dataset identifiers and export formats live only in source YAML; a single downloader handles all three logical datasets; downloads and metadata sidecars are atomic `.part` replacements; cached files require matching lineage, age, size, SHA256, and complete GeoJSON validation.
+- Known issues: The current official exports expose attributes but no non-null geometry. Grid distance analysis is therefore not possible from these versions and was not attempted.
+
+RTE currently states that GPS access to transport-grid infrastructure has evolved for public-security reasons.
+
+LandScout therefore does not claim that published RTE geometries represent exact infrastructure coordinates.
+
+These datasets describe network infrastructure only. They do not establish available capacity, connection availability, BESS feasibility, or a guaranteed connection.
+
+### Source and cache configuration
+
+- Provider: `RTE`
+- Portal: `ODRE`
+- API base URL: `https://odre.opendatasoft.com/api/explore/v2.1`
+- Export format: `geojson`
+- Cache maximum age: 168 hours
+- Cache directory: `data/cache/rte_odre/`
+- Second-run cache verification: `sites`, `overhead_lines`, and `underground_lines` all returned `cache_hit = true`
+- Generated cache content: ignored by Git
+
+### `sites` — official electrical sites
+
+- Logical name: `sites`
+- Dataset ID: `postes-electriques-rte`
+- Title: `Sites électriques RTE et points de piquage (au 16 juin 2026)`
+- Publisher: `RTE`
+- License: `Licence Ouverte v2.0 (Etalab)`
+- Source modified: `2026-06-16T14:08:01+00:00`
+- Source data processed: `2026-06-16T14:08:30+00:00`
+- Source metadata processed: `2026-06-16T14:08:30.142000+00:00`
+- Source URL: `https://odre.opendatasoft.com/api/explore/v2.1/catalog/datasets/postes-electriques-rte/exports/geojson`
+- Export format: `geojson`
+- Cached file: `data/cache/rte_odre/postes-electriques-rte.geojson`
+- File size: 1,029,193 bytes
+- SHA256: `a6cc86256c1e295c6810146077c6f8034e82e6d76f076347fb7b365a60f2a88a`
+- Download timestamp: `2026-08-11T14:31:56.265051+00:00`
+- Metadata record count: 5,042
+- Export feature count: 5,042
+
+Property schema and null counts:
+
+| Property | Detected JSON types | Null count |
+| --- | --- | ---: |
+| `code_poste` | string | 0 |
+| `nom_poste` | string | 0 |
+| `fonction` | string | 0 |
+| `etat` | string | 0 |
+| `tension` | string | 0 |
+| `departement` | string, null | 141 |
+
+Geometry inspection:
+
+- Geometry field present: yes, in all 5,042 features
+- Null geometries: 5,042
+- Non-null geometries: 0
+- Geometry types: none exposed
+- Top-level GeoJSON `crs` member: absent
+- CRS interpretation: GeoJSON normally carries a WGS84 coordinate assumption, but this export contains no coordinates; no operational spatial CRS or exact location is claimed.
+- `geometry_precision_status`: `MISSING`
+
+The source currently exposes all inspected site fields: `code_poste`, `nom_poste`, `fonction`, `etat`, `tension`, and `departement`.
+
+### `overhead_lines` — official overhead lines
+
+- Logical name: `overhead_lines`
+- Dataset ID: `lignes-aeriennes-rte-nv`
+- Title: `Lignes aériennes RTE – nouveau découpage (au 16 juin 2026)`
+- Publisher: `RTE`
+- License: `Licence Ouverte v2.0 (Etalab)`
+- Source modified: `2025-07-03T09:46:05+00:00`
+- Source data processed: `2026-06-16T14:04:57+00:00`
+- Source metadata processed: `2026-06-16T14:04:57.442000+00:00`
+- Source URL: `https://odre.opendatasoft.com/api/explore/v2.1/catalog/datasets/lignes-aeriennes-rte-nv/exports/geojson`
+- Export format: `geojson`
+- Cached file: `data/cache/rte_odre/lignes-aeriennes-rte-nv.geojson`
+- File size: 3,996,948 bytes
+- SHA256: `22d9d8d8be663414601be1a22a250360baf83a543abccb7cd470dc7c3b43720e`
+- Download timestamp: `2026-08-11T14:31:58.119185+00:00`
+- Metadata record count: 9,221
+- Export feature count: 9,221
+
+Property schema and null counts:
+
+| Property | Detected JSON types | Null count |
+| --- | --- | ---: |
+| `type_ouvrage` | string | 0 |
+| `code_ligne` | string | 0 |
+| `nom_ligne` | string, null | 19 |
+| `etat` | string | 0 |
+| `tension` | string | 0 |
+| `nombre_circuit` | string | 0 |
+| `source` | string | 0 |
+| `identification_2` | string, null | 6,682 |
+| `nom_ouvrage_2` | string, null | 6,684 |
+| `identification_3` | string, null | 9,197 |
+| `nom_ouvrage_3` | string, null | 9,197 |
+| `identification_4` | string, null | 9,211 |
+| `nom_ouvrage_4` | string, null | 9,211 |
+| `identification_5` | null only | 9,221 |
+| `nom_ouvrage_5` | null only | 9,221 |
+
+Geometry inspection:
+
+- Geometry field present: yes, in all 9,221 features
+- Null geometries: 9,221
+- Non-null geometries: 0
+- Geometry types: none exposed
+- Top-level GeoJSON `crs` member: absent
+- CRS interpretation: GeoJSON normally carries a WGS84 coordinate assumption, but this export contains no coordinates; no operational spatial CRS or exact line location is claimed.
+- `geometry_precision_status`: `MISSING`
+
+The source currently exposes the inspected line fields `type_ouvrage`, `code_ligne`, `nom_ligne`, `etat`, `tension`, and `nombre_circuit`, plus optional additional line identifiers/names.
+
+### `underground_lines` — official underground lines
+
+- Logical name: `underground_lines`
+- Dataset ID: `lignes-souterraines-rte-nv`
+- Title: `Lignes souterraines RTE – nouveau découpage (au 16 juin 2026)`
+- Publisher: `RTE`
+- License: `Licence Ouverte v2.0 (Etalab)`
+- Source modified: `2026-06-16T13:01:35+00:00`
+- Source data processed: `2026-06-16T13:02:59+00:00`
+- Source metadata processed: `2026-06-16T13:02:59.780000+00:00`
+- Source URL: `https://odre.opendatasoft.com/api/explore/v2.1/catalog/datasets/lignes-souterraines-rte-nv/exports/geojson`
+- Export format: `geojson`
+- Cached file: `data/cache/rte_odre/lignes-souterraines-rte-nv.geojson`
+- File size: 1,573,710 bytes
+- SHA256: `ebbf9e5a2d71ec6b0fa513cd3f578c289c58bc06c781f180ec370ffafd35ed5e`
+- Download timestamp: `2026-08-11T14:31:59.913470+00:00`
+- Metadata record count: 3,825
+- Export feature count: 3,825
+
+Property schema and null counts:
+
+| Property | Detected JSON types | Null count |
+| --- | --- | ---: |
+| `type_ouvrage` | string | 0 |
+| `code_ligne` | string | 0 |
+| `nom_ouvrage_1` | string, null | 185 |
+| `etat` | string | 0 |
+| `tension` | string | 0 |
+| `nombre_circuit` | string | 0 |
+| `identification_2` | null only | 3,825 |
+| `nom_ouvrage_2` | null only | 3,825 |
+| `identification_3` | null only | 3,825 |
+| `nom_ouvrage_3` | null only | 3,825 |
+| `identification_4` | null only | 3,825 |
+| `nom_ouvrage_4` | null only | 3,825 |
+| `identification_5` | null only | 3,825 |
+| `nom_ouvrage_5` | null only | 3,825 |
+
+Geometry inspection:
+
+- Geometry field present: yes, in all 3,825 features
+- Null geometries: 3,825
+- Non-null geometries: 0
+- Geometry types: none exposed
+- Top-level GeoJSON `crs` member: absent
+- CRS interpretation: GeoJSON normally carries a WGS84 coordinate assumption, but this export contains no coordinates; no operational spatial CRS or exact line location is claimed.
+- `geometry_precision_status`: `MISSING`
+
+The source currently exposes `type_ouvrage`, `code_ligne`, `etat`, `tension`, and `nombre_circuit`. Its primary name field is `nom_ouvrage_1`, not `nom_ligne`; no normalization was applied.
