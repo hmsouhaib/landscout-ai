@@ -2,7 +2,7 @@ import geopandas as gpd  # type: ignore[import-untyped]
 
 from landscout.config import ParcelConfig
 
-REQUIRED_COLUMNS = frozenset({"geometry_status", "area_m2"})
+REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry_status", "area_m2"})
 
 
 class ParcelFilterError(ValueError):
@@ -16,6 +16,10 @@ def filter_parcels_by_area(
     if missing_columns:
         formatted = ", ".join(sorted(missing_columns))
         raise ParcelFilterError(f"Missing required normalized columns: {formatted}")
+    if parcels["parcel_id"].isna().any():
+        raise ParcelFilterError("parcel_id values must not be null")
+    if parcels["parcel_id"].duplicated().any():
+        raise ParcelFilterError("parcel_id values must be unique")
 
     valid_geometry = parcels["geometry_status"] == "VALID"
     known_area = parcels["area_m2"].notna()
@@ -46,4 +50,15 @@ def filter_parcels_by_area(
 
     if len(parcels) != len(candidates) + len(rejected):
         raise ParcelFilterError("Parcel partition did not preserve every input row")
+    input_ids = set(parcels["parcel_id"])
+    candidate_ids = set(candidates["parcel_id"])
+    rejected_ids = set(rejected["parcel_id"])
+    if candidates["parcel_id"].duplicated().any() or rejected[
+        "parcel_id"
+    ].duplicated().any():
+        raise ParcelFilterError("Parcel partition contains duplicate parcel IDs")
+    if candidate_ids & rejected_ids:
+        raise ParcelFilterError("Candidate and rejected parcel IDs overlap")
+    if candidate_ids | rejected_ids != input_ids:
+        raise ParcelFilterError("Parcel partition did not preserve exact parcel IDs")
     return candidates, rejected

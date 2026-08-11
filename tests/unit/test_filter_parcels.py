@@ -3,7 +3,7 @@ import pytest
 from shapely.geometry import Polygon
 
 from landscout.config import ParcelConfig
-from landscout.stages.filter_parcels import filter_parcels_by_area
+from landscout.stages.filter_parcels import ParcelFilterError, filter_parcels_by_area
 
 
 @pytest.fixture
@@ -96,3 +96,50 @@ def test_thresholds_come_from_config(parcels: gpd.GeoDataFrame) -> None:
     candidates, _ = filter_parcels_by_area(parcels, custom_config)
 
     assert set(candidates["parcel_id"]) == {"below-minimum", "at-minimum"}
+
+
+def test_missing_parcel_id_fails(
+    parcels: gpd.GeoDataFrame, area_config: ParcelConfig
+) -> None:
+    without_id = parcels.drop(columns=["parcel_id"])
+
+    with pytest.raises(ParcelFilterError, match="parcel_id"):
+        filter_parcels_by_area(without_id, area_config)
+
+
+def test_null_parcel_id_fails(
+    parcels: gpd.GeoDataFrame, area_config: ParcelConfig
+) -> None:
+    with_null = parcels.copy()
+    with_null.loc[0, "parcel_id"] = None
+
+    with pytest.raises(ParcelFilterError, match="null"):
+        filter_parcels_by_area(with_null, area_config)
+
+
+def test_duplicate_parcel_id_fails(
+    parcels: gpd.GeoDataFrame, area_config: ParcelConfig
+) -> None:
+    with_duplicate = parcels.copy()
+    with_duplicate.loc[1, "parcel_id"] = with_duplicate.loc[0, "parcel_id"]
+
+    with pytest.raises(ParcelFilterError, match="unique"):
+        filter_parcels_by_area(with_duplicate, area_config)
+
+
+def test_candidate_and_rejected_ids_do_not_overlap(
+    parcels: gpd.GeoDataFrame, area_config: ParcelConfig
+) -> None:
+    candidates, rejected = filter_parcels_by_area(parcels, area_config)
+
+    assert set(candidates["parcel_id"]).isdisjoint(set(rejected["parcel_id"]))
+
+
+def test_exact_parcel_ids_are_preserved(
+    parcels: gpd.GeoDataFrame, area_config: ParcelConfig
+) -> None:
+    candidates, rejected = filter_parcels_by_area(parcels, area_config)
+
+    output_ids = list(candidates["parcel_id"]) + list(rejected["parcel_id"])
+    assert len(output_ids) == len(set(output_ids))
+    assert set(output_ids) == set(parcels["parcel_id"])

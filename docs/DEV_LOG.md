@@ -3,7 +3,7 @@
 ## Current project state
 
 - Current phase: French cadastral data ingestion
-- Latest completed step: STEP 7B.3 — filter BESS parcels by area
+- Latest completed step: STEP 7B.3.1 — strengthen parcel filter validation
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: next LandScout implementation step, not yet specified
@@ -184,3 +184,12 @@ Example attribute records (geometry omitted):
 - Candidate CRS: `EPSG:4326`
 - Candidate GeoParquet: `data/processed/cadastre/muret_bess_candidates.parquet`
 - Rejected GeoParquet: `data/processed/cadastre/muret_bess_rejected.parquet`
+
+## STEP 7B.3.1 — Strengthen parcel filter validation
+
+- Status: Complete
+- Implementation summary: Added strict parcel identity validation and exact output-partition invariants to the BESS area filter.
+- Important files: `src/landscout/stages/filter_parcels.py`, `tests/unit/test_filter_parcels.py`
+- Tests/checks: Covered missing, null, and duplicate parcel IDs, disjoint outputs, and exact ID preservation; pytest, Ruff, and mypy pass.
+- Important decisions: Requires `parcel_id`, `geometry_status`, and `area_m2`; candidate and rejected IDs must be unique, disjoint, and have a union equal to the input ID set.
+- Known issues: None.
