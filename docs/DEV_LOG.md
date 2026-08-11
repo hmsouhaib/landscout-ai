@@ -1281,6 +1281,111 @@ Distance to an IGN electric line or transformation post does not establish grid 
 
 No BESS grid-distance threshold is selected here.
 
+## STEP 7D.2 — Normalize GPU zoning and intersect Muret parcels
+
+- Status: Complete
+- Implementation summary: Added one high-level factual zoning stage that validates the loaded GPU bundle, normalizes the authoritative zoning catalog to EPSG:2154, uses a spatial index plus vectorized full-polygon intersections, and returns copied parcel, zone, and long-form relation frames. It does not interpret zoning or reject parcels.
+- Important files: `src/landscout/stages/enrich_planning_zoning.py`, `tests/unit/test_enrich_planning_zoning.py`, `src/landscout/stages/__init__.py`
+- Tests/checks: 66 focused offline zoning tests pass. The full suite passes with 675 tests; Ruff and mypy pass.
+- Important decisions: `LIB_IDZONE` is the authoritative source identity and becomes `GPU:<document_id>:ZONE:<LIB_IDZONE>`. Raw GPU values are copied exactly. `IDURBA` must equal the logical archive identity derived from the loaded document. Metric work uses planar EPSG:2154 geometry; parcel storage geometry and CRS remain unchanged. `AREA_OVERLAP` means strictly positive measured intersection area, while zero-area intersections remain explicit `TOUCH_ONLY` relations. Dominance uses the greatest positive intersection area and lexical `planning_zone_id` for an exact tie.
+- Known issues: The current result describes source zoning geometry only; prescription layers and written regulation are not interpreted. A `1e-6 m²` technical comparison tolerance guards floating-point area invariants. Positive residues below that tolerance are reported separately and are not treated as material source overlap.
+
+### Real inputs and lineage
+
+| Item | Observed value |
+| --- | --- |
+| Parcel input | `data/processed/grid/muret_bess_grid_proximity_coverage.parquet` |
+| Parcel count | 3,638 |
+| Parcel CRS | `EPSG:4326` |
+| GPU zoning zones | 221 |
+| Source zoning CRS | `IGNF:LAMB93` |
+| Normalized/calculation CRS | `EPSG:2154` |
+| Source layer | `31395_ZONE_URBA_20240215` |
+| Document ID | `33edb4c9f6943c88d8d92518bff20bec` |
+| Document type | `PLU` |
+| Archive | `31395_PLU_20240215` |
+| Archive SHA256 | `9d6677cd6634b56b712311042f0cc714d5ca42a38f82a417b27dd473255d7d93` |
+| Standard model | `CNIG PLU v2017` |
+
+All 221 source geometries remain valid polygons. The normalized zone catalog has 221 unique `planning_zone_id` values and retains the exact source `TYPEZONE`, `LIBELLE`, `LIBELONG`, `NOMFIC`, `URLFIC`, `IDURBA`, and `DATVALID` values.
+
+### Integrity and performance
+
+- Input/output parcels: 3,638 / 3,638
+- Lost / extra parcel IDs: 0 / 0
+- Duplicate normalized zone IDs: 0
+- Duplicate parcel/zone pairs: 0
+- Invalid or non-finite calculations: 0
+- Original parcel order, WKB geometry, all prior grid fields, and `EPSG:4326` CRS: preserved
+- Normalized zone CRS: canonical `EPSG:2154`
+- Real intersection wall-clock duration: 2.104 seconds
+
+The raw intersection sum and covered-union area are recorded separately. Coverage and gap use the covered union, while overlap excess is the raw sum minus that union. No area was calculated in EPSG:4326.
+
+### Factual zoning results
+
+- Parcel/zone relation rows: 5,095
+- `AREA_OVERLAP`: 5,095
+- `TOUCH_ONLY`: 0 (the relation remains covered by synthetic tests)
+- Parcels with 0 / 1 / multiple positive-area zones: 0 / 2,324 / 1,314
+- Detailed positive-area zone counts: 1 zone = 2,324; 2 = 1,178; 3 = 129; 4 = 7
+- Zoning coverage min / p50 / max: 99.983493067% / 100% / 100%
+- Zoning gap min / p50 / max: 0 / 0 / 0.684117101 m²
+- Parcels with material source-overlap excess above `1e-6 m²`: 0
+- Positive floating-point overlap residues: 1,587; maximum `4.82542e-08 m²`, all below the technical tolerance
+
+Dominant raw `TYPEZONE` counts:
+
+| Raw `TYPEZONE` | Parcels |
+| --- | ---: |
+| `A` | 1,946 |
+| `AUc` | 134 |
+| `AUs` | 105 |
+| `N` | 398 |
+| `U` | 1,055 |
+
+Dominant raw `LIBELLE` counts:
+
+| Raw labels | Parcel counts |
+| --- | --- |
+| `A`; `AU`; `AU0`; `AUa`; `AUf` | 1,946; 4; 42; 2; 20 |
+| `AUfa`; `AUfb`; `AUfc`; `AUfd`; `AUfo`; `AUp` | 29; 29; 23; 19; 63; 8 |
+| `N`; `NL`; `Ne`; `Nh`; `Nr` | 127; 30; 2; 124; 115 |
+| `UA`; `UAa`; `UAb`; `UB`; `UBa`; `UBb` | 3; 19; 2; 53; 19; 9 |
+| `UC`; `UD`; `UF`; `UFc`; `UFd`; `UP` | 266; 447; 148; 7; 4; 78 |
+
+Ten deterministic representative multi-zone parcels, ordered by descending zone count then `parcel_id`:
+
+| Parcel | Area (m²) | Zones | Dominant `TYPEZONE` | Dominant `LIBELLE` | Dominant share | Coverage |
+| --- | ---: | ---: | --- | --- | ---: | ---: |
+| `31395000AS0325` | 4,061.821 | 4 | `U` | `UBb` | 93.997295% | 100.000000% |
+| `31395000CH0151` | 8,646.473 | 4 | `A` | `A` | 84.720485% | 100.000000% |
+| `31395000CM0028` | 8,821.617 | 4 | `A` | `A` | 92.086894% | 100.000000% |
+| `31395000CR0007` | 10,844.189 | 4 | `U` | `UD` | 62.837576% | 100.000000% |
+| `31395000CY0006` | 2,616.574 | 4 | `U` | `UD` | 99.998189% | 100.000000% |
+| `31395000CY0207` | 2,266.731 | 4 | `U` | `UC` | 92.344287% | 100.000000% |
+| `31395000IE0287` | 3,484.755 | 4 | `U` | `UB` | 60.839179% | 100.000000% |
+| `313950000A0392` | 5,821.807 | 3 | `A` | `A` | 94.977689% | 100.000000% |
+| `313950000K0012` | 2,623.994 | 3 | `A` | `A` | 99.996608% | 100.000000% |
+| `313950000K0013` | 2,369.380 | 3 | `N` | `Nh` | 99.962334% | 100.000000% |
+
+### Outputs and read-back
+
+- Zone GeoParquet: `data/processed/planning/muret_gpu_zones.parquet` (221 rows, 306,703 bytes, `EPSG:2154`)
+- Parcel GeoParquet: `data/processed/planning/muret_bess_zoning.parquet` (3,638 rows, 1,440,942 bytes, `EPSG:4326`)
+- Relation Parquet: `data/processed/planning/muret_bess_zoning_intersections.parquet` (5,095 rows, 224,907 bytes)
+- Read-back verified exact parcel IDs/order and WKB geometry, both CRSs, unique zone IDs and parcel/zone pairs, source lineage, unchanged raw vocabulary, relation types, and finite non-negative areas and percentages.
+
+Generated outputs remain ignored by Git.
+
+GPU zoning is an official source fact.
+
+Dominant zone means the source zone covering the largest measured part of the parcel. It does not mean the only legally relevant zone.
+
+No zoning value is interpreted as BESS-compatible or BESS-incompatible in STEP 7D.2.
+
+No parcel is rejected.
+
 ## STEP 7D.1.1 — Harden GPU source and extraction integrity
 
 - Status: Complete
