@@ -623,6 +623,115 @@ def _validate_voltage_table(
     return levels
 
 
+def _null_safe_series_equal(actual: pd.Series, expected: pd.Series) -> bool:
+    actual_values = actual.reset_index(drop=True)
+    expected_values = expected.reset_index(drop=True)
+    if len(actual_values) != len(expected_values):
+        return False
+    both_null = actual_values.isna() & expected_values.isna()
+    try:
+        equal_values = actual_values.eq(expected_values).fillna(False)
+    except (TypeError, ValueError):
+        return False
+    return bool((both_null | equal_values).all())
+
+
+def _validate_exact_representation_consistency(
+    parcels: gpd.GeoDataFrame,
+    voltage_table: pd.DataFrame,
+    levels: tuple[float, ...],
+) -> None:
+    if not levels:
+        return
+
+    distance_column = "nearest_line_proxy_distance_m"
+    grid_id_column = "nearest_line_grid_feature_id"
+    selected_columns = (
+        "parcel_id",
+        distance_column,
+        grid_id_column,
+        "nearest_line_source_feature_id",
+        "voltage_kv",
+        "tie_count",
+        "manager_name",
+        "asset_status_raw",
+        "source_department_code",
+        "source_edition",
+        "source_archive_sha256",
+    )
+    candidates = voltage_table.loc[:, list(selected_columns)].copy()
+    _validate_id_values(
+        candidates[grid_id_column],
+        "Voltage-level nearest grid_feature_id",
+        require_unique=False,
+    )
+    parcel_positions = {
+        parcel_id: position
+        for position, parcel_id in enumerate(parcels["parcel_id"].tolist())
+    }
+    candidates["_parcel_position"] = candidates["parcel_id"].map(parcel_positions)
+    if candidates["_parcel_position"].isna().any():
+        raise GridProximityError(
+            "Voltage-level proximity contains an unexpected parcel ID"
+        )
+    candidates["_distance"] = candidates[distance_column].map(float)
+    candidates["_tie_count"] = candidates["tie_count"].map(int).astype("object")
+
+    ordered = candidates.sort_values(
+        ["_parcel_position", "_distance", grid_id_column],
+        kind="mergesort",
+    )
+    expected = ordered.drop_duplicates("_parcel_position", keep="first")
+    expected = expected.set_index("_parcel_position").reindex(range(len(parcels)))
+    if expected["parcel_id"].isna().any():
+        raise GridProximityError(
+            "Voltage-level proximity does not cover every parcel"
+        )
+
+    minimum_distance = candidates.groupby("_parcel_position", sort=False)[
+        "_distance"
+    ].transform("min")
+    tied_level_winners = candidates.loc[
+        candidates["_distance"].eq(minimum_distance)
+    ]
+    expected_ties = tied_level_winners.groupby("_parcel_position", sort=False)[
+        "_tie_count"
+    ].agg(lambda values: sum(values.tolist()))
+    expected_ties = expected_ties.reindex(range(len(parcels)))
+
+    actual = parcels.reset_index(drop=True)
+    actual_distance = actual["nearest_exact_line_proxy_distance_m"].map(float)
+    if not actual_distance.eq(expected["_distance"].reset_index(drop=True)).all():
+        raise GridProximityError(
+            "Global exact-line distance is inconsistent with voltage-level proximity"
+        )
+
+    field_mapping = (
+        ("nearest_exact_line_grid_feature_id", grid_id_column),
+        ("nearest_exact_line_source_feature_id", "nearest_line_source_feature_id"),
+        ("nearest_exact_line_voltage_kv", "voltage_kv"),
+        ("nearest_exact_line_manager_name", "manager_name"),
+        ("nearest_exact_line_asset_status_raw", "asset_status_raw"),
+        ("nearest_exact_line_source_department_code", "source_department_code"),
+        ("nearest_exact_line_source_edition", "source_edition"),
+        ("nearest_exact_line_source_archive_sha256", "source_archive_sha256"),
+    )
+    for parcel_column, table_column in field_mapping:
+        if not _null_safe_series_equal(
+            actual[parcel_column], expected[table_column]
+        ):
+            raise GridProximityError(
+                f"Global exact-line {parcel_column} is inconsistent with "
+                "voltage-level proximity"
+            )
+
+    actual_ties = actual["nearest_exact_line_tie_count"].map(int)
+    if not actual_ties.eq(expected_ties.reset_index(drop=True)).all():
+        raise GridProximityError(
+            "Global exact-line tie count is inconsistent with voltage-level proximity"
+        )
+
+
 def _validate_result_contract(result: GridProximityResult) -> tuple[float, ...]:
     parcels = result.parcels
     _validate_parcels(parcels)
@@ -676,6 +785,11 @@ def _validate_result_contract(result: GridProximityResult) -> tuple[float, ...]:
         result.voltage_level_proximity,
         parcels["parcel_id"],
         result.voltage_level_coverage,
+    )
+    _validate_exact_representation_consistency(
+        parcels,
+        result.voltage_level_proximity,
+        levels,
     )
     return levels
 

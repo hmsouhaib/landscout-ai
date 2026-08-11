@@ -340,7 +340,42 @@ def test_line_tie_is_counted_and_lexical_feature_id_wins() -> None:
     assert row["nearest_line_proxy_distance_m"] == pytest.approx(100.0)
     assert row["nearest_line_tie_count"] == 2
     assert row["nearest_line_grid_feature_id"] == "A-LINE"
+    assert row["nearest_exact_line_tie_count"] == 2
+    assert row["nearest_exact_line_grid_feature_id"] == "A-LINE"
+    assert result.voltage_level_proximity.loc[0, "tie_count"] == 2
+    assert (
+        result.voltage_level_proximity.loc[
+            0, "nearest_line_grid_feature_id"
+        ]
+        == "A-LINE"
+    )
     assert len(result.parcels) == 1
+
+
+def test_cross_voltage_tie_uses_lexical_global_feature_id() -> None:
+    lines = _lines(
+        [
+            LineString([(-100, -20), (-100, 30)]),
+            LineString([(110, -20), (110, 30)]),
+        ],
+        identifiers=["Z-LINE-110", "A-LINE-275"],
+        voltage_statuses=["EXACT", "EXACT"],
+        voltages=[110.0, 275.0],
+    )
+
+    result = enrich_parcel_grid_proximity(_parcels(), lines, _posts())
+    profile = profile_grid_proximity(result)
+
+    row = result.parcels.iloc[0]
+    assert row["nearest_exact_line_proxy_distance_m"] == pytest.approx(100.0)
+    assert row["nearest_exact_line_grid_feature_id"] == "A-LINE-275"
+    assert row["nearest_exact_line_voltage_kv"] == 275.0
+    assert row["nearest_exact_line_tie_count"] == 2
+    assert result.voltage_level_proximity[
+        "nearest_line_proxy_distance_m"
+    ].tolist() == pytest.approx([100.0, 100.0])
+    assert result.voltage_level_proximity["tie_count"].tolist() == [1, 1]
+    assert profile.nearest_exact_line.tie_count == 1
 
 
 def test_nonvalid_grid_geometries_are_excluded_without_row_loss() -> None:
@@ -672,6 +707,66 @@ def test_profile_rejects_voltage_rows_out_of_parcel_order() -> None:
         profile_grid_proximity(replace(result, voltage_level_proximity=table))
 
 
+def test_profile_rejects_inconsistent_global_exact_distance() -> None:
+    result = _two_parcel_two_voltage_result()
+
+    with pytest.raises(GridProximityError, match="exact-line distance"):
+        profile_grid_proximity(
+            _mutate_parcel_result(
+                result,
+                "nearest_exact_line_proxy_distance_m",
+                5000.0,
+            )
+        )
+
+
+@pytest.mark.parametrize(
+    ("column", "value"),
+    [
+        ("nearest_exact_line_grid_feature_id", "OTHER-LINE"),
+        ("nearest_exact_line_source_feature_id", "OTHER-SOURCE"),
+        ("nearest_exact_line_voltage_kv", 275.0),
+    ],
+)
+def test_profile_rejects_inconsistent_global_exact_identity(
+    column: str,
+    value: object,
+) -> None:
+    result = _two_parcel_two_voltage_result()
+
+    with pytest.raises(GridProximityError, match="inconsistent"):
+        profile_grid_proximity(_mutate_parcel_result(result, column, value))
+
+
+@pytest.mark.parametrize(
+    ("column", "value"),
+    [
+        ("nearest_exact_line_manager_name", "OTHER MANAGER"),
+        ("nearest_exact_line_asset_status_raw", "OTHER STATUS"),
+        ("nearest_exact_line_source_department_code", "32"),
+        ("nearest_exact_line_source_edition", "2026-09-15"),
+        ("nearest_exact_line_source_archive_sha256", "b" * 64),
+    ],
+)
+def test_profile_rejects_inconsistent_global_exact_metadata(
+    column: str,
+    value: object,
+) -> None:
+    result = _two_parcel_two_voltage_result()
+
+    with pytest.raises(GridProximityError, match="inconsistent"):
+        profile_grid_proximity(_mutate_parcel_result(result, column, value))
+
+
+def test_profile_rejects_inconsistent_global_exact_tie_count() -> None:
+    result = _two_parcel_two_voltage_result()
+
+    with pytest.raises(GridProximityError, match="tie count"):
+        profile_grid_proximity(
+            _mutate_parcel_result(result, "nearest_exact_line_tie_count", 2)
+        )
+
+
 @pytest.mark.parametrize(
     "value",
     [
@@ -882,13 +977,19 @@ def test_profile_rejects_bad_long_table_distance(value: object) -> None:
         )
 
 
-def test_profile_allows_missing_long_table_manager_name() -> None:
-    result = _two_parcel_two_voltage_result()
-    mutated = _mutate_voltage_result(result, "manager_name", None)
+def test_profile_allows_consistent_missing_manager_and_asset_status() -> None:
+    lines = _lines()
+    lines["manager_name"] = None
+    lines["asset_status_raw"] = None
+    result = enrich_parcel_grid_proximity(_parcels(), lines, _posts())
 
-    profile = profile_grid_proximity(mutated)
+    profile = profile_grid_proximity(result)
 
-    assert profile.parcel_count == 2
+    assert profile.parcel_count == 1
+    assert result.parcels["nearest_exact_line_manager_name"].isna().all()
+    assert result.parcels["nearest_exact_line_asset_status_raw"].isna().all()
+    assert result.voltage_level_proximity["manager_name"].isna().all()
+    assert result.voltage_level_proximity["asset_status_raw"].isna().all()
 
 
 @pytest.mark.parametrize(

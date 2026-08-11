@@ -3,10 +3,10 @@
 ## Current project state
 
 - Current phase: French electricity-grid proximity diagnostics
-- Latest completed step: STEP 7C.4.1 — hardened grid-proximity integrity contracts
+- Latest completed step: STEP 7C.4.2 — cross-validated exact-line proximity representations
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: review of hardened diagnostic grid-proximity distributions
+- Next step waiting for review: review of fully validated diagnostic grid-proximity distributions
 
 ## STEP 0 — Environment check
 
@@ -1270,6 +1270,58 @@ No BESS grid-distance threshold was selected in STEP 7C.4. No parcel was rejecte
 - Long Parquet read-back: 14,552 rows, exact Cartesian coverage, no duplicate pair, voltage/distance dtypes `float64`, tie-count dtype `int64`, matched IDs and source lineage complete
 - Rewritten GeoParquet: `data/processed/grid/muret_bess_grid_proximity.parquet` (1,227,955 bytes)
 - Rewritten long-form Parquet: `data/processed/grid/muret_bess_grid_voltage_proximity.parquet` (176,469 bytes)
+
+Generated outputs remain ignored by Git.
+
+IGN geometry is `PROXY_GEOMETRY`.
+
+All distances remain 2D planar proxy distances calculated in EPSG:2154 from full parcel geometry. IGN Z values are not used in horizontal proximity.
+
+Distance to an IGN electric line or transformation post does not establish grid connection feasibility, capacity, connection cost, or an RTE/DSO connection point.
+
+No BESS grid-distance threshold is selected here.
+
+## STEP 7C.4.2 — Cross-validate exact-line proximity representations
+
+- Status: Complete
+- Implementation summary: Added a result-contract check that reconstructs the deterministic global nearest EXACT-voltage line from each parcel's long-form per-voltage winners and rejects any contradiction before enrichment returns or profiling begins.
+- Important files: `src/landscout/stages/enrich_grid_proximity.py`, `tests/unit/test_enrich_grid_proximity.py`
+- Tests/checks: 155 focused proximity tests pass. The full suite passes with 486 tests; Ruff and mypy pass.
+- Important decisions: The validator uses exact distance equality because both representations are produced independently from the same calculation-only Lambert-93 geometries. Expected winners are ordered explicitly by parcel input position, distance, then lexical `grid_feature_id`; incidental DataFrame row order is never used.
+- Known issues: The source remains a department-31 IGN proxy dataset. Cross-representation consistency proves internal mathematical and lineage agreement, not connection feasibility or completeness beyond the loaded coverage.
+
+### Exact representation contract
+
+For every parcel with exact-voltage coverage, the global nearest EXACT match must equal the deterministic minimum across its voltage-level proximity rows. The validator cross-checks:
+
+- proxy distance;
+- grid feature ID;
+- source feature ID;
+- voltage;
+- manager and raw asset status using null-safe equality;
+- source department, edition, and archive SHA256;
+- global tie count.
+
+The existing long-table schema is sufficient to reconstruct the global tie count exactly. Each voltage row retains its within-level tie count; for every voltage level whose winner shares the exact global minimum distance, those tie counts are summed. This captures both same-voltage and cross-voltage ties without inventing a weaker proxy invariant or adding columns. Lexical selection among tied per-voltage winners reproduces the production `grid_feature_id` tie breaker.
+
+When exact-voltage coverage is absent, the existing invariant is unchanged: the voltage table is empty and every `nearest_exact_*` field is null with stable nullable numeric dtypes.
+
+`profile_grid_proximity()` invokes the complete cross-representation check before calculating statistics. Tests prove rejection of contradictory global distances, IDs, voltages, optional metadata, source lineage, and otherwise valid but incorrect tie counts. A synthetic 110/275 kV cross-voltage tie confirms lexical selection of `A-LINE-275` over `Z-LINE-110`; existing same-voltage tie behavior remains unchanged.
+
+### Real Muret/D031 regression and read-back
+
+- Enriched parcels: 3,638
+- Voltage-level proximity rows: 14,552
+- Dynamic exact-voltage levels: 63, 150, 225, and 400 kV
+- Exact representation mismatches: 0
+- Lost IDs / extra IDs / duplicate parcel IDs / duplicate parcel-voltage pairs: 0 / 0 / 0 / 0
+- Nearest exact-line p50: 746.824 m
+- Nearest line / post p50: 746.824 m / 2,643.274 m
+- Distance profiles and tie counts remain numerically unchanged from STEP 7C.4.1.
+- Real enrichment wall-clock duration: 1.300 seconds
+- Rewritten GeoParquet: `data/processed/grid/muret_bess_grid_proximity.parquet` (1,227,955 bytes)
+- Rewritten long-form Parquet: `data/processed/grid/muret_bess_grid_voltage_proximity.parquet` (176,469 bytes)
+- Read-back cross-validation: passed with the original 3,638 parcel IDs and order, exact Cartesian voltage coverage, `EPSG:4326` parcel CRS, preserved geometry, complete lineage, finite distances, and integer tie counts
 
 Generated outputs remain ignored by Git.
 
