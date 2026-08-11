@@ -57,7 +57,10 @@ def _has_gzip_signature(path: Path) -> bool:
 
 
 def _load_cached_download(
-    archive_path: Path, metadata_path: Path, source_url: str
+    archive_path: Path,
+    metadata_path: Path,
+    source_url: str,
+    max_cache_age_hours: float,
 ) -> CadastreDownload | None:
     if not archive_path.is_file() or not metadata_path.is_file():
         return None
@@ -65,8 +68,16 @@ def _load_cached_download(
         metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
         file_size = archive_path.stat().st_size
         checksum = _sha256(archive_path)
+        download_timestamp = str(metadata["download_timestamp"])
+        downloaded_at = datetime.fromisoformat(download_timestamp)
+        if downloaded_at.tzinfo is None:
+            return None
+        age_seconds = (
+            datetime.now(UTC) - downloaded_at.astimezone(UTC)
+        ).total_seconds()
         valid = (
             file_size > 0
+            and 0 <= age_seconds <= max_cache_age_hours * 3600
             and _has_gzip_signature(archive_path)
             and metadata["source_url"] == source_url
             and metadata["filename"] == archive_path.name
@@ -77,7 +88,7 @@ def _load_cached_download(
             return None
         return CadastreDownload(
             source_url=source_url,
-            download_timestamp=str(metadata["download_timestamp"]),
+            download_timestamp=download_timestamp,
             filename=archive_path.name,
             file_size=file_size,
             sha256=checksum,
@@ -92,12 +103,17 @@ def download_cadastre_parcelles(
     commune_code: str,
     cache_dir: Path = DEFAULT_CACHE_DIR,
     timeout: float = 60.0,
+    max_cache_age_hours: float = 168.0,
 ) -> CadastreDownload:
+    if max_cache_age_hours < 0:
+        raise ValueError("max_cache_age_hours must be non-negative")
     source_url = build_cadastre_parcelles_url(commune_code)
     filename = source_url.rsplit("/", maxsplit=1)[-1]
     archive_path = cache_dir / filename
     metadata_path = cache_dir / f"{filename}.metadata.json"
-    cached = _load_cached_download(archive_path, metadata_path, source_url)
+    cached = _load_cached_download(
+        archive_path, metadata_path, source_url, max_cache_age_hours
+    )
     if cached is not None:
         return cached
 

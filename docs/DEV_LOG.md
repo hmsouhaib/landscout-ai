@@ -3,7 +3,7 @@
 ## Current project state
 
 - Current phase: GIS foundation and parcel geometry metrics
-- Latest completed step: STEP 7A.1 — package installation fix
+- Latest completed step: STEP 7A.2 — cadastre cache freshness
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: next LandScout implementation step, not yet specified
@@ -78,4 +78,13 @@
 - Important files: `pyproject.toml`, `uv.lock`
 - Tests/checks: `uv sync`, pytest, Ruff, mypy, and direct `uv run python` import/version verification.
 - Important decisions: Retained the existing source layout and explicitly mapped distribution `landscout-ai` to module `landscout`.
+- Known issues: None.
+
+## STEP 7A.2 — Cadastre cache freshness
+
+- Status: Complete
+- Implementation summary: Added configurable cache expiry to prevent indefinite reuse of stale cadastre archives.
+- Important files: `src/landscout/sources/cadastre_fr.py`, `tests/unit/test_cadastre_fr.py`
+- Tests/checks: Covered fresh-cache reuse, expired-cache refresh, and failed-refresh preservation; pytest, Ruff, and mypy pass.
+- Important decisions: Default maximum age is 168 hours; age uses the stored UTC-aware download timestamp; refresh downloads to a temporary file and preserves the prior archive on failure.
 - Known issues: None.
