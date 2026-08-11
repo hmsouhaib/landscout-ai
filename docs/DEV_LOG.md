@@ -1281,6 +1281,190 @@ Distance to an IGN electric line or transformation post does not establish grid 
 
 No BESS grid-distance threshold is selected here.
 
+## STEP 7D.1 — GPU Muret urban-planning source ingestion
+
+- Status: Complete
+- Implementation summary: Added strict official-GPU configuration, metadata-driven current-document discovery, partition download, transactional cache publication, complete ZIP integrity/path/link validation, content-addressed safe extraction, deterministic inventory, config-driven CNIG layer discovery, and read-only schema/geometry inspection. No parcel or zoning interpretation is performed.
+- Important files: `configs/sources/gpu_fr.yaml`, `src/landscout/sources/gpu_fr.py`, `tests/unit/test_gpu_fr.py`
+- Tests/checks: 27 focused offline tests cover strict configuration, status-aware discovery, download/cache/expiry/failure preservation, lineage sidecars, archive corruption/traversal/symlinks, extraction caching, and spatial inspection without geometry repair. Full suite: 543 passed; Ruff and mypy passed.
+- Important decisions: A document is current only when GPU reports `document.production`, `APPROVED`, and `EN_VIGUEUR` for the configured partition and commune. Selection is never based on filename order. Physical layer names are matched from configured normalized tokens, including CNIG commune/date prefixes and suffixes. Missing API metadata remains null rather than being fabricated.
+- Known issues: The current API does not expose the ticket's observed numeric version `10`; LandScout records `version = null`. The embedded ISO metadata does expose `CNIG PLU v2017`. GPU publication is authoritative source evidence, but does not itself establish BESS authorization, buildability, permit acceptance, or grid permission.
+
+### Current official document and archive lineage
+
+| Field | Observed value |
+| --- | --- |
+| Provider / portal | Géoportail de l'Urbanisme |
+| Commune / partition | Muret `31395` / `DU_31395` |
+| Document ID | `33edb4c9f6943c88d8d92518bff20bec` |
+| Family / type | `DU` / `PLU` |
+| Title | Plan Local d'Urbanisme (PLU) de la commune de MURET |
+| Processing status | `document.production` |
+| Legal / effective status | `APPROVED` / `EN_VIGUEUR` |
+| Archive | `31395_PLU_20240215.zip` |
+| API version | Not exposed (`null`) |
+| Publication / update | `26/03/2024 08:52:34` / `26/03/2024 08:52:34` |
+| Revision/reference date | API: not exposed; current `DOC_URBA` approval date: `20240215` (`MC1`) |
+| Producer | Mairie de Muret |
+| Standard/model | Embedded ISO metadata: `CNIG PLU v2017` |
+| API projection | `EPSG:2154` |
+| Metadata identifier | `fr-000031395-plu20240215` |
+| Download source | `https://www.geoportail-urbanisme.gouv.fr/api/document/download-by-partition/DU_31395` |
+| Archive format / size | ZIP / 261,401,471 bytes |
+| SHA256 | `9d6677cd6634b56b712311042f0cc714d5ca42a38f82a417b27dd473255d7d93` |
+| Download timestamp | `2026-08-11T20:27:22.943318+00:00` |
+| Second acquisition | Cache hit after full ZIP and lineage revalidation |
+| Extraction | 73 source files at ignored `data/cache/gpu/x/9d6677cd6634b56b` |
+
+The API returned exactly one current approved/in-force document. Three older Muret PLU documents were returned as `document.deleted` / `ARCHIVE` and were not selected.
+
+### Complete extracted-file inventory
+
+The inventory below is `relative path | type | bytes`. Shapefile components are spatial data, the XML is metadata, and PDFs are written-document attachments.
+
+```text
+31395_PLU_20240215/31395_DOC_URBA_20240215.dbf | dbf | 21900
+31395_PLU_20240215/31395_DOC_URBA_COM_20240215.dbf | dbf | 134
+31395_PLU_20240215/Donnees_geographiques/31395_INFO_SURF_20240215.cpg | cpg | 5
+31395_PLU_20240215/Donnees_geographiques/31395_INFO_SURF_20240215.dbf | dbf | 101791
+31395_PLU_20240215/Donnees_geographiques/31395_INFO_SURF_20240215.prj | prj | 464
+31395_PLU_20240215/Donnees_geographiques/31395_INFO_SURF_20240215.qix | qix | 7740
+31395_PLU_20240215/Donnees_geographiques/31395_INFO_SURF_20240215.qmd | qmd | 2091
+31395_PLU_20240215/Donnees_geographiques/31395_INFO_SURF_20240215.shp | shp | 155288
+31395_PLU_20240215/Donnees_geographiques/31395_INFO_SURF_20240215.shx | shx | 1292
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_LIN_20240215.cpg | cpg | 5
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_LIN_20240215.dbf | dbf | 3727
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_LIN_20240215.prj | prj | 452
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_LIN_20240215.qix | qix | 80
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_LIN_20240215.qmd | qmd | 2091
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_LIN_20240215.shp | shp | 2284
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_LIN_20240215.shx | shx | 140
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_PCT_20240215.cpg | cpg | 5
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_PCT_20240215.dbf | dbf | 3727
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_PCT_20240215.prj | prj | 452
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_PCT_20240215.qix | qix | 80
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_PCT_20240215.qmd | qmd | 2091
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_PCT_20240215.shp | shp | 240
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_PCT_20240215.shx | shx | 140
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_SURF_20240215.cpg | cpg | 5
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_SURF_20240215.dbf | dbf | 205410
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_SURF_20240215.prj | prj | 464
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_SURF_20240215.qix | qix | 13044
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_SURF_20240215.qmd | qmd | 658
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_SURF_20240215.shp | shp | 255244
+31395_PLU_20240215/Donnees_geographiques/31395_PRESCRIPTION_SURF_20240215.shx | shx | 2660
+31395_PLU_20240215/Donnees_geographiques/31395_ZONE_URBA_20240215.cpg | cpg | 5
+31395_PLU_20240215/Donnees_geographiques/31395_ZONE_URBA_20240215.dbf | dbf | 151012
+31395_PLU_20240215/Donnees_geographiques/31395_ZONE_URBA_20240215.prj | prj | 464
+31395_PLU_20240215/Donnees_geographiques/31395_ZONE_URBA_20240215.qix | qix | 9524
+31395_PLU_20240215/Donnees_geographiques/31395_ZONE_URBA_20240215.qmd | qmd | 677
+31395_PLU_20240215/Donnees_geographiques/31395_ZONE_URBA_20240215.shp | shp | 377460
+31395_PLU_20240215/Donnees_geographiques/31395_ZONE_URBA_20240215.shx | shx | 1868
+31395_PLU_20240215/fr-000031395-plu20240215.xml | xml | 26263
+31395_PLU_20240215/Pieces_ecrites/0_Procedure/31395_procedure_20240215.pdf | pdf | 2949459
+31395_PLU_20240215/Pieces_ecrites/1_Rapport_de_presentation/31395_rapport_0_20240215.pdf | pdf | 34431
+31395_PLU_20240215/Pieces_ecrites/1_Rapport_de_presentation/31395_rapport_1_20240215.pdf | pdf | 11543672
+31395_PLU_20240215/Pieces_ecrites/1_Rapport_de_presentation/31395_rapport_10_20240215.pdf | pdf | 1657190
+31395_PLU_20240215/Pieces_ecrites/1_Rapport_de_presentation/31395_rapport_11_20240215.pdf | pdf | 5578080
+31395_PLU_20240215/Pieces_ecrites/1_Rapport_de_presentation/31395_rapport_12_20240215.pdf | pdf | 6191659
+31395_PLU_20240215/Pieces_ecrites/1_Rapport_de_presentation/31395_rapport_13_20240215.pdf | pdf | 1778722
+31395_PLU_20240215/Pieces_ecrites/1_Rapport_de_presentation/31395_rapport_14_20240215.pdf | pdf | 9346087
+31395_PLU_20240215/Pieces_ecrites/1_Rapport_de_presentation/31395_rapport_15_20240215.pdf | pdf | 5309159
+31395_PLU_20240215/Pieces_ecrites/1_Rapport_de_presentation/31395_rapport_16_20240215.pdf | pdf | 9756075
+31395_PLU_20240215/Pieces_ecrites/1_Rapport_de_presentation/31395_rapport_17_20240215.pdf | pdf | 7037066
+31395_PLU_20240215/Pieces_ecrites/1_Rapport_de_presentation/31395_rapport_5_20240215.pdf | pdf | 3611788
+31395_PLU_20240215/Pieces_ecrites/1_Rapport_de_presentation/31395_rapport_6_20240215.pdf | pdf | 5215130
+31395_PLU_20240215/Pieces_ecrites/1_Rapport_de_presentation/31395_rapport_7_20240215.pdf | pdf | 7119987
+31395_PLU_20240215/Pieces_ecrites/1_Rapport_de_presentation/31395_rapport_8_20240215.pdf | pdf | 2139816
+31395_PLU_20240215/Pieces_ecrites/1_Rapport_de_presentation/31395_rapport_9_20240215.pdf | pdf | 6070479
+31395_PLU_20240215/Pieces_ecrites/2_PADD/31395_padd_20240215.pdf | pdf | 8238141
+31395_PLU_20240215/Pieces_ecrites/3_Reglement/31395_prescription_surf_05_00_20240215.pdf | pdf | 758810
+31395_PLU_20240215/Pieces_ecrites/3_Reglement/31395_reglement_20240215.pdf | pdf | 2162501
+31395_PLU_20240215/Pieces_ecrites/3_Reglement/31395_reglement_graphique_0_20240215.pdf | pdf | 1537350
+31395_PLU_20240215/Pieces_ecrites/3_Reglement/31395_reglement_graphique_1_20240215.pdf | pdf | 21284814
+31395_PLU_20240215/Pieces_ecrites/3_Reglement/31395_reglement_graphique_2_20240215.pdf | pdf | 8483008
+31395_PLU_20240215/Pieces_ecrites/3_Reglement/31395_reglement_graphique_3_20240215.pdf | pdf | 10994632
+31395_PLU_20240215/Pieces_ecrites/3_Reglement/31395_reglement_graphique_4_20240215.pdf | pdf | 22472095
+31395_PLU_20240215/Pieces_ecrites/3_Reglement/31395_reglement_graphique_5_20240215.pdf | pdf | 15115257
+31395_PLU_20240215/Pieces_ecrites/3_Reglement/31395_reglement_graphique_6_20240215.pdf | pdf | 18170061
+31395_PLU_20240215/Pieces_ecrites/3_Reglement/31395_reglement_graphique_7_20240215.pdf | pdf | 16646544
+31395_PLU_20240215/Pieces_ecrites/4_Annexes/31395_arrete_sonor_20240215.pdf | pdf | 8517904
+31395_PLU_20240215/Pieces_ecrites/4_Annexes/31395_DUP_20240215.pdf | pdf | 33557433
+31395_PLU_20240215/Pieces_ecrites/4_Annexes/31395_info_surf_16_00_20240215.pdf | pdf | 18138691
+31395_PLU_20240215/Pieces_ecrites/4_Annexes/31395_info_surf_27_00_20240215.pdf | pdf | 4254234
+31395_PLU_20240215/Pieces_ecrites/4_Annexes/31395_liste_annexes_2040215.pdf | pdf | 233035
+31395_PLU_20240215/Pieces_ecrites/4_Annexes/31395_liste_sup_20240215.pdf | pdf | 359529
+31395_PLU_20240215/Pieces_ecrites/4_Annexes/31395_plan_sonor_20240215.pdf | pdf | 429888
+31395_PLU_20240215/Pieces_ecrites/5_Orientations_amenagement/31395_orientations_amenagement_20240215.pdf | pdf | 8790094
+```
+
+### Spatial layer inventory and geometry evidence
+
+The real package contains five Shapefile layers and no GeoPackage:
+
+| Actual source layer | Features | Source CRS | Geometry | Null / empty / invalid |
+| --- | ---: | --- | --- | ---: |
+| `31395_ZONE_URBA_20240215` | 221 | `IGNF:LAMB93` | Polygon 221 | 0 / 0 / 0 |
+| `31395_PRESCRIPTION_SURF_20240215` | 320 | `IGNF:LAMB93` | Polygon 320 | 0 / 0 / 0 |
+| `31395_PRESCRIPTION_LIN_20240215` | 5 | `EPSG:2154` | LineString 5 | 0 / 0 / 0 |
+| `31395_PRESCRIPTION_PCT_20240215` | 5 | `EPSG:2154` | Point 5 | 0 / 0 / 0 |
+| `31395_INFO_SURF_20240215` | 149 | `IGNF:LAMB93` | Polygon 148, MultiPolygon 1 | 0 / 0 / 0 |
+
+`IGNF:LAMB93` is the source's authority label for Lambert-93; it was recorded as reported and not relabelled in the inspection output. No geometry was repaired or reprojected. No information-line or information-point layer exists in this archive.
+
+Authoritative zoning schema:
+
+| Column | dtype | nulls |
+| --- | --- | ---: |
+| `LIB_IDZONE` | str | 0 |
+| `LIBELLE` | str | 0 |
+| `LIBELONG` | str | 0 |
+| `TYPEZONE` | str | 0 |
+| `NOMFIC` | str | 0 |
+| `URLFIC` | object | 221 |
+| `IDURBA` | str | 0 |
+| `DATVALID` | str | 0 |
+| `geometry` | geometry | 0 |
+
+The real identity fields are `IDURBA` (`31395_PLU_20240215`) and the commune-linked `DOC_URBA_COM` record (`INSEE=31395`). The raw zoning vocabulary is preserved exactly:
+
+| Source field | Raw value counts |
+| --- | --- |
+| `TYPEZONE` | `A` 6; `AUc` 9; `AUs` 7; `N` 143; `U` 56 |
+| `LIBELLE` | `A` 6; `AU` 1; `AU0` 6; `AUa` 1; `AUf` 1; `AUfa` 1; `AUfb` 1; `AUfc` 1; `AUfd` 1; `AUfo` 1; `AUp` 2; `N` 2; `NL` 4; `Ne` 1; `Nh` 124; `Nr` 12; `UA` 2; `UAa` 3; `UAb` 8; `UB` 5; `UBa` 2; `UBb` 2; `UC` 7; `UD` 8; `UF` 2; `UFa` 1; `UFc` 1; `UFd` 1; `UP` 14 |
+| `NOMFIC` | `31395_reglement_20240215.pdf` 221 |
+| `DATVALID` | `20221215` 218; `20231005` 2; `20240215` 1 |
+| `URLFIC` | null 221 |
+
+No zoning value is mapped to BESS suitability in this step.
+
+Prescription/information classification evidence:
+
+| Layer | Key source codes |
+| --- | --- |
+| Prescription surface | `TYPEPSC`: `01` 127, `05` 185, `07` 1, `17` 1, `18` 6; `STYPEPSC`: `00` 319, `04` 1 |
+| Prescription line | `TYPEPSC`: `15` 5; `STYPEPSC`: `00` 4, `01` 1 |
+| Prescription point | `TYPEPSC`: `07` 5; `STYPEPSC`: `00` 5 |
+| Information surface | `TYPEINF`: `02` 1, `14` 3, `27` 4, `99` 141; `STYPEINF`: `00` 149 |
+
+The source `LIBELLE`, `TXT`, `NOMFIC`, `IDURBA`, and validity-date fields remain unmodified and available for later evidence-based interpretation. These codes are source facts only; no exclusion/pass meaning is assigned here.
+
+### Written regulation inventory
+
+The archive and `/files` endpoint agree on 35 PDFs. The extracted paths above preserve their source relation: one procedure, fourteen presentation-report parts, one PADD, ten regulation files (written regulation, reserved-site attachment, and eight graphic sheets), seven annexes, and one OAP. Key files are:
+
+- written regulation: `31395_reglement_20240215.pdf`;
+- graphic regulation: `31395_reglement_graphique_0_20240215.pdf` through `_7_`;
+- annexes/SUP evidence: `31395_liste_annexes_2040215.pdf`, `31395_liste_sup_20240215.pdf`, DUP, noise, archaeological-site, and airport-noise attachments;
+- prescription evidence: `31395_prescription_surf_05_00_20240215.pdf`;
+- planning context: procedure, PADD, OAP, and presentation-report parts.
+
+No OCR or regulation interpretation was performed.
+
+No BESS urban-planning suitability rule was selected in STEP 7D.1.
+
+Source zoning classification is preserved independently from later LandScout interpretation.
+
 ## STEP 7C.5 — Diagnose IGN grid proxy coverage boundaries
 
 - Status: Complete

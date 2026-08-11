@@ -1,0 +1,46 @@
+provider: "Géoportail de l'Urbanisme"
+portal: "Géoportail de l'Urbanisme"
+country: FR
+
+api:
+  base_url: "https://www.geoportail-urbanisme.gouv.fr/api"
+
+download:
+  strategy: partition
+  partition_template: "DU_{code_insee}"
+
+cache:
+  max_age_hours: 168
+
+pilot:
+  commune_code: "31395"
+
+spatial_layers:
+  zoning:
+    class_label: "Zone urba"
+    match_tokens:
+      - "zone_urba"
+  prescription_surface:
+    class_label: "Prescription surfacique"
+    match_tokens:
+      - "prescription_surf"
+  prescription_line:
+    class_label: "Prescription linéaire"
+    match_tokens:
+      - "prescription_lin"
+  prescription_point:
+    class_label: "Prescription ponctuelle"
+    match_tokens:
+      - "prescription_pct"
+  information_surface:
+    class_label: "Information surfacique"
+    match_tokens:
+      - "info_surf"
+  information_line:
+    class_label: "Information linéaire"
+    match_tokens:
+      - "info_lin"
+  information_point:
+    class_label: "Information ponctuelle"
+    match_tokens:
+      - "info_pct"
