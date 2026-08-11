@@ -3,7 +3,7 @@
 ## Current project state
 
 - Current phase: GIS foundation and parcel geometry metrics
-- Latest completed step: STEP 7A.2 — cadastre cache freshness
+- Latest completed step: STEP 7A.3 — cadastre gzip integrity
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: next LandScout implementation step, not yet specified
@@ -87,4 +87,13 @@
 - Important files: `src/landscout/sources/cadastre_fr.py`, `tests/unit/test_cadastre_fr.py`
 - Tests/checks: Covered fresh-cache reuse, expired-cache refresh, and failed-refresh preservation; pytest, Ruff, and mypy pass.
 - Important decisions: Default maximum age is 168 hours; age uses the stored UTC-aware download timestamp; refresh downloads to a temporary file and preserves the prior archive on failure.
+- Known issues: None.
+
+## STEP 7A.3 — Cadastre gzip integrity
+
+- Status: Complete
+- Implementation summary: Replaced gzip-header checks with full streaming decompression validation for cached and newly downloaded archives.
+- Important files: `src/landscout/sources/cadastre_fr.py`, `tests/unit/test_cadastre_fr.py`
+- Tests/checks: Covered valid, truncated, corrupted-cache, and corrupted-refresh archives; pytest, Ruff, and mypy pass.
+- Important decisions: Reads decompressed data in 1 MiB chunks to verify gzip structure and CRC without loading the archive into memory; invalid refreshes never replace an existing archive.
 - Known issues: None.

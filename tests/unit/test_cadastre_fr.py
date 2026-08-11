@@ -11,6 +11,7 @@ import pytest
 
 from landscout.sources.cadastre_fr import (
     CadastreDownloadError,
+    _is_valid_gzip,
     build_cadastre_parcelles_url,
     download_cadastre_parcelles,
 )
@@ -24,11 +25,20 @@ ARCHIVE_CONTENT = gzip.compress(b'{"type":"FeatureCollection","features":[]}')
 REFRESHED_ARCHIVE_CONTENT = gzip.compress(
     b'{"type":"FeatureCollection","features":[{"type":"Feature"}]}'
 )
+CORRUPTED_ARCHIVE_CONTENT = ARCHIVE_CONTENT[:-8]
 
 
 def _set_cache_age(metadata_path: Path, age: timedelta) -> None:
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     metadata["download_timestamp"] = (datetime.now(UTC) - age).isoformat()
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+
+
+def _update_metadata_integrity(metadata_path: Path, archive_path: Path) -> None:
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    content = archive_path.read_bytes()
+    metadata["file_size"] = len(content)
+    metadata["sha256"] = sha256(content).hexdigest()
     metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
 
 
@@ -125,3 +135,57 @@ def test_checksum_generation(tmp_path: Path) -> None:
         result = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
 
     assert result.sha256 == sha256(ARCHIVE_CONTENT).hexdigest()
+
+
+def test_valid_gzip_is_accepted(tmp_path: Path) -> None:
+    archive_path = tmp_path / "valid.json.gz"
+    archive_path.write_bytes(ARCHIVE_CONTENT)
+
+    assert _is_valid_gzip(archive_path)
+
+
+def test_truncated_gzip_is_rejected(tmp_path: Path) -> None:
+    archive_path = tmp_path / "truncated.json.gz"
+    archive_path.write_bytes(CORRUPTED_ARCHIVE_CONTENT)
+
+    assert not _is_valid_gzip(archive_path)
+
+
+def test_corrupted_cached_archive_triggers_fresh_download(tmp_path: Path) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.urlopen",
+        side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
+    ) as opener:
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+        metadata_path = tmp_path / f"{first.filename}.metadata.json"
+        first.path.write_bytes(CORRUPTED_ARCHIVE_CONTENT)
+        _update_metadata_integrity(metadata_path, first.path)
+        refreshed = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.cache_hit is False
+    assert refreshed.path.read_bytes() == REFRESHED_ARCHIVE_CONTENT
+
+
+def test_corrupted_new_download_preserves_existing_archive(tmp_path: Path) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.urlopen",
+        return_value=io.BytesIO(ARCHIVE_CONTENT),
+    ):
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    original_archive = first.path.read_bytes()
+    metadata_path = tmp_path / f"{first.filename}.metadata.json"
+    _set_cache_age(metadata_path, timedelta(hours=169))
+
+    with (
+        patch(
+            "landscout.sources.cadastre_fr.urlopen",
+            return_value=io.BytesIO(CORRUPTED_ARCHIVE_CONTENT),
+        ),
+        pytest.raises(CadastreDownloadError),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert first.path.read_bytes() == original_archive
+    assert not list(tmp_path.glob("*.part"))

@@ -1,3 +1,4 @@
+import gzip
 import json
 import re
 from dataclasses import asdict, dataclass
@@ -12,7 +13,7 @@ CADASTRE_BASE_URL = (
     "https://cadastre.data.gouv.fr/data/etalab-cadastre/latest/geojson/communes"
 )
 DEFAULT_CACHE_DIR = Path("data/cache/cadastre")
-GZIP_MAGIC = b"\x1f\x8b"
+VALIDATION_CHUNK_SIZE = 1024 * 1024
 
 
 class CadastreDownloadError(RuntimeError):
@@ -51,9 +52,16 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _has_gzip_signature(path: Path) -> bool:
-    with path.open("rb") as stream:
-        return stream.read(2) == GZIP_MAGIC
+def _is_valid_gzip(path: Path) -> bool:
+    try:
+        if not path.is_file() or path.stat().st_size == 0:
+            return False
+        with gzip.open(path, "rb") as stream:
+            while stream.read(VALIDATION_CHUNK_SIZE):
+                pass
+        return True
+    except (EOFError, OSError):
+        return False
 
 
 def _load_cached_download(
@@ -78,7 +86,7 @@ def _load_cached_download(
         valid = (
             file_size > 0
             and 0 <= age_seconds <= max_cache_age_hours * 3600
-            and _has_gzip_signature(archive_path)
+            and _is_valid_gzip(archive_path)
             and metadata["source_url"] == source_url
             and metadata["filename"] == archive_path.name
             and metadata["file_size"] == file_size
@@ -126,9 +134,7 @@ def download_cadastre_parcelles(
             temporary_archive.open("wb") as output,
         ):
             copyfileobj(response, output)
-        if temporary_archive.stat().st_size == 0 or not _has_gzip_signature(
-            temporary_archive
-        ):
+        if not _is_valid_gzip(temporary_archive):
             raise CadastreDownloadError("Downloaded cadastre archive is not valid gzip")
         temporary_archive.replace(archive_path)
     except (HTTPError, URLError, OSError) as error:
