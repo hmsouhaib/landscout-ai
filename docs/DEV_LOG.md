@@ -3,7 +3,7 @@
 ## Current project state
 
 - Current phase: GIS foundation and parcel geometry metrics
-- Latest completed step: STEP 7A — French cadastre downloader
+- Latest completed step: STEP 7A.1 — package installation fix
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: next LandScout implementation step, not yet specified
@@ -69,4 +69,13 @@
 - Important files: `src/landscout/sources/cadastre_fr.py`, `src/landscout/sources/__init__.py`, `tests/unit/test_cadastre_fr.py`
 - Tests/checks: Mocked URL, download, cache-hit, HTTP-failure, and checksum cases; real Muret (`31395`) download and cache reuse verified; pytest, Ruff, and mypy pass.
 - Important decisions: Uses the official `latest` compressed GeoJSON URL; validates cached gzip signature, size, URL, filename, and SHA-256; cached archives and metadata remain ignored by Git.
-- Known issues: Direct `uv run python` verification requires `PYTHONPATH=src` because the project is not installed as a package.
+- Known issues: None.
+
+## STEP 7A.1 — Package installation fix
+
+- Status: Complete
+- Implementation summary: Configured the uv build backend so the existing `src/landscout` package is installed by `uv sync`.
+- Important files: `pyproject.toml`, `uv.lock`
+- Tests/checks: `uv sync`, pytest, Ruff, mypy, and direct `uv run python` import/version verification.
+- Important decisions: Retained the existing source layout and explicitly mapped distribution `landscout-ai` to module `landscout`.
+- Known issues: None.
