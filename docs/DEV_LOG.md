@@ -1737,6 +1737,53 @@ No BESS compatibility status.
 No parcel rejection.
 No score.
 
+## STEP 7D.4B.4 — Reject ambiguous structural heading matches
+
+- Status: Complete
+- Implementation summary: Replaced structural first-pattern precedence with one ambiguity-aware classifier that evaluates every configured zone-chapter, general-section, and article pattern for each retained source line. Zero matches remain factual body text, exactly one match creates a heading event, and every multiple match fails with `PlanningRegulationStructureError`.
+- Important files: `src/landscout/stages/structure_planning_regulation.py` and `tests/unit/test_structure_planning_regulation.py`.
+- Tests/checks: 114 focused structure tests cover unique headings, non-heading text, within-group and cross-category ambiguity, duplicate cross-group regex configuration, ambiguous continuation candidates, source-complete rebuilding under changed grammar, and deterministic normal parsing. The complete 984-test suite passes; repository-wide Ruff and `mypy src` checks pass.
+
+### Heading ambiguity contract
+
+The parser no longer assigns priority by either pattern order or structural category. It evaluates all configured structural regular expressions with the existing exact `fullmatch` semantics. Two distinct patterns in the same group are ambiguous even when their named captures agree; overlaps between `ZONE_CHAPTER`, `GENERAL`, and `ARTICLE` are equally ambiguous. Reusing an identical regex string across structural groups is rejected while loading the configuration, while runtime classification remains necessary for distinct expressions whose accepted languages overlap.
+
+Controlled runtime diagnostics identify the retained record ID, indexed page number, page line number, matching categories, and zero-based pattern indexes. They deliberately omit source text because an unbroken extracted record could contain a complete PDF page. Continuation collection uses this same classifier: one structural match ends the preceding continued heading, while multiple matches fail instead of becoming a silent continuation boundary.
+
+The existing Muret schema-v2 grammar required no YAML change. All 195 structural heading records were uniquely classified: 13 zone chapters, 5 general sections, and 177 articles; ambiguous heading records were 0.
+
+### Real Muret regression and read-back
+
+The live source-complete rebuild took 8.860 seconds and remained identical to the persisted schema-v3 result:
+
+| Factual result | Count |
+| --- | ---: |
+| Retained source records | 6,490 |
+| Sections | 196 |
+| `OTHER` / `GENERAL` / `ZONE_CHAPTER` / `ARTICLE` | 1 / 5 / 13 / 177 |
+| `EXACT` / `CONFIG_ALIAS` mappings | 12 / 17 |
+| `UNMAPPED` / `AMBIGUOUS` mappings | 0 / 0 |
+| Topic-evidence rows | 458 |
+| Unique retained topic occurrences | 799 |
+
+No output schema or factual row changed, so the ignored processed artifacts were not rewritten. The existing Parquet tables and schema-v4 manifest were read back, reconstructed into the immutable result, and accepted by the public source-complete validator using the original validated page index, 221-zone catalog, 5,095 zoning intersections, and current schema-v2 configuration.
+
+All component and envelope hashes remain unchanged:
+
+- Config: `13d028fe4b58d30929ff9fdedae90e2cc95983a3296f2f83c2817d0da381107a`
+- Zones: `f9bfcd9d225c4dec964b3b17bf701323e0bc1873a3ad4483b983fc351f189b21`
+- Intersections: `0ab84c4c2832a41901b9392e0ed1b91aa33c6e7cacf639bc4c39196f2597ebe2`
+- Source records: `2e931b945484ff07728ad4d64a3c9c358809f72c30c60144dba03eb342a41517`
+- Sections: `cad93569d2cf75b9560d7bfcbf0fcc0b8896b49a2f5357572c88344a3f5e9b64`
+- Zone map: `0f39c06ffddc9c7bf0a81e6eac963a9e1247ee0ff478f6be8a2f8e7324172605`
+- Topic evidence: `67acf8dbb4010a4702f84be148f3e93973c0d537f7d1c1a73f46cd7138a6452a`
+- Complete result: `16f8a9edfff0d330f69579310da085f804f4641de973d98e0046bff5ea96b03c`
+
+No legal conclusion.
+No BESS compatibility status.
+No parcel rejection.
+No score.
+
 ## STEP 7D.2 — Normalize GPU zoning and intersect Muret parcels
 
 - Status: Complete

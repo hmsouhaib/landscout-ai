@@ -24,6 +24,7 @@ from landscout.stages.structure_planning_regulation import (
     STRUCTURE_MANIFEST_SCHEMA_VERSION,
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
+    _heading_events,
     _line_records,
     _literal_topic_matches,
     _result_with_hashes,
@@ -959,6 +960,216 @@ def test_optional_pattern_lists_may_be_empty() -> None:
     validated = PlanningRegulationStructureConfig.model_validate(payload)
     assert validated.heading_patterns.continuation == ()
     assert validated.ignored_patterns.page_headers == ()
+
+
+def _config_with_structural_patterns(
+    index: PlanningRegulationIndex,
+    *,
+    zone_chapter: tuple[str, ...] | None = None,
+    general_section: tuple[str, ...] | None = None,
+    article: tuple[str, ...] | None = None,
+) -> PlanningRegulationStructureConfig:
+    payload = _config(index).model_dump(mode="python")
+    payload["document_layout"]["table_of_contents_pages"] = ()
+    payload["ignored_patterns"] = {"page_headers": (), "page_footers": ()}
+    replacements = {
+        "zone_chapter": zone_chapter,
+        "general_section": general_section,
+        "article": article,
+    }
+    for name, patterns in replacements.items():
+        if patterns is not None:
+            payload["heading_patterns"][name] = patterns
+    return PlanningRegulationStructureConfig.model_validate(payload)
+
+
+def test_unique_zone_heading_and_nonheading_line_are_classified_deterministically() -> None:
+    index = _index(
+        (
+            "Ordinary factual text\nZONE U\nARTICLE U 1 - BODY\nBody text",
+        )
+    )
+    config = _config_with_structural_patterns(index)
+    records = _line_records(index, config)
+    events = _heading_events(records, config)
+
+    assert [event.section_type for event in events] == ["ZONE_CHAPTER", "ARTICLE"]
+    assert events[0].record_position == 1
+    assert events[0].zone_chapter_label == "U"
+    assert all(event.record_position != 0 for event in events)
+
+
+def test_two_zone_patterns_matching_one_line_are_ambiguous() -> None:
+    index = _index(("ZONE U\nARTICLE U 1 - BODY\nBody",))
+    config = _config_with_structural_patterns(
+        index,
+        zone_chapter=(
+            r"^ZONE\s+(?P<label>[A-Z]+)$",
+            r"^ZONE[ ](?P<label>[A-Z]+)$",
+        ),
+    )
+    with pytest.raises(PlanningRegulationStructureError) as captured:
+        structure_planning_regulation(
+            index,
+            _zones(index),
+            _intersections(index),
+            config,
+        )
+    message = str(captured.value)
+    assert "Ambiguous structural heading" in message
+    assert "RECORD-000001" in message
+    assert "page 1" in message
+    assert "line 1" in message
+    assert "ZONE_CHAPTER[0]" in message
+    assert "ZONE_CHAPTER[1]" in message
+    assert "ZONE U" not in message
+
+
+def test_two_article_patterns_matching_one_line_are_ambiguous() -> None:
+    index = _index(("ZONE U\nARTICLE U 1 - BODY\nBody",))
+    config = _config_with_structural_patterns(
+        index,
+        article=(
+            r"^ARTICLE\s+(?P<zone>[A-Z]+)\s+(?P<number>\d+)\s*-\s*(?P<title>.*)$",
+            r"^ARTICLE[ ](?P<zone>[A-Z]+)[ ](?P<number>\d+)[ ]-[ ](?P<title>.*)$",
+        ),
+    )
+    with pytest.raises(
+        PlanningRegulationStructureError,
+        match=r"ARTICLE\[0\].*ARTICLE\[1\]",
+    ):
+        structure_planning_regulation(
+            index,
+            _zones(index),
+            _intersections(index),
+            config,
+        )
+
+
+def test_general_and_article_cross_category_match_is_ambiguous() -> None:
+    index = _index(("ARTICLE 1 - GENERAL\nBody",))
+    config = _config_with_structural_patterns(
+        index,
+        article=(
+            r"^ARTICLE\s+(?P<zone>[A-Z]*)(?P<number>\d+)\s*-\s*(?P<title>.*)$",
+        ),
+    )
+    with pytest.raises(PlanningRegulationStructureError) as captured:
+        structure_planning_regulation(
+            index,
+            _zones(index),
+            _intersections(index),
+            config,
+        )
+    message = str(captured.value)
+    assert "GENERAL[0]" in message
+    assert "ARTICLE[0]" in message
+
+
+def test_zone_and_general_cross_category_match_is_ambiguous() -> None:
+    index = _index(("ZONE U\nBody",))
+    config = _config_with_structural_patterns(
+        index,
+        general_section=(
+            r"^ZONE\s+(?P<number>[A-Z]+)(?P<title>)$",
+        ),
+    )
+    with pytest.raises(PlanningRegulationStructureError) as captured:
+        structure_planning_regulation(
+            index,
+            _zones(index),
+            _intersections(index),
+            config,
+        )
+    message = str(captured.value)
+    assert "ZONE_CHAPTER[0]" in message
+    assert "GENERAL[0]" in message
+
+
+def test_identical_structural_regex_across_groups_is_rejected_by_config() -> None:
+    index = _index()
+    payload = _config(index).model_dump(mode="python")
+    repeated = r"^(?P<label>ZONE)$"
+    payload["heading_patterns"]["zone_chapter"] = (repeated,)
+    payload["heading_patterns"]["general_section"] = (repeated,)
+    with pytest.raises(ValueError, match="reused across groups"):
+        PlanningRegulationStructureConfig.model_validate(payload)
+
+
+def test_ambiguous_continuation_candidate_fails_with_record_diagnostic() -> None:
+    index = _index(("ARTICLE 1 - GENERAL\nAMBIGUOUS\nBody",))
+    config = _config_with_structural_patterns(
+        index,
+        zone_chapter=(
+            r"^ZONE\s+(?P<label>[A-Z]+)$",
+            r"^(?P<label>AMBIGUOUS)$",
+        ),
+        general_section=(
+            r"^ARTICLE\s+(?P<number>\d+)\s*-\s*(?P<title>.*)$",
+            r"^(?P<number>AMBIGUOUS)(?P<title>)$",
+        ),
+    )
+    with pytest.raises(PlanningRegulationStructureError) as captured:
+        structure_planning_regulation(
+            index,
+            _zones(index),
+            _intersections(index),
+            config,
+        )
+    message = str(captured.value)
+    assert "RECORD-000002" in message
+    assert "page 1" in message
+    assert "line 2" in message
+    assert "ZONE_CHAPTER[1]" in message
+    assert "GENERAL[1]" in message
+
+
+def test_source_complete_validator_rejects_changed_ambiguous_grammar(
+    valid_result,
+) -> None:
+    index, result = valid_result
+    config = _config(index)
+    patterns = config.heading_patterns.model_copy(
+        update={
+            "article": (
+                *config.heading_patterns.article,
+                r"^ARTICLE\s+(?P<zone>[A-Z]*)(?P<number>\d+)\s*-\s*(?P<title>.*)$",
+            )
+        }
+    )
+    ambiguous = config.model_copy(update={"heading_patterns": patterns})
+    with pytest.raises(
+        PlanningRegulationStructureError,
+        match="Ambiguous structural heading",
+    ):
+        validate_planning_regulation_structure(
+            index,
+            _zones(index),
+            _intersections(index),
+            ambiguous,
+            result,
+        )
+
+
+def test_normal_muret_compatible_grammar_remains_deterministic() -> None:
+    index = _index()
+    config = _config(index)
+    first = structure_planning_regulation(
+        index,
+        _zones(index),
+        _intersections(index),
+        config,
+    )
+    second = structure_planning_regulation(
+        index,
+        _zones(index),
+        _intersections(index),
+        config,
+    )
+    pd.testing.assert_frame_equal(first.sections, second.sections)
+    pd.testing.assert_frame_equal(first.zone_mapping, second.zone_mapping)
+    pd.testing.assert_frame_equal(first.topic_evidence, second.topic_evidence)
+    assert first.structure_result_content_sha256 == second.structure_result_content_sha256
 
 
 @pytest.mark.parametrize(

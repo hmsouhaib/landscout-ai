@@ -249,6 +249,20 @@ class PlanningRegulationStructureConfig(_StrictConfigModel):
                     re.compile(pattern)
                 except re.error as error:
                     raise ValueError(f"invalid regular expression: {pattern}") from error
+        structural_pattern_owners: dict[str, str] = {}
+        for category, patterns in (
+            ("ZONE_CHAPTER", self.heading_patterns.zone_chapter),
+            ("GENERAL", self.heading_patterns.general_section),
+            ("ARTICLE", self.heading_patterns.article),
+        ):
+            for pattern in patterns:
+                previous = structural_pattern_owners.get(pattern)
+                if previous is not None:
+                    raise ValueError(
+                        "identical structural heading regex is reused across "
+                        f"groups {previous} and {category}"
+                    )
+                structural_pattern_owners[pattern] = category
         required_captures = (
             (self.heading_patterns.zone_chapter, {"label"}, "zone chapter"),
             (
@@ -334,6 +348,13 @@ class _HeadingEvent:
     zone_chapter_label: str | None
     article_number_raw: str | None
     article_title_raw: str | None
+
+
+@dataclass(frozen=True)
+class _StructuralHeadingMatch:
+    section_type: Literal["GENERAL", "ZONE_CHAPTER", "ARTICLE"]
+    pattern_index: int
+    named_captures: tuple[tuple[str, str | None], ...]
 
 
 @dataclass(frozen=True)
@@ -659,15 +680,39 @@ def _canonical_chapter_label(value: str) -> str:
     return _strict_string(label, "zone chapter label")
 
 
-def _first_match(
+def _classify_structural_heading(
+    record: _LineRecord,
     value: str,
-    patterns: Sequence[re.Pattern[str]],
-) -> re.Match[str] | None:
-    for pattern in patterns:
-        match = pattern.fullmatch(value)
-        if match is not None:
-            return match
-    return None
+    pattern_groups: Sequence[
+        tuple[
+            Literal["GENERAL", "ZONE_CHAPTER", "ARTICLE"],
+            Sequence[re.Pattern[str]],
+        ]
+    ],
+) -> _StructuralHeadingMatch | None:
+    matches: list[_StructuralHeadingMatch] = []
+    for section_type, patterns in pattern_groups:
+        for pattern_index, pattern in enumerate(patterns):
+            match = pattern.fullmatch(value)
+            if match is None:
+                continue
+            matches.append(
+                _StructuralHeadingMatch(
+                    section_type=section_type,
+                    pattern_index=pattern_index,
+                    named_captures=tuple(match.groupdict().items()),
+                )
+            )
+    if len(matches) > 1:
+        diagnostics = ", ".join(
+            f"{match.section_type}[{match.pattern_index}]" for match in matches
+        )
+        raise PlanningRegulationStructureError(
+            "Ambiguous structural heading at "
+            f"{record.record_id}, page {record.page_number}, "
+            f"line {record.page_line_number}: {diagnostics}"
+        )
+    return matches[0] if matches else None
 
 
 def _heading_events(
@@ -678,6 +723,17 @@ def _heading_events(
     articles = _compiled(config.heading_patterns.article)
     generals = _compiled(config.heading_patterns.general_section)
     continuations = _compiled(config.heading_patterns.continuation)
+    structural_patterns: tuple[
+        tuple[
+            Literal["GENERAL", "ZONE_CHAPTER", "ARTICLE"],
+            Sequence[re.Pattern[str]],
+        ],
+        ...,
+    ] = (
+        ("ZONE_CHAPTER", zones),
+        ("GENERAL", generals),
+        ("ARTICLE", articles),
+    )
     toc_pages = set(config.document_layout.table_of_contents_pages)
     events: list[_HeadingEvent] = []
     position = 0
@@ -691,22 +747,16 @@ def _heading_events(
         ):
             position += 1
             continue
-        match = _first_match(comparable, zones)
-        section_type: Literal["GENERAL", "ZONE_CHAPTER", "ARTICLE"] | None = None
-        if match is not None:
-            section_type = "ZONE_CHAPTER"
-        else:
-            match = _first_match(comparable, generals)
-            if match is not None:
-                section_type = "GENERAL"
-            else:
-                match = _first_match(comparable, articles)
-                if match is not None:
-                    section_type = "ARTICLE"
-        if match is None or section_type is None:
+        structural_match = _classify_structural_heading(
+            record,
+            comparable,
+            structural_patterns,
+        )
+        if structural_match is None:
             position += 1
             continue
-        groups = match.groupdict()
+        section_type = structural_match.section_type
+        groups = dict(structural_match.named_captures)
         zone_label = groups.get("label") or groups.get("zone")
         chapter_label = (
             _canonical_chapter_label(zone_label) if zone_label is not None else None
@@ -723,12 +773,18 @@ def _heading_events(
                 and records[cursor].page_number == record.page_number
             ):
                 candidate = records[cursor].raw.strip()
-                if not candidate or not _matches_any(candidate, continuations):
+                if not candidate:
                     break
-                if any(
-                    _first_match(candidate, patterns) is not None
-                    for patterns in (zones, generals, articles)
+                if (
+                    _classify_structural_heading(
+                        records[cursor],
+                        candidate,
+                        structural_patterns,
+                    )
+                    is not None
                 ):
+                    break
+                if not _matches_any(candidate, continuations):
                     break
                 heading_lines.append(records[cursor].raw)
                 cursor += 1
