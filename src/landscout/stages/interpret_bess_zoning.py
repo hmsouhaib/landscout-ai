@@ -43,8 +43,8 @@ __all__ = [
     "validate_bess_zoning_precheck",
 ]
 
-POLICY_SCHEMA_VERSION = 3
-RESULT_HASH_SCHEMA_VERSION = 3
+POLICY_SCHEMA_VERSION = 4
+RESULT_HASH_SCHEMA_VERSION = 4
 PLANNING_PRECHECK_SCOPE = "WRITTEN_ZONING_REGULATION_ONLY"
 REVIEW_SCOPE = "CONFIGURED_USE_CONTROL_ARTICLES_ONLY"
 
@@ -100,6 +100,8 @@ CHAPTER_POLICY_COLUMNS = (
     "zoning_precheck_confidence",
     "evidence_count",
     "evidence_ids",
+    "decision_evidence_ids",
+    "context_evidence_ids",
     "rationale",
     "missing_information",
     "planning_precheck_scope",
@@ -119,6 +121,9 @@ EVIDENCE_CATALOG_COLUMNS = (
     "page_number",
     "evidence_kind",
     "evidence_direction",
+    "linked_route_ids",
+    "linked_route_roles",
+    "decision_linked",
     "exact_raw_excerpt",
     "excerpt_sha256",
     "section_page_fragment_sha256",
@@ -161,6 +166,24 @@ ROUTE_ASSESSMENT_COLUMNS = (
     "structure_result_content_sha256",
     "structure_profile",
 )
+EVIDENCE_ROUTE_LINK_COLUMNS = (
+    "route_id",
+    "resolved_zone_chapter_label",
+    "route_kind",
+    "evidence_id",
+    "route_role",
+    "evidence_direction",
+    "review_completeness",
+    "review_scope",
+    "policy_profile",
+    "policy_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_result_content_sha256",
+    "structure_profile",
+)
 SOURCE_ZONE_POLICY_COLUMNS = (
     "source_zone_label_raw",
     "resolved_zone_chapter_label",
@@ -170,6 +193,8 @@ SOURCE_ZONE_POLICY_COLUMNS = (
     "zoning_precheck_status",
     "zoning_precheck_confidence",
     "evidence_ids",
+    "decision_evidence_ids",
+    "context_evidence_ids",
     "review_scope",
     "planning_precheck_scope",
     "policy_profile",
@@ -192,6 +217,8 @@ PARCEL_ZONE_POLICY_COLUMNS = (
     "zoning_precheck_status",
     "zoning_precheck_confidence",
     "evidence_ids",
+    "decision_evidence_ids",
+    "context_evidence_ids",
     "review_scope",
     "planning_precheck_scope",
     "policy_profile",
@@ -213,6 +240,7 @@ PARCEL_PRECHECK_COLUMNS = (
     "non_dominant_different_status_count",
     "touch_only_zone_count",
     "zoning_precheck_evidence_ids",
+    "zoning_precheck_context_evidence_ids",
     "zoning_precheck_requires_formal_review",
     "planning_precheck_scope",
     "review_scope",
@@ -464,6 +492,7 @@ class BessZoningPolicyConfig(_StrictConfigModel):
             chapter_evidence = {
                 evidence.evidence_id: evidence for evidence in chapter.evidence
             }
+            linked_evidence_ids: set[str] = set()
             for evidence in chapter.evidence:
                 if evidence.evidence_id in evidence_ids:
                     raise ValueError("evidence IDs must be globally unique")
@@ -551,6 +580,15 @@ class BessZoningPolicyConfig(_StrictConfigModel):
                             raise ValueError(
                                 f"route assigns evidence ID {evidence_id!r} to an incompatible {role} role"
                             )
+                        linked_evidence_ids.add(evidence_id)
+            for evidence in chapter.evidence:
+                is_linked = evidence.evidence_id in linked_evidence_ids
+                if evidence.evidence_direction == "CONTEXT_ONLY" and is_linked:
+                    raise ValueError("CONTEXT_ONLY evidence must not be linked to a route")
+                if evidence.evidence_direction != "CONTEXT_ONLY" and not is_linked:
+                    raise ValueError(
+                        "decision evidence must be linked to at least one route"
+                    )
         return self
 
 
@@ -575,6 +613,7 @@ class BessZoningPrecheckResult:
     zoning_relation_hash_columns: tuple[str, ...]
     zoning_relations_input_sha256: str
     evidence_catalog_content_sha256: str
+    evidence_route_links_content_sha256: str
     route_assessments_content_sha256: str
     chapter_policy_content_sha256: str
     source_zone_policy_content_sha256: str
@@ -583,6 +622,7 @@ class BessZoningPrecheckResult:
     complete_result_content_sha256: str
     touch_only_relation_count: int
     evidence_catalog: pd.DataFrame
+    evidence_route_links: pd.DataFrame
     route_assessments: pd.DataFrame
     chapter_policy: pd.DataFrame
     source_zone_policy: pd.DataFrame
@@ -1041,6 +1081,30 @@ def _zone_mapping_input_sha256(
     )
 
 
+def _zone_chapter_rows(
+    structure: PlanningRegulationStructureResult,
+) -> list[dict[str, object]]:
+    rows = structure.sections.loc[
+        structure.sections["section_type"].eq("ZONE_CHAPTER")
+    ].to_dict("records")
+    labels = [
+        _strict_string(row["zone_chapter_label"], "zone chapter label")
+        for row in rows
+    ]
+    section_ids = [
+        _strict_string(row["section_id"], "zone chapter section ID") for row in rows
+    ]
+    if len(set(labels)) != len(labels):
+        raise BessZoningPrecheckError(
+            "Regulation zone chapter labels must be unique"
+        )
+    if len(set(section_ids)) != len(section_ids):
+        raise BessZoningPrecheckError(
+            "Regulation zone chapter section IDs must be unique"
+        )
+    return rows
+
+
 def _required_section_ids_by_chapter(
     structure: PlanningRegulationStructureResult,
     policy: BessZoningPolicyConfig,
@@ -1048,9 +1112,7 @@ def _required_section_ids_by_chapter(
     required_numbers = set(policy.required_zone_article_numbers)
     chapter_ids = {
         row["zone_chapter_label"]: row["section_id"]
-        for row in structure.sections.loc[
-            structure.sections["section_type"].eq("ZONE_CHAPTER")
-        ].to_dict("records")
+        for row in _zone_chapter_rows(structure)
     }
     result: dict[str, tuple[str, ...]] = {}
     section_rows = structure.sections.to_dict("records")
@@ -1071,6 +1133,7 @@ def _validate_policy_evidence(
     policy: BessZoningPolicyConfig,
     fragments: pd.DataFrame,
     policy_hash: str,
+    evidence_route_links: pd.DataFrame,
 ) -> tuple[dict[str, dict[str, object]], pd.DataFrame]:
     sections = {
         _strict_string(row["section_id"], "section ID"): row
@@ -1085,9 +1148,7 @@ def _validate_policy_evidence(
     }
     chapters = {
         _strict_string(row["zone_chapter_label"], "zone chapter label"): row
-        for row in structure.sections.loc[
-            structure.sections["section_type"].eq("ZONE_CHAPTER")
-        ].to_dict("records")
+        for row in _zone_chapter_rows(structure)
     }
     policy_labels = {chapter.resolved_zone_chapter_label for chapter in policy.chapters}
     if policy_labels != set(chapters):
@@ -1097,6 +1158,15 @@ def _validate_policy_evidence(
             f"Chapter policy completeness differs; missing={missing}, extra={extra}"
         )
     catalog_rows: list[dict[str, object]] = []
+    links_by_evidence: dict[str, list[tuple[str, str]]] = {}
+    for link in evidence_route_links.to_dict("records"):
+        evidence_id = _strict_string(link["evidence_id"], "linked evidence ID")
+        links_by_evidence.setdefault(evidence_id, []).append(
+            (
+                _strict_string(link["route_id"], "linked route ID"),
+                _strict_string(link["route_role"], "route role"),
+            )
+        )
     required_by_chapter = _required_section_ids_by_chapter(structure, policy)
     for chapter in policy.chapters:
         chapter_row = chapters[chapter.resolved_zone_chapter_label]
@@ -1136,6 +1206,9 @@ def _validate_policy_evidence(
                 f"Chapter {chapter.resolved_zone_chapter_label} omits required reviewed articles: {missing_required}"
             )
         for evidence in chapter.evidence:
+            reverse_links = tuple(
+                sorted(links_by_evidence.get(evidence.evidence_id, []))
+            )
             section = sections.get(evidence.section_id)
             if section is None:
                 raise BessZoningPrecheckError(
@@ -1208,6 +1281,9 @@ def _validate_policy_evidence(
                     "page_number": evidence.page_number,
                     "evidence_kind": evidence.evidence_kind,
                     "evidence_direction": evidence.evidence_direction,
+                    "linked_route_ids": tuple(item[0] for item in reverse_links),
+                    "linked_route_roles": tuple(item[1] for item in reverse_links),
+                    "decision_linked": bool(reverse_links),
                     "exact_raw_excerpt": excerpt,
                     "excerpt_sha256": evidence.excerpt_sha256,
                     "section_page_fragment_sha256": (
@@ -1244,6 +1320,7 @@ def _validate_policy_evidence(
         "source_rule_end",
     ):
         catalog[column] = catalog[column].astype("int64")
+    catalog["decision_linked"] = catalog["decision_linked"].astype("bool")
     if catalog["evidence_id"].duplicated().any():
         raise BessZoningPrecheckError("Evidence catalog IDs must be unique")
     return chapters, catalog
@@ -1268,9 +1345,7 @@ def _validate_mapping(
         raise BessZoningPrecheckError("Factual zone mapping is incomplete or has extras")
     chapters = {
         row["zone_chapter_label"]: row["section_id"]
-        for row in structure.sections.loc[
-            structure.sections["section_type"].eq("ZONE_CHAPTER")
-        ].to_dict("records")
+        for row in _zone_chapter_rows(structure)
     }
     for row in mapping.to_dict("records"):
         _strict_string(row["source_zone_label_raw"], "mapped source zone label")
@@ -1318,18 +1393,29 @@ def _build_chapter_policy(
     }
     rows: list[dict[str, object]] = []
     lineage = _lineage(index, structure, policy, policy_hash)
-    chapters = structure.sections.loc[
-        structure.sections["section_type"].eq("ZONE_CHAPTER")
-    ]
+    chapters = _zone_chapter_rows(structure)
     required_by_chapter = _required_section_ids_by_chapter(structure, policy)
-    for source in chapters.to_dict("records"):
-        label = source["zone_chapter_label"]
+    for source in chapters:
+        label = _strict_string(source["zone_chapter_label"], "zone chapter label")
+        chapter_section_id = _strict_string(
+            source["section_id"], "zone chapter section ID"
+        )
         chapter = by_label[label]
         evidence_ids = tuple(item.evidence_id for item in chapter.evidence)
+        decision_evidence_ids = tuple(
+            item.evidence_id
+            for item in chapter.evidence
+            if item.evidence_direction != "CONTEXT_ONLY"
+        )
+        context_evidence_ids = tuple(
+            item.evidence_id
+            for item in chapter.evidence
+            if item.evidence_direction == "CONTEXT_ONLY"
+        )
         rows.append(
             {
                 "resolved_zone_chapter_label": label,
-                "chapter_section_id": source["section_id"],
+                "chapter_section_id": chapter_section_id,
                 "review_completeness": chapter.review_completeness,
                 "review_scope": policy.review_scope,
                 "reviewed_section_ids": tuple(chapter.reviewed_section_ids),
@@ -1343,6 +1429,8 @@ def _build_chapter_policy(
                 "zoning_precheck_confidence": chapter.zoning_precheck_confidence,
                 "evidence_count": len(evidence_ids),
                 "evidence_ids": evidence_ids,
+                "decision_evidence_ids": decision_evidence_ids,
+                "context_evidence_ids": context_evidence_ids,
                 "rationale": chapter.rationale,
                 "missing_information": chapter.missing_information,
                 **lineage,
@@ -1393,6 +1481,50 @@ def _build_route_assessments(
     return frame
 
 
+def _build_evidence_route_links(
+    index: PlanningRegulationIndex,
+    structure: PlanningRegulationStructureResult,
+    policy: BessZoningPolicyConfig,
+    policy_hash: str,
+) -> pd.DataFrame:
+    lineage = _lineage(index, structure, policy, policy_hash)
+    rows: list[dict[str, object]] = []
+    role_fields = (
+        ("positive_evidence_ids", "POSITIVE", "SUPPORTS_POTENTIAL_COMPATIBILITY"),
+        ("condition_evidence_ids", "CONDITION", "CONDITION"),
+        ("difficulty_evidence_ids", "DIFFICULTY", "SUPPORTS_DIFFICULTY"),
+    )
+    for chapter in policy.chapters:
+        for route in chapter.route_assessments:
+            for field, role, direction in role_fields:
+                for evidence_id in getattr(route, field):
+                    rows.append(
+                        {
+                            "route_id": route.route_id,
+                            "resolved_zone_chapter_label": (
+                                chapter.resolved_zone_chapter_label
+                            ),
+                            "route_kind": route.route_kind,
+                            "evidence_id": evidence_id,
+                            "route_role": role,
+                            "evidence_direction": direction,
+                            "review_completeness": chapter.review_completeness,
+                            "review_scope": policy.review_scope,
+                            **lineage,
+                        }
+                    )
+    frame = pd.DataFrame(rows, columns=EVIDENCE_ROUTE_LINK_COLUMNS)
+    if not frame.empty:
+        frame = frame.sort_values(
+            ["route_id", "evidence_id"], kind="mergesort"
+        ).reset_index(drop=True)
+    if frame.duplicated(["route_id", "evidence_id"]).any():
+        raise BessZoningPrecheckError(
+            "Evidence-route links must be unique by route and evidence"
+        )
+    return frame
+
+
 def _build_source_zone_policy(
     index: PlanningRegulationIndex,
     structure: PlanningRegulationStructureResult,
@@ -1429,6 +1561,8 @@ def _build_source_zone_policy(
                     "zoning_precheck_confidence"
                 ],
                 "evidence_ids": tuple(chapter["evidence_ids"]),
+                "decision_evidence_ids": tuple(chapter["decision_evidence_ids"]),
+                "context_evidence_ids": tuple(chapter["context_evidence_ids"]),
                 **lineage,
             }
         )
@@ -1465,6 +1599,8 @@ def _build_parcel_zone_interpretations(
                     "zoning_precheck_confidence"
                 ],
                 "evidence_ids": tuple(item["evidence_ids"]),
+                "decision_evidence_ids": tuple(item["decision_evidence_ids"]),
+                "context_evidence_ids": tuple(item["context_evidence_ids"]),
                 **lineage,
                 "source_layer": source["source_layer"],
             }
@@ -1531,6 +1667,7 @@ def _build_parcel_output(
             distinct_count = 0
             non_dominant_different = 0
             evidence_ids: tuple[str, ...] = ()
+            context_evidence_ids: tuple[str, ...] = ()
         else:
             ordered = group.sort_values(
                 ["intersection_area_m2", "planning_zone_id"],
@@ -1567,7 +1704,16 @@ def _build_parcel_output(
                 sorted(
                     {
                         _strict_string(evidence_id, "parcel evidence ID")
-                        for values in group["evidence_ids"].tolist()
+                        for values in group["decision_evidence_ids"].tolist()
+                        for evidence_id in values
+                    }
+                )
+            )
+            context_evidence_ids = tuple(
+                sorted(
+                    {
+                        _strict_string(evidence_id, "parcel context evidence ID")
+                        for values in group["context_evidence_ids"].tolist()
                         for evidence_id in values
                     }
                 )
@@ -1582,6 +1728,9 @@ def _build_parcel_output(
         )
         summary["touch_only_zone_count"].append(int(touch_counts.get(parcel_id, 0)))
         summary["zoning_precheck_evidence_ids"].append(evidence_ids)
+        summary["zoning_precheck_context_evidence_ids"].append(
+            context_evidence_ids
+        )
         summary["zoning_precheck_requires_formal_review"].append(True)
         summary["planning_precheck_scope"].append(PLANNING_PRECHECK_SCOPE)
         summary["review_scope"].append(REVIEW_SCOPE)
@@ -1589,7 +1738,9 @@ def _build_parcel_output(
         summary["zoning_precheck_policy_profile"].append(policy.policy_profile)
         summary["zoning_precheck_policy_sha256"].append(policy_hash)
     for column in PARCEL_PRECHECK_COLUMNS:
-        output[column] = np.asarray(summary[column], dtype=object)
+        values = np.empty(len(summary[column]), dtype=object)
+        values[:] = summary[column]
+        output[column] = values
     for column in (
         "positive_area_zone_count",
         "distinct_zone_status_count",
@@ -1650,6 +1801,9 @@ def _complete_result_sha256(result: BessZoningPrecheckResult) -> str:
             "evidence_catalog_content_sha256": (
                 result.evidence_catalog_content_sha256
             ),
+            "evidence_route_links_content_sha256": (
+                result.evidence_route_links_content_sha256
+            ),
             "route_assessments_content_sha256": (
                 result.route_assessments_content_sha256
             ),
@@ -1675,6 +1829,12 @@ def _result_with_hashes(
             result,
             result.evidence_catalog,
             EVIDENCE_CATALOG_COLUMNS,
+        ),
+        evidence_route_links_content_sha256=_result_frame_sha256(
+            "landscout.bess_zoning.evidence_route_links",
+            result,
+            result.evidence_route_links,
+            EVIDENCE_ROUTE_LINK_COLUMNS,
         ),
         route_assessments_content_sha256=_result_frame_sha256(
             "landscout.bess_zoning.route_assessments",
@@ -1738,17 +1898,21 @@ def _build_result(
     )
     mapping = _validate_mapping(structure, zone_copy)
     policy_hash = _policy_sha256(policy)
+    route_assessments = _build_route_assessments(
+        index, structure, policy, policy_hash
+    )
+    evidence_route_links = _build_evidence_route_links(
+        index, structure, policy, policy_hash
+    )
     _, evidence_catalog = _validate_policy_evidence(
         index,
         structure,
         policy,
         fragments,
         policy_hash,
+        evidence_route_links,
     )
     chapter_policy = _build_chapter_policy(
-        index, structure, policy, policy_hash
-    )
-    route_assessments = _build_route_assessments(
         index, structure, policy, policy_hash
     )
     source_policy = _build_source_zone_policy(
@@ -1798,6 +1962,7 @@ def _build_result(
             relation_columns,
         ),
         evidence_catalog_content_sha256="",
+        evidence_route_links_content_sha256="",
         route_assessments_content_sha256="",
         chapter_policy_content_sha256="",
         source_zone_policy_content_sha256="",
@@ -1808,6 +1973,7 @@ def _build_result(
             relation_copy["relation_type"].eq("TOUCH_ONLY").sum()
         ),
         evidence_catalog=evidence_catalog,
+        evidence_route_links=evidence_route_links,
         route_assessments=route_assessments,
         chapter_policy=chapter_policy,
         source_zone_policy=source_policy,
@@ -1856,6 +2022,7 @@ def _compare_results(
         "zoning_relation_hash_columns",
         "zoning_relations_input_sha256",
         "evidence_catalog_content_sha256",
+        "evidence_route_links_content_sha256",
         "route_assessments_content_sha256",
         "chapter_policy_content_sha256",
         "source_zone_policy_content_sha256",
@@ -1906,6 +2073,7 @@ def _compare_results(
         "zone_mapping_input_sha256",
         "zoning_relations_input_sha256",
         "evidence_catalog_content_sha256",
+        "evidence_route_links_content_sha256",
         "route_assessments_content_sha256",
         "chapter_policy_content_sha256",
         "source_zone_policy_content_sha256",
@@ -1919,6 +2087,12 @@ def _compare_results(
         expected.evidence_catalog,
         EVIDENCE_CATALOG_COLUMNS,
         "evidence catalog",
+    )
+    _compare_frames(
+        result.evidence_route_links,
+        expected.evidence_route_links,
+        EVIDENCE_ROUTE_LINK_COLUMNS,
+        "evidence-route links",
     )
     _compare_frames(
         result.route_assessments,
@@ -1977,6 +2151,62 @@ def _compare_results(
             unique=True,
         )
     )
+    catalog_by_id = result.evidence_catalog.set_index("evidence_id").to_dict("index")
+    expected_links: set[tuple[str, str, str, str]] = set()
+    role_fields = (
+        ("positive_evidence_ids", "POSITIVE", "SUPPORTS_POTENTIAL_COMPATIBILITY"),
+        ("condition_evidence_ids", "CONDITION", "CONDITION"),
+        ("difficulty_evidence_ids", "DIFFICULTY", "SUPPORTS_DIFFICULTY"),
+    )
+    for route in result.route_assessments.to_dict("records"):
+        for field, role, direction in role_fields:
+            values = route[field]
+            if not isinstance(values, (tuple, list, np.ndarray)):
+                raise BessZoningPrecheckError("Route evidence IDs must be arrays")
+            for evidence_id in values:
+                expected_links.add((route["route_id"], evidence_id, role, direction))
+    actual_links = {
+        (
+            row["route_id"],
+            row["evidence_id"],
+            row["route_role"],
+            row["evidence_direction"],
+        )
+        for row in result.evidence_route_links.to_dict("records")
+    }
+    if len(actual_links) != len(result.evidence_route_links) or actual_links != expected_links:
+        raise BessZoningPrecheckError(
+            "Evidence-route links do not exactly reproduce route evidence arrays"
+        )
+    reverse_links: dict[str, list[tuple[str, str]]] = {}
+    for route_id, evidence_id, role, _ in actual_links:
+        if evidence_id not in catalog_by_id:
+            raise BessZoningPrecheckError(
+                "Evidence-route link references unknown evidence"
+            )
+        reverse_links.setdefault(evidence_id, []).append((route_id, role))
+    decision_ids: set[str] = set()
+    context_ids: set[str] = set()
+    for evidence_id, row in catalog_by_id.items():
+        links = tuple(sorted(reverse_links.get(evidence_id, [])))
+        if tuple(row["linked_route_ids"]) != tuple(item[0] for item in links):
+            raise BessZoningPrecheckError("Evidence reverse route IDs are inconsistent")
+        if tuple(row["linked_route_roles"]) != tuple(item[1] for item in links):
+            raise BessZoningPrecheckError("Evidence reverse route roles are inconsistent")
+        if bool(row["decision_linked"]) != bool(links):
+            raise BessZoningPrecheckError("Evidence reverse decision link is inconsistent")
+        if row["evidence_direction"] == "CONTEXT_ONLY":
+            context_ids.add(evidence_id)
+            if links:
+                raise BessZoningPrecheckError(
+                    "CONTEXT_ONLY evidence must not influence a route"
+                )
+        else:
+            decision_ids.add(evidence_id)
+            if not links:
+                raise BessZoningPrecheckError(
+                    "Decision evidence must be linked to a route"
+                )
     for frame, column in (
         (result.chapter_policy, "evidence_ids"),
         (result.source_zone_policy, "evidence_ids"),
@@ -1990,6 +2220,22 @@ def _compare_results(
                 raise BessZoningPrecheckError(
                     "An output evidence ID is absent from the evidence catalog"
                 )
+    for frame in (
+        result.chapter_policy,
+        result.source_zone_policy,
+        result.parcel_zone_interpretations,
+    ):
+        for row in frame.to_dict("records"):
+            retained = set(row["evidence_ids"])
+            if set(row["decision_evidence_ids"]) != retained.intersection(decision_ids):
+                raise BessZoningPrecheckError("Decision evidence output is inconsistent")
+            if set(row["context_evidence_ids"]) != retained.intersection(context_ids):
+                raise BessZoningPrecheckError("Context evidence output is inconsistent")
+    for row in result.parcels.to_dict("records"):
+        if not set(row["zoning_precheck_evidence_ids"]).issubset(decision_ids):
+            raise BessZoningPrecheckError("Parcel decision evidence includes context")
+        if not set(row["zoning_precheck_context_evidence_ids"]).issubset(context_ids):
+            raise BessZoningPrecheckError("Parcel context evidence includes a decision")
     if not result.parcels["zoning_precheck_requires_formal_review"].eq(True).all():
         raise BessZoningPrecheckError("Every parcel must require formal review")
     if not result.parcels["non_zoning_planning_features_interpreted"].eq(False).all():

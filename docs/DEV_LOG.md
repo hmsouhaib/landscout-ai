@@ -1281,6 +1281,42 @@ Distance to an IGN electric line or transformation post does not establish grid 
 
 No BESS grid-distance threshold is selected here.
 
+## STEP 7D.4C.3 — Close evidence-to-route coverage and chapter identity
+
+- Status: Complete
+- Policy/result/output-manifest schemas: 4 / 4 / 4. Versions 1, 2, and 3 are rejected; no migration is inferred.
+- Test-first regression: before the production correction, the new unlinked-difficulty test failed because schema v3 accepted a second `SUPPORTS_DIFFICULTY` occurrence that appeared in no route. Schema v4 now rejects every unlinked positive, difficulty, or condition occurrence.
+- Evidence closure: each decision direction must occur in one or more explicit route arrays under its matching `POSITIVE`, `CONDITION`, or `DIFFICULTY` role. `CONTEXT_ONLY` evidence must occur in no route. One occurrence may support several routes only under the same compatible role.
+- Normalized audit link: `muret_bess_zoning_evidence_route_links.parquet` contains one deterministic row per `(route_id, evidence_id)`. The public source-complete validator reconstructs this table from every route array and independently reconstructs each evidence row's sorted `linked_route_ids`, aligned `linked_route_roles`, and `decision_linked` flag.
+- Output semantics: `evidence_ids` retains all chapter evidence. `decision_evidence_ids` and `context_evidence_ids` are separate on chapter, raw-zone, and parcel/zone outputs. Parcel `zoning_precheck_evidence_ids` is decision-only; `zoning_precheck_context_evidence_ids` preserves context without allowing it to influence status.
+- Chapter identity: every factual `ZONE_CHAPTER` now requires an exact non-null unique chapter label and a unique section ID before policy completeness is evaluated. Duplicate labels are rejected even when no current GPU zone refers to them.
+
+### Real Muret regression and integrity
+
+- Regulation chapter sections / unique chapter labels: 13 / 13
+- Routes / evidence rows / normalized route links: 13 / 26 / 26
+- Decision-linked / context-only / unlinked decision evidence: 26 / 0 / 0
+- Route kinds: 11 `CONDITIONAL_ROUTE`; 2 `RESTRICTION_EXCEPTION_ROUTE`
+- Chapter status/confidence: 13 `CONDITIONAL_REVIEW` / `LOW`
+- Raw GPU labels: 29, all `CONDITIONAL_REVIEW`
+- Parcels: 3,638 input and output; 3,638 `CONDITIONAL_REVIEW`; lost / extra IDs = 0 / 0
+- Parcel/zone interpretation rows: 5,095; touch-only factual rows: 0
+- Original parcel fields, count, IDs, order, index, geometry, and CRS: unchanged
+- Runtime, including the public build-time validation: 24.411 seconds
+
+Integrity hashes:
+
+- policy: `55b98fcc27cfb002c580338a38c4b9da1979ae4ab061db217945b7f018ccf45e`
+- evidence catalog: `3d267d87938422167deaaf9fbb82bb11980e4e633943c09ed0d7b6a3dcf80433`
+- evidence-route links: `236ed3a0d490789515b1b85cd449501efe4ed5ab9b8ce323669cd99966853e9c`
+- route assessments: `85bd6bb6f4726bb269330cd717ce2a91ba2375a430838a8cd99929d297a0ed74`
+- chapter / source-zone / parcel-zone: `84f0fd168d64df4315ba0e49014d728308a74b92b1aa940612f49ba882cfb45d` / `02cd77b5abbe6115702d1436b289705f15f44e7baf72217ba80d2f6c5524369c` / `46a673dc5c3fa133ce3e2c80d3d3a7d49ebbfb1e2e0ba4d399449dd1ea630f20`
+- parcel output / complete result: `2bbe8d055b6c1c2219b9104c4a4610c1b48d46582b656c20d617d173810ce43c` / `4252a40036363235cc0eca0be1e8dd9ba9db3a09aeb34e914fda8466f3095590`
+
+All eight ignored outputs were rewritten. Their persisted Parquet tables and schema-v4 JSON envelope were read back, the immutable result was reconstructed from persisted scalars and frames, and the public source-complete validator passed against the original index, structure/config, 221-zone catalog, 5,095 factual relations, 3,638-parcel input, and checked-in policy.
+
+This remains a conservative LandScout preliminary written-zoning precheck, not an authorization, permit decision, or legal opinion. Prescription and information features remain uninterpreted. No parcel is rejected and no score is created.
+
 ## STEP 7D.4C.2 — Link BESS zoning evidence into coherent decision routes
 
 - Status: Complete

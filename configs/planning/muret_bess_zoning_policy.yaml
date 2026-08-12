@@ -1,5 +1,5 @@
-schema_version: 3
-policy_profile: muret_bess_written_zoning_v3
+schema_version: 4
+policy_profile: muret_bess_written_zoning_v4
 planning_precheck_scope: WRITTEN_ZONING_REGULATION_ONLY
 review_scope: CONFIGURED_USE_CONTROL_ARTICLES_ONLY
 source_lock:
