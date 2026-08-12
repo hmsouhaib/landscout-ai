@@ -30,6 +30,7 @@ from landscout.stages.interpret_bess_zoning import (
     CHAPTER_POLICY_COLUMNS,
     EVIDENCE_CATALOG_COLUMNS,
     PARCEL_ZONE_POLICY_COLUMNS,
+    ROUTE_ASSESSMENT_COLUMNS,
     SOURCE_ZONE_POLICY_COLUMNS,
     BessZoningPolicyConfig,
     BessZoningPrecheckError,
@@ -52,12 +53,13 @@ def _index() -> PlanningRegulationIndex:
     raw_pages = (
         "ARTICLE 1 - GENERAL\nGeneral factual text.",
         (
-            "ZONE U\nARTICLE U 1 - USES\nTechnical equipment is permitted.\n"
-            "Formal review is required.\nTechnical equipment is permitted."
+            "ZONE U\nARTICLE U 1 - USES\nTechnical equipment is permitted only when "
+            "formal review is required.\nTechnical equipment is permitted only when "
+            "formal review is required."
         ),
         (
             "ZONE N\nARTICLE N 1 - USES\nBattery facilities are restricted.\n"
-            "Technical equipment is permitted."
+            "Technical equipment is permitted only when formal review is required."
         ),
     )
     rows: list[dict[str, object]] = []
@@ -227,8 +229,8 @@ def _policy(index, structure, config, zones, relations) -> BessZoningPolicyConfi
     fragments = planning_regulation_section_page_fragments(
         index, zones, relations, config, structure
     ).set_index(["section_id", "page_number"])
-    u_positive = "Technical equipment is permitted."
-    u_condition = "Formal review is required."
+    u_positive = "Technical equipment is permitted"
+    u_condition = "only when formal review is required"
     n_excerpt = "Battery facilities are restricted."
 
     def evidence(
@@ -238,11 +240,14 @@ def _policy(index, structure, config, zones, relations) -> BessZoningPolicyConfi
         kind: str,
         direction: str,
         excerpt: str,
+        source_rule_id: str,
+        source_rule: str,
         note: str,
     ) -> dict[str, object]:
         fragment = fragments.loc[(section_id, page_number)]
         raw = fragment["raw_text"]
-        start = raw.index(excerpt)
+        rule_start = raw.index(source_rule)
+        start = raw.index(excerpt, rule_start, rule_start + len(source_rule))
         return {
             "evidence_id": evidence_id,
             "section_id": section_id,
@@ -256,14 +261,20 @@ def _policy(index, structure, config, zones, relations) -> BessZoningPolicyConfi
             ],
             "excerpt_start": start,
             "excerpt_end": start + len(excerpt),
+            "source_rule_id": source_rule_id,
+            "source_rule_excerpt": source_rule,
+            "source_rule_sha256": sha256(source_rule.encode()).hexdigest(),
+            "source_rule_start": rule_start,
+            "source_rule_end": rule_start + len(source_rule),
             "interpretation_note": note,
         }
 
     return BessZoningPolicyConfig.model_validate(
         {
-            "schema_version": 2,
-            "policy_profile": "synthetic_policy_v1",
+            "schema_version": 3,
+            "policy_profile": "synthetic_policy_v3",
             "planning_precheck_scope": "WRITTEN_ZONING_REGULATION_ONLY",
+            "review_scope": "CONFIGURED_USE_CONTROL_ARTICLES_ONLY",
             "source_lock": {
                 "document_id": index.document_id,
                 "archive_sha256": index.archive_sha256,
@@ -278,7 +289,7 @@ def _policy(index, structure, config, zones, relations) -> BessZoningPolicyConfi
             "chapters": [
                 {
                     "resolved_zone_chapter_label": "U",
-                    "review_completeness": "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK",
+                    "review_completeness": "COMPLETE_FOR_CONFIGURED_USE_CONTROL_ARTICLES",
                     "reviewed_section_ids": [u_article["section_id"]],
                     "review_note": "The required use-control article was reviewed.",
                     "zoning_precheck_status": "CONDITIONAL_REVIEW",
@@ -293,6 +304,8 @@ def _policy(index, structure, config, zones, relations) -> BessZoningPolicyConfi
                             "USE_PERMISSION",
                             "SUPPORTS_POTENTIAL_COMPATIBILITY",
                             u_positive,
+                            "RULE-U-CONDITIONAL",
+                            "Technical equipment is permitted only when formal review is required.",
                             "This is positive route evidence only.",
                         ),
                         evidence(
@@ -302,13 +315,25 @@ def _policy(index, structure, config, zones, relations) -> BessZoningPolicyConfi
                             "TECHNICAL_EQUIPMENT_RULE",
                             "CONDITION",
                             u_condition,
+                            "RULE-U-CONDITIONAL",
+                            "Technical equipment is permitted only when formal review is required.",
                             "This is a condition only.",
                         ),
+                    ],
+                    "route_assessments": [
+                        {
+                            "route_id": "ROUTE-U-CONDITIONAL",
+                            "route_kind": "CONDITIONAL_ROUTE",
+                            "positive_evidence_ids": ["E-U-POSITIVE"],
+                            "condition_evidence_ids": ["E-U-CONDITION"],
+                            "difficulty_evidence_ids": [],
+                            "applicability_note": "The positive route and its condition are assessed together.",
+                        }
                     ],
                 },
                 {
                     "resolved_zone_chapter_label": "N",
-                    "review_completeness": "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK",
+                    "review_completeness": "COMPLETE_FOR_CONFIGURED_USE_CONTROL_ARTICLES",
                     "reviewed_section_ids": [n_article["section_id"]],
                     "review_note": "The required use-control article was reviewed.",
                     "zoning_precheck_status": "LIKELY_DIFFICULT",
@@ -323,8 +348,20 @@ def _policy(index, structure, config, zones, relations) -> BessZoningPolicyConfi
                             "USE_RESTRICTION",
                             "SUPPORTS_DIFFICULTY",
                             n_excerpt,
+                            "RULE-N-RESTRICTION",
+                            n_excerpt,
                             "This is difficulty evidence only.",
                         )
+                    ],
+                    "route_assessments": [
+                        {
+                            "route_id": "ROUTE-N-DIFFICULT",
+                            "route_kind": "DIFFICULTY_ONLY",
+                            "positive_evidence_ids": [],
+                            "condition_evidence_ids": [],
+                            "difficulty_evidence_ids": ["E-N-1"],
+                            "applicability_note": "The restriction is assessed without a positive route.",
+                        }
                     ],
                 },
             ],
@@ -366,6 +403,7 @@ def test_package_exports_precheck_api() -> None:
         "load_bess_zoning_policy_config",
         "planning_regulation_section_page_fragments",
         "validate_bess_zoning_precheck",
+        "validate_planning_regulation_structure_with_fragments",
     ):
         assert name in stages.__all__
 
@@ -375,16 +413,20 @@ def test_valid_locked_policy_builds_complete_outputs(inputs, valid_result) -> No
     result = valid_result
     _validate(inputs, result)
     assert tuple(result.chapter_policy.columns) == CHAPTER_POLICY_COLUMNS
+    assert tuple(result.route_assessments.columns) == ROUTE_ASSESSMENT_COLUMNS
     assert tuple(result.source_zone_policy.columns) == SOURCE_ZONE_POLICY_COLUMNS
     assert tuple(result.parcel_zone_interpretations.columns) == PARCEL_ZONE_POLICY_COLUMNS
     assert len(result.chapter_policy) == 2
     assert len(result.source_zone_policy) == 3
     assert len(result.parcel_zone_interpretations) == 5
     assert len(result.parcels) == len(parcels)
-    assert result.policy_schema_version == 2
-    assert result.result_hash_schema_version == 2
+    assert result.policy_schema_version == 3
+    assert result.result_hash_schema_version == 3
     assert tuple(result.evidence_catalog.columns) == EVIDENCE_CATALOG_COLUMNS
     assert result.planning_precheck_scope == "WRITTEN_ZONING_REGULATION_ONLY"
+    assert result.review_scope == "CONFIGURED_USE_CONTROL_ARTICLES_ONLY"
+    assert result.parcels["review_scope"].eq(result.review_scope).all()
+    assert len(result.route_assessments) == 2
     assert result.touch_only_relation_count == 1
     assert result.document_id == index.document_id
     assert result.structure_result_content_sha256 == structure.structure_result_content_sha256
@@ -425,6 +467,7 @@ def test_missing_and_extra_chapter_are_rejected(inputs) -> None:
     extra = dict(extra_payload["chapters"][0])
     extra["resolved_zone_chapter_label"] = "EXTRA"
     extra["evidence"] = []
+    extra["route_assessments"] = []
     extra["zoning_precheck_status"] = "UNKNOWN"
     extra_payload["chapters"] = (*extra_payload["chapters"], extra)
     with pytest.raises(BessZoningPrecheckError, match="extra=.*EXTRA"):
@@ -487,36 +530,80 @@ def test_duplicate_yaml_key_is_rejected(tmp_path: Path) -> None:
         load_bess_zoning_policy_config(path)
 
 
-def test_policy_schema_version_one_is_rejected(inputs) -> None:
+@pytest.mark.parametrize("version", [1, 2])
+def test_old_policy_schema_versions_are_rejected(inputs, version: int) -> None:
     payload = _payload(inputs[-1])
-    payload["schema_version"] = 1
+    payload["schema_version"] = version
     with pytest.raises(ValueError, match="unsupported BESS zoning policy schema"):
         BessZoningPolicyConfig.model_validate(payload)
 
 
-@pytest.mark.parametrize(
-    ("kind", "direction"),
-    [
-        ("USE_RESTRICTION", "SUPPORTS_POTENTIAL_COMPATIBILITY"),
-        ("USE_PERMISSION", "SUPPORTS_DIFFICULTY"),
-        ("ACCESS_OR_NETWORK_CONDITION", "SUPPORTS_POTENTIAL_COMPATIBILITY"),
-    ],
-)
-def test_evidence_kind_direction_contract_is_strict(
-    inputs, kind: str, direction: str
-) -> None:
-    payload = _payload(inputs[-1])
-    evidence = payload["chapters"][0]["evidence"][0]
-    evidence["evidence_kind"] = kind
-    evidence["evidence_direction"] = direction
-    with pytest.raises(ValueError, match="kind and direction are incompatible"):
-        BessZoningPolicyConfig.model_validate(payload)
+def test_every_evidence_kind_has_an_explicit_direction_matrix(inputs) -> None:
+    allowed = {
+        "USE_PERMISSION": {
+            "SUPPORTS_POTENTIAL_COMPATIBILITY",
+            "CONTEXT_ONLY",
+        },
+        "USE_RESTRICTION": {"SUPPORTS_DIFFICULTY", "CONTEXT_ONLY"},
+        "PUBLIC_INTEREST_EXCEPTION": {
+            "SUPPORTS_POTENTIAL_COMPATIBILITY",
+            "CONDITION",
+            "CONTEXT_ONLY",
+        },
+        "TECHNICAL_EQUIPMENT_RULE": {
+            "SUPPORTS_POTENTIAL_COMPATIBILITY",
+            "SUPPORTS_DIFFICULTY",
+            "CONDITION",
+            "CONTEXT_ONLY",
+        },
+        "ICPE_RULE": {
+            "SUPPORTS_POTENTIAL_COMPATIBILITY",
+            "SUPPORTS_DIFFICULTY",
+            "CONDITION",
+            "CONTEXT_ONLY",
+        },
+        "RISK_OR_NUISANCE_CONDITION": {
+            "SUPPORTS_DIFFICULTY",
+            "CONDITION",
+            "CONTEXT_ONLY",
+        },
+        "ACCESS_OR_NETWORK_CONDITION": {
+            "SUPPORTS_DIFFICULTY",
+            "CONDITION",
+            "CONTEXT_ONLY",
+        },
+        "OTHER_RELEVANT_RULE": {
+            "SUPPORTS_DIFFICULTY",
+            "CONDITION",
+            "CONTEXT_ONLY",
+        },
+    }
+    directions = {
+        "SUPPORTS_POTENTIAL_COMPATIBILITY",
+        "SUPPORTS_DIFFICULTY",
+        "CONDITION",
+        "CONTEXT_ONLY",
+    }
+    base = _payload(inputs[-1])["chapters"][0]["evidence"][0]
+    for kind, permitted in allowed.items():
+        for direction in directions:
+            evidence = dict(base)
+            evidence["evidence_kind"] = kind
+            evidence["evidence_direction"] = direction
+            if direction in permitted:
+                interpret_module.PolicyEvidence.model_validate(evidence)
+            else:
+                with pytest.raises(
+                    ValueError,
+                    match="kind and direction are incompatible",
+                ):
+                    interpret_module.PolicyEvidence.model_validate(evidence)
 
 
 def test_valid_exact_evidence_is_preserved(inputs, valid_result) -> None:
     policy = inputs[-1]
     excerpt = policy.chapters[0].evidence[0].exact_raw_excerpt
-    assert excerpt == "Technical equipment is permitted."
+    assert excerpt == "Technical equipment is permitted"
     assert policy.chapters[0].evidence[0].excerpt_sha256 == sha256(
         excerpt.encode()
     ).hexdigest()
@@ -524,6 +611,101 @@ def test_valid_exact_evidence_is_preserved(inputs, valid_result) -> None:
         "E-U-POSITIVE",
         "E-U-CONDITION",
     )
+    row = valid_result.evidence_catalog.set_index("evidence_id").loc[
+        "E-U-POSITIVE"
+    ]
+    assert "only when" in row["source_rule_excerpt"]
+    relative_start = row["excerpt_start"] - row["source_rule_start"]
+    relative_end = row["excerpt_end"] - row["source_rule_start"]
+    assert row["source_rule_excerpt"][relative_start:relative_end] == excerpt
+
+
+@pytest.mark.parametrize("mutation", ["hash", "start", "end", "outside"])
+def test_source_rule_identity_and_containment_are_strict(inputs, mutation: str) -> None:
+    *sources, policy = inputs
+    payload = _payload(policy)
+    evidence = payload["chapters"][0]["evidence"][0]
+    if mutation == "hash":
+        evidence["source_rule_sha256"] = "f" * 64
+        with pytest.raises(ValueError, match="source rule SHA256"):
+            BessZoningPolicyConfig.model_validate(payload)
+        return
+    if mutation == "outside":
+        evidence["source_rule_start"] = evidence["excerpt_start"] + 1
+        with pytest.raises(ValueError, match="inside its source rule"):
+            BessZoningPolicyConfig.model_validate(payload)
+        return
+    for related in payload["chapters"][0]["evidence"]:
+        if mutation == "start":
+            related["source_rule_start"] -= 1
+        else:
+            related["source_rule_end"] += 1
+    with pytest.raises(BessZoningPrecheckError, match="source-rule offsets"):
+        interpret_bess_zoning(
+            *sources,
+            BessZoningPolicyConfig.model_validate(payload),
+        )
+
+
+def test_same_rule_text_at_distinct_offsets_has_distinct_identity(inputs) -> None:
+    payload = _payload(inputs[-1])
+    chapter = payload["chapters"][0]
+    first = chapter["evidence"][0]
+    second = dict(first)
+    rule_length = len(first["source_rule_excerpt"])
+    second_rule_start = first["source_rule_end"] + 1
+    second["evidence_id"] = "E-U-SECOND-OCCURRENCE"
+    second["evidence_kind"] = "TECHNICAL_EQUIPMENT_RULE"
+    second["evidence_direction"] = "SUPPORTS_DIFFICULTY"
+    second["source_rule_id"] = "RULE-U-SECOND-OCCURRENCE"
+    second["source_rule_start"] = second_rule_start
+    second["source_rule_end"] = second_rule_start + rule_length
+    second["excerpt_start"] = second_rule_start
+    second["excerpt_end"] = second_rule_start + len(first["exact_raw_excerpt"])
+    chapter["evidence"] = (*chapter["evidence"], second)
+    policy = BessZoningPolicyConfig.model_validate(payload)
+    assert policy.chapters[0].evidence[-1].evidence_direction == "SUPPORTS_DIFFICULTY"
+
+
+def test_real_muret_source_rules_preserve_conditional_and_exception_frames() -> None:
+    policy = load_bess_zoning_policy_config(
+        Path("configs/planning/muret_bess_zoning_policy.yaml")
+    )
+    by_label = {
+        chapter.resolved_zone_chapter_label: chapter for chapter in policy.chapters
+    }
+    for label in ("UA", "UB", "UC", "UD", "UF", "AU", "AUf"):
+        positive = next(
+            evidence
+            for evidence in by_label[label].evidence
+            if evidence.evidence_direction == "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        )
+        assert "ne sont autorisées qu’à" in positive.source_rule_excerpt
+        assert "condition" in positive.source_rule_excerpt
+    for label in ("UP", "AUp"):
+        positive = next(
+            evidence
+            for evidence in by_label[label].evidence
+            if evidence.evidence_direction == "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        )
+        assert positive.source_rule_excerpt.startswith("Toutes constructions")
+        assert "autres que celles" in positive.source_rule_excerpt
+    for label in ("AU0", "AUf0", "A", "N"):
+        chapter = by_label[label]
+        positive = next(
+            evidence
+            for evidence in chapter.evidence
+            if evidence.evidence_direction == "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        )
+        assert positive.source_rule_excerpt.startswith("Sont interdites")
+        if label in {"A", "N"}:
+            difficulty = next(
+                evidence
+                for evidence in chapter.evidence
+                if evidence.evidence_direction == "SUPPORTS_DIFFICULTY"
+            )
+            assert difficulty.source_rule_id == positive.source_rule_id
+            assert difficulty.source_rule_excerpt == positive.source_rule_excerpt
 
 
 def test_absent_excerpt_and_section_page_mismatch_are_rejected(inputs) -> None:
@@ -537,7 +719,8 @@ def test_absent_excerpt_and_section_page_mismatch_are_rejected(inputs) -> None:
     with pytest.raises(BessZoningPrecheckError, match="offsets"):
         interpret_bess_zoning(*sources, BessZoningPolicyConfig.model_validate(payload))
     payload = _payload(policy)
-    payload["chapters"][0]["evidence"][0]["page_number"] = 3
+    for evidence in payload["chapters"][0]["evidence"]:
+        evidence["page_number"] = 3
     with pytest.raises(BessZoningPrecheckError, match="section/page fragment"):
         interpret_bess_zoning(*sources, BessZoningPolicyConfig.model_validate(payload))
 
@@ -557,26 +740,11 @@ def test_excerpt_hash_and_length_are_rejected(inputs) -> None:
         BessZoningPolicyConfig.model_validate(payload)
 
 
-@pytest.mark.parametrize(
-    ("status", "direction", "message"),
-    [
-        (
-            "POTENTIALLY_COMPATIBLE",
-            "CONTEXT_ONLY",
-            "requires a positive route",
-        ),
-        ("LIKELY_DIFFICULT", "CONTEXT_ONLY", "requires difficulty"),
-        ("CONDITIONAL_REVIEW", "CONTEXT_ONLY", "requires a positive route"),
-    ],
-)
-def test_status_requires_consistent_evidence(
-    inputs, status: str, direction: str, message: str
-) -> None:
+@pytest.mark.parametrize("status", ["POTENTIALLY_COMPATIBLE", "LIKELY_DIFFICULT", "UNKNOWN"])
+def test_declared_status_must_equal_derived_route_status(inputs, status: str) -> None:
     payload = _payload(inputs[-1])
     payload["chapters"][0]["zoning_precheck_status"] = status
-    for evidence in payload["chapters"][0]["evidence"]:
-        evidence["evidence_direction"] = direction
-    with pytest.raises(ValueError, match=message):
+    with pytest.raises(ValueError, match="differs from coherent linked route"):
         BessZoningPolicyConfig.model_validate(payload)
 
 
@@ -586,8 +754,28 @@ def test_condition_alone_cannot_create_conditional_review(inputs) -> None:
     payload["chapters"][0]["evidence"] = [
         payload["chapters"][0]["evidence"][1]
     ]
-    payload["chapters"][0]["evidence"][0]["evidence_direction"] = "CONDITION"
-    with pytest.raises(ValueError, match="positive route"):
+    payload["chapters"][0]["route_assessments"] = []
+    with pytest.raises(ValueError, match="coherent linked route"):
+        BessZoningPolicyConfig.model_validate(payload)
+
+
+def test_unrelated_positive_and_condition_do_not_create_conditional_review(
+    inputs,
+) -> None:
+    payload = _payload(inputs[-1])
+    chapter = payload["chapters"][0]
+    chapter["zoning_precheck_status"] = "CONDITIONAL_REVIEW"
+    chapter["route_assessments"] = [
+        {
+            "route_id": "ROUTE-U-DIRECT-ONLY",
+            "route_kind": "DIRECT_ROUTE",
+            "positive_evidence_ids": ["E-U-POSITIVE"],
+            "condition_evidence_ids": [],
+            "difficulty_evidence_ids": [],
+            "applicability_note": "The separate condition is deliberately unlinked.",
+        }
+    ]
+    with pytest.raises(ValueError, match="coherent|linked route"):
         BessZoningPolicyConfig.model_validate(payload)
 
 
@@ -597,6 +785,7 @@ def test_condition_only_unknown_succeeds(inputs) -> None:
     chapter["zoning_precheck_status"] = "UNKNOWN"
     chapter["zoning_precheck_confidence"] = "LOW"
     chapter["evidence"] = [chapter["evidence"][1]]
+    chapter["route_assessments"] = []
     policy = BessZoningPolicyConfig.model_validate(payload)
     assert policy.chapters[0].zoning_precheck_status == "UNKNOWN"
 
@@ -610,8 +799,44 @@ def test_positive_condition_and_conflict_status_routes(inputs) -> None:
     conflict["chapters"][0]["evidence"][1][
         "evidence_direction"
     ] = "SUPPORTS_DIFFICULTY"
+    route = conflict["chapters"][0]["route_assessments"][0]
+    route["route_kind"] = "RESTRICTION_EXCEPTION_ROUTE"
+    route["condition_evidence_ids"] = []
+    route["difficulty_evidence_ids"] = ["E-U-CONDITION"]
     policy = BessZoningPolicyConfig.model_validate(conflict)
     assert policy.chapters[0].zoning_precheck_status == "CONDITIONAL_REVIEW"
+
+
+def test_route_references_must_be_same_chapter_and_role_compatible(inputs) -> None:
+    for mutation, message in (
+        ("unknown", "unknown or another-chapter"),
+        ("another_chapter", "unknown or another-chapter"),
+        ("wrong_role", "incompatible positive role"),
+    ):
+        payload = _payload(inputs[-1])
+        route = payload["chapters"][0]["route_assessments"][0]
+        if mutation == "unknown":
+            route["condition_evidence_ids"] = ["E-UNKNOWN"]
+        elif mutation == "another_chapter":
+            route["condition_evidence_ids"] = ["E-N-1"]
+        else:
+            route["route_kind"] = "DIRECT_ROUTE"
+            route["positive_evidence_ids"] = ["E-U-CONDITION"]
+            route["condition_evidence_ids"] = []
+            payload["chapters"][0]["zoning_precheck_status"] = (
+                "POTENTIALLY_COMPATIBLE"
+            )
+        with pytest.raises(ValueError, match=message):
+            BessZoningPolicyConfig.model_validate(payload)
+
+
+def test_route_ids_are_globally_unique(inputs) -> None:
+    payload = _payload(inputs[-1])
+    payload["chapters"][1]["route_assessments"][0]["route_id"] = (
+        payload["chapters"][0]["route_assessments"][0]["route_id"]
+    )
+    with pytest.raises(ValueError, match="route IDs must be globally unique"):
+        BessZoningPolicyConfig.model_validate(payload)
 
 
 def test_difficulty_and_positive_only_status_routes(inputs) -> None:
@@ -620,6 +845,16 @@ def test_difficulty_and_positive_only_status_routes(inputs) -> None:
     chapter["zoning_precheck_status"] = "LIKELY_DIFFICULT"
     chapter["evidence"] = [chapter["evidence"][1]]
     chapter["evidence"][0]["evidence_direction"] = "SUPPORTS_DIFFICULTY"
+    chapter["route_assessments"] = [
+        {
+            "route_id": "ROUTE-U-DIFFICULT",
+            "route_kind": "DIFFICULTY_ONLY",
+            "positive_evidence_ids": [],
+            "condition_evidence_ids": [],
+            "difficulty_evidence_ids": ["E-U-CONDITION"],
+            "applicability_note": "Only the linked difficulty is assessed.",
+        }
+    ]
     assert BessZoningPolicyConfig.model_validate(difficult).chapters[
         0
     ].zoning_precheck_status == "LIKELY_DIFFICULT"
@@ -627,6 +862,16 @@ def test_difficulty_and_positive_only_status_routes(inputs) -> None:
     chapter = potential["chapters"][0]
     chapter["zoning_precheck_status"] = "POTENTIALLY_COMPATIBLE"
     chapter["evidence"] = [chapter["evidence"][0]]
+    chapter["route_assessments"] = [
+        {
+            "route_id": "ROUTE-U-DIRECT",
+            "route_kind": "DIRECT_ROUTE",
+            "positive_evidence_ids": ["E-U-POSITIVE"],
+            "condition_evidence_ids": [],
+            "difficulty_evidence_ids": [],
+            "applicability_note": "Only the direct linked route is assessed.",
+        }
+    ]
     assert BessZoningPolicyConfig.model_validate(potential).chapters[
         0
     ].zoning_precheck_status == "POTENTIALLY_COMPATIBLE"
@@ -639,6 +884,8 @@ def test_incomplete_review_requires_unknown_low(inputs) -> None:
     chapter["zoning_precheck_status"] = "UNKNOWN"
     chapter["zoning_precheck_confidence"] = "LOW"
     chapter["evidence"] = []
+    chapter["route_assessments"] = []
+    chapter["reviewed_section_ids"] = []
     assert BessZoningPolicyConfig.model_validate(payload).chapters[
         0
     ].review_completeness == "INCOMPLETE"
@@ -652,9 +899,32 @@ def test_incomplete_review_requires_unknown_low(inputs) -> None:
         candidate["zoning_precheck_status"] = "UNKNOWN"
         candidate["zoning_precheck_confidence"] = "LOW"
         candidate["evidence"] = []
+        candidate["route_assessments"] = []
+        candidate["reviewed_section_ids"] = []
         candidate[field] = value
         with pytest.raises(ValueError, match="incomplete review"):
             BessZoningPolicyConfig.model_validate(invalid)
+
+
+def test_incomplete_review_persists_exact_missing_required_sections(inputs) -> None:
+    *sources, policy = inputs
+    payload = _payload(policy)
+    chapter = payload["chapters"][0]
+    chapter["review_completeness"] = "INCOMPLETE"
+    chapter["reviewed_section_ids"] = []
+    chapter["zoning_precheck_status"] = "UNKNOWN"
+    chapter["zoning_precheck_confidence"] = "LOW"
+    chapter["evidence"] = []
+    chapter["route_assessments"] = []
+    result = interpret_bess_zoning(
+        *sources,
+        BessZoningPolicyConfig.model_validate(payload),
+    )
+    row = result.chapter_policy.set_index("resolved_zone_chapter_label").loc["U"]
+    assert row["reviewed_section_ids"] == ()
+    assert row["missing_required_section_ids"] == ("SECTION-0003",)
+    assert row["zoning_precheck_status"] == "UNKNOWN"
+    assert row["zoning_precheck_confidence"] == "LOW"
 
 
 def test_unknown_is_accepted_when_evidence_is_insufficient(inputs) -> None:
@@ -662,6 +932,7 @@ def test_unknown_is_accepted_when_evidence_is_insufficient(inputs) -> None:
     payload = _payload(policy)
     payload["chapters"][0]["zoning_precheck_status"] = "UNKNOWN"
     payload["chapters"][0]["evidence"] = []
+    payload["chapters"][0]["route_assessments"] = []
     result = interpret_bess_zoning(
         *sources, BessZoningPolicyConfig.model_validate(payload)
     )
@@ -780,9 +1051,11 @@ def test_wrong_occurrence_identity_is_rejected(inputs, mutation: str) -> None:
     payload = _payload(policy)
     evidence = payload["chapters"][0]["evidence"][0]
     if mutation == "page":
-        evidence["page_number"] = 1
+        for related in payload["chapters"][0]["evidence"]:
+            related["page_number"] = 1
     elif mutation == "fragment_hash":
-        evidence["section_page_fragment_sha256"] = "f" * 64
+        for related in payload["chapters"][0]["evidence"]:
+            related["section_page_fragment_sha256"] = "f" * 64
     elif mutation == "start":
         evidence["excerpt_start"] += 1
     else:
@@ -890,10 +1163,11 @@ def test_policy_change_after_result_creation_is_rejected(inputs, valid_result) -
 
 def test_evidence_change_after_result_creation_is_rejected(inputs, valid_result) -> None:
     payload = _payload(inputs[-1])
-    excerpt = "Technical equipment is permitted"
+    excerpt = "equipment is permitted"
     evidence = payload["chapters"][0]["evidence"][0]
     evidence["exact_raw_excerpt"] = excerpt
     evidence["excerpt_sha256"] = sha256(excerpt.encode()).hexdigest()
+    evidence["excerpt_start"] += len("Technical ")
     changed = BessZoningPolicyConfig.model_validate(payload)
     with pytest.raises(BessZoningPrecheckError):
         validate_bess_zoning_precheck(*inputs[:-1], changed, valid_result)
@@ -962,7 +1236,7 @@ def test_structure_config_and_hierarchy_changes_are_rejected(inputs) -> None:
 
 def test_public_source_complete_validator_is_invoked(inputs, monkeypatch) -> None:
     calls = 0
-    original = interpret_module.validate_planning_regulation_structure
+    original = interpret_module.validate_planning_regulation_structure_with_fragments
 
     def counted(*args, **kwargs):
         nonlocal calls
@@ -970,10 +1244,32 @@ def test_public_source_complete_validator_is_invoked(inputs, monkeypatch) -> Non
         return original(*args, **kwargs)
 
     monkeypatch.setattr(
-        interpret_module, "validate_planning_regulation_structure", counted
+        interpret_module,
+        "validate_planning_regulation_structure_with_fragments",
+        counted,
     )
     interpret_bess_zoning(*inputs)
     assert calls >= 1
+
+
+def test_one_build_result_performs_one_factual_structure_rebuild(
+    inputs, monkeypatch
+) -> None:
+    calls = 0
+    original = interpret_module.validate_planning_regulation_structure_with_fragments
+
+    def counted(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(
+        interpret_module,
+        "validate_planning_regulation_structure_with_fragments",
+        counted,
+    )
+    interpret_module._build_result(*inputs)
+    assert calls == 1
 
 
 @pytest.mark.parametrize(
@@ -1089,9 +1385,22 @@ def test_coordinated_evidence_catalog_mutation_is_rejected(inputs, valid_result)
         _validate(inputs, mutated)
 
 
-def test_result_hash_schema_mutation_is_rejected(inputs, valid_result) -> None:
+def test_coordinated_route_table_mutation_is_rejected(inputs, valid_result) -> None:
+    routes = valid_result.route_assessments.copy(deep=True)
+    routes.loc[0, "applicability_note"] = "Coordinated route mutation."
+    mutated = _result_with_hashes(
+        replace(valid_result, route_assessments=routes)
+    )
+    with pytest.raises(BessZoningPrecheckError, match="differs from rebuilt"):
+        _validate(inputs, mutated)
+
+
+@pytest.mark.parametrize("version", [1, 2])
+def test_old_result_hash_schemas_are_rejected(
+    inputs, valid_result, version: int
+) -> None:
     with pytest.raises(BessZoningPrecheckError, match="result_hash_schema_version"):
-        _validate(inputs, replace(valid_result, result_hash_schema_version=1))
+        _validate(inputs, replace(valid_result, result_hash_schema_version=version))
 
 
 def test_relation_identity_change_is_rejected(inputs) -> None:
@@ -1107,10 +1416,12 @@ def test_relation_identity_change_is_rejected(inputs) -> None:
 def test_readback_result_validates(tmp_path: Path, inputs, valid_result) -> None:
     chapter_path = tmp_path / "chapter.parquet"
     evidence_path = tmp_path / "evidence.parquet"
+    route_path = tmp_path / "routes.parquet"
     source_path = tmp_path / "source.parquet"
     relation_path = tmp_path / "relations.parquet"
     parcel_path = tmp_path / "parcels.parquet"
     valid_result.evidence_catalog.to_parquet(evidence_path, index=False)
+    valid_result.route_assessments.to_parquet(route_path, index=False)
     valid_result.chapter_policy.to_parquet(chapter_path, index=False)
     valid_result.source_zone_policy.to_parquet(source_path, index=False)
     valid_result.parcel_zone_interpretations.to_parquet(relation_path, index=False)
@@ -1118,6 +1429,7 @@ def test_readback_result_validates(tmp_path: Path, inputs, valid_result) -> None
     persisted = replace(
         valid_result,
         evidence_catalog=pd.read_parquet(evidence_path),
+        route_assessments=pd.read_parquet(route_path),
         chapter_policy=pd.read_parquet(chapter_path),
         source_zone_policy=pd.read_parquet(source_path),
         parcel_zone_interpretations=pd.read_parquet(relation_path),

@@ -31,8 +31,7 @@ from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
     PlanningRegulationStructureResult,
-    planning_regulation_section_page_fragments,
-    validate_planning_regulation_structure,
+    validate_planning_regulation_structure_with_fragments,
 )
 
 __all__ = [
@@ -44,9 +43,10 @@ __all__ = [
     "validate_bess_zoning_precheck",
 ]
 
-POLICY_SCHEMA_VERSION = 2
-RESULT_HASH_SCHEMA_VERSION = 2
+POLICY_SCHEMA_VERSION = 3
+RESULT_HASH_SCHEMA_VERSION = 3
 PLANNING_PRECHECK_SCOPE = "WRITTEN_ZONING_REGULATION_ONLY"
+REVIEW_SCOPE = "CONFIGURED_USE_CONTROL_ARTICLES_ONLY"
 
 ChapterStatus = Literal[
     "POTENTIALLY_COMPATIBLE",
@@ -55,6 +55,15 @@ ChapterStatus = Literal[
     "UNKNOWN",
 ]
 Confidence = Literal["HIGH", "MEDIUM", "LOW"]
+ReviewCompleteness = Literal[
+    "COMPLETE_FOR_CONFIGURED_USE_CONTROL_ARTICLES", "INCOMPLETE"
+]
+RouteKind = Literal[
+    "DIRECT_ROUTE",
+    "CONDITIONAL_ROUTE",
+    "RESTRICTION_EXCEPTION_ROUTE",
+    "DIFFICULTY_ONLY",
+]
 EvidenceKind = Literal[
     "USE_PERMISSION",
     "USE_RESTRICTION",
@@ -83,7 +92,9 @@ CHAPTER_POLICY_COLUMNS = (
     "resolved_zone_chapter_label",
     "chapter_section_id",
     "review_completeness",
+    "review_scope",
     "reviewed_section_ids",
+    "missing_required_section_ids",
     "review_note",
     "zoning_precheck_status",
     "zoning_precheck_confidence",
@@ -113,8 +124,34 @@ EVIDENCE_CATALOG_COLUMNS = (
     "section_page_fragment_sha256",
     "excerpt_start",
     "excerpt_end",
+    "source_rule_id",
+    "source_rule_excerpt",
+    "source_rule_sha256",
+    "source_rule_start",
+    "source_rule_end",
     "interpretation_note",
     "review_completeness",
+    "review_scope",
+    "policy_profile",
+    "policy_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_result_content_sha256",
+    "structure_profile",
+)
+ROUTE_ASSESSMENT_COLUMNS = (
+    "route_id",
+    "resolved_zone_chapter_label",
+    "route_kind",
+    "derived_route_status",
+    "positive_evidence_ids",
+    "condition_evidence_ids",
+    "difficulty_evidence_ids",
+    "applicability_note",
+    "review_completeness",
+    "review_scope",
     "policy_profile",
     "policy_sha256",
     "document_id",
@@ -133,6 +170,7 @@ SOURCE_ZONE_POLICY_COLUMNS = (
     "zoning_precheck_status",
     "zoning_precheck_confidence",
     "evidence_ids",
+    "review_scope",
     "planning_precheck_scope",
     "policy_profile",
     "policy_sha256",
@@ -154,6 +192,7 @@ PARCEL_ZONE_POLICY_COLUMNS = (
     "zoning_precheck_status",
     "zoning_precheck_confidence",
     "evidence_ids",
+    "review_scope",
     "planning_precheck_scope",
     "policy_profile",
     "policy_sha256",
@@ -176,6 +215,7 @@ PARCEL_PRECHECK_COLUMNS = (
     "zoning_precheck_evidence_ids",
     "zoning_precheck_requires_formal_review",
     "planning_precheck_scope",
+    "review_scope",
     "non_zoning_planning_features_interpreted",
     "zoning_precheck_policy_profile",
     "zoning_precheck_policy_sha256",
@@ -210,6 +250,11 @@ class PolicyEvidence(_StrictConfigModel):
     section_page_fragment_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
     excerpt_start: StrictInt = Field(ge=0)
     excerpt_end: StrictInt = Field(ge=1)
+    source_rule_id: StrictStr = Field(min_length=1)
+    source_rule_excerpt: StrictStr = Field(min_length=1)
+    source_rule_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+    source_rule_start: StrictInt = Field(ge=0)
+    source_rule_end: StrictInt = Field(ge=1)
     interpretation_note: StrictStr = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -218,6 +263,8 @@ class PolicyEvidence(_StrictConfigModel):
             (self.evidence_id, "evidence ID"),
             (self.section_id, "evidence section ID"),
             (self.exact_raw_excerpt, "exact raw excerpt"),
+            (self.source_rule_id, "source rule ID"),
+            (self.source_rule_excerpt, "source rule excerpt"),
             (self.interpretation_note, "interpretation note"),
         ):
             _config_string(value, label)
@@ -225,31 +272,129 @@ class PolicyEvidence(_StrictConfigModel):
             raise ValueError("evidence excerpt SHA256 differs from exact_raw_excerpt")
         if self.excerpt_end <= self.excerpt_start:
             raise ValueError("evidence excerpt offsets must be ordered")
+        if sha256(self.source_rule_excerpt.encode("utf-8")).hexdigest() != (
+            self.source_rule_sha256
+        ):
+            raise ValueError("source rule SHA256 differs from source_rule_excerpt")
+        if self.source_rule_end <= self.source_rule_start:
+            raise ValueError("source rule offsets must be ordered")
+        if not (
+            self.source_rule_start <= self.excerpt_start
+            and self.excerpt_end <= self.source_rule_end
+        ):
+            raise ValueError("evidence excerpt must lie inside its source rule")
         allowed_directions: dict[str, frozenset[str]] = {
             "USE_PERMISSION": frozenset(
                 {"SUPPORTS_POTENTIAL_COMPATIBILITY", "CONTEXT_ONLY"}
             ),
             "USE_RESTRICTION": frozenset({"SUPPORTS_DIFFICULTY", "CONTEXT_ONLY"}),
-            "ACCESS_OR_NETWORK_CONDITION": frozenset({"CONDITION", "CONTEXT_ONLY"}),
+            "PUBLIC_INTEREST_EXCEPTION": frozenset(
+                {
+                    "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                    "CONDITION",
+                    "CONTEXT_ONLY",
+                }
+            ),
+            "TECHNICAL_EQUIPMENT_RULE": frozenset(
+                {
+                    "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                    "SUPPORTS_DIFFICULTY",
+                    "CONDITION",
+                    "CONTEXT_ONLY",
+                }
+            ),
+            "ICPE_RULE": frozenset(
+                {
+                    "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                    "SUPPORTS_DIFFICULTY",
+                    "CONDITION",
+                    "CONTEXT_ONLY",
+                }
+            ),
+            "RISK_OR_NUISANCE_CONDITION": frozenset(
+                {"SUPPORTS_DIFFICULTY", "CONDITION", "CONTEXT_ONLY"}
+            ),
+            "ACCESS_OR_NETWORK_CONDITION": frozenset(
+                {"SUPPORTS_DIFFICULTY", "CONDITION", "CONTEXT_ONLY"}
+            ),
+            "OTHER_RELEVANT_RULE": frozenset(
+                {"SUPPORTS_DIFFICULTY", "CONDITION", "CONTEXT_ONLY"}
+            ),
         }
-        allowed = allowed_directions.get(self.evidence_kind)
-        if allowed is not None and self.evidence_direction not in allowed:
+        allowed = allowed_directions[self.evidence_kind]
+        if self.evidence_direction not in allowed:
             raise ValueError("evidence kind and direction are incompatible")
         return self
 
 
+class RouteAssessment(_StrictConfigModel):
+    route_id: StrictStr = Field(min_length=1)
+    route_kind: RouteKind
+    positive_evidence_ids: tuple[StrictStr, ...] = ()
+    condition_evidence_ids: tuple[StrictStr, ...] = ()
+    difficulty_evidence_ids: tuple[StrictStr, ...] = ()
+    applicability_note: StrictStr = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _validate_route_shape(self) -> RouteAssessment:
+        _config_string(self.route_id, "route ID")
+        _config_string(self.applicability_note, "route applicability note")
+        roles = {
+            "positive": self.positive_evidence_ids,
+            "condition": self.condition_evidence_ids,
+            "difficulty": self.difficulty_evidence_ids,
+        }
+        combined: list[str] = []
+        for role, values in roles.items():
+            normalized = [_config_string(value, f"{role} evidence ID") for value in values]
+            if len(set(normalized)) != len(normalized):
+                raise ValueError(f"{role} evidence IDs must be unique within a route")
+            combined.extend(normalized)
+        if len(set(combined)) != len(combined):
+            raise ValueError("one evidence ID cannot occupy incompatible route roles")
+        positive = bool(self.positive_evidence_ids)
+        condition = bool(self.condition_evidence_ids)
+        difficulty = bool(self.difficulty_evidence_ids)
+        expected = {
+            "DIRECT_ROUTE": (True, False, False),
+            "CONDITIONAL_ROUTE": (True, True, False),
+            "RESTRICTION_EXCEPTION_ROUTE": (True, False, True),
+            "DIFFICULTY_ONLY": (False, False, True),
+        }[self.route_kind]
+        if (positive, condition, difficulty) != expected:
+            raise ValueError(
+                f"{self.route_kind} has incompatible evidence-role membership"
+            )
+        return self
+
+
+def _derived_chapter_status(
+    review_completeness: ReviewCompleteness,
+    routes: Sequence[RouteAssessment],
+) -> ChapterStatus:
+    if review_completeness == "INCOMPLETE":
+        return "UNKNOWN"
+    kinds = {route.route_kind for route in routes}
+    if kinds.intersection({"CONDITIONAL_ROUTE", "RESTRICTION_EXCEPTION_ROUTE"}):
+        return "CONDITIONAL_REVIEW"
+    if "DIRECT_ROUTE" in kinds:
+        return "UNKNOWN" if "DIFFICULTY_ONLY" in kinds else "POTENTIALLY_COMPATIBLE"
+    if "DIFFICULTY_ONLY" in kinds:
+        return "LIKELY_DIFFICULT"
+    return "UNKNOWN"
+
+
 class ChapterPolicy(_StrictConfigModel):
     resolved_zone_chapter_label: StrictStr = Field(min_length=1)
-    review_completeness: Literal[
-        "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK", "INCOMPLETE"
-    ]
-    reviewed_section_ids: tuple[StrictStr, ...] = Field(min_length=1)
+    review_completeness: ReviewCompleteness
+    reviewed_section_ids: tuple[StrictStr, ...] = ()
     review_note: StrictStr = Field(min_length=1)
     zoning_precheck_status: ChapterStatus
     zoning_precheck_confidence: Confidence
     rationale: StrictStr = Field(min_length=1)
     missing_information: StrictStr = Field(min_length=1)
     evidence: tuple[PolicyEvidence, ...] = ()
+    route_assessments: tuple[RouteAssessment, ...] = ()
 
     @model_validator(mode="after")
     def _validate_evidence_semantics(self) -> ChapterPolicy:
@@ -263,31 +408,22 @@ class ChapterPolicy(_StrictConfigModel):
         ]
         if len(set(reviewed)) != len(reviewed):
             raise ValueError("reviewed section IDs must be unique")
-        directions = {item.evidence_direction for item in self.evidence}
-        status = self.zoning_precheck_status
-        positive = "SUPPORTS_POTENTIAL_COMPATIBILITY" in directions
-        difficulty = "SUPPORTS_DIFFICULTY" in directions
-        condition = "CONDITION" in directions
-        if self.review_completeness == "INCOMPLETE":
-            if status != "UNKNOWN" or self.zoning_precheck_confidence != "LOW":
-                raise ValueError("incomplete review requires UNKNOWN / LOW")
-        elif status == "POTENTIALLY_COMPATIBLE":
-            if not positive or difficulty or condition:
-                raise ValueError(
-                    "POTENTIALLY_COMPATIBLE requires a positive route without difficulty or conditions"
-                )
-        elif status == "CONDITIONAL_REVIEW":
-            if not positive or not (condition or difficulty):
-                raise ValueError(
-                    "CONDITIONAL_REVIEW requires a positive route plus a condition or difficulty"
-                )
-        elif status == "LIKELY_DIFFICULT":
-            if not difficulty or positive:
-                raise ValueError(
-                    "LIKELY_DIFFICULT requires difficulty without a positive route"
-                )
-        elif positive or difficulty:
-            raise ValueError("UNKNOWN requires insufficient or ambiguous route evidence")
+        if self.review_completeness == "INCOMPLETE" and (
+            self.zoning_precheck_status != "UNKNOWN"
+            or self.zoning_precheck_confidence != "LOW"
+        ):
+            raise ValueError("incomplete review requires UNKNOWN / LOW")
+        route_ids = [route.route_id for route in self.route_assessments]
+        if len(set(route_ids)) != len(route_ids):
+            raise ValueError("route IDs must be unique within a chapter")
+        expected_status = _derived_chapter_status(
+            self.review_completeness,
+            self.route_assessments,
+        )
+        if self.zoning_precheck_status != expected_status:
+            raise ValueError(
+                "declared chapter status differs from coherent linked route assessments"
+            )
         return self
 
 
@@ -297,6 +433,7 @@ class BessZoningPolicyConfig(_StrictConfigModel):
     schema_version: StrictInt
     policy_profile: StrictStr = Field(min_length=1)
     planning_precheck_scope: Literal["WRITTEN_ZONING_REGULATION_ONLY"]
+    review_scope: Literal["CONFIGURED_USE_CONTROL_ARTICLES_ONLY"]
     source_lock: PolicySourceLock
     required_zone_article_numbers: tuple[StrictStr, ...] = Field(min_length=1)
     chapters: tuple[ChapterPolicy, ...] = Field(min_length=1)
@@ -318,17 +455,102 @@ class BessZoningPolicyConfig(_StrictConfigModel):
         if len(set(labels)) != len(labels):
             raise ValueError("chapter policy labels must be unique")
         evidence_ids: set[str] = set()
-        excerpt_directions: dict[tuple[str, str, int], str] = {}
+        route_ids: set[str] = set()
+        excerpt_directions: dict[tuple[str, int, str, int, int], str] = {}
+        source_rules: dict[str, tuple[object, ...]] = {}
+        source_rule_occurrences: dict[tuple[object, ...], str] = {}
+        source_rule_ranges: dict[tuple[str, int, str], list[tuple[int, int, str]]] = {}
         for chapter in self.chapters:
+            chapter_evidence = {
+                evidence.evidence_id: evidence for evidence in chapter.evidence
+            }
             for evidence in chapter.evidence:
                 if evidence.evidence_id in evidence_ids:
                     raise ValueError("evidence IDs must be globally unique")
                 evidence_ids.add(evidence.evidence_id)
-                key = (evidence.excerpt_sha256, evidence.section_id, evidence.page_number)
+                key = (
+                    evidence.section_id,
+                    evidence.page_number,
+                    evidence.section_page_fragment_sha256,
+                    evidence.excerpt_start,
+                    evidence.excerpt_end,
+                )
                 previous = excerpt_directions.get(key)
                 if previous is not None and previous != evidence.evidence_direction:
-                    raise ValueError("one evidence excerpt cannot use contradictory directions")
+                    raise ValueError(
+                        "one exact evidence occurrence cannot use contradictory directions"
+                    )
                 excerpt_directions[key] = evidence.evidence_direction
+                rule_identity = (
+                    evidence.section_id,
+                    evidence.page_number,
+                    evidence.section_page_fragment_sha256,
+                    evidence.source_rule_start,
+                    evidence.source_rule_end,
+                    evidence.source_rule_sha256,
+                    evidence.source_rule_excerpt,
+                )
+                prior_rule = source_rules.get(evidence.source_rule_id)
+                if prior_rule is not None and prior_rule != rule_identity:
+                    raise ValueError(
+                        "one source rule ID must resolve to one exact occurrence"
+                    )
+                source_rules[evidence.source_rule_id] = rule_identity
+                occurrence = rule_identity[:5]
+                prior_rule_id = source_rule_occurrences.get(occurrence)
+                if prior_rule_id is not None and prior_rule_id != evidence.source_rule_id:
+                    raise ValueError(
+                        "one exact source-rule occurrence must use one source rule ID"
+                    )
+                source_rule_occurrences[occurrence] = evidence.source_rule_id
+                range_key = (
+                    evidence.section_id,
+                    evidence.page_number,
+                    evidence.section_page_fragment_sha256,
+                )
+                ranges = source_rule_ranges.setdefault(range_key, [])
+                current = (
+                    evidence.source_rule_start,
+                    evidence.source_rule_end,
+                    evidence.source_rule_id,
+                )
+                for start, end, rule_id in ranges:
+                    overlaps = max(start, current[0]) < min(end, current[1])
+                    identical = start == current[0] and end == current[1]
+                    if overlaps and not identical:
+                        raise ValueError(
+                            f"source rule {evidence.source_rule_id!r} partially overlaps {rule_id!r}"
+                        )
+                if current not in ranges:
+                    ranges.append(current)
+            for route in chapter.route_assessments:
+                if route.route_id in route_ids:
+                    raise ValueError("route IDs must be globally unique")
+                route_ids.add(route.route_id)
+                roles = (
+                    (
+                        route.positive_evidence_ids,
+                        "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                        "positive",
+                    ),
+                    (route.condition_evidence_ids, "CONDITION", "condition"),
+                    (
+                        route.difficulty_evidence_ids,
+                        "SUPPORTS_DIFFICULTY",
+                        "difficulty",
+                    ),
+                )
+                for identifiers, expected_direction, role in roles:
+                    for evidence_id in identifiers:
+                        referenced_evidence = chapter_evidence.get(evidence_id)
+                        if referenced_evidence is None:
+                            raise ValueError(
+                                f"route references unknown or another-chapter evidence ID {evidence_id!r}"
+                            )
+                        if referenced_evidence.evidence_direction != expected_direction:
+                            raise ValueError(
+                                f"route assigns evidence ID {evidence_id!r} to an incompatible {role} role"
+                            )
         return self
 
 
@@ -340,6 +562,7 @@ class BessZoningPrecheckResult:
     policy_schema_version: int
     policy_profile: str
     planning_precheck_scope: str
+    review_scope: str
     document_id: str
     archive_sha256: str
     pdf_sha256: str
@@ -352,6 +575,7 @@ class BessZoningPrecheckResult:
     zoning_relation_hash_columns: tuple[str, ...]
     zoning_relations_input_sha256: str
     evidence_catalog_content_sha256: str
+    route_assessments_content_sha256: str
     chapter_policy_content_sha256: str
     source_zone_policy_content_sha256: str
     parcel_zone_policy_content_sha256: str
@@ -359,6 +583,7 @@ class BessZoningPrecheckResult:
     complete_result_content_sha256: str
     touch_only_relation_count: int
     evidence_catalog: pd.DataFrame
+    route_assessments: pd.DataFrame
     chapter_policy: pd.DataFrame
     source_zone_policy: pd.DataFrame
     parcel_zone_interpretations: pd.DataFrame
@@ -816,6 +1041,30 @@ def _zone_mapping_input_sha256(
     )
 
 
+def _required_section_ids_by_chapter(
+    structure: PlanningRegulationStructureResult,
+    policy: BessZoningPolicyConfig,
+) -> dict[str, tuple[str, ...]]:
+    required_numbers = set(policy.required_zone_article_numbers)
+    chapter_ids = {
+        row["zone_chapter_label"]: row["section_id"]
+        for row in structure.sections.loc[
+            structure.sections["section_type"].eq("ZONE_CHAPTER")
+        ].to_dict("records")
+    }
+    result: dict[str, tuple[str, ...]] = {}
+    section_rows = structure.sections.to_dict("records")
+    for label, chapter_id in chapter_ids.items():
+        result[str(label)] = tuple(
+            str(row["section_id"])
+            for row in section_rows
+            if row["section_type"] == "ARTICLE"
+            and row["parent_section_id"] == chapter_id
+            and row["article_number_raw"] in required_numbers
+        )
+    return result
+
+
 def _validate_policy_evidence(
     index: PlanningRegulationIndex,
     structure: PlanningRegulationStructureResult,
@@ -848,7 +1097,7 @@ def _validate_policy_evidence(
             f"Chapter policy completeness differs; missing={missing}, extra={extra}"
         )
     catalog_rows: list[dict[str, object]] = []
-    required_numbers = set(policy.required_zone_article_numbers)
+    required_by_chapter = _required_section_ids_by_chapter(structure, policy)
     for chapter in policy.chapters:
         chapter_row = chapters[chapter.resolved_zone_chapter_label]
         chapter_id = chapter_row["section_id"]
@@ -876,15 +1125,13 @@ def _validate_policy_evidence(
                 raise BessZoningPrecheckError(
                     f"Reviewed section {reviewed_id!r} has another chapter parent"
                 )
-        required_ids = {
-            row["section_id"]
-            for row in structure.sections.to_dict("records")
-            if row["section_type"] == "ARTICLE"
-            and row["parent_section_id"] == chapter_id
-            and row["article_number_raw"] in required_numbers
-        }
+        required_ids = set(required_by_chapter[chapter.resolved_zone_chapter_label])
         missing_required = sorted(required_ids.difference(reviewed_ids))
-        if missing_required:
+        if (
+            chapter.review_completeness
+            == "COMPLETE_FOR_CONFIGURED_USE_CONTROL_ARTICLES"
+            and missing_required
+        ):
             raise BessZoningPrecheckError(
                 f"Chapter {chapter.resolved_zone_chapter_label} omits required reviewed articles: {missing_required}"
             )
@@ -934,6 +1181,23 @@ def _validate_policy_evidence(
                 raise BessZoningPrecheckError(
                     f"Evidence {evidence.evidence_id} excerpt SHA256 differs"
                 )
+            rule = evidence.source_rule_excerpt
+            if evidence.source_rule_end > len(raw_fragment) or raw_fragment[
+                evidence.source_rule_start : evidence.source_rule_end
+            ] != rule:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} source-rule offsets differ"
+                )
+            if sha256(rule.encode("utf-8")).hexdigest() != evidence.source_rule_sha256:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} source-rule SHA256 differs"
+                )
+            relative_start = evidence.excerpt_start - evidence.source_rule_start
+            relative_end = evidence.excerpt_end - evidence.source_rule_start
+            if rule[relative_start:relative_end] != excerpt:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} is outside its source rule"
+                )
             catalog_rows.append(
                 {
                     "evidence_id": evidence.evidence_id,
@@ -951,8 +1215,14 @@ def _validate_policy_evidence(
                     ),
                     "excerpt_start": evidence.excerpt_start,
                     "excerpt_end": evidence.excerpt_end,
+                    "source_rule_id": evidence.source_rule_id,
+                    "source_rule_excerpt": rule,
+                    "source_rule_sha256": evidence.source_rule_sha256,
+                    "source_rule_start": evidence.source_rule_start,
+                    "source_rule_end": evidence.source_rule_end,
                     "interpretation_note": evidence.interpretation_note,
                     "review_completeness": chapter.review_completeness,
+                    "review_scope": policy.review_scope,
                     "policy_profile": policy.policy_profile,
                     "policy_sha256": policy_hash,
                     "document_id": index.document_id,
@@ -966,7 +1236,13 @@ def _validate_policy_evidence(
                 }
             )
     catalog = pd.DataFrame(catalog_rows, columns=EVIDENCE_CATALOG_COLUMNS)
-    for column in ("page_number", "excerpt_start", "excerpt_end"):
+    for column in (
+        "page_number",
+        "excerpt_start",
+        "excerpt_end",
+        "source_rule_start",
+        "source_rule_end",
+    ):
         catalog[column] = catalog[column].astype("int64")
     if catalog["evidence_id"].duplicated().any():
         raise BessZoningPrecheckError("Evidence catalog IDs must be unique")
@@ -1019,6 +1295,7 @@ def _lineage(
 ) -> dict[str, object]:
     return {
         "planning_precheck_scope": PLANNING_PRECHECK_SCOPE,
+        "review_scope": REVIEW_SCOPE,
         "policy_profile": policy.policy_profile,
         "policy_sha256": policy_hash,
         "document_id": index.document_id,
@@ -1044,6 +1321,7 @@ def _build_chapter_policy(
     chapters = structure.sections.loc[
         structure.sections["section_type"].eq("ZONE_CHAPTER")
     ]
+    required_by_chapter = _required_section_ids_by_chapter(structure, policy)
     for source in chapters.to_dict("records"):
         label = source["zone_chapter_label"]
         chapter = by_label[label]
@@ -1053,7 +1331,13 @@ def _build_chapter_policy(
                 "resolved_zone_chapter_label": label,
                 "chapter_section_id": source["section_id"],
                 "review_completeness": chapter.review_completeness,
+                "review_scope": policy.review_scope,
                 "reviewed_section_ids": tuple(chapter.reviewed_section_ids),
+                "missing_required_section_ids": tuple(
+                    section_id
+                    for section_id in required_by_chapter[label]
+                    if section_id not in set(chapter.reviewed_section_ids)
+                ),
                 "review_note": chapter.review_note,
                 "zoning_precheck_status": chapter.zoning_precheck_status,
                 "zoning_precheck_confidence": chapter.zoning_precheck_confidence,
@@ -1066,6 +1350,46 @@ def _build_chapter_policy(
         )
     frame = pd.DataFrame(rows, columns=CHAPTER_POLICY_COLUMNS)
     frame["evidence_count"] = frame["evidence_count"].astype("int64")
+    return frame
+
+
+def _route_status(route_kind: RouteKind) -> ChapterStatus:
+    statuses: dict[RouteKind, ChapterStatus] = {
+        "DIRECT_ROUTE": "POTENTIALLY_COMPATIBLE",
+        "CONDITIONAL_ROUTE": "CONDITIONAL_REVIEW",
+        "RESTRICTION_EXCEPTION_ROUTE": "CONDITIONAL_REVIEW",
+        "DIFFICULTY_ONLY": "LIKELY_DIFFICULT",
+    }
+    return statuses[route_kind]
+
+
+def _build_route_assessments(
+    index: PlanningRegulationIndex,
+    structure: PlanningRegulationStructureResult,
+    policy: BessZoningPolicyConfig,
+    policy_hash: str,
+) -> pd.DataFrame:
+    lineage = _lineage(index, structure, policy, policy_hash)
+    rows = [
+        {
+            "route_id": route.route_id,
+            "resolved_zone_chapter_label": chapter.resolved_zone_chapter_label,
+            "route_kind": route.route_kind,
+            "derived_route_status": _route_status(route.route_kind),
+            "positive_evidence_ids": tuple(route.positive_evidence_ids),
+            "condition_evidence_ids": tuple(route.condition_evidence_ids),
+            "difficulty_evidence_ids": tuple(route.difficulty_evidence_ids),
+            "applicability_note": route.applicability_note,
+            "review_completeness": chapter.review_completeness,
+            "review_scope": policy.review_scope,
+            **lineage,
+        }
+        for chapter in policy.chapters
+        for route in chapter.route_assessments
+    ]
+    frame = pd.DataFrame(rows, columns=ROUTE_ASSESSMENT_COLUMNS)
+    if frame["route_id"].duplicated().any():
+        raise BessZoningPrecheckError("Normalized route IDs must be unique")
     return frame
 
 
@@ -1260,6 +1584,7 @@ def _build_parcel_output(
         summary["zoning_precheck_evidence_ids"].append(evidence_ids)
         summary["zoning_precheck_requires_formal_review"].append(True)
         summary["planning_precheck_scope"].append(PLANNING_PRECHECK_SCOPE)
+        summary["review_scope"].append(REVIEW_SCOPE)
         summary["non_zoning_planning_features_interpreted"].append(False)
         summary["zoning_precheck_policy_profile"].append(policy.policy_profile)
         summary["zoning_precheck_policy_sha256"].append(policy_hash)
@@ -1286,6 +1611,7 @@ def _result_component_metadata(result: BessZoningPrecheckResult) -> dict[str, ob
         "policy_schema_version": result.policy_schema_version,
         "policy_profile": result.policy_profile,
         "planning_precheck_scope": result.planning_precheck_scope,
+        "review_scope": result.review_scope,
         "document_id": result.document_id,
         "archive_sha256": result.archive_sha256,
         "pdf_sha256": result.pdf_sha256,
@@ -1324,6 +1650,9 @@ def _complete_result_sha256(result: BessZoningPrecheckResult) -> str:
             "evidence_catalog_content_sha256": (
                 result.evidence_catalog_content_sha256
             ),
+            "route_assessments_content_sha256": (
+                result.route_assessments_content_sha256
+            ),
             "chapter_policy_content_sha256": result.chapter_policy_content_sha256,
             "source_zone_policy_content_sha256": (
                 result.source_zone_policy_content_sha256
@@ -1346,6 +1675,12 @@ def _result_with_hashes(
             result,
             result.evidence_catalog,
             EVIDENCE_CATALOG_COLUMNS,
+        ),
+        route_assessments_content_sha256=_result_frame_sha256(
+            "landscout.bess_zoning.route_assessments",
+            result,
+            result.route_assessments,
+            ROUTE_ASSESSMENT_COLUMNS,
         ),
         chapter_policy_content_sha256=_result_frame_sha256(
             "landscout.bess_zoning.chapter_policy",
@@ -1388,14 +1723,7 @@ def _build_result(
     policy: BessZoningPolicyConfig,
 ) -> BessZoningPrecheckResult:
     validate_planning_regulation_index(index)
-    validate_planning_regulation_structure(
-        index,
-        zones,
-        zoning_intersections,
-        structure_config,
-        structure,
-    )
-    fragments = planning_regulation_section_page_fragments(
+    fragments = validate_planning_regulation_structure_with_fragments(
         index,
         zones,
         zoning_intersections,
@@ -1418,6 +1746,9 @@ def _build_result(
         policy_hash,
     )
     chapter_policy = _build_chapter_policy(
+        index, structure, policy, policy_hash
+    )
+    route_assessments = _build_route_assessments(
         index, structure, policy, policy_hash
     )
     source_policy = _build_source_zone_policy(
@@ -1450,6 +1781,7 @@ def _build_result(
         policy_schema_version=policy.schema_version,
         policy_profile=policy.policy_profile,
         planning_precheck_scope=PLANNING_PRECHECK_SCOPE,
+        review_scope=REVIEW_SCOPE,
         document_id=index.document_id,
         archive_sha256=index.archive_sha256,
         pdf_sha256=index.pdf_sha256,
@@ -1466,6 +1798,7 @@ def _build_result(
             relation_columns,
         ),
         evidence_catalog_content_sha256="",
+        route_assessments_content_sha256="",
         chapter_policy_content_sha256="",
         source_zone_policy_content_sha256="",
         parcel_zone_policy_content_sha256="",
@@ -1475,6 +1808,7 @@ def _build_result(
             relation_copy["relation_type"].eq("TOUCH_ONLY").sum()
         ),
         evidence_catalog=evidence_catalog,
+        route_assessments=route_assessments,
         chapter_policy=chapter_policy,
         source_zone_policy=source_policy,
         parcel_zone_interpretations=interpretations,
@@ -1509,6 +1843,7 @@ def _compare_results(
         "policy_schema_version",
         "policy_profile",
         "planning_precheck_scope",
+        "review_scope",
         "document_id",
         "archive_sha256",
         "pdf_sha256",
@@ -1521,6 +1856,7 @@ def _compare_results(
         "zoning_relation_hash_columns",
         "zoning_relations_input_sha256",
         "evidence_catalog_content_sha256",
+        "route_assessments_content_sha256",
         "chapter_policy_content_sha256",
         "source_zone_policy_content_sha256",
         "parcel_zone_policy_content_sha256",
@@ -1570,6 +1906,7 @@ def _compare_results(
         "zone_mapping_input_sha256",
         "zoning_relations_input_sha256",
         "evidence_catalog_content_sha256",
+        "route_assessments_content_sha256",
         "chapter_policy_content_sha256",
         "source_zone_policy_content_sha256",
         "parcel_zone_policy_content_sha256",
@@ -1582,6 +1919,12 @@ def _compare_results(
         expected.evidence_catalog,
         EVIDENCE_CATALOG_COLUMNS,
         "evidence catalog",
+    )
+    _compare_frames(
+        result.route_assessments,
+        expected.route_assessments,
+        ROUTE_ASSESSMENT_COLUMNS,
+        "route assessments",
     )
     _compare_frames(
         result.chapter_policy,
@@ -1653,6 +1996,8 @@ def _compare_results(
         raise BessZoningPrecheckError(
             "Non-zoning planning features must remain uninterpreted"
         )
+    if not result.parcels["review_scope"].eq(REVIEW_SCOPE).all():
+        raise BessZoningPrecheckError("Parcel review scope is invalid")
 
 
 def validate_bess_zoning_precheck(

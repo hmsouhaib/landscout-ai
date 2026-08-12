@@ -32,6 +32,7 @@ from landscout.stages.structure_planning_regulation import (
     load_planning_regulation_structure_config,
     structure_planning_regulation,
     validate_planning_regulation_structure,
+    validate_planning_regulation_structure_with_fragments,
 )
 
 
@@ -179,7 +180,33 @@ def _validate(
 def test_package_exports_clean_high_level_api() -> None:
     assert "structure_planning_regulation" in stages.__all__
     assert "validate_planning_regulation_structure" in stages.__all__
+    assert "validate_planning_regulation_structure_with_fragments" in stages.__all__
     assert not any(name.startswith("_build_") for name in stages.__all__)
+
+
+def test_source_complete_validator_can_return_validated_fragments(valid_result) -> None:
+    index, result = valid_result
+    fragments = validate_planning_regulation_structure_with_fragments(
+        index,
+        _zones(index),
+        _intersections(index),
+        _config(index),
+        result,
+    )
+    assert tuple(fragments.columns) == (
+        "section_id",
+        "page_number",
+        "raw_text",
+        "section_page_fragment_sha256",
+        "document_id",
+        "archive_sha256",
+        "pdf_sha256",
+        "index_content_sha256",
+        "structure_result_content_sha256",
+        "structure_profile",
+    )
+    assert not fragments.duplicated(["section_id", "page_number"]).any()
+    assert fragments["document_id"].eq(index.document_id).all()
 
 
 def test_structure_schema_versions_are_explicit(valid_result) -> None:

@@ -1281,6 +1281,94 @@ Distance to an IGN electric line or transformation post does not establish grid 
 
 No BESS grid-distance threshold is selected here.
 
+## STEP 7D.4C.2 — Link BESS zoning evidence into coherent decision routes
+
+- Status: Complete
+- Policy schema / result-hash schema / ignored manifest schema: `3` / `3` / `3`; versions 1 and 2 are rejected rather than migrated.
+- A required red-first regression demonstrated the prior defect: positive and condition evidence placed in one chapter, but not linked to a common route, still produced `CONDITIONAL_REVIEW`. The test failed against schema v2 and now passes only because route membership is explicit.
+
+### Route and review semantics
+
+The precheck retains `planning_precheck_scope = WRITTEN_ZONING_REGULATION_ONLY` and now separately records:
+
+```text
+review_scope = CONFIGURED_USE_CONTROL_ARTICLES_ONLY
+```
+
+The source-family scope and the reviewed-portion scope are not interchangeable. Every complete chapter is now `COMPLETE_FOR_CONFIGURED_USE_CONTROL_ARTICLES`; an `INCOMPLETE` chapter may use an empty reviewed-section list, omit required articles, and must remain `UNKNOWN / LOW`. The normalized chapter table stores the exact deterministic `missing_required_section_ids` tuple.
+
+Chapter statuses are derived from explicit route assessments and must equal the YAML declaration:
+
+- `DIRECT_ROUTE`: positive evidence only, yielding `POTENTIALLY_COMPATIBLE` only when no unresolved difficulty route exists;
+- `CONDITIONAL_ROUTE`: positive evidence and its linked condition, yielding `CONDITIONAL_REVIEW`;
+- `RESTRICTION_EXCEPTION_ROUTE`: positive exception evidence and linked difficulty evidence, yielding `CONDITIONAL_REVIEW`;
+- `DIFFICULTY_ONLY`: difficulty evidence with no coherent positive route, yielding `LIKELY_DIFFICULT`;
+- incomplete review, no coherent route, or only unlinked condition/context evidence yields `UNKNOWN`.
+
+No association is inferred from evidence order or mere chapter membership. Every route ID is globally unique; every referenced evidence ID must belong to that chapter and have the direction required by its route role. An unrelated condition cannot affect another route.
+
+### Complete exact source-rule context
+
+All 26 evidence occurrences still identify a short exact effect excerpt. They now also retain one of 17 complete exact source-rule occurrences using `source_rule_id`, raw source-rule text, SHA256, and 0-based half-open offsets in the same validated section-page fragment. The evidence offsets must lie wholly inside the source-rule offsets. One source-rule ID always resolves to one occurrence; identical occurrences use one ID; partial source-rule overlaps are rejected.
+
+The real Muret policy was re-reviewed from the complete retained rules:
+
+- UA, UB, UC, UD, UF, AU, and AUf use the full ICPE conditional sentence, including `ne sont autorisées qu’à`, its connector, compatibility qualification, and local-necessity qualification.
+- UP and AUp preserve the full restriction/exception frame around public or collective-interest equipment, rather than treating the category phrase as unconditional permission.
+- AU0 and AUf0 preserve the full prohibition/exception sentence for collective-interest networks and public infrastructure, with the separate PLU-modification condition linked in the same route assessment.
+- A and N preserve one complete restriction-and-exception rule occurrence; their restriction and infrastructure-exception excerpts are linked as one explicit conflict.
+
+The evidence-kind/direction matrix is exhaustive for all eight configured evidence kinds. Generic access, network, risk, nuisance, and other conditions cannot serve as positive route evidence. Contradiction detection keys the exact occurrence identity—section, page, fragment hash, and offsets—so identical text at different offsets remains distinct.
+
+The factual structure API now validates the complete structure and returns its section-page fragments from the same rebuild. One precheck `_build_result()` therefore performs exactly one factual-structure rebuild; the independent public result validator still performs its own source-complete rebuild.
+
+### Real Muret regression
+
+The resulting distribution was not used as a target. It remains unchanged only because each chapter independently satisfies the schema-v3 route contract:
+
+| Result | Count |
+| --- | ---: |
+| Complete / incomplete chapter reviews | 13 / 0 |
+| Normalized routes | 13 |
+| `CONDITIONAL_ROUTE` / `RESTRICTION_EXCEPTION_ROUTE` | 11 / 2 |
+| Evidence occurrences / unique source rules | 26 / 17 |
+| Linked / unlinked conditions | 11 / 0 |
+| `CONDITIONAL_REVIEW` chapters / raw zone labels / parcels | 13 / 29 / 3,638 |
+| Positive parcel-zone rows / touch-only rows | 5,095 / 0 |
+| Mixed / `UNKNOWN` parcels | 0 / 0 |
+| Chapters without explicit BESS wording | 13 |
+| Lost / extra parcel IDs | 0 / 0 |
+
+All chapter confidences remain `LOW`. Evidence directions remain 13 positive-route, 11 condition, and 2 difficulty occurrences. These are preliminary category-route assessments; they do not establish that a BESS falls within the cited categories or satisfies their conditions.
+
+### Integrity, outputs, and read-back
+
+- Policy config SHA256: `504997abd09f5a9ef4719a8e987fa04357c37b02247d29835082bf6d0a981c8a`
+- Factual structure input SHA256: `055d43ba51af64ba3829244a894ecd3f32f0d196b58af1eee80722875476d628`
+- Zone-map / zoning-relation SHA256: `718d4721d54a76b8a28d152ba6535b3c948e606b3c4fc8d9f4fe9742c8e99453` / `547614f20eba5ba493d50c0162e498ffa0e7345cce65eb072537f0caf7e7a94b`
+- Evidence catalog SHA256: `caf47c6d8176d480a63ef05a245b0fbb9c02bd0c5b473753cfaa4ae44a41dfcf`
+- Route table SHA256: `e56d248e08e2738837c23d71053d1679da78dfd9bc2a35412aff79bcb5f56838`
+- Chapter / raw-zone / parcel-zone SHA256: `4961654d26c7b9125a5b7a37604d91a7e218bed0d0cdcca574c24cee3a5d2e53` / `91af7742ae385cb363ac7a7aeab01bbf840ac580275c341ebb62dd259df4a65d` / `94c9eef80612a6d2ccfbe91dc2efcaa6bf6ccc80502b859f9fb1dc74852e6f6f`
+- Parcel output / complete result SHA256: `7533cc8654d9bd555c2a423b5d4ada0af05e569397f6157bf8cc34642e799e16` / `c6c059e87d8c50e1abe98ea10f5022eecfb92ccc79fe1606e7917fdedf7839f5`
+- Complete build plus persisted source-complete read-back validation runtime: 23.926 seconds
+- Evidence catalog: 26 rows, 27,102 bytes
+- Route table: 13 rows, 15,202 bytes
+- Chapter policy: 13 rows, 20,074 bytes
+- Raw-zone policy: 29 rows, 14,222 bytes
+- Parcel-zone policy: 5,095 rows, 137,006 bytes
+- Parcel GeoParquet: 3,638 rows, 1,588,167 bytes
+- JSON manifest: 4,144 bytes
+
+All seven ignored outputs were read back. The immutable schema-v3 result was reconstructed, including the route table and evidence catalog, and accepted by the public source-complete validator using the original factual index, structure config/result, zones, intersections, parcels, and checked-in policy. Parcel IDs, order, index, geometry, CRS, and every prior field remained identical.
+
+This is not planning authorization or a legal opinion.
+
+No prescription or information feature is interpreted.
+
+No parcel is rejected.
+
+No score is created.
+
 ## STEP 7D.4C.1 — Harden BESS zoning-policy semantics and evidence auditability
 
 - Status: Complete

@@ -71,6 +71,7 @@ from landscout.stages.structure_planning_regulation import (
     planning_regulation_section_page_fragments,
     structure_planning_regulation,
     validate_planning_regulation_structure,
+    validate_planning_regulation_structure_with_fragments,
 )
 
 __all__ = [
@@ -127,4 +128,5 @@ __all__ = [
     "validate_planning_regulation_index",
     "validate_planning_regulation_search_result",
     "validate_planning_regulation_structure",
+    "validate_planning_regulation_structure_with_fragments",
 ]
