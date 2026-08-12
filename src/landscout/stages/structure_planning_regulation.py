@@ -17,7 +17,15 @@ from typing import Literal
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 import yaml  # type: ignore[import-untyped]
-from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictBool,
+    StrictInt,
+    StrictStr,
+    model_validator,
+)
 
 from landscout.common.planning_text import (
     normalize_planning_search_text,
@@ -28,6 +36,7 @@ from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     validate_planning_regulation_index,
 )
+from landscout.stages.planning_overlay import technical_overlay_tolerance
 
 _normalize_search_text = normalize_planning_search_text
 _normalize_search_text_with_mapping = normalize_planning_search_text_with_mapping
@@ -42,9 +51,9 @@ __all__ = [
     "validate_planning_regulation_structure",
 ]
 
-SECTION_HASH_SCHEMA_VERSION = 1
-_SUPPORTED_CONFIG_SCHEMA_VERSION = 1
-_AREA_TOLERANCE_M2 = 1e-6
+SECTION_HASH_SCHEMA_VERSION = 2
+STRUCTURE_MANIFEST_SCHEMA_VERSION = 3
+_SUPPORTED_CONFIG_SCHEMA_VERSION = 2
 
 _SECTION_TYPES = frozenset({"GENERAL", "ZONE_CHAPTER", "ARTICLE", "OTHER"})
 _MAPPING_STATUSES = frozenset({"EXACT", "CONFIG_ALIAS", "UNMAPPED", "AMBIGUOUS"})
@@ -158,7 +167,7 @@ class DocumentLayoutConfig(_StrictConfigModel):
     body_start_page: StrictInt = Field(ge=1)
     table_of_contents_pages: tuple[StrictInt, ...] = ()
     max_heading_continuation_lines: StrictInt = Field(ge=0, le=10)
-    include_table_of_contents_in_topic_evidence: bool = False
+    include_table_of_contents_in_topic_evidence: StrictBool = False
 
     @model_validator(mode="after")
     def _validate_pages(self) -> DocumentLayoutConfig:
@@ -260,7 +269,8 @@ class PlanningRegulationStructureConfig(_StrictConfigModel):
         _validate_alias_cycles(self.zone_aliases)
         if not self.topics:
             raise ValueError("topics must not be empty")
-        for topic, terms in self.topics.items():
+        for topic in sorted(self.topics):
+            terms = self.topics[topic]
             _exact_config_string(topic, "topic")
             if not terms:
                 raise ValueError(f"topic {topic!r} must contain literal terms")
@@ -459,10 +469,14 @@ def _canonical_sha256(value: object) -> str:
 
 
 def _config_sha256(config: PlanningRegulationStructureConfig) -> str:
+    payload = config.model_dump(mode="json")
+    payload["topics"] = {
+        topic: list(config.topics[topic]) for topic in sorted(config.topics)
+    }
     return _canonical_sha256(
         {
             "domain": "landscout.planning_regulation.structure_config",
-            "config": config.model_dump(mode="json"),
+            "config": payload,
         }
     )
 
@@ -601,6 +615,7 @@ def _source_records_sha256(records: Sequence[_LineRecord]) -> str:
     return _canonical_sha256(
         {
             "domain": "landscout.planning_regulation.source_records",
+            "section_hash_schema_version": SECTION_HASH_SCHEMA_VERSION,
             "records": [_source_record_payload(record) for record in records],
         }
     )
@@ -723,6 +738,74 @@ def _page_fragments(records: Sequence[_LineRecord]) -> tuple[tuple[int, str], ..
     return tuple(fragments)
 
 
+def _contiguous_page_blocks(pages: Sequence[int]) -> tuple[tuple[int, ...], ...]:
+    if not pages:
+        return ()
+    blocks: list[list[int]] = [[pages[0]]]
+    for page in pages[1:]:
+        if page == blocks[-1][-1] + 1:
+            blocks[-1].append(page)
+        else:
+            blocks.append([page])
+    return tuple(tuple(block) for block in blocks)
+
+
+def _section_starts(
+    records: Sequence[_LineRecord],
+    events: Sequence[_HeadingEvent],
+    config: PlanningRegulationStructureConfig,
+) -> list[tuple[int, _HeadingEvent | None]]:
+    starts_by_position: dict[int, _HeadingEvent | None] = {
+        event.record_position: event for event in events
+    }
+    record_positions_by_page: dict[int, list[int]] = {}
+    for position, record in enumerate(records):
+        record_positions_by_page.setdefault(record.page_number, []).append(position)
+    for block in _contiguous_page_blocks(
+        config.document_layout.table_of_contents_pages
+    ):
+        positions = [
+            position
+            for page in block
+            for position in record_positions_by_page.get(page, [])
+        ]
+        if not positions:
+            continue
+        block_start = min(positions)
+        block_end = max(positions) + 1
+        starts_by_position[block_start] = None
+        if block_end < len(records) and block_end not in starts_by_position:
+            starts_by_position[block_end] = None
+    ordered = sorted(starts_by_position.items())
+    if not ordered:
+        raise PlanningRegulationStructureError(
+            "No regulation section boundary could be established"
+        )
+    first_position, first_event = ordered[0]
+    if first_position > 0:
+        prefix = records[:first_position]
+        if any(record.raw.strip() for record in prefix):
+            ordered.insert(0, (0, None))
+        else:
+            ordered[0] = (0, first_event)
+    coalesced: list[tuple[int, _HeadingEvent | None]] = []
+    for boundary_index, (start, event) in enumerate(ordered):
+        end = (
+            ordered[boundary_index + 1][0]
+            if boundary_index + 1 < len(ordered)
+            else len(records)
+        )
+        if event is None and not any(record.raw.strip() for record in records[start:end]):
+            if boundary_index + 1 < len(ordered):
+                next_event = ordered[boundary_index + 1][1]
+                ordered[boundary_index + 1] = (start, next_event)
+                continue
+            if coalesced:
+                continue
+        coalesced.append((start, event))
+    return coalesced
+
+
 def _section_content_sha256(row: Mapping[str, object]) -> str:
     content = {column: row[column] for column in SECTION_COLUMNS if column != "section_content_sha256"}
     return _canonical_sha256(
@@ -740,22 +823,26 @@ def _build_sections(
 ) -> tuple[pd.DataFrame, tuple[_SectionBuild, ...], tuple[_LineRecord, ...]]:
     records = _line_records(index, config)
     events = _heading_events(records, config)
-    starts: list[tuple[int, _HeadingEvent | None]] = []
-    if events[0].record_position > 0:
-        starts.append((0, None))
-    starts.extend((event.record_position, event) for event in events)
+    starts = _section_starts(records, events, config)
     builds: list[_SectionBuild] = []
     current_chapter_id: str | None = None
     current_chapter_label: str | None = None
-    for sequence, (start, event) in enumerate(starts, start=1):
-        end = starts[sequence][0] if sequence < len(starts) else len(records)
+    for start_index, (start, event) in enumerate(starts):
+        end = (
+            starts[start_index + 1][0]
+            if start_index + 1 < len(starts)
+            else len(records)
+        )
         segment = records[start:end]
-        if not segment or not any(record.raw.strip() for record in segment):
+        if not segment:
             continue
         section_id = f"SECTION-{len(builds) + 1:04d}"
         if event is None:
             section_type = "OTHER"
-            heading_raw = segment[0].raw
+            heading_raw = next(
+                (record.raw for record in segment if record.raw.strip()),
+                "",
+            )
             heading_normalized = _normalize_search_text(heading_raw)
             zone_label = None
             article_number = None
@@ -971,7 +1058,7 @@ def _validated_zoning_inputs(
                 raise PlanningRegulationStructureError(
                     f"{upper_column} must be finite and non-negative"
                 )
-            if area > numeric_upper + _AREA_TOLERANCE_M2:
+            if area - numeric_upper > technical_overlay_tolerance(numeric_upper):
                 raise PlanningRegulationStructureError(
                     f"Intersection area exceeds {upper_column}"
                 )
@@ -1181,7 +1268,8 @@ def _build_topic_evidence(
     rows: list[dict[str, object]] = []
     context_characters = config.topic_context_characters
     toc_pages = set(config.document_layout.table_of_contents_pages)
-    for topic, terms in config.topics.items():
+    for topic in sorted(config.topics):
+        terms = config.topics[topic]
         for build in builds:
             section = build.row
             for page_number, raw_fragment in build.page_fragments:

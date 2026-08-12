@@ -18,7 +18,10 @@ from landscout.stages.index_planning_regulation import (
     _page_content_sha256,
     _pages_content_sha256,
 )
+from landscout.stages.planning_overlay import technical_overlay_tolerance
 from landscout.stages.structure_planning_regulation import (
+    SECTION_HASH_SCHEMA_VERSION,
+    STRUCTURE_MANIFEST_SCHEMA_VERSION,
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
     _line_records,
@@ -32,28 +35,28 @@ from landscout.stages.structure_planning_regulation import (
 
 
 def _index(raw_pages: tuple[str, ...] | None = None) -> PlanningRegulationIndex:
-    raw_pages = raw_pages or (
-        "Test PLU\n1\nZONE U\nARTICLE U 1 - TOC ENTRY",
-        "Test PLU\n2\nARTICLE 1 - GENERAL PROVISIONS\nGeneral energy rule.",
-        "Test PLU\n3\nZONE U\nCharacter of U.\nARTICLE U 1 - USES\nFirst page energy text.",
-        "Test PLU\n4\nSecond page of the same article.\nARTICLE U 2 - NETWORKS\nNetwork text.",
-        "Test PLU\n5\nZONE N\nARTICLE N 1 - RISK\nRisk text.",
-        "Test PLU\n6\nZONE Z\nARTICLE Z 1 - FIRST\nText.",
-        "Test PLU\n7\nZONE Z\nARTICLE Z 2 - SECOND\nText.",
-    )
+    if raw_pages is None:
+        raw_pages = (
+            "Test PLU\n1\nZONE U\nARTICLE U 1 - TOC ENTRY",
+            "Test PLU\n2\nARTICLE 1 - GENERAL PROVISIONS\nGeneral energy rule.",
+            "Test PLU\n3\nZONE U\nCharacter of U.\nARTICLE U 1 - USES\nFirst page energy text.",
+            "Test PLU\n4\nSecond page of the same article.\nARTICLE U 2 - NETWORKS\nNetwork text.",
+            "Test PLU\n5\nZONE N\nARTICLE N 1 - RISK\nRisk text.",
+            "Test PLU\n6\nZONE Z\nARTICLE Z 1 - FIRST\nText.",
+            "Test PLU\n7\nZONE Z\nARTICLE Z 2 - SECOND\nText.",
+        )
     rows: list[dict[str, object]] = []
     for number, raw_text in enumerate(raw_pages, start=1):
+        normalized_text = _normalize_search_text(raw_text)
         row: dict[str, object] = {
             "page_number": number,
-            "extraction_status": "TEXT",
+            "extraction_status": "TEXT" if normalized_text else "EMPTY",
             "raw_text": raw_text,
-            "normalized_search_text": raw_text.casefold(),
+            "normalized_search_text": normalized_text,
             "character_count": len(raw_text),
             "extraction_error": None,
             "page_content_sha256": "",
         }
-        # Use the production normalizer rather than this deliberately simple placeholder.
-        row["normalized_search_text"] = _normalize_search_text(raw_text)
         row["page_content_sha256"] = _page_content_sha256(row)
         rows.append(row)
     pages = pd.DataFrame(rows)
@@ -82,7 +85,7 @@ def _index(raw_pages: tuple[str, ...] | None = None) -> PlanningRegulationIndex:
 def _config(index: PlanningRegulationIndex) -> PlanningRegulationStructureConfig:
     return PlanningRegulationStructureConfig.model_validate(
         {
-            "schema_version": 1,
+            "schema_version": 2,
             "structure_profile": "synthetic_v1",
             "document_lock": {
                 "document_id": index.document_id,
@@ -176,6 +179,64 @@ def test_package_exports_clean_high_level_api() -> None:
     assert "structure_planning_regulation" in stages.__all__
     assert "validate_planning_regulation_structure" in stages.__all__
     assert not any(name.startswith("_build_") for name in stages.__all__)
+
+
+def test_structure_schema_versions_are_explicitly_v2(valid_result) -> None:
+    index, result = valid_result
+    config = _config(index)
+    assert config.schema_version == 2
+    assert result.structure_config_schema_version == 2
+    assert SECTION_HASH_SCHEMA_VERSION == 2
+    assert result.section_hash_schema_version == 2
+    assert STRUCTURE_MANIFEST_SCHEMA_VERSION == 3
+
+
+@pytest.mark.parametrize("schema_version", [1, 3])
+def test_old_and_unknown_config_schema_versions_are_rejected(
+    schema_version: int,
+) -> None:
+    index = _index()
+    payload = _config(index).model_dump(mode="python")
+    payload["schema_version"] = schema_version
+    with pytest.raises(ValueError, match="unsupported structure config schema"):
+        PlanningRegulationStructureConfig.model_validate(payload)
+
+
+@pytest.mark.parametrize("schema_version", [1, 3])
+@pytest.mark.parametrize(
+    "field",
+    ["structure_config_schema_version", "section_hash_schema_version"],
+)
+def test_old_and_unknown_result_schema_versions_are_rejected(
+    valid_result,
+    field: str,
+    schema_version: int,
+) -> None:
+    index, result = valid_result
+    with pytest.raises(PlanningRegulationStructureError, match="schema version"):
+        _validate(index, replace(result, **{field: schema_version}))
+
+
+@pytest.mark.parametrize("value", [0, 1, "false", "true", "yes"])
+def test_toc_topic_evidence_flag_rejects_boolean_coercion(value: object) -> None:
+    index = _index()
+    payload = _config(index).model_dump(mode="python")
+    payload["document_layout"][
+        "include_table_of_contents_in_topic_evidence"
+    ] = value
+    with pytest.raises(ValueError):
+        PlanningRegulationStructureConfig.model_validate(payload)
+
+
+@pytest.mark.parametrize("value", [False, True])
+def test_toc_topic_evidence_flag_accepts_exact_booleans(value: bool) -> None:
+    index = _index()
+    payload = _config(index).model_dump(mode="python")
+    payload["document_layout"][
+        "include_table_of_contents_in_topic_evidence"
+    ] = value
+    validated = PlanningRegulationStructureConfig.model_validate(payload)
+    assert validated.document_layout.include_table_of_contents_in_topic_evidence is value
 
 
 @pytest.mark.parametrize(
@@ -275,6 +336,85 @@ def test_topic_evidence_distinguishes_general_and_zone_specific(valid_result) ->
     assert set(energy["evidence_scope"]) == {"GENERAL_RULE", "ZONE_SPECIFIC_RULE"}
     assert set(energy["occurrence_count"]) == {1}
     assert all(context for context in energy["raw_context"])
+
+
+def test_reversed_topic_mapping_keys_do_not_change_output_or_hashes() -> None:
+    index = _index()
+    forward = _config(index)
+    payload = forward.model_dump(mode="python")
+    payload["topics"] = dict(reversed(tuple(payload["topics"].items())))
+    reversed_topics = PlanningRegulationStructureConfig.model_validate(payload)
+    assert tuple(reversed_topics.topics) == tuple(reversed(tuple(forward.topics)))
+
+    forward_result = structure_planning_regulation(
+        index,
+        _zones(index),
+        _intersections(index),
+        forward,
+    )
+    reversed_result = structure_planning_regulation(
+        index,
+        _zones(index),
+        _intersections(index),
+        reversed_topics,
+    )
+
+    pd.testing.assert_frame_equal(
+        forward_result.topic_evidence,
+        reversed_result.topic_evidence,
+    )
+    assert forward_result.topic_evidence["topic"].tolist() == sorted(
+        forward_result.topic_evidence["topic"].tolist()
+    )
+    assert (
+        forward_result.structure_config_sha256
+        == reversed_result.structure_config_sha256
+    )
+    assert (
+        forward_result.topic_evidence_content_sha256
+        == reversed_result.topic_evidence_content_sha256
+    )
+    assert (
+        forward_result.structure_result_content_sha256
+        == reversed_result.structure_result_content_sha256
+    )
+
+
+def test_equal_length_overlap_uses_configured_term_order_as_tie_break() -> None:
+    normalized = normalize_planning_search_text("alpha beta gamma")
+    forward_terms = ("alpha beta", "beta gamma")
+    reverse_terms = tuple(reversed(forward_terms))
+
+    forward_matches = _literal_topic_matches(normalized, forward_terms)
+    reverse_matches = _literal_topic_matches(normalized, reverse_terms)
+    assert [match.search_term for match in forward_matches] == ["alpha beta"]
+    assert [match.search_term for match in reverse_matches] == ["beta gamma"]
+    assert (
+        forward_matches[0].normalized_start,
+        forward_matches[0].normalized_end,
+    ) == (0, 10)
+    assert (
+        reverse_matches[0].normalized_start,
+        reverse_matches[0].normalized_end,
+    ) == (6, 16)
+
+    index = _index(("ZONE U\nARTICLE U 1 - TEST\nalpha beta gamma",))
+    base_payload = _config(index).model_dump(mode="python")
+    base_payload["document_layout"]["table_of_contents_pages"] = ()
+    base_payload["topics"] = {"tie": forward_terms}
+    forward_config = PlanningRegulationStructureConfig.model_validate(base_payload)
+    reverse_payload = forward_config.model_dump(mode="python")
+    reverse_payload["topics"] = {"tie": reverse_terms}
+    reverse_config = PlanningRegulationStructureConfig.model_validate(reverse_payload)
+    forward_result = structure_planning_regulation(
+        index, _zones(index), _intersections(index), forward_config
+    )
+    reverse_result = structure_planning_regulation(
+        index, _zones(index), _intersections(index), reverse_config
+    )
+    assert forward_result.topic_evidence["search_term"].tolist() == ["alpha beta"]
+    assert reverse_result.topic_evidence["search_term"].tolist() == ["beta gamma"]
+    assert forward_result.structure_config_sha256 != reverse_result.structure_config_sha256
 
 
 def test_inputs_are_not_mutated() -> None:
@@ -392,6 +532,163 @@ def test_page_without_configured_header_or_footer_is_unchanged() -> None:
 
 
 @pytest.mark.parametrize(
+    ("raw_pages", "expected_pages", "expected_prefix"),
+    [
+        (
+            ("\n \t\nZONE U\nARTICLE U 1 - TEST\nBody",),
+            (1,),
+            "\n \t\nZONE U",
+        ),
+        (
+            (" \n", "ZONE U\nARTICLE U 1 - TEST\nBody"),
+            (1, 2),
+            " \nZONE U",
+        ),
+    ],
+)
+def test_blank_only_prefix_is_preserved_in_first_actual_section(
+    raw_pages: tuple[str, ...],
+    expected_pages: tuple[int, ...],
+    expected_prefix: str,
+) -> None:
+    index = _index(raw_pages)
+    payload = _config(index).model_dump(mode="python")
+    payload["document_layout"]["table_of_contents_pages"] = ()
+    payload["ignored_patterns"] = {"page_headers": (), "page_footers": ()}
+    config = PlanningRegulationStructureConfig.model_validate(payload)
+    records = _line_records(index, config)
+    result = structure_planning_regulation(
+        index,
+        _zones(index),
+        _intersections(index),
+        config,
+    )
+    validate_planning_regulation_structure(
+        index,
+        _zones(index),
+        _intersections(index),
+        config,
+        result,
+    )
+
+    first = result.sections.iloc[0]
+    assert first["section_type"] == "ZONE_CHAPTER"
+    assert first["heading_raw"] == "ZONE U"
+    assert first["start_record_id"] == "RECORD-000001"
+    assert tuple(first["page_numbers"]) == expected_pages
+    assert first["raw_text"].startswith(expected_prefix)
+    assert int(result.sections["source_record_count"].sum()) == len(records)
+    assert "OTHER" not in result.sections["section_type"].tolist()
+
+
+def test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence() -> None:
+    index = _index(
+        (
+            "CONTENTS\nARTICLE 9 - energy",
+            "ZONE N\nenergy contents",
+            "ARTICLE 1 - GENERAL\nrisk body",
+            "ARTICLE 8 - energy",
+            "ZONE Z\nenergy contents",
+            "ZONE U\nARTICLE U 1 - BODY\nenergy body",
+            "ARTICLE 7 - energy",
+        )
+    )
+    payload = _config(index).model_dump(mode="python")
+    payload["document_layout"].update(
+        {
+            "table_of_contents_pages": (1, 2, 4, 5, 7),
+            "include_table_of_contents_in_topic_evidence": False,
+        }
+    )
+    payload["ignored_patterns"] = {"page_headers": (), "page_footers": ()}
+    excluded_config = PlanningRegulationStructureConfig.model_validate(payload)
+    included_payload = excluded_config.model_dump(mode="python")
+    included_payload["document_layout"][
+        "include_table_of_contents_in_topic_evidence"
+    ] = True
+    included_config = PlanningRegulationStructureConfig.model_validate(
+        included_payload
+    )
+
+    excluded = structure_planning_regulation(
+        index, _zones(index), _intersections(index), excluded_config
+    )
+    included = structure_planning_regulation(
+        index, _zones(index), _intersections(index), included_config
+    )
+    for config, result in (
+        (excluded_config, excluded),
+        (included_config, included),
+    ):
+        validate_planning_regulation_structure(
+            index,
+            _zones(index),
+            _intersections(index),
+            config,
+            result,
+        )
+
+    excluded_other = excluded.sections.loc[
+        excluded.sections["section_type"].eq("OTHER")
+    ]
+    assert excluded_other["page_numbers"].tolist() == [(1, 2), (4, 5), (7,)]
+    assert excluded_other["heading_raw"].tolist() == [
+        "CONTENTS",
+        "ARTICLE 8 - energy",
+        "ARTICLE 7 - energy",
+    ]
+    pd.testing.assert_frame_equal(excluded.sections, included.sections)
+    pd.testing.assert_frame_equal(excluded.zone_mapping, included.zone_mapping)
+
+    toc_pages = {1, 2, 4, 5, 7}
+    assert toc_pages.isdisjoint(excluded.topic_evidence["page_number"])
+    assert set(excluded.topic_evidence["page_number"]) == {3, 6}
+    assert set(included.topic_evidence["page_number"]) == set(range(1, 8))
+    included_toc = included.topic_evidence.loc[
+        included.topic_evidence["page_number"].isin(toc_pages)
+    ]
+    assert set(included_toc["evidence_scope"]) == {"GENERAL_RULE"}
+
+
+def test_blank_gap_after_toc_is_preserved_without_a_blank_other_section() -> None:
+    index = _index(
+        (
+            "ARTICLE 1 - GENERAL\nGeneral text",
+            "CONTENTS\nARTICLE 9 - fake entry",
+            " \n\t",
+            "ZONE U\nARTICLE U 1 - BODY\nBody text",
+        )
+    )
+    payload = _config(index).model_dump(mode="python")
+    payload["document_layout"]["table_of_contents_pages"] = (2,)
+    payload["ignored_patterns"] = {"page_headers": (), "page_footers": ()}
+    config = PlanningRegulationStructureConfig.model_validate(payload)
+
+    result = structure_planning_regulation(
+        index,
+        _zones(index),
+        _intersections(index),
+        config,
+    )
+    validate_planning_regulation_structure(
+        index,
+        _zones(index),
+        _intersections(index),
+        config,
+        result,
+    )
+
+    other = result.sections.loc[result.sections["section_type"].eq("OTHER")]
+    assert other["page_numbers"].tolist() == [(2,)]
+    chapter = result.sections.loc[
+        result.sections["section_type"].eq("ZONE_CHAPTER")
+    ].iloc[0]
+    assert tuple(chapter["page_numbers"]) == (3, 4)
+    assert chapter["heading_raw"] == "ZONE U"
+    assert chapter["raw_text"].startswith(" \n\t\nZONE U")
+
+
+@pytest.mark.parametrize(
     ("group", "pattern"),
     [
         ("zone_chapter", r"^ZONE\s+[A-Z]+$"),
@@ -499,6 +796,48 @@ def test_intersection_area_cannot_exceed_available_geometry_area(
     with pytest.raises(PlanningRegulationStructureError, match="exceeds"):
         structure_planning_regulation(
             index, _zones(index), intersections, _config(index)
+        )
+
+
+@pytest.mark.parametrize("upper_column", ["parcel_metric_area_m2", "zone_area_m2"])
+def test_intersection_upper_bound_uses_shared_relative_tolerance(
+    upper_column: str,
+) -> None:
+    index = _index()
+    config = _config(index)
+    reference_area = 1_000_000_000_000.0
+    tolerance = technical_overlay_tolerance(reference_area)
+    assert tolerance > 1e-6
+
+    within_tolerance = _intersections(index)
+    within_tolerance[upper_column] = [reference_area, 50.0]
+    within_tolerance.loc[0, "intersection_area_m2"] = (
+        reference_area + tolerance / 2
+    )
+    result = structure_planning_regulation(
+        index,
+        _zones(index),
+        within_tolerance,
+        config,
+    )
+    validate_planning_regulation_structure(
+        index,
+        _zones(index),
+        within_tolerance,
+        config,
+        result,
+    )
+
+    above_tolerance = within_tolerance.copy(deep=True)
+    above_tolerance.loc[0, "intersection_area_m2"] = (
+        reference_area + tolerance * 2
+    )
+    with pytest.raises(PlanningRegulationStructureError, match="exceeds"):
+        structure_planning_regulation(
+            index,
+            _zones(index),
+            above_tolerance,
+            config,
         )
 
 

@@ -1601,6 +1601,70 @@ No BESS compatibility status.
 No parcel rejection.
 No score.
 
+## STEP 7D.4B.2 — Finalize structure schema and deterministic edge handling
+
+- Status: Complete
+- Implementation summary: Versioned the incompatible factual-structure grammar and hash format, made topic ordering independent of YAML mapping order, preserved blank-only source prefixes, isolated explicitly configured table-of-contents blocks at any document position, reused the shared planning-overlay tolerance, and made the table-of-contents evidence flag a strict boolean. Parsing, aliases, factual topic terms, and the real Muret hierarchy remain unchanged.
+- Important files: `configs/planning/muret_plu_structure.yaml`, `src/landscout/stages/structure_planning_regulation.py`, `tests/unit/test_structure_planning_regulation.py`, and the four ignored structure outputs under `data/processed/planning/`.
+- Tests/checks: 86 focused structure tests cover the v2 contracts and deterministic edge cases. The complete 956-test suite passes; repository-wide Ruff and `mypy src` checks pass.
+
+### Versioned and deterministic contracts
+
+The configuration schema is now version 2 and the section/source-record/component/result hash schema is version 2. Schema 1 is not migrated or interpreted under the new rules, and unknown schema versions fail explicitly. The outer ignored output manifest is version 3 and records both supported versions. The new schema version is bound into the complete source-record hash, every per-section hash, all ordered component hashes, and the complete result hash.
+
+Topic names are processed in canonical ascending order. Reordering only the YAML topic keys produces the same config hash, row order, component hashes, and complete result hash. Configured term order inside a topic is deliberately preserved: it remains the final deterministic tie-breaker when equal-length literal spans overlap.
+
+`include_table_of_contents_in_topic_evidence` now accepts only actual YAML/Python booleans; numeric and string lookalikes are rejected. Blank-only records before the first heading attach to that first factual section while leaving its real heading unchanged. Each contiguous configured table-of-contents page block becomes a separate factual `OTHER` section wherever it occurs, remains in the exact one-time source-record partition, and is included in topic retrieval only when the strict option is true. The current Muret config identifies no table-of-contents pages, so its real section hierarchy is unchanged.
+
+Area upper-bound validation now calls the same `technical_overlay_tolerance(reference)` helper used by the factual zoning and planning-feature overlays. Its absolute/relative floating-point guard is a shared technical geometry tolerance, not a planning rule or business threshold.
+
+### Real Muret regression
+
+| Factual result | Count |
+| --- | ---: |
+| Retained source records | 6,490 |
+| Omitted records | 0 |
+| Duplicated records | 0 |
+| Reordered records | 0 |
+| Sections | 196 |
+| `OTHER` sections | 1 |
+| General sections | 5 |
+| Zone chapters | 13 |
+| Articles | 177 |
+| Zone-map rows | 29 |
+| `EXACT` mappings | 12 |
+| `CONFIG_ALIAS` mappings | 17 |
+| `UNMAPPED` mappings | 0 |
+| `AMBIGUOUS` mappings | 0 |
+| Dominant unresolved candidates | 0 |
+| Topic-evidence rows | 458 |
+| Unique retained topic occurrences | 799 |
+
+The corrected per-topic evidence counts remain exactly those recorded in STEP 7D.4B.1. The factual frames are unchanged; the integrity hashes legitimately changed because both the config and structure/hash schemas changed:
+
+- Config schema / SHA256: 2 / `13d028fe4b58d30929ff9fdedae90e2cc95983a3296f2f83c2817d0da381107a`
+- Section/hash schema: 2
+- Retained source-record SHA256: `c031c2a9157ff6cf3ae5fea1a63d3ab1c7b4137d6fadd742addf0d5ca9415ecb`
+- Ordered sections SHA256: `7485fa0423dd8ffaf5066dae7cb2047743e5837afeaf6a3561fc35642031323a`
+- Ordered zone-map SHA256: `140de4dbd097ffa00252333348d81d265493180b204fac20a56702df2c2268a3`
+- Ordered topic-evidence SHA256: `a79e449f3318425822ea2d89a710577e323b26bc1c585965c3cf5c02373c597c`
+- Complete structure-result SHA256: `56db5da3923f0e6405a256e9a1de5f6ba262d4575fd0921b126d8df4e558502d`
+- Real source-complete structure runtime: 8.844 seconds
+
+### Outputs and read-back
+
+- `muret_plu_regulation_sections.parquet`: 196 rows, 298,888 bytes
+- `muret_plu_zone_section_map.parquet`: 29 rows, 11,117 bytes
+- `muret_plu_topic_evidence.parquet`: 458 rows, 59,064 bytes
+- `muret_plu_structure_index.json`: manifest schema 3, 3,184 bytes
+
+All four ignored artifacts were rewritten. The immutable result was reconstructed from the three persisted Parquet tables and the schema-v3 manifest, then accepted by the source-complete public validator using the original validated page index, 221-zone catalog, 5,095 parcel/zone relations, and schema-v2 YAML configuration.
+
+No legal conclusion.
+No BESS compatibility status.
+No parcel rejection.
+No score.
+
 ## STEP 7D.2 — Normalize GPU zoning and intersect Muret parcels
 
 - Status: Complete
