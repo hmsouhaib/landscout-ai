@@ -1281,6 +1281,89 @@ Distance to an IGN electric line or transformation post does not establish grid 
 
 No BESS grid-distance threshold is selected here.
 
+## STEP 7D.4C.1 — Harden BESS zoning-policy semantics and evidence auditability
+
+- Status: Complete
+- Policy schema / result-hash schema / output-manifest schema: `2` / `2` / `2`
+- The public interpretation and validation APIs now receive the schema-v2 factual-structure configuration and invoke the existing source-complete `validate_planning_regulation_structure(...)` contract before applying policy. The precheck no longer carries a parallel private copy of the structure-stage schemas or hashing rules.
+- A red-first regression test demonstrated the former defect: a chapter containing only `CONDITION` evidence was accepted as `CONDITIONAL_REVIEW`. The test failed against the prior implementation, and now passes because that status requires an explicit positive route plus a condition, or an explicit positive/difficulty conflict.
+
+### Review and evidence contracts
+
+Every chapter records `review_completeness`, an explicit ordered `reviewed_section_ids` list, and a review note. The checked-in policy requires review of existing zone Articles 1 and 2; all 13 real chapters are recorded as `COMPLETE_FOR_WRITTEN_ZONING_PRECHECK`, with both relevant articles listed. Evidence must belong to one of those reviewed sections, except that a relied-upon `GENERAL` section may be listed explicitly. A section from another zone chapter is rejected.
+
+The status rules are now deterministic:
+
+- `POTENTIALLY_COMPATIBLE` requires a complete review and positive route evidence without unresolved difficulty or conditions.
+- `CONDITIONAL_REVIEW` requires a complete review, positive route evidence, and either a condition or explicit conflicting difficulty evidence.
+- `LIKELY_DIFFICULT` requires difficulty evidence without a defensible positive route.
+- `UNKNOWN / LOW` is mandatory for incomplete review; condition-only or contextual-only evidence cannot establish a route.
+
+Evidence-kind/direction combinations are checked explicitly. In particular, a restriction cannot support potential compatibility, a permission cannot support difficulty, and an access/network condition cannot be used as positive route evidence.
+
+Each evidence row now identifies one exact occurrence within a validated section-page fragment using a fragment SHA256 and 0-based half-open `excerpt_start` / `excerpt_end` offsets. The exact excerpt must equal that fragment slice and retain the source accents and punctuation. Tests cover duplicate text, wrong page, wrong fragment hash, and wrong offsets. The new 26-row evidence catalog is the sole ID authority for chapter, raw-zone, parcel-zone, and parcel evidence references and is included in the complete result envelope.
+
+All positive-area zoning relations now require both factual denominators and both percentages: `parcel_metric_area_m2`, `zone_area_m2`, `parcel_share_pct`, and `zone_share_pct`. Percentages are recomputed from the measured intersection area and checked using only the shared technical overlay tolerance.
+
+### Real Muret re-review
+
+The real regulation still contains no explicit BESS or battery wording. All 13 chapters therefore remain `LOW` confidence and require formal review; that distribution was not used as a target. The evidentiary basis changed materially:
+
+| Chapters | Reviewed sections | Evidence route |
+| --- | --- | --- |
+| UA, UB, UC, UD, UF | each chapter's Articles 1 and 2 | separate positive ICPE-route excerpt plus separate condition excerpt |
+| UP | `SECTION-0080`, `SECTION-0081` | public/collective-interest route plus condition |
+| AU | `SECTION-0095`, `SECTION-0096` | ICPE route plus condition; infrastructure prerequisites alone are not treated as a route |
+| AUp | `SECTION-0110`, `SECTION-0111` | public-interest route plus condition |
+| AUf | `SECTION-0125`, `SECTION-0126` | ICPE route plus condition; infrastructure prerequisites alone are not treated as a route |
+| AU0, AUf0 | Articles 1 and 2 (`SECTION-0140/0141`, `SECTION-0155/0156`) | separate infrastructure exception and prior-PLU-modification condition |
+| A, N | Articles 1 and 2 (`SECTION-0170/0171`, `SECTION-0184/0185`) | separate restrictive and technical-infrastructure exception excerpts, recorded as an explicit conflict |
+
+Observed status and evidence counts:
+
+| Result | Count |
+| --- | ---: |
+| Chapter policies / raw-zone policies | 13 / 29 |
+| Evidence catalog rows | 26 |
+| Positive parcel/zone interpretation rows | 5,095 |
+| Input/output parcels | 3,638 / 3,638 |
+| `CONDITIONAL_REVIEW` chapters / raw labels / parcels | 13 / 29 / 3,638 |
+| `MIXED_REVIEW_REQUIRED` parcels | 0 |
+| `UNKNOWN` parcels | 0 |
+| Chapters without explicit route evidence | 0 |
+| Chapters without explicit BESS wording | 13 |
+| Lost / extra parcel IDs | 0 / 0 |
+
+Evidence directions are 13 `SUPPORTS_POTENTIAL_COMPATIBILITY`, 11 `CONDITION`, and 2 `SUPPORTS_DIFFICULTY`. Evidence kinds are 16 `ICPE_RULE`, 4 `TECHNICAL_EQUIPMENT_RULE`, 2 `PUBLIC_INTEREST_EXCEPTION`, 2 `USE_RESTRICTION`, and 2 `OTHER_RELEVANT_RULE`.
+
+### Integrity, outputs, and read-back
+
+- Policy config SHA256: `ac8932d2ade74dd88d1647181ca9b8e930582cf61a9ee3c7da7c3721276c1094`
+- Factual structure input SHA256: `055d43ba51af64ba3829244a894ecd3f32f0d196b58af1eee80722875476d628`
+- Zone-map input SHA256: `718d4721d54a76b8a28d152ba6535b3c948e606b3c4fc8d9f4fe9742c8e99453`
+- Zoning-relation input SHA256: `547614f20eba5ba493d50c0162e498ffa0e7345cce65eb072537f0caf7e7a94b`
+- Evidence catalog SHA256: `dfa7fa078ef75696cee2f6c9677e072d8cd2ebf89cf4104b6cc7c81cdc39bbd4`
+- Chapter / raw-zone / parcel-zone SHA256: `ae011df49884b861747b23de0ee65555eb379016c73f9c2e18be571771b247fa` / `524814ad0846d8419875293b6246e82b37a54a1e160d0e09e9f8e2c45c0407ce` / `a04bb860e711d74b9a9031e4a5abb86d2c5e229879ea907c75d6999aa529e878`
+- Parcel-output SHA256: `9748d06e630f014be946cdb65c9722132299e32d588a7abe719dab8930f5b726`
+- Complete result SHA256: `73395cf098b4139fc0f6a11cbe7bb0e1b50f5b4f19920d7e30191769bbbc6778`
+- Source-complete build plus persisted read-back validation runtime: 41.260 seconds
+- `muret_bess_zoning_evidence.parquet`: 26 rows, 20,096 bytes
+- `muret_bess_zoning_chapter_policy.parquet`: 13 rows, 18,592 bytes
+- `muret_bess_zoning_source_policy.parquet`: 29 rows, 13,532 bytes
+- `muret_bess_zoning_policy_relations.parquet`: 5,095 rows, 136,308 bytes
+- `muret_bess_zoning_precheck.parquet`: 3,638 rows, 1,587,466 bytes; original GeoParquet CRS, geometry, index, order, and all prior columns preserved
+- `muret_bess_zoning_precheck.json`: 4,594 bytes
+
+All six outputs were read back, the immutable schema-v2 result was reconstructed from persisted data, and the public source-complete validator passed with the original index, factual structure configuration/result, zone catalog, zoning intersections, parcels, and checked-in policy.
+
+This is a conservative LandScout preliminary screening status.
+
+It is not an authorization, permit decision, or legal opinion. Formal review of the complete planning document, prescriptions, servitudes, and project design remains required.
+
+No prescription or information feature is interpreted.
+
+No parcel is rejected.
+
 ## STEP 7D.4A — Extract and index the Muret PLU written regulation
 
 - Status: Complete

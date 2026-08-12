@@ -47,6 +47,7 @@ __all__ = [
     "PlanningRegulationStructureError",
     "PlanningRegulationStructureResult",
     "load_planning_regulation_structure_config",
+    "planning_regulation_section_page_fragments",
     "structure_planning_regulation",
     "validate_planning_regulation_structure",
 ]
@@ -2293,6 +2294,78 @@ def validate_planning_regulation_structure(
     except Exception as error:
         raise PlanningRegulationStructureError(
             "Planning regulation structure validation failed safely"
+        ) from error
+
+
+def planning_regulation_section_page_fragments(
+    index: PlanningRegulationIndex,
+    zones: pd.DataFrame,
+    zoning_intersections: pd.DataFrame,
+    config: PlanningRegulationStructureConfig | str | Path,
+    result: PlanningRegulationStructureResult,
+) -> pd.DataFrame:
+    """Return validated retained raw text for every section and source page."""
+
+    try:
+        validate_planning_regulation_structure(
+            index,
+            zones,
+            zoning_intersections,
+            config,
+            result,
+        )
+        resolved_config = _resolved_config(config)
+        _, builds, _ = _build_structure_result(
+            index,
+            *_validated_zoning_inputs(index, zones, zoning_intersections),
+            resolved_config,
+        )
+        rows = [
+            {
+                "section_id": build.row["section_id"],
+                "page_number": page_number,
+                "raw_text": raw_text,
+                "section_page_fragment_sha256": sha256(
+                    raw_text.encode("utf-8")
+                ).hexdigest(),
+                "document_id": result.document_id,
+                "archive_sha256": result.archive_sha256,
+                "pdf_sha256": result.pdf_sha256,
+                "index_content_sha256": result.index_content_sha256,
+                "structure_result_content_sha256": (
+                    result.structure_result_content_sha256
+                ),
+                "structure_profile": result.structure_profile,
+            }
+            for build in builds
+            for page_number, raw_text in build.page_fragments
+        ]
+        frame = pd.DataFrame(
+            rows,
+            columns=(
+                "section_id",
+                "page_number",
+                "raw_text",
+                "section_page_fragment_sha256",
+                "document_id",
+                "archive_sha256",
+                "pdf_sha256",
+                "index_content_sha256",
+                "structure_result_content_sha256",
+                "structure_profile",
+            ),
+        )
+        frame["page_number"] = frame["page_number"].astype("int64")
+        if frame.duplicated(["section_id", "page_number"]).any():
+            raise PlanningRegulationStructureError(
+                "Section/page fragment identity is not unique"
+            )
+        return frame
+    except PlanningRegulationStructureError:
+        raise
+    except Exception as error:
+        raise PlanningRegulationStructureError(
+            "Planning regulation section/page fragments could not be rebuilt safely"
         ) from error
 
 

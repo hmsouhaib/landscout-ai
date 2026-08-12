@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import math
 import re
-from collections import Counter
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 from datetime import date, datetime
@@ -29,7 +28,11 @@ from landscout.stages.index_planning_regulation import (
 )
 from landscout.stages.planning_overlay import technical_overlay_tolerance
 from landscout.stages.structure_planning_regulation import (
+    PlanningRegulationStructureConfig,
+    PlanningRegulationStructureError,
     PlanningRegulationStructureResult,
+    planning_regulation_section_page_fragments,
+    validate_planning_regulation_structure,
 )
 
 __all__ = [
@@ -41,8 +44,8 @@ __all__ = [
     "validate_bess_zoning_precheck",
 ]
 
-POLICY_SCHEMA_VERSION = 1
-RESULT_HASH_SCHEMA_VERSION = 1
+POLICY_SCHEMA_VERSION = 2
+RESULT_HASH_SCHEMA_VERSION = 2
 PLANNING_PRECHECK_SCOPE = "WRITTEN_ZONING_REGULATION_ONLY"
 
 ChapterStatus = Literal[
@@ -76,75 +79,12 @@ _PARCEL_STATUSES = _CHAPTER_STATUSES | {"MIXED_REVIEW_REQUIRED"}
 _CONFIDENCES = frozenset({"HIGH", "MEDIUM", "LOW"})
 _RESOLVED_MAPPING_STATUSES = frozenset({"EXACT", "CONFIG_ALIAS"})
 
-_STRUCTURE_SECTION_COLUMNS = (
-    "section_id",
-    "parent_section_id",
-    "section_type",
-    "heading_raw",
-    "heading_normalized",
-    "zone_chapter_label",
-    "article_number_raw",
-    "article_title_raw",
-    "start_record_id",
-    "end_record_id",
-    "source_record_count",
-    "source_records_sha256",
-    "start_page",
-    "end_page",
-    "page_numbers",
-    "raw_text",
-    "normalized_text",
-    "character_count",
-    "section_content_sha256",
-    "document_id",
-    "archive_sha256",
-    "pdf_sha256",
-    "index_content_sha256",
-    "structure_profile",
-)
-_STRUCTURE_ZONE_MAPPING_COLUMNS = (
-    "source_zone_label_raw",
-    "resolved_zone_chapter_label",
-    "mapping_status",
-    "mapping_method",
-    "matched_section_id",
-    "zone_polygon_count",
-    "candidate_parcel_count",
-    "candidate_intersection_count",
-    "dominant_candidate_count",
-    "document_id",
-    "archive_sha256",
-    "pdf_sha256",
-    "index_content_sha256",
-    "structure_profile",
-)
-_STRUCTURE_TOPIC_COLUMNS = (
-    "topic",
-    "search_term",
-    "normalized_search_term",
-    "match_policy",
-    "section_id",
-    "evidence_scope",
-    "zone_chapter_label",
-    "article_number_raw",
-    "page_number",
-    "occurrence_count",
-    "first_match_normalized_start",
-    "first_match_normalized_end",
-    "first_match_raw_start",
-    "first_match_raw_end",
-    "raw_context",
-    "normalized_context",
-    "document_id",
-    "archive_sha256",
-    "pdf_sha256",
-    "index_content_sha256",
-    "structure_profile",
-)
-
 CHAPTER_POLICY_COLUMNS = (
     "resolved_zone_chapter_label",
     "chapter_section_id",
+    "review_completeness",
+    "reviewed_section_ids",
+    "review_note",
     "zoning_precheck_status",
     "zoning_precheck_confidence",
     "evidence_count",
@@ -152,6 +92,29 @@ CHAPTER_POLICY_COLUMNS = (
     "rationale",
     "missing_information",
     "planning_precheck_scope",
+    "policy_profile",
+    "policy_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_result_content_sha256",
+    "structure_profile",
+)
+EVIDENCE_CATALOG_COLUMNS = (
+    "evidence_id",
+    "resolved_zone_chapter_label",
+    "section_id",
+    "page_number",
+    "evidence_kind",
+    "evidence_direction",
+    "exact_raw_excerpt",
+    "excerpt_sha256",
+    "section_page_fragment_sha256",
+    "excerpt_start",
+    "excerpt_end",
+    "interpretation_note",
+    "review_completeness",
     "policy_profile",
     "policy_sha256",
     "document_id",
@@ -244,6 +207,9 @@ class PolicyEvidence(_StrictConfigModel):
     evidence_direction: EvidenceDirection
     exact_raw_excerpt: StrictStr = Field(min_length=1, max_length=600)
     excerpt_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+    section_page_fragment_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+    excerpt_start: StrictInt = Field(ge=0)
+    excerpt_end: StrictInt = Field(ge=1)
     interpretation_note: StrictStr = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -257,11 +223,28 @@ class PolicyEvidence(_StrictConfigModel):
             _config_string(value, label)
         if sha256(self.exact_raw_excerpt.encode("utf-8")).hexdigest() != self.excerpt_sha256:
             raise ValueError("evidence excerpt SHA256 differs from exact_raw_excerpt")
+        if self.excerpt_end <= self.excerpt_start:
+            raise ValueError("evidence excerpt offsets must be ordered")
+        allowed_directions: dict[str, frozenset[str]] = {
+            "USE_PERMISSION": frozenset(
+                {"SUPPORTS_POTENTIAL_COMPATIBILITY", "CONTEXT_ONLY"}
+            ),
+            "USE_RESTRICTION": frozenset({"SUPPORTS_DIFFICULTY", "CONTEXT_ONLY"}),
+            "ACCESS_OR_NETWORK_CONDITION": frozenset({"CONDITION", "CONTEXT_ONLY"}),
+        }
+        allowed = allowed_directions.get(self.evidence_kind)
+        if allowed is not None and self.evidence_direction not in allowed:
+            raise ValueError("evidence kind and direction are incompatible")
         return self
 
 
 class ChapterPolicy(_StrictConfigModel):
     resolved_zone_chapter_label: StrictStr = Field(min_length=1)
+    review_completeness: Literal[
+        "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK", "INCOMPLETE"
+    ]
+    reviewed_section_ids: tuple[StrictStr, ...] = Field(min_length=1)
+    review_note: StrictStr = Field(min_length=1)
     zoning_precheck_status: ChapterStatus
     zoning_precheck_confidence: Confidence
     rationale: StrictStr = Field(min_length=1)
@@ -271,24 +254,40 @@ class ChapterPolicy(_StrictConfigModel):
     @model_validator(mode="after")
     def _validate_evidence_semantics(self) -> ChapterPolicy:
         _config_string(self.resolved_zone_chapter_label, "chapter label")
+        _config_string(self.review_note, "chapter review note")
         _config_string(self.rationale, "chapter rationale")
         _config_string(self.missing_information, "chapter missing information")
+        reviewed = [
+            _config_string(value, "reviewed section ID")
+            for value in self.reviewed_section_ids
+        ]
+        if len(set(reviewed)) != len(reviewed):
+            raise ValueError("reviewed section IDs must be unique")
         directions = {item.evidence_direction for item in self.evidence}
         status = self.zoning_precheck_status
-        if status == "POTENTIALLY_COMPATIBLE" and "SUPPORTS_POTENTIAL_COMPATIBILITY" not in directions:
-            raise ValueError("POTENTIALLY_COMPATIBLE requires positive evidence")
-        if status == "LIKELY_DIFFICULT" and "SUPPORTS_DIFFICULTY" not in directions:
-            raise ValueError("LIKELY_DIFFICULT requires difficulty evidence")
-        if status == "CONDITIONAL_REVIEW" and not (
-            "CONDITION" in directions
-            or {
-                "SUPPORTS_POTENTIAL_COMPATIBILITY",
-                "SUPPORTS_DIFFICULTY",
-            }.issubset(directions)
-        ):
-            raise ValueError("CONDITIONAL_REVIEW requires a condition or conflicting evidence")
-        if status == "UNKNOWN" and directions.difference({"CONTEXT_ONLY"}):
-            raise ValueError("UNKNOWN may contain only contextual evidence")
+        positive = "SUPPORTS_POTENTIAL_COMPATIBILITY" in directions
+        difficulty = "SUPPORTS_DIFFICULTY" in directions
+        condition = "CONDITION" in directions
+        if self.review_completeness == "INCOMPLETE":
+            if status != "UNKNOWN" or self.zoning_precheck_confidence != "LOW":
+                raise ValueError("incomplete review requires UNKNOWN / LOW")
+        elif status == "POTENTIALLY_COMPATIBLE":
+            if not positive or difficulty or condition:
+                raise ValueError(
+                    "POTENTIALLY_COMPATIBLE requires a positive route without difficulty or conditions"
+                )
+        elif status == "CONDITIONAL_REVIEW":
+            if not positive or not (condition or difficulty):
+                raise ValueError(
+                    "CONDITIONAL_REVIEW requires a positive route plus a condition or difficulty"
+                )
+        elif status == "LIKELY_DIFFICULT":
+            if not difficulty or positive:
+                raise ValueError(
+                    "LIKELY_DIFFICULT requires difficulty without a positive route"
+                )
+        elif positive or difficulty:
+            raise ValueError("UNKNOWN requires insufficient or ambiguous route evidence")
         return self
 
 
@@ -299,6 +298,7 @@ class BessZoningPolicyConfig(_StrictConfigModel):
     policy_profile: StrictStr = Field(min_length=1)
     planning_precheck_scope: Literal["WRITTEN_ZONING_REGULATION_ONLY"]
     source_lock: PolicySourceLock
+    required_zone_article_numbers: tuple[StrictStr, ...] = Field(min_length=1)
     chapters: tuple[ChapterPolicy, ...] = Field(min_length=1)
 
     @model_validator(mode="after")
@@ -308,6 +308,12 @@ class BessZoningPolicyConfig(_StrictConfigModel):
         _config_string(self.policy_profile, "policy profile")
         _config_string(self.source_lock.document_id, "policy document ID")
         _config_string(self.source_lock.structure_profile, "policy structure profile")
+        article_numbers = [
+            _config_string(value, "required zone article number")
+            for value in self.required_zone_article_numbers
+        ]
+        if len(set(article_numbers)) != len(article_numbers):
+            raise ValueError("required zone article numbers must be unique")
         labels = [chapter.resolved_zone_chapter_label for chapter in self.chapters]
         if len(set(labels)) != len(labels):
             raise ValueError("chapter policy labels must be unique")
@@ -345,12 +351,14 @@ class BessZoningPrecheckResult:
     zone_mapping_input_sha256: str
     zoning_relation_hash_columns: tuple[str, ...]
     zoning_relations_input_sha256: str
+    evidence_catalog_content_sha256: str
     chapter_policy_content_sha256: str
     source_zone_policy_content_sha256: str
     parcel_zone_policy_content_sha256: str
     parcel_output_content_sha256: str
     complete_result_content_sha256: str
     touch_only_relation_count: int
+    evidence_catalog: pd.DataFrame
     chapter_policy: pd.DataFrame
     source_zone_policy: pd.DataFrame
     parcel_zone_interpretations: pd.DataFrame
@@ -522,148 +530,6 @@ def _policy_sha256(config: BessZoningPolicyConfig) -> str:
     )
 
 
-def _structure_component_payload(
-    structure: PlanningRegulationStructureResult,
-) -> dict[str, object]:
-    return {
-        "section_hash_schema_version": structure.section_hash_schema_version,
-        "document_id": structure.document_id,
-        "archive_sha256": structure.archive_sha256,
-        "pdf_sha256": structure.pdf_sha256,
-        "index_content_sha256": structure.index_content_sha256,
-        "structure_profile": structure.structure_profile,
-        "structure_config_schema_version": structure.structure_config_schema_version,
-        "structure_config_sha256": structure.structure_config_sha256,
-        "zones_content_sha256": structure.zones_content_sha256,
-        "zoning_intersection_hash_columns": list(
-            structure.zoning_intersection_hash_columns
-        ),
-        "zoning_intersections_content_sha256": (
-            structure.zoning_intersections_content_sha256
-        ),
-        "source_records_sha256": structure.source_records_sha256,
-    }
-
-
-def _structure_component_sha256(
-    domain: str,
-    structure: PlanningRegulationStructureResult,
-    frame: pd.DataFrame,
-    columns: Sequence[str],
-) -> str:
-    return _canonical_sha256(
-        {
-            "domain": domain,
-            **_structure_component_payload(structure),
-            "rows": frame.loc[:, columns].to_dict("records"),
-        }
-    )
-
-
-def _validate_structure_self(
-    index: PlanningRegulationIndex,
-    structure: PlanningRegulationStructureResult,
-) -> None:
-    if not isinstance(structure, PlanningRegulationStructureResult):
-        raise BessZoningPrecheckError(
-            "structure must be a PlanningRegulationStructureResult"
-        )
-    if structure.section_hash_schema_version != 3:
-        raise BessZoningPrecheckError("Unsupported factual structure schema")
-    comparisons = (
-        (structure.document_id, index.document_id, "document ID"),
-        (structure.archive_sha256, index.archive_sha256, "archive SHA256"),
-        (structure.pdf_sha256, index.pdf_sha256, "PDF SHA256"),
-        (structure.index_content_sha256, index.index_content_sha256, "index hash"),
-    )
-    for actual, expected, label in comparisons:
-        if actual != expected:
-            raise BessZoningPrecheckError(f"Factual structure {label} differs from index")
-    for value, label in (
-        (structure.archive_sha256, "structure archive SHA256"),
-        (structure.pdf_sha256, "structure PDF SHA256"),
-        (structure.index_content_sha256, "structure index SHA256"),
-        (structure.structure_config_sha256, "structure config SHA256"),
-        (structure.zones_content_sha256, "structure zones SHA256"),
-        (
-            structure.zoning_intersections_content_sha256,
-            "structure intersections SHA256",
-        ),
-        (structure.source_records_sha256, "structure records SHA256"),
-    ):
-        _validated_sha256(value, label)
-    frames = (
-        (
-            structure.sections,
-            _STRUCTURE_SECTION_COLUMNS,
-            "landscout.planning_regulation.sections",
-            structure.sections_content_sha256,
-            "sections",
-        ),
-        (
-            structure.zone_mapping,
-            _STRUCTURE_ZONE_MAPPING_COLUMNS,
-            "landscout.planning_regulation.zone_map",
-            structure.zone_map_content_sha256,
-            "zone map",
-        ),
-        (
-            structure.topic_evidence,
-            _STRUCTURE_TOPIC_COLUMNS,
-            "landscout.planning_regulation.topic_evidence",
-            structure.topic_evidence_content_sha256,
-            "topic evidence",
-        ),
-    )
-    for frame, columns, domain, actual_hash, label in frames:
-        if not isinstance(frame, pd.DataFrame) or tuple(frame.columns) != tuple(columns):
-            raise BessZoningPrecheckError(f"Factual structure {label} schema differs")
-        expected_hash = _structure_component_sha256(domain, structure, frame, columns)
-        if _validated_sha256(actual_hash, f"{label} SHA256") != expected_hash:
-            raise BessZoningPrecheckError(f"Factual structure {label} hash differs")
-    for row in structure.sections.to_dict("records"):
-        content = {
-            column: row[column]
-            for column in _STRUCTURE_SECTION_COLUMNS
-            if column != "section_content_sha256"
-        }
-        expected = _canonical_sha256(
-            {
-                "domain": "landscout.planning_regulation.section",
-                "section_hash_schema_version": structure.section_hash_schema_version,
-                "section": content,
-            }
-        )
-        if row["section_content_sha256"] != expected:
-            raise BessZoningPrecheckError("Factual section content hash differs")
-    expected_complete = _canonical_sha256(
-        {
-            "domain": "landscout.planning_regulation.structure_result",
-            "document_id": structure.document_id,
-            "archive_sha256": structure.archive_sha256,
-            "pdf_sha256": structure.pdf_sha256,
-            "index_content_sha256": structure.index_content_sha256,
-            "structure_profile": structure.structure_profile,
-            "structure_config_schema_version": structure.structure_config_schema_version,
-            "structure_config_sha256": structure.structure_config_sha256,
-            "zones_content_sha256": structure.zones_content_sha256,
-            "zoning_intersection_hash_columns": list(
-                structure.zoning_intersection_hash_columns
-            ),
-            "zoning_intersections_content_sha256": (
-                structure.zoning_intersections_content_sha256
-            ),
-            "source_records_sha256": structure.source_records_sha256,
-            "section_hash_schema_version": structure.section_hash_schema_version,
-            "sections_content_sha256": structure.sections_content_sha256,
-            "zone_map_content_sha256": structure.zone_map_content_sha256,
-            "topic_evidence_content_sha256": structure.topic_evidence_content_sha256,
-        }
-    )
-    if structure.structure_result_content_sha256 != expected_complete:
-        raise BessZoningPrecheckError("Complete factual structure hash differs")
-
-
 def _factual_structure_sha256(
     structure: PlanningRegulationStructureResult,
 ) -> str:
@@ -672,15 +538,10 @@ def _factual_structure_sha256(
             "domain": "landscout.bess_zoning.factual_structure_input",
             "structure_result_content_sha256": structure.structure_result_content_sha256,
             "section_hash_schema_version": structure.section_hash_schema_version,
-            "sections": structure.sections.loc[
-                :, _STRUCTURE_SECTION_COLUMNS
-            ].to_dict("records"),
-            "zone_mapping": structure.zone_mapping.loc[
-                :, _STRUCTURE_ZONE_MAPPING_COLUMNS
-            ].to_dict("records"),
-            "topic_evidence": structure.topic_evidence.loc[
-                :, _STRUCTURE_TOPIC_COLUMNS
-            ].to_dict("records"),
+            "structure_config_sha256": structure.structure_config_sha256,
+            "sections_content_sha256": structure.sections_content_sha256,
+            "zone_map_content_sha256": structure.zone_map_content_sha256,
+            "topic_evidence_content_sha256": structure.topic_evidence_content_sha256,
         }
     )
 
@@ -852,7 +713,10 @@ def _validate_relations(
         "zone_label_raw",
         "relation_type",
         "intersection_area_m2",
+        "parcel_metric_area_m2",
+        "zone_area_m2",
         "parcel_share_pct",
+        "zone_share_pct",
         "source_document_id",
         "source_archive_sha256",
         "source_layer",
@@ -882,9 +746,6 @@ def _validate_relations(
             raise BessZoningPrecheckError("Zoning relation source layer is inconsistent")
         relation_type = _strict_string(row["relation_type"], "zoning relation type")
         area = _strict_nonnegative_number(row["intersection_area_m2"], "intersection area")
-        share = _strict_nonnegative_number(row["parcel_share_pct"], "parcel share")
-        if share > 100.0 + 1e-9:
-            raise BessZoningPrecheckError("Parcel share exceeds 100 percent")
         if relation_type == "AREA_OVERLAP" and area <= 0:
             raise BessZoningPrecheckError("AREA_OVERLAP requires positive area")
         if relation_type == "TOUCH_ONLY" and area != 0:
@@ -892,19 +753,20 @@ def _validate_relations(
         if relation_type not in {"AREA_OVERLAP", "TOUCH_ONLY"}:
             raise BessZoningPrecheckError("Zoning relation type is invalid")
         for upper_column in ("parcel_metric_area_m2", "zone_area_m2"):
-            if upper_column in result.columns:
-                upper = _strict_nonnegative_number(row[upper_column], upper_column)
-                if area - upper > technical_overlay_tolerance(upper):
-                    raise BessZoningPrecheckError(
-                        f"Intersection area exceeds {upper_column}"
-                    )
+            upper = _strict_nonnegative_number(row[upper_column], upper_column)
+            if upper <= 0:
+                raise BessZoningPrecheckError(
+                    f"{upper_column} must be positive for a zoning relation"
+                )
+            if area - upper > technical_overlay_tolerance(upper):
+                raise BessZoningPrecheckError(
+                    f"Intersection area exceeds {upper_column}"
+                )
         percentage_checks = (
             ("parcel_metric_area_m2", "parcel_share_pct"),
             ("zone_area_m2", "zone_share_pct"),
         )
         for area_column, percentage_column in percentage_checks:
-            if area_column not in result.columns or percentage_column not in result.columns:
-                continue
             reference_area = _strict_nonnegative_number(
                 row[area_column], area_column
             )
@@ -915,12 +777,9 @@ def _validate_relations(
                 raise BessZoningPrecheckError(
                     f"{area_column} must be positive for a zoning relation"
                 )
-            expected_percentage = 100.0 * area / reference_area
-            if not math.isclose(
-                observed_percentage,
-                expected_percentage,
-                rel_tol=1e-12,
-                abs_tol=1e-9,
+            percentage_area = observed_percentage * reference_area / 100.0
+            if abs(percentage_area - area) > technical_overlay_tolerance(
+                reference_area
             ):
                 raise BessZoningPrecheckError(
                     f"{percentage_column} is inconsistent with factual areas"
@@ -951,86 +810,29 @@ def _zone_mapping_input_sha256(
             "zones": _frame_payload(zones, zone_columns),
             "mapping": _frame_payload(
                 structure.zone_mapping,
-                _STRUCTURE_ZONE_MAPPING_COLUMNS,
+                tuple(str(column) for column in structure.zone_mapping.columns),
             ),
         }
     )
-
-
-def _validate_structure_factual_inputs(
-    structure: PlanningRegulationStructureResult,
-    zones: pd.DataFrame,
-    relations: pd.DataFrame,
-) -> None:
-    zone_columns = (
-        "planning_zone_id",
-        "source_zone_id",
-        "zone_label_raw",
-        "source_document_id",
-        "source_archive_sha256",
-    )
-    expected_zones = _canonical_sha256(
-        {
-            "domain": "landscout.planning_regulation.zones_input",
-            "columns": list(zone_columns),
-            "rows": zones.loc[:, zone_columns].to_dict("records"),
-        }
-    )
-    required_relation_columns = (
-        "parcel_id",
-        "planning_zone_id",
-        "source_zone_id",
-        "zone_label_raw",
-        "relation_type",
-        "intersection_area_m2",
-        "source_document_id",
-        "source_archive_sha256",
-    )
-    optional_relation_columns = tuple(
-        column
-        for column in ("parcel_metric_area_m2", "zone_area_m2")
-        if column in relations.columns
-    )
-    relation_columns = required_relation_columns + optional_relation_columns
-    expected_relations = _canonical_sha256(
-        {
-            "domain": "landscout.planning_regulation.intersections_input",
-            "columns": list(relation_columns),
-            "rows": relations.loc[:, relation_columns].to_dict("records"),
-        }
-    )
-    if structure.zones_content_sha256 != expected_zones:
-        raise BessZoningPrecheckError(
-            "Zone catalog differs from the validated factual structure input"
-        )
-    if structure.zoning_intersection_hash_columns != relation_columns:
-        raise BessZoningPrecheckError(
-            "Zoning relation hash columns differ from the factual structure input"
-        )
-    if structure.zoning_intersections_content_sha256 != expected_relations:
-        raise BessZoningPrecheckError(
-            "Zoning relations differ from the validated factual structure input"
-        )
-
-
-def _page_numbers(value: object) -> tuple[int, ...]:
-    if not isinstance(value, (tuple, list, np.ndarray)):
-        raise BessZoningPrecheckError("Section page_numbers must be an array")
-    return tuple(_strict_positive_integer(item, "section page number") for item in value)
 
 
 def _validate_policy_evidence(
     index: PlanningRegulationIndex,
     structure: PlanningRegulationStructureResult,
     policy: BessZoningPolicyConfig,
-) -> tuple[dict[str, dict[str, object]], dict[int, str]]:
+    fragments: pd.DataFrame,
+    policy_hash: str,
+) -> tuple[dict[str, dict[str, object]], pd.DataFrame]:
     sections = {
         _strict_string(row["section_id"], "section ID"): row
         for row in structure.sections.to_dict("records")
     }
-    pages = {
-        _strict_positive_integer(row["page_number"], "page number"): row["raw_text"]
-        for row in index.pages.to_dict("records")
+    fragment_records = {
+        (
+            _strict_string(row["section_id"], "fragment section ID"),
+            _strict_positive_integer(row["page_number"], "fragment page number"),
+        ): row
+        for row in fragments.to_dict("records")
     }
     chapters = {
         _strict_string(row["zone_chapter_label"], "zone chapter label"): row
@@ -1045,9 +847,47 @@ def _validate_policy_evidence(
         raise BessZoningPrecheckError(
             f"Chapter policy completeness differs; missing={missing}, extra={extra}"
         )
+    catalog_rows: list[dict[str, object]] = []
+    required_numbers = set(policy.required_zone_article_numbers)
     for chapter in policy.chapters:
         chapter_row = chapters[chapter.resolved_zone_chapter_label]
         chapter_id = chapter_row["section_id"]
+        reviewed_ids = set(chapter.reviewed_section_ids)
+        for reviewed_id in chapter.reviewed_section_ids:
+            reviewed = sections.get(reviewed_id)
+            if reviewed is None:
+                raise BessZoningPrecheckError(
+                    f"Reviewed section {reviewed_id!r} is unknown"
+                )
+            if reviewed["section_type"] == "GENERAL":
+                continue
+            if reviewed["section_type"] not in {"ZONE_CHAPTER", "ARTICLE"}:
+                raise BessZoningPrecheckError(
+                    f"Reviewed section {reviewed_id!r} is not a zone/general section"
+                )
+            if reviewed["zone_chapter_label"] != chapter.resolved_zone_chapter_label:
+                raise BessZoningPrecheckError(
+                    f"Reviewed section {reviewed_id!r} belongs to another chapter"
+                )
+            if (
+                reviewed["section_type"] == "ARTICLE"
+                and reviewed["parent_section_id"] != chapter_id
+            ):
+                raise BessZoningPrecheckError(
+                    f"Reviewed section {reviewed_id!r} has another chapter parent"
+                )
+        required_ids = {
+            row["section_id"]
+            for row in structure.sections.to_dict("records")
+            if row["section_type"] == "ARTICLE"
+            and row["parent_section_id"] == chapter_id
+            and row["article_number_raw"] in required_numbers
+        }
+        missing_required = sorted(required_ids.difference(reviewed_ids))
+        if missing_required:
+            raise BessZoningPrecheckError(
+                f"Chapter {chapter.resolved_zone_chapter_label} omits required reviewed articles: {missing_required}"
+            )
         for evidence in chapter.evidence:
             section = sections.get(evidence.section_id)
             if section is None:
@@ -1065,31 +905,77 @@ def _validate_policy_evidence(
                 raise BessZoningPrecheckError(
                     f"Evidence {evidence.evidence_id} has the wrong chapter parent"
                 )
-            if evidence.page_number not in _page_numbers(section["page_numbers"]):
+            if evidence.section_id not in reviewed_ids:
                 raise BessZoningPrecheckError(
-                    f"Evidence {evidence.evidence_id} page differs from its section"
+                    f"Evidence {evidence.evidence_id} is outside reviewed sections"
                 )
-            page_text = pages.get(evidence.page_number)
-            if not isinstance(page_text, str):
+            fragment = fragment_records.get((evidence.section_id, evidence.page_number))
+            if fragment is None:
                 raise BessZoningPrecheckError(
-                    f"Evidence {evidence.evidence_id} references an unknown page"
+                    f"Evidence {evidence.evidence_id} has no factual section/page fragment"
                 )
             excerpt = evidence.exact_raw_excerpt
-            if excerpt not in page_text or excerpt not in section["raw_text"]:
+            raw_fragment = fragment["raw_text"]
+            if not isinstance(raw_fragment, str):
                 raise BessZoningPrecheckError(
-                    f"Evidence {evidence.evidence_id} excerpt is absent from source text"
+                    f"Evidence {evidence.evidence_id} fragment text is invalid"
+                )
+            if fragment["section_page_fragment_sha256"] != evidence.section_page_fragment_sha256:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} fragment SHA256 differs"
+                )
+            if evidence.excerpt_end > len(raw_fragment) or raw_fragment[
+                evidence.excerpt_start : evidence.excerpt_end
+            ] != excerpt:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} offsets do not identify its exact excerpt"
                 )
             if sha256(excerpt.encode("utf-8")).hexdigest() != evidence.excerpt_sha256:
                 raise BessZoningPrecheckError(
                     f"Evidence {evidence.evidence_id} excerpt SHA256 differs"
                 )
-    return chapters, pages
+            catalog_rows.append(
+                {
+                    "evidence_id": evidence.evidence_id,
+                    "resolved_zone_chapter_label": (
+                        chapter.resolved_zone_chapter_label
+                    ),
+                    "section_id": evidence.section_id,
+                    "page_number": evidence.page_number,
+                    "evidence_kind": evidence.evidence_kind,
+                    "evidence_direction": evidence.evidence_direction,
+                    "exact_raw_excerpt": excerpt,
+                    "excerpt_sha256": evidence.excerpt_sha256,
+                    "section_page_fragment_sha256": (
+                        evidence.section_page_fragment_sha256
+                    ),
+                    "excerpt_start": evidence.excerpt_start,
+                    "excerpt_end": evidence.excerpt_end,
+                    "interpretation_note": evidence.interpretation_note,
+                    "review_completeness": chapter.review_completeness,
+                    "policy_profile": policy.policy_profile,
+                    "policy_sha256": policy_hash,
+                    "document_id": index.document_id,
+                    "archive_sha256": index.archive_sha256,
+                    "pdf_sha256": index.pdf_sha256,
+                    "index_content_sha256": index.index_content_sha256,
+                    "structure_result_content_sha256": (
+                        structure.structure_result_content_sha256
+                    ),
+                    "structure_profile": structure.structure_profile,
+                }
+            )
+    catalog = pd.DataFrame(catalog_rows, columns=EVIDENCE_CATALOG_COLUMNS)
+    for column in ("page_number", "excerpt_start", "excerpt_end"):
+        catalog[column] = catalog[column].astype("int64")
+    if catalog["evidence_id"].duplicated().any():
+        raise BessZoningPrecheckError("Evidence catalog IDs must be unique")
+    return chapters, catalog
 
 
 def _validate_mapping(
     structure: PlanningRegulationStructureResult,
     zones: pd.DataFrame,
-    relations: pd.DataFrame,
 ) -> pd.DataFrame:
     mapping = structure.zone_mapping.copy(deep=True)
     source_labels = set(
@@ -1110,30 +996,8 @@ def _validate_mapping(
             structure.sections["section_type"].eq("ZONE_CHAPTER")
         ].to_dict("records")
     }
-    zone_polygon_counts = Counter(zones["zone_label_raw"].tolist())
-    candidate_parcel_counts = (
-        relations.groupby("zone_label_raw", sort=False)["parcel_id"].nunique().to_dict()
-    )
-    candidate_intersection_counts = Counter(relations["zone_label_raw"].tolist())
-    positive = relations.loc[
-        relations["intersection_area_m2"].gt(0),
-        ["parcel_id", "planning_zone_id", "zone_label_raw", "intersection_area_m2"],
-    ].copy()
-    if positive.empty:
-        dominant_counts: Counter[str] = Counter()
-    else:
-        positive = positive.sort_values(
-            ["parcel_id", "intersection_area_m2", "planning_zone_id"],
-            ascending=[True, False, True],
-            kind="mergesort",
-        )
-        dominant_counts = Counter(
-            positive.drop_duplicates("parcel_id", keep="first")[
-                "zone_label_raw"
-            ].tolist()
-        )
     for row in mapping.to_dict("records"):
-        label = _strict_string(row["source_zone_label_raw"], "mapped source zone label")
+        _strict_string(row["source_zone_label_raw"], "mapped source zone label")
         status = _strict_string(row["mapping_status"], "mapping status")
         if status not in _RESOLVED_MAPPING_STATUSES:
             raise BessZoningPrecheckError(
@@ -1144,18 +1008,6 @@ def _validate_mapping(
         )
         if chapters.get(resolved) != row["matched_section_id"]:
             raise BessZoningPrecheckError("Zone mapping chapter identity is inconsistent")
-        expected_counts = {
-            "zone_polygon_count": zone_polygon_counts[label],
-            "candidate_parcel_count": int(candidate_parcel_counts.get(label, 0)),
-            "candidate_intersection_count": candidate_intersection_counts[label],
-            "dominant_candidate_count": dominant_counts[label],
-        }
-        for column, expected in expected_counts.items():
-            observed = _strict_nonnegative_integer(row[column], column)
-            if observed != expected:
-                raise BessZoningPrecheckError(
-                    f"Zone mapping {column} differs from factual inputs"
-                )
     return mapping
 
 
@@ -1200,6 +1052,9 @@ def _build_chapter_policy(
             {
                 "resolved_zone_chapter_label": label,
                 "chapter_section_id": source["section_id"],
+                "review_completeness": chapter.review_completeness,
+                "reviewed_section_ids": tuple(chapter.reviewed_section_ids),
+                "review_note": chapter.review_note,
                 "zoning_precheck_status": chapter.zoning_precheck_status,
                 "zoning_precheck_confidence": chapter.zoning_precheck_confidence,
                 "evidence_count": len(evidence_ids),
@@ -1466,6 +1321,9 @@ def _complete_result_sha256(result: BessZoningPrecheckResult) -> str:
         {
             "domain": "landscout.bess_zoning.precheck_result",
             **_result_component_metadata(result),
+            "evidence_catalog_content_sha256": (
+                result.evidence_catalog_content_sha256
+            ),
             "chapter_policy_content_sha256": result.chapter_policy_content_sha256,
             "source_zone_policy_content_sha256": (
                 result.source_zone_policy_content_sha256
@@ -1483,6 +1341,12 @@ def _result_with_hashes(
 ) -> BessZoningPrecheckResult:
     component = replace(
         result,
+        evidence_catalog_content_sha256=_result_frame_sha256(
+            "landscout.bess_zoning.evidence_catalog",
+            result,
+            result.evidence_catalog,
+            EVIDENCE_CATALOG_COLUMNS,
+        ),
         chapter_policy_content_sha256=_result_frame_sha256(
             "landscout.bess_zoning.chapter_policy",
             result,
@@ -1517,23 +1381,42 @@ def _result_with_hashes(
 def _build_result(
     index: PlanningRegulationIndex,
     structure: PlanningRegulationStructureResult,
+    structure_config: PlanningRegulationStructureConfig | str | Path,
     zones: pd.DataFrame,
     zoning_intersections: pd.DataFrame,
     parcels: gpd.GeoDataFrame,
     policy: BessZoningPolicyConfig,
 ) -> BessZoningPrecheckResult:
     validate_planning_regulation_index(index)
-    _validate_structure_self(index, structure)
+    validate_planning_regulation_structure(
+        index,
+        zones,
+        zoning_intersections,
+        structure_config,
+        structure,
+    )
+    fragments = planning_regulation_section_page_fragments(
+        index,
+        zones,
+        zoning_intersections,
+        structure_config,
+        structure,
+    )
     _validate_policy_lock(index, structure, policy)
     parcel_copy = _validate_parcels(index, parcels)
     zone_copy = _validate_zones(index, zones)
     relation_copy = _validate_relations(
         index, parcel_copy, zone_copy, zoning_intersections
     )
-    _validate_structure_factual_inputs(structure, zone_copy, relation_copy)
-    _validate_policy_evidence(index, structure, policy)
-    mapping = _validate_mapping(structure, zone_copy, relation_copy)
+    mapping = _validate_mapping(structure, zone_copy)
     policy_hash = _policy_sha256(policy)
+    _, evidence_catalog = _validate_policy_evidence(
+        index,
+        structure,
+        policy,
+        fragments,
+        policy_hash,
+    )
     chapter_policy = _build_chapter_policy(
         index, structure, policy, policy_hash
     )
@@ -1582,6 +1465,7 @@ def _build_result(
             relation_copy,
             relation_columns,
         ),
+        evidence_catalog_content_sha256="",
         chapter_policy_content_sha256="",
         source_zone_policy_content_sha256="",
         parcel_zone_policy_content_sha256="",
@@ -1590,6 +1474,7 @@ def _build_result(
         touch_only_relation_count=int(
             relation_copy["relation_type"].eq("TOUCH_ONLY").sum()
         ),
+        evidence_catalog=evidence_catalog,
         chapter_policy=chapter_policy,
         source_zone_policy=source_policy,
         parcel_zone_interpretations=interpretations,
@@ -1635,6 +1520,7 @@ def _compare_results(
         "zone_mapping_input_sha256",
         "zoning_relation_hash_columns",
         "zoning_relations_input_sha256",
+        "evidence_catalog_content_sha256",
         "chapter_policy_content_sha256",
         "source_zone_policy_content_sha256",
         "parcel_zone_policy_content_sha256",
@@ -1683,6 +1569,7 @@ def _compare_results(
         "factual_structure_content_sha256",
         "zone_mapping_input_sha256",
         "zoning_relations_input_sha256",
+        "evidence_catalog_content_sha256",
         "chapter_policy_content_sha256",
         "source_zone_policy_content_sha256",
         "parcel_zone_policy_content_sha256",
@@ -1690,6 +1577,12 @@ def _compare_results(
         "complete_result_content_sha256",
     ):
         _validated_sha256(getattr(result, field), field)
+    _compare_frames(
+        result.evidence_catalog,
+        expected.evidence_catalog,
+        EVIDENCE_CATALOG_COLUMNS,
+        "evidence catalog",
+    )
     _compare_frames(
         result.chapter_policy,
         expected.chapter_policy,
@@ -1734,6 +1627,26 @@ def _compare_results(
         raise BessZoningPrecheckError("Parcel precheck status is invalid")
     if not confidences.issubset(_CONFIDENCES):
         raise BessZoningPrecheckError("Chapter policy confidence is invalid")
+    evidence_ids = set(
+        _exact_id_series(
+            result.evidence_catalog["evidence_id"],
+            "catalog evidence ID",
+            unique=True,
+        )
+    )
+    for frame, column in (
+        (result.chapter_policy, "evidence_ids"),
+        (result.source_zone_policy, "evidence_ids"),
+        (result.parcel_zone_interpretations, "evidence_ids"),
+        (result.parcels, "zoning_precheck_evidence_ids"),
+    ):
+        for values in frame[column].tolist():
+            if not isinstance(values, (tuple, list, np.ndarray)):
+                raise BessZoningPrecheckError("Evidence references must be arrays")
+            if not set(values).issubset(evidence_ids):
+                raise BessZoningPrecheckError(
+                    "An output evidence ID is absent from the evidence catalog"
+                )
     if not result.parcels["zoning_precheck_requires_formal_review"].eq(True).all():
         raise BessZoningPrecheckError("Every parcel must require formal review")
     if not result.parcels["non_zoning_planning_features_interpreted"].eq(False).all():
@@ -1745,6 +1658,7 @@ def _compare_results(
 def validate_bess_zoning_precheck(
     index: PlanningRegulationIndex,
     structure: PlanningRegulationStructureResult,
+    structure_config: PlanningRegulationStructureConfig | str | Path,
     zones: pd.DataFrame,
     zoning_intersections: pd.DataFrame,
     parcels: gpd.GeoDataFrame,
@@ -1758,6 +1672,7 @@ def validate_bess_zoning_precheck(
         expected = _build_result(
             index,
             structure,
+            structure_config,
             zones,
             zoning_intersections,
             parcels,
@@ -1766,6 +1681,10 @@ def validate_bess_zoning_precheck(
         _compare_results(result, expected, parcels)
     except BessZoningPrecheckError:
         raise
+    except PlanningRegulationStructureError as error:
+        raise BessZoningPrecheckError(
+            f"Factual regulation structure validation failed: {error}"
+        ) from error
     except Exception as error:
         raise BessZoningPrecheckError(
             "BESS zoning precheck validation failed safely"
@@ -1775,6 +1694,7 @@ def validate_bess_zoning_precheck(
 def interpret_bess_zoning(
     index: PlanningRegulationIndex,
     structure: PlanningRegulationStructureResult,
+    structure_config: PlanningRegulationStructureConfig | str | Path,
     zones: pd.DataFrame,
     zoning_intersections: pd.DataFrame,
     parcels: gpd.GeoDataFrame,
@@ -1787,6 +1707,7 @@ def interpret_bess_zoning(
         result = _build_result(
             index,
             structure,
+            structure_config,
             zones,
             zoning_intersections,
             parcels,
@@ -1795,6 +1716,7 @@ def interpret_bess_zoning(
         validate_bess_zoning_precheck(
             index,
             structure,
+            structure_config,
             zones,
             zoning_intersections,
             parcels,
@@ -1804,6 +1726,10 @@ def interpret_bess_zoning(
         return result
     except BessZoningPrecheckError:
         raise
+    except PlanningRegulationStructureError as error:
+        raise BessZoningPrecheckError(
+            f"Factual regulation structure validation failed: {error}"
+        ) from error
     except Exception as error:
         raise BessZoningPrecheckError(
             "BESS zoning precheck could not be built safely"

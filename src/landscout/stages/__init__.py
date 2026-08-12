@@ -68,6 +68,7 @@ from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureError,
     PlanningRegulationStructureResult,
     load_planning_regulation_structure_config,
+    planning_regulation_section_page_fragments,
     structure_planning_regulation,
     validate_planning_regulation_structure,
 )
@@ -116,6 +117,7 @@ __all__ = [
     "normalize_cadastre_parcels",
     "normalize_ign_electricity",
     "parse_ign_voltage",
+    "planning_regulation_section_page_fragments",
     "profile_grid_coverage",
     "profile_grid_proximity",
     "profile_shape_distribution",

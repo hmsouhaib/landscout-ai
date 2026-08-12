@@ -1,5 +1,5 @@
-schema_version: 1
-policy_profile: "muret_bess_written_zoning_v1"
+schema_version: 2
+policy_profile: "muret_bess_written_zoning_v2"
 planning_precheck_scope: "WRITTEN_ZONING_REGULATION_ONLY"
 
 source_lock:
@@ -10,202 +10,426 @@ source_lock:
   structure_result_content_sha256: "16f8a9edfff0d330f69579310da085f804f4641de973d98e0046bff5ea96b03c"
   structure_profile: "muret_plu_20240215_v1"
 
-# No chapter names or inheritance rules are inferred in Python. These thirteen entries
-# are the exact resolved chapters in the locked factual structure. None of the cited
-# text names batteries or energy storage, so every route remains conditional and needs
-# formal classification of the actual project under the complete planning document.
+required_zone_article_numbers:
+  - "1"
+  - "2"
+
+# This policy records a complete review of each existing Article 1 and Article 2.
+# Positive routes and their qualifications are separate evidence occurrences. No
+# status is inferred from a zone label, and none of the excerpts identifies BESS.
 chapters:
   - resolved_zone_chapter_label: "UA"
+    review_completeness: "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK"
+    reviewed_section_ids: ["SECTION-0008", "SECTION-0009"]
+    review_note: "Articles UA 1 and UA 2 were reviewed in full for written use controls."
     zoning_precheck_status: "CONDITIONAL_REVIEW"
     zoning_precheck_confidence: "LOW"
-    rationale: "Article UA 2 provides an ICPE route only when both stated compatibility and local-necessity conditions are met; the policy does not assume that a BESS qualifies."
-    missing_information: "BESS use classification, ICPE applicability, satisfaction of the stated conditions, prescriptions, servitudes, risks, nuisances, access, networks, and project design."
+    rationale: "Article UA 2 states a possible ICPE route and states separate compatibility and local-necessity conditions; whether a BESS qualifies remains unresolved."
+    missing_information: "BESS planning-use and ICPE classification, application of all Article UA 1/2 provisions, prescriptions, servitudes, project effects and design."
     evidence:
-      - evidence_id: "MURET-UA-ICPE-01"
+      - evidence_id: "MURET-UA-ICPE-ROUTE-01"
+        section_id: "SECTION-0009"
+        page_number: 8
+        evidence_kind: "ICPE_RULE"
+        evidence_direction: "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        exact_raw_excerpt: "Les installations classées pour la protection de l’environnement ne sont autorisées"
+        excerpt_sha256: "e1c767bcf05e6e3879fda934afc396b55ecb8cb30b9be9d0e090c8ba860e13ff"
+        section_page_fragment_sha256: "2da8d15fad096a694d7b56ecfc1d61d0ba375aac1c254794d63388524cc755f6"
+        excerpt_start: 100
+        excerpt_end: 183
+        interpretation_note: "This is a literal ICPE route phrase; it does not establish that a BESS is an applicable ICPE use."
+      - evidence_id: "MURET-UA-ICPE-CONDITION-01"
         section_id: "SECTION-0009"
         page_number: 8
         evidence_kind: "ICPE_RULE"
         evidence_direction: "CONDITION"
-        exact_raw_excerpt: "1 - Les installations class\u00e9es pour la protection de l\u2019environnement ne sont autoris\u00e9es qu\u2019\u00e0 \nla condition d\u2019\u00eatre compatibles avec le milieu environnant et n\u00e9cessaires \u00e0 la vie  du \nquartier et de la cit\u00e9."
-        excerpt_sha256: "626e25851b81f3b900f23feab7553a4f6ebd336e5364c1b0f64ad3828bc8532e"
-        interpretation_note: "The excerpt states cumulative ICPE conditions; it does not identify a BESS or establish that the project meets them."
+        exact_raw_excerpt: "compatibles avec le milieu environnant et nécessaires à"
+        excerpt_sha256: "45e7c822963aeb5931b00392f605e45f745de47c084d04490bff6bb15f46a928"
+        section_page_fragment_sha256: "2da8d15fad096a694d7b56ecfc1d61d0ba375aac1c254794d63388524cc755f6"
+        excerpt_start: 210
+        excerpt_end: 265
+        interpretation_note: "This is the separate compatibility and necessity qualification attached to the ICPE route."
 
   - resolved_zone_chapter_label: "UB"
+    review_completeness: "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK"
+    reviewed_section_ids: ["SECTION-0021", "SECTION-0022"]
+    review_note: "Articles UB 1 and UB 2 were reviewed in full for written use controls."
     zoning_precheck_status: "CONDITIONAL_REVIEW"
     zoning_precheck_confidence: "LOW"
-    rationale: "Article UB 2 provides an ICPE route only under compatibility and local-necessity conditions; BESS qualification remains unresolved."
-    missing_information: "BESS use classification, ICPE applicability, satisfaction of the stated conditions, prescriptions, servitudes, risks, nuisances, access, networks, and project design."
+    rationale: "Article UB 2 states a possible ICPE route and separate compatibility and local-necessity conditions; BESS applicability is unresolved."
+    missing_information: "BESS planning-use and ICPE classification, application of all Article UB 1/2 provisions, prescriptions, servitudes, project effects and design."
     evidence:
-      - evidence_id: "MURET-UB-ICPE-01"
+      - evidence_id: "MURET-UB-ICPE-ROUTE-01"
+        section_id: "SECTION-0022"
+        page_number: 22
+        evidence_kind: "ICPE_RULE"
+        evidence_direction: "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        exact_raw_excerpt: "Les installations classées pour la protection de l’environnement ne sont autorisées"
+        excerpt_sha256: "e1c767bcf05e6e3879fda934afc396b55ecb8cb30b9be9d0e090c8ba860e13ff"
+        section_page_fragment_sha256: "7c678bbc92c2271fbb02f0c228f51e0b408b862780731b78f301b37731a894f3"
+        excerpt_start: 98
+        excerpt_end: 181
+        interpretation_note: "This is a literal ICPE route phrase, not a BESS authorization."
+      - evidence_id: "MURET-UB-ICPE-CONDITION-01"
         section_id: "SECTION-0022"
         page_number: 22
         evidence_kind: "ICPE_RULE"
         evidence_direction: "CONDITION"
-        exact_raw_excerpt: "1 - Les installations class\u00e9es pour la protection de l\u2019environnement ne sont autoris\u00e9es qu\u2019\u00e0 \nla condition qu'elles soient compatibles avec le milieu environnant et n\u00e9cessaires \u00e0 la \nvie du quartier et de la cit\u00e9."
-        excerpt_sha256: "01b96fda920ef04d0c4774472fb818979695c11007a72b769e22dee7ae21bdc2"
-        interpretation_note: "The excerpt states cumulative ICPE conditions without deciding whether a BESS falls within or satisfies them."
+        exact_raw_excerpt: "compatibles avec le milieu environnant et nécessaires à"
+        excerpt_sha256: "45e7c822963aeb5931b00392f605e45f745de47c084d04490bff6bb15f46a928"
+        section_page_fragment_sha256: "7c678bbc92c2271fbb02f0c228f51e0b408b862780731b78f301b37731a894f3"
+        excerpt_start: 217
+        excerpt_end: 272
+        interpretation_note: "This is the separate compatibility and necessity qualification."
 
   - resolved_zone_chapter_label: "UC"
+    review_completeness: "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK"
+    reviewed_section_ids: ["SECTION-0036", "SECTION-0037"]
+    review_note: "Articles UC 1 and UC 2 were reviewed in full for written use controls."
     zoning_precheck_status: "CONDITIONAL_REVIEW"
     zoning_precheck_confidence: "LOW"
-    rationale: "Article UC 2 provides an ICPE route only under compatibility and local-necessity conditions; BESS qualification remains unresolved."
-    missing_information: "BESS use classification, ICPE applicability, satisfaction of the stated conditions, prescriptions, servitudes, risks, nuisances, access, networks, and project design."
+    rationale: "Article UC 2 states a possible ICPE route subject to explicit compatibility and local-necessity conditions; BESS applicability is unresolved."
+    missing_information: "BESS planning-use and ICPE classification, application of all Article UC 1/2 provisions, prescriptions, servitudes, project effects and design."
     evidence:
-      - evidence_id: "MURET-UC-ICPE-01"
+      - evidence_id: "MURET-UC-ICPE-ROUTE-01"
+        section_id: "SECTION-0037"
+        page_number: 36
+        evidence_kind: "ICPE_RULE"
+        evidence_direction: "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        exact_raw_excerpt: "Les installations classées pour la protection de l’environnement ne sont autorisées"
+        excerpt_sha256: "e1c767bcf05e6e3879fda934afc396b55ecb8cb30b9be9d0e090c8ba860e13ff"
+        section_page_fragment_sha256: "f6103c4139a65d12a9b6bf4c5edd37382fa6a2fa642c3a5805aa2898b1121365"
+        excerpt_start: 98
+        excerpt_end: 181
+        interpretation_note: "This is a literal ICPE route phrase, not a BESS authorization."
+      - evidence_id: "MURET-UC-ICPE-CONDITION-01"
         section_id: "SECTION-0037"
         page_number: 36
         evidence_kind: "ICPE_RULE"
         evidence_direction: "CONDITION"
-        exact_raw_excerpt: "1 - Les installations class\u00e9es pour la protection de l\u2019environnement ne sont autoris\u00e9es qu\u2019\u00e0 \nla condition qu'elles soient compatibles avec le milieu environnant et n\u00e9cessaires \u00e0 la \nvie du quartier et de la cit\u00e9."
-        excerpt_sha256: "01b96fda920ef04d0c4774472fb818979695c11007a72b769e22dee7ae21bdc2"
-        interpretation_note: "The excerpt states cumulative ICPE conditions without deciding whether a BESS falls within or satisfies them."
+        exact_raw_excerpt: "compatibles avec le milieu environnant et nécessaires à"
+        excerpt_sha256: "45e7c822963aeb5931b00392f605e45f745de47c084d04490bff6bb15f46a928"
+        section_page_fragment_sha256: "f6103c4139a65d12a9b6bf4c5edd37382fa6a2fa642c3a5805aa2898b1121365"
+        excerpt_start: 217
+        excerpt_end: 272
+        interpretation_note: "This is the separate compatibility and necessity qualification."
 
   - resolved_zone_chapter_label: "UD"
+    review_completeness: "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK"
+    reviewed_section_ids: ["SECTION-0051", "SECTION-0052"]
+    review_note: "Articles UD 1 and UD 2 were reviewed in full for written use controls."
     zoning_precheck_status: "CONDITIONAL_REVIEW"
     zoning_precheck_confidence: "LOW"
-    rationale: "Article UD 2 provides an ICPE route only under compatibility and local-necessity conditions; BESS qualification remains unresolved."
-    missing_information: "BESS use classification, ICPE applicability, satisfaction of the stated conditions, prescriptions, servitudes, risks, nuisances, access, networks, and project design."
+    rationale: "Article UD 2 states a possible ICPE route subject to explicit compatibility and local-necessity conditions; BESS applicability is unresolved."
+    missing_information: "BESS planning-use and ICPE classification, application of all Article UD 1/2 provisions, prescriptions, servitudes, project effects and design."
     evidence:
-      - evidence_id: "MURET-UD-ICPE-01"
+      - evidence_id: "MURET-UD-ICPE-ROUTE-01"
+        section_id: "SECTION-0052"
+        page_number: 48
+        evidence_kind: "ICPE_RULE"
+        evidence_direction: "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        exact_raw_excerpt: "Les installations classées pour la protection de l’environnement ne sont autorisées"
+        excerpt_sha256: "e1c767bcf05e6e3879fda934afc396b55ecb8cb30b9be9d0e090c8ba860e13ff"
+        section_page_fragment_sha256: "67701fcf91b57f6d4c00a0c26d95c2904e736bd70c3da1bd49b949f2d60f6e9a"
+        excerpt_start: 446
+        excerpt_end: 529
+        interpretation_note: "This is a literal ICPE route phrase, not a BESS authorization."
+      - evidence_id: "MURET-UD-ICPE-CONDITION-01"
         section_id: "SECTION-0052"
         page_number: 48
         evidence_kind: "ICPE_RULE"
         evidence_direction: "CONDITION"
-        exact_raw_excerpt: "3 - Les installations class\u00e9es pour la protection de l\u2019environnement ne sont autoris\u00e9es qu\u2019\u00e0 \nla condition qu'elles soient compatibles avec le milieu environnant et n\u00e9cessaires \u00e0 la \nvie du quartier et de la cit\u00e9."
-        excerpt_sha256: "754567b35fe9371dcadf7e1117581287619fe59eb1609aef0ae811523a92018a"
-        interpretation_note: "The excerpt states cumulative ICPE conditions without deciding whether a BESS falls within or satisfies them."
+        exact_raw_excerpt: "compatibles avec le milieu environnant et nécessaires à"
+        excerpt_sha256: "45e7c822963aeb5931b00392f605e45f745de47c084d04490bff6bb15f46a928"
+        section_page_fragment_sha256: "67701fcf91b57f6d4c00a0c26d95c2904e736bd70c3da1bd49b949f2d60f6e9a"
+        excerpt_start: 565
+        excerpt_end: 620
+        interpretation_note: "This is the separate compatibility and necessity qualification."
 
   - resolved_zone_chapter_label: "UF"
+    review_completeness: "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK"
+    reviewed_section_ids: ["SECTION-0065", "SECTION-0066"]
+    review_note: "Articles UF 1 and UF 2 were reviewed in full for written use controls."
     zoning_precheck_status: "CONDITIONAL_REVIEW"
     zoning_precheck_confidence: "LOW"
-    rationale: "Article UF 2 provides an ICPE route only under compatibility and local-necessity conditions; sector-specific provisions and BESS qualification remain unresolved."
-    missing_information: "BESS use classification, sector identity, ICPE applicability, satisfaction of the stated conditions, prescriptions, servitudes, risks, nuisances, access, networks, and project design."
+    rationale: "Article UF 2 states a possible ICPE route subject to explicit compatibility and local-necessity conditions; sector and BESS applicability remain unresolved."
+    missing_information: "BESS planning-use, sector and ICPE classification, application of all Article UF 1/2 provisions, prescriptions, servitudes, project effects and design."
     evidence:
-      - evidence_id: "MURET-UF-ICPE-01"
+      - evidence_id: "MURET-UF-ICPE-ROUTE-01"
+        section_id: "SECTION-0066"
+        page_number: 60
+        evidence_kind: "ICPE_RULE"
+        evidence_direction: "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        exact_raw_excerpt: "Les installations classées pour la protection de l’environnement ne sont autorisées"
+        excerpt_sha256: "e1c767bcf05e6e3879fda934afc396b55ecb8cb30b9be9d0e090c8ba860e13ff"
+        section_page_fragment_sha256: "4fceabfce9821f94b0c023052a654d1d515c86e81056605b876cfbccf54e84ec"
+        excerpt_start: 510
+        excerpt_end: 593
+        interpretation_note: "This is a literal ICPE route phrase, not a BESS authorization."
+      - evidence_id: "MURET-UF-ICPE-CONDITION-01"
         section_id: "SECTION-0066"
         page_number: 60
         evidence_kind: "ICPE_RULE"
         evidence_direction: "CONDITION"
-        exact_raw_excerpt: "2 - Les installations class\u00e9es pour la protection de l\u2019environnement ne sont autoris\u00e9es qu\u2019\u00e0 \nla condition qu'elles soient compatibles avec le milieu environnant et n\u00e9cessaires \u00e0 la \nvie du quartier et de la cit\u00e9."
-        excerpt_sha256: "d5c7002028d235716344d4f755033f4ad23aee358d6b5a06a8d98280b6d70757"
-        interpretation_note: "The excerpt states cumulative ICPE conditions without deciding whether a BESS falls within or satisfies them."
+        exact_raw_excerpt: "compatibles avec le milieu environnant et nécessaires à"
+        excerpt_sha256: "45e7c822963aeb5931b00392f605e45f745de47c084d04490bff6bb15f46a928"
+        section_page_fragment_sha256: "4fceabfce9821f94b0c023052a654d1d515c86e81056605b876cfbccf54e84ec"
+        excerpt_start: 629
+        excerpt_end: 684
+        interpretation_note: "This is the separate compatibility and necessity qualification."
 
   - resolved_zone_chapter_label: "UP"
+    review_completeness: "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK"
+    reviewed_section_ids: ["SECTION-0080", "SECTION-0081"]
+    review_note: "Articles UP 1 and UP 2 were reviewed in full for written use controls."
     zoning_precheck_status: "CONDITIONAL_REVIEW"
     zoning_precheck_confidence: "LOW"
-    rationale: "Article UP 1 reserves the zone to public or collective-interest equipment and related uses; whether a BESS qualifies is not established by the PLU text alone."
-    missing_information: "Formal classification of the BESS as public or collective-interest equipment, plus all conditions, prescriptions, servitudes, risks, nuisances, access, networks, and project design."
+    rationale: "Article UP 1 identifies a public or collective-interest equipment route, while Article UP 2 states separate compatibility and necessity conditions; BESS classification remains unresolved."
+    missing_information: "Formal classification as public or collective-interest equipment, ICPE applicability, all Article UP 1/2 provisions, prescriptions, servitudes, project effects and design."
     evidence:
-      - evidence_id: "MURET-UP-PUBLIC-01"
+      - evidence_id: "MURET-UP-PUBLIC-ROUTE-01"
         section_id: "SECTION-0080"
         page_number: 71
         evidence_kind: "PUBLIC_INTEREST_EXCEPTION"
+        evidence_direction: "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        exact_raw_excerpt: "à usage d'équipement public  \nou d'intérêt collectif"
+        excerpt_sha256: "301da057642435982e74e393d12e292b81682d4d7672dec60e40a8e10e84530c"
+        section_page_fragment_sha256: "06f8ea334a2fa8ce62337d6a3c59d24e03f9d8b9d8cc9e936c92e97b771babbb"
+        excerpt_start: 125
+        excerpt_end: 177
+        interpretation_note: "This is the exact category exception; the policy does not decide that a BESS belongs to it."
+      - evidence_id: "MURET-UP-ICPE-CONDITION-01"
+        section_id: "SECTION-0081"
+        page_number: 71
+        evidence_kind: "ICPE_RULE"
         evidence_direction: "CONDITION"
-        exact_raw_excerpt: "1 - Toutes constructions ou  installations autres que celles \u00e0 usage d'\u00e9quipement public  \nou d'int\u00e9r\u00eat collectif, services annexes et les logements de fonction y aff\u00e9rent."
-        excerpt_sha256: "20d9c1e5dab9a97f9d818ddab038e2126d1c6fff4f9b46a1206a7d4b50a43729"
-        interpretation_note: "The exception is explicit, but this policy does not decide that a BESS belongs to the cited category."
+        exact_raw_excerpt: "compatibles avec le milieu environnant et nécessaires à"
+        excerpt_sha256: "45e7c822963aeb5931b00392f605e45f745de47c084d04490bff6bb15f46a928"
+        section_page_fragment_sha256: "7a5fac0b06f32a02a34031e9db62b2ccd59a63099fdb378079ab41c4252aed09"
+        excerpt_start: 478
+        excerpt_end: 533
+        interpretation_note: "This is a separate condition; it is not treated as route evidence."
 
   - resolved_zone_chapter_label: "AU"
+    review_completeness: "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK"
+    reviewed_section_ids: ["SECTION-0095", "SECTION-0096"]
+    review_note: "Articles AU 1 and AU 2 were reviewed in full for written use controls."
     zoning_precheck_status: "CONDITIONAL_REVIEW"
     zoning_precheck_confidence: "LOW"
-    rationale: "Article AU 2 makes new construction conditional on prior infrastructure and further listed requirements; BESS use classification remains unresolved."
-    missing_information: "BESS use classification, completion of required infrastructure, the remaining Article AU 2 conditions, prescriptions, servitudes, risks, nuisances, and project design."
+    rationale: "Infrastructure prerequisites were not treated as a route; Article AU 2 separately states a possible ICPE route with compatibility and necessity conditions."
+    missing_information: "BESS planning-use and ICPE classification, infrastructure and sector conditions, all Article AU 1/2 provisions, prescriptions, servitudes, project effects and design."
     evidence:
-      - evidence_id: "MURET-AU-INFRA-01"
+      - evidence_id: "MURET-AU-ICPE-ROUTE-01"
         section_id: "SECTION-0096"
         page_number: 81
-        evidence_kind: "ACCESS_OR_NETWORK_CONDITION"
+        evidence_kind: "ICPE_RULE"
+        evidence_direction: "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        exact_raw_excerpt: "Les installations classées pour la protection de l’environnement ne sont autorisées"
+        excerpt_sha256: "e1c767bcf05e6e3879fda934afc396b55ecb8cb30b9be9d0e090c8ba860e13ff"
+        section_page_fragment_sha256: "545168e51a47f7c8b9519575b6d870ab70e11d1043df847e3b5b8661a890652e"
+        excerpt_start: 1474
+        excerpt_end: 1557
+        interpretation_note: "This is the explicit ICPE route phrase; infrastructure prerequisites alone were not used as positive evidence."
+      - evidence_id: "MURET-AU-ICPE-CONDITION-01"
+        section_id: "SECTION-0096"
+        page_number: 81
+        evidence_kind: "ICPE_RULE"
         evidence_direction: "CONDITION"
-        exact_raw_excerpt: "1 - Les constructions et op\u00e9rations ne pourront \u00eatre autoris\u00e9es qu\u2019apr\u00e8s r\u00e9alisation des  \n\u00e9quipements d\u2019infrastructure indispensables \u00e0 leur fonctionnement (acc\u00e8s, voirie et  \nr\u00e9seau divers), conform\u00e9ment aux articles AU 3 et AU 4 et sous r\u00e9serve des conditions \nsuivantes :"
-        excerpt_sha256: "a500796ea07c2c459d22a65a465d08af710160e6a863708f1765cc999395d66d"
-        interpretation_note: "The excerpt states prerequisites and points to further conditions; it does not authorize a BESS."
+        exact_raw_excerpt: "compatibles avec le milieu environnant et nécessaires à"
+        excerpt_sha256: "45e7c822963aeb5931b00392f605e45f745de47c084d04490bff6bb15f46a928"
+        section_page_fragment_sha256: "545168e51a47f7c8b9519575b6d870ab70e11d1043df847e3b5b8661a890652e"
+        excerpt_start: 1593
+        excerpt_end: 1648
+        interpretation_note: "This is the separate compatibility and necessity qualification."
 
   - resolved_zone_chapter_label: "AUp"
+    review_completeness: "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK"
+    reviewed_section_ids: ["SECTION-0110", "SECTION-0111"]
+    review_note: "Articles AUp 1 and AUp 2 were reviewed in full for written use controls."
     zoning_precheck_status: "CONDITIONAL_REVIEW"
     zoning_precheck_confidence: "LOW"
-    rationale: "Article AUp 2 makes construction conditional on indispensable access, road and network infrastructure; BESS use classification remains unresolved."
-    missing_information: "BESS use classification, completion of required infrastructure, all other zone conditions, prescriptions, servitudes, risks, nuisances, and project design."
+    rationale: "Article AUp 1 identifies a public or collective-interest equipment route; Article AUp 2 contains separate conditions. Infrastructure prerequisites alone were not treated as a route."
+    missing_information: "Formal BESS category and ICPE classification, infrastructure requirements, all Article AUp 1/2 provisions, prescriptions, servitudes, project effects and design."
     evidence:
-      - evidence_id: "MURET-AUP-INFRA-01"
+      - evidence_id: "MURET-AUP-PUBLIC-ROUTE-01"
+        section_id: "SECTION-0110"
+        page_number: 93
+        evidence_kind: "PUBLIC_INTEREST_EXCEPTION"
+        evidence_direction: "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        exact_raw_excerpt: "à usage d'équipement public ou \nd'intérêt collectif"
+        excerpt_sha256: "f7be71b131f97c74c8107bc6f14bf2a980d8c3f769a52eef7a899249108c35a2"
+        section_page_fragment_sha256: "4f5b79666858745347ec811398acd19d2761705b3b3d2a31ffd9f4c54a5c93d5"
+        excerpt_start: 125
+        excerpt_end: 176
+        interpretation_note: "This is the exact category exception; BESS membership is unresolved."
+      - evidence_id: "MURET-AUP-ICPE-CONDITION-01"
         section_id: "SECTION-0111"
         page_number: 93
-        evidence_kind: "ACCESS_OR_NETWORK_CONDITION"
+        evidence_kind: "ICPE_RULE"
         evidence_direction: "CONDITION"
-        exact_raw_excerpt: "1- Les constructions et op\u00e9rations ne pourront \u00eatre autoris\u00e9es qu\u2019apr\u00e8s r\u00e9alisation des  \n\u00e9quipements d\u2019infrastructure indispensable \u00e0 leur fonctionnement (acc\u00e8s, voirie et  \nr\u00e9seaux divers) conform\u00e9ment aux articles AUp3 et AUp4."
-        excerpt_sha256: "6b26e343fafffa2edd9eb5fe363ab1a9889cb2ff49fce3b65c031614c5da7d99"
-        interpretation_note: "The excerpt states infrastructure prerequisites; it does not authorize a BESS."
+        exact_raw_excerpt: "compatibles avec le milieu environnant et nécessaires à"
+        excerpt_sha256: "45e7c822963aeb5931b00392f605e45f745de47c084d04490bff6bb15f46a928"
+        section_page_fragment_sha256: "57540d28148aefc320fcc8baa9a92df7e382d72299da6e804a3ebfaf52408b44"
+        excerpt_start: 713
+        excerpt_end: 768
+        interpretation_note: "This is a separate condition, not a positive route."
 
   - resolved_zone_chapter_label: "AUf"
+    review_completeness: "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK"
+    reviewed_section_ids: ["SECTION-0125", "SECTION-0126"]
+    review_note: "Articles AUf 1 and AUf 2 were reviewed in full for written use controls."
     zoning_precheck_status: "CONDITIONAL_REVIEW"
     zoning_precheck_confidence: "LOW"
-    rationale: "Article AUf 2 makes construction conditional on indispensable road and network infrastructure; sector rules and BESS classification remain unresolved."
-    missing_information: "BESS use classification, precise AUf sector, completion of infrastructure and orientation requirements, prescriptions, servitudes, risks, nuisances, and project design."
+    rationale: "Infrastructure prerequisites were not treated as route evidence; Article AUf 2 separately states a possible ICPE route with compatibility and necessity conditions."
+    missing_information: "BESS planning-use, sector and ICPE classification, infrastructure and orientation requirements, all Article AUf 1/2 provisions, prescriptions and project design."
     evidence:
-      - evidence_id: "MURET-AUF-INFRA-01"
+      - evidence_id: "MURET-AUF-ICPE-ROUTE-01"
         section_id: "SECTION-0126"
         page_number: 102
-        evidence_kind: "ACCESS_OR_NETWORK_CONDITION"
+        evidence_kind: "ICPE_RULE"
+        evidence_direction: "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        exact_raw_excerpt: "Les installations classées pour la protection de l’environnement ne sont autorisées"
+        excerpt_sha256: "e1c767bcf05e6e3879fda934afc396b55ecb8cb30b9be9d0e090c8ba860e13ff"
+        section_page_fragment_sha256: "ef0d2718332307afa871176c64cb8627900702dbd583819fb765adb2d1902769"
+        excerpt_start: 1435
+        excerpt_end: 1518
+        interpretation_note: "This is the explicit ICPE route phrase; infrastructure prerequisites alone were not used as positive evidence."
+      - evidence_id: "MURET-AUF-ICPE-CONDITION-01"
+        section_id: "SECTION-0126"
+        page_number: 102
+        evidence_kind: "ICPE_RULE"
         evidence_direction: "CONDITION"
-        exact_raw_excerpt: "1 - Les constructions et op\u00e9rations ne pourront \u00eatre autoris\u00e9es qu\u2019apr\u00e8s r\u00e9alisation des  \n\u00e9quipements d\u2019infrastructure indispensables \u00e0 leur fonctionnement (voirie et r\u00e9seau  \ndivers), conform\u00e9ment aux articles AU f -3 et AU f-4."
-        excerpt_sha256: "0b3a4b59afdad6a1d907f0def7b2923f5dd25cd8a565ca474e22b3d34efeca5c"
-        interpretation_note: "The excerpt states infrastructure prerequisites; it does not authorize a BESS."
+        exact_raw_excerpt: "compatibles avec le milieu environnant et nécessaires à"
+        excerpt_sha256: "45e7c822963aeb5931b00392f605e45f745de47c084d04490bff6bb15f46a928"
+        section_page_fragment_sha256: "ef0d2718332307afa871176c64cb8627900702dbd583819fb765adb2d1902769"
+        excerpt_start: 1554
+        excerpt_end: 1609
+        interpretation_note: "This is the separate compatibility and necessity qualification."
 
   - resolved_zone_chapter_label: "AU0"
+    review_completeness: "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK"
+    reviewed_section_ids: ["SECTION-0140", "SECTION-0141"]
+    review_note: "Articles AU0 1 and AU0 2 were reviewed in full for written use controls."
     zoning_precheck_status: "CONDITIONAL_REVIEW"
     zoning_precheck_confidence: "LOW"
-    rationale: "Article AU0 2 requires a PLU modification before new construction or operations; any separate infrastructure exception and BESS classification require formal review."
-    missing_information: "Whether the project fits an existing infrastructure exception, completion and scope of a PLU modification, prescriptions, servitudes, risks, nuisances, access, networks, and project design."
+    rationale: "Article AU0 1 identifies an exception for collective-interest networks and public infrastructure, while Article AU0 2 states a separate PLU-modification prerequisite for new construction or operations."
+    missing_information: "Formal BESS classification within the stated infrastructure exception, applicability of the modification prerequisite, all Article AU0 1/2 provisions, prescriptions and project design."
     evidence:
-      - evidence_id: "MURET-AU0-MODIFICATION-01"
+      - evidence_id: "MURET-AU0-INFRA-ROUTE-01"
+        section_id: "SECTION-0140"
+        page_number: 114
+        evidence_kind: "TECHNICAL_EQUIPMENT_RULE"
+        evidence_direction: "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        exact_raw_excerpt: "installations nécessaires aux réseaux \nd’intérêt collectif, aux ouvrages publics d’infrastructures"
+        excerpt_sha256: "886aaceafb2a40e73e3ebe145b3a58b6a22b239a8ce5fcc3740cb99d7d6298a0"
+        section_page_fragment_sha256: "2f4cf931c76c5a5a29aa69d67b7986b092aff39ea13e4b302513177e5fef6619"
+        excerpt_start: 119
+        excerpt_end: 217
+        interpretation_note: "This is an exact infrastructure exception; BESS qualification is unresolved."
+      - evidence_id: "MURET-AU0-MODIFICATION-CONDITION-01"
         section_id: "SECTION-0141"
         page_number: 114
         evidence_kind: "OTHER_RELEVANT_RULE"
         evidence_direction: "CONDITION"
-        exact_raw_excerpt: "1 - Les constructions et op\u00e9rations nouvelles ne pourront \u00eatre autoris\u00e9es qu\u2019apr\u00e8s la \nmise en \u0153uvre d\u2019une proc\u00e9dure de modification du PLU."
-        excerpt_sha256: "c6827ca879a3503b57419e4d101c9ee85347e5a9d21a028734e0ce2ea291684b"
-        interpretation_note: "The excerpt imposes a prior procedural condition and does not itself authorize any project."
+        exact_raw_excerpt: "Les constructions et opérations nouvelles ne pourront être autorisées qu’après la \nmise en œuvre d’une procédure de modification du PLU"
+        excerpt_sha256: "01594e632fb064a7e4dd408e68c156b66711abe6ae2a0e470c779e94b91f3a48"
+        section_page_fragment_sha256: "a239cf9eff040ca9c9ab608cf040e3c739d5111c877aa68ad1773d3adadf24a5"
+        excerpt_start: 99
+        excerpt_end: 234
+        interpretation_note: "This prerequisite is a condition only and is not treated as evidence that a BESS route exists."
 
   - resolved_zone_chapter_label: "AUf0"
+    review_completeness: "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK"
+    reviewed_section_ids: ["SECTION-0155", "SECTION-0156"]
+    review_note: "Articles AUf0 1 and AUf0 2 were reviewed in full for written use controls."
     zoning_precheck_status: "CONDITIONAL_REVIEW"
     zoning_precheck_confidence: "LOW"
-    rationale: "Article AUf0 2 requires a PLU modification before new construction or operations; any separate infrastructure exception and BESS classification require formal review."
-    missing_information: "Whether the project fits an existing infrastructure exception, completion and scope of a PLU modification, prescriptions, servitudes, risks, nuisances, access, networks, and project design."
+    rationale: "Article AUf0 1 identifies an exception for collective-interest networks and public infrastructure, while Article AUf0 2 states a separate PLU-modification prerequisite."
+    missing_information: "Formal BESS classification within the infrastructure exception, applicability of the modification prerequisite, all Article AUf0 1/2 provisions, prescriptions and project design."
     evidence:
-      - evidence_id: "MURET-AUF0-MODIFICATION-01"
+      - evidence_id: "MURET-AUF0-INFRA-ROUTE-01"
+        section_id: "SECTION-0155"
+        page_number: 120
+        evidence_kind: "TECHNICAL_EQUIPMENT_RULE"
+        evidence_direction: "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        exact_raw_excerpt: "installations nécessaires aux réseaux \nd’intérêt collectif, aux ouvrages publics d’infrastructures"
+        excerpt_sha256: "886aaceafb2a40e73e3ebe145b3a58b6a22b239a8ce5fcc3740cb99d7d6298a0"
+        section_page_fragment_sha256: "a23b2c0f7e48711758012d3b176967139a3b87d230c3dea312987693de86c369"
+        excerpt_start: 120
+        excerpt_end: 218
+        interpretation_note: "This is an exact infrastructure exception; BESS qualification is unresolved."
+      - evidence_id: "MURET-AUF0-MODIFICATION-CONDITION-01"
         section_id: "SECTION-0156"
         page_number: 120
         evidence_kind: "OTHER_RELEVANT_RULE"
         evidence_direction: "CONDITION"
-        exact_raw_excerpt: "1 - Les constructions et op\u00e9rations nouvelles ne pourront \u00eatre autoris\u00e9es qu\u2019apr\u00e8s la \nmise en \u0153uvre d\u2019une proc\u00e9dure de modification du PLU."
-        excerpt_sha256: "c6827ca879a3503b57419e4d101c9ee85347e5a9d21a028734e0ce2ea291684b"
-        interpretation_note: "The excerpt imposes a prior procedural condition and does not itself authorize any project."
+        exact_raw_excerpt: "Les constructions et opérations nouvelles ne pourront être autorisées qu’après la \nmise en œuvre d’une procédure de modification du PLU"
+        excerpt_sha256: "01594e632fb064a7e4dd408e68c156b66711abe6ae2a0e470c779e94b91f3a48"
+        section_page_fragment_sha256: "15040ad2f1b4a5fd1c44bdfead25d12cf4ccdd53a5f28736e4c383ae19a6cac9"
+        excerpt_start: 100
+        excerpt_end: 235
+        interpretation_note: "This prerequisite is a condition only and is not treated as route evidence."
 
   - resolved_zone_chapter_label: "A"
+    review_completeness: "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK"
+    reviewed_section_ids: ["SECTION-0170", "SECTION-0171"]
+    review_note: "Articles A 1 and A 2 were reviewed in full for written use controls."
     zoning_precheck_status: "CONDITIONAL_REVIEW"
     zoning_precheck_confidence: "LOW"
-    rationale: "Article A 1 broadly restricts uses while retaining an exception for necessary technical and infrastructure works; whether a BESS fits that exception is unresolved."
-    missing_information: "Formal BESS use and infrastructure classification, necessity evidence, agricultural impacts, prescriptions, servitudes, risks, nuisances, access, networks, and project design."
+    rationale: "Article A 1 contains broad restrictive language and a separate exception for necessary technical and infrastructure works. The policy records the conflict without deciding BESS qualification."
+    missing_information: "Formal necessity and BESS infrastructure classification, agricultural-zone effects, all Article A 1/2 provisions, prescriptions, servitudes and project design."
     evidence:
-      - evidence_id: "MURET-A-TECHNICAL-01"
+      - evidence_id: "MURET-A-RESTRICTION-01"
+        section_id: "SECTION-0170"
+        page_number: 125
+        evidence_kind: "USE_RESTRICTION"
+        evidence_direction: "SUPPORTS_DIFFICULTY"
+        exact_raw_excerpt: "Sont interdites toutes les occupations et utilisations du sol autres que celles"
+        excerpt_sha256: "f18eba9dd56f410853fb685d30b6fcc78ee95359c6577387b78a29c3261b3c61"
+        section_page_fragment_sha256: "51342e0ae335504d0f750e0138a63c2ffe928e11e564872122bec65edb4a8e13"
+        excerpt_start: 67
+        excerpt_end: 146
+        interpretation_note: "This is the broad restriction phrase, separate from the exception."
+      - evidence_id: "MURET-A-INFRA-ROUTE-01"
         section_id: "SECTION-0170"
         page_number: 125
         evidence_kind: "TECHNICAL_EQUIPMENT_RULE"
-        evidence_direction: "CONDITION"
-        exact_raw_excerpt: "1 - Sont interdites toutes les occupations et utilisations du sol autres que celles : \n- n\u00e9cessaires \u00e0 l\u2019exploitation agricole, qu\u2019il s\u2019agisse des constructions et extensions \n\u00e0 usage d\u2019habitation ou des constructions et installations \u00e0 usage agricole, \n- n\u00e9cessaires au bon fonctionnement des syst\u00e8mes de gestion des eaux, \n- n\u00e9cessaires aux ouvrages techniques et d\u2019infrastructures, \n- mentionn\u00e9es \u00e0 l\u2019article A2"
-        excerpt_sha256: "db2b606da20724a388cfef2d60bde901e1916d569494cfb7c9d2ecfc6a5fe383"
-        interpretation_note: "The excerpt combines a broad restriction with a technical-infrastructure exception; applicability to a BESS is not decided."
+        evidence_direction: "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        exact_raw_excerpt: "nécessaires aux ouvrages techniques et d’infrastructures"
+        excerpt_sha256: "7eee9f7e595784b2d6a4b605a4f0b5703a0446acb77b7420c709b5516e30e0a2"
+        section_page_fragment_sha256: "51342e0ae335504d0f750e0138a63c2ffe928e11e564872122bec65edb4a8e13"
+        excerpt_start: 390
+        excerpt_end: 446
+        interpretation_note: "This is the separate technical-infrastructure exception; BESS necessity and classification are unresolved."
 
   - resolved_zone_chapter_label: "N"
+    review_completeness: "COMPLETE_FOR_WRITTEN_ZONING_PRECHECK"
+    reviewed_section_ids: ["SECTION-0184", "SECTION-0185"]
+    review_note: "Articles N 1 and N 2 were reviewed in full for written use controls."
     zoning_precheck_status: "CONDITIONAL_REVIEW"
     zoning_precheck_confidence: "LOW"
-    rationale: "Article N 1 retains exceptions for technical infrastructure and public-service works within a broadly restricted zone; whether a BESS fits either exception is unresolved."
-    missing_information: "Formal BESS use and infrastructure or public-service classification, necessity evidence, natural-area impacts, prescriptions, servitudes, risks, nuisances, access, networks, and project design."
+    rationale: "Article N 1 contains a broad restriction and a separate exception for necessary technical and infrastructure equipment. The policy records the conflict without deciding BESS qualification."
+    missing_information: "Formal necessity and BESS infrastructure classification, natural-zone effects, all Article N 1/2 provisions, prescriptions, servitudes and project design."
     evidence:
-      - evidence_id: "MURET-N-TECHNICAL-01"
+      - evidence_id: "MURET-N-RESTRICTION-01"
+        section_id: "SECTION-0184"
+        page_number: 135
+        evidence_kind: "USE_RESTRICTION"
+        evidence_direction: "SUPPORTS_DIFFICULTY"
+        exact_raw_excerpt: "Sont interdites, toutes les occupations et utilisations du sol, à l’exception"
+        excerpt_sha256: "4781673bc1d5c704acd3be46c706805f6eaebacd4fc4b2296877af8bce6688ef"
+        section_page_fragment_sha256: "0cac3a1aeb56859670b715c17e1c166959147a0f90a19a12f87e0025b263e195"
+        excerpt_start: 69
+        excerpt_end: 146
+        interpretation_note: "This is the broad restriction phrase, separate from its listed exceptions."
+      - evidence_id: "MURET-N-INFRA-ROUTE-01"
         section_id: "SECTION-0184"
         page_number: 135
         evidence_kind: "TECHNICAL_EQUIPMENT_RULE"
-        evidence_direction: "CONDITION"
-        exact_raw_excerpt: "- des \u00e9quipements n\u00e9cessaires aux ouvrages techniques et d\u2019infrastructure, \n- des am\u00e9nagements li\u00e9s aux ouvrages techniques n\u00e9cessaires au fonctionnement des \nservices publics,"
-        excerpt_sha256: "714d3d548aca953ff5bc8a55b9f762b72f388fe025ee46fa001b6dc7d92cf192"
-        interpretation_note: "The excerpt states technical and public-service exceptions without deciding that a BESS qualifies."
+        evidence_direction: "SUPPORTS_POTENTIAL_COMPATIBILITY"
+        exact_raw_excerpt: "des équipements nécessaires aux ouvrages techniques et d’infrastructure"
+        excerpt_sha256: "b28cb339936e8598faee5c5bba6f1be5f52e40b1ce6f33fe854ae1daff54d867"
+        section_page_fragment_sha256: "0cac3a1aeb56859670b715c17e1c166959147a0f90a19a12f87e0025b263e195"
+        excerpt_start: 270
+        excerpt_end: 341
+        interpretation_note: "This is the separate technical-infrastructure exception; BESS necessity and classification are unresolved."
