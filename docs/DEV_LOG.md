@@ -1281,6 +1281,36 @@ Distance to an IGN electric line or transformation post does not establish grid 
 
 No BESS grid-distance threshold is selected here.
 
+## STEP 7D.4C.4 — Enforce unique chapter-scoped evidence occurrences
+
+- Status: Complete
+- Policy/result/output-manifest schemas: 5 / 5 / 5. Versions 1 through 4 are rejected; the checked-in profile is `muret_bess_written_zoning_v5`.
+- Test-first regression: schema v4 accepted two evidence IDs with identical chapter, section/page fragment, and excerpt offsets when both were linked under the same compatible route. The dedicated regression failed before the correction and now passes.
+- Occurrence contract: `(resolved_zone_chapter_label, section_id, page_number, section_page_fragment_sha256, excerpt_start, excerpt_end)` identifies exactly one evidence ID, kind, and direction. Duplicate entries fail explicitly rather than being deduplicated.
+- Legitimate reuse remains factual: one evidence ID may support several compatible routes; identical literal text at different offsets remains distinct; and the same exact GENERAL occurrence may be represented once for each different chapter.
+- Persistence boundary: the public source-complete result validator independently checks occurrence-key uniqueness on the supplied evidence catalog before comparing rebuilt frames and hashes. A coordinated duplicate plus recomputed hashes is rejected; Parquet read-back retains 26 unique keys.
+
+### Real Muret regression and read-back
+
+- Regulation chapter labels / unique labels: 13 / 13
+- Routes / evidence rows / unique chapter-scoped occurrences / evidence-route links: 13 / 26 / 26 / 26
+- Unlinked decision evidence / context-only evidence: 0 / 0
+- Chapter status/confidence: 13 `CONDITIONAL_REVIEW` / `LOW`
+- Raw GPU labels: 29, all `CONDITIONAL_REVIEW`
+- Parcels: 3,638 input and output; lost / extra IDs = 0 / 0; prior fields, geometry, order, index, and CRS unchanged
+- Runtime, including build-time source-complete validation: 24.392 seconds
+
+Schema-v5 hashes:
+
+- policy: `64cd30a13f4a46a2181236cc381e5b8a890f5d5d30bf15225289e4b3dc58c79d`
+- evidence / links / routes: `193d480adc1fe01cf9aa71261c809746643e23f5debd645d1163ba46fb5a8f45` / `47634f59d0165299e690e55ed6fe8a87dc2dcab30ecaca8f0e84b7a9b6144029` / `ba01df262d6cffd3abe68dc7cb561dd821194a133bc41969ac3e4a510c181797`
+- chapter / source-zone / parcel-zone: `d3fde89925c8f31ffa323373143faaa6ee04ee066f3e9cb9aa74e7f8bc8301c8` / `42b9339c2652e13bff9b3e284553719951e90268ac152ebab692d83f945ff0a7` / `de792d669fa06e0e6fd01faef270459b989ba96c80933f1be1be5f513560ae69`
+- parcel output / complete result: `f5a4be8f729deeab257ade80500b10aa1d1f21979cfc51c1c349d7d39a7091db` / `288c2a70e8bd889a5dd7f3e5060642e1e632f3b62a999f354a9deaea16b1e650`
+
+All eight ignored outputs were rewritten and read back. The reconstructed immutable schema-v5 result passed the public source-complete validator with the original factual inputs and policy.
+
+The precheck remains conservative and documentary. It is not an authorization, permit decision, or legal opinion. No prescription or environmental interpretation, parcel rejection, score, LLM, or authorization claim is introduced.
+
 ## STEP 7D.4C.3 — Close evidence-to-route coverage and chapter identity
 
 - Status: Complete

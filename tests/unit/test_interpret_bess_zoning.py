@@ -272,8 +272,8 @@ def _policy(index, structure, config, zones, relations) -> BessZoningPolicyConfi
 
     return BessZoningPolicyConfig.model_validate(
         {
-            "schema_version": 4,
-            "policy_profile": "synthetic_policy_v4",
+            "schema_version": 5,
+            "policy_profile": "synthetic_policy_v5",
             "planning_precheck_scope": "WRITTEN_ZONING_REGULATION_ONLY",
             "review_scope": "CONFIGURED_USE_CONTROL_ARTICLES_ONLY",
             "source_lock": {
@@ -435,8 +435,8 @@ def test_valid_locked_policy_builds_complete_outputs(inputs, valid_result) -> No
     assert len(result.source_zone_policy) == 3
     assert len(result.parcel_zone_interpretations) == 5
     assert len(result.parcels) == len(parcels)
-    assert result.policy_schema_version == 4
-    assert result.result_hash_schema_version == 4
+    assert result.policy_schema_version == 5
+    assert result.result_hash_schema_version == 5
     assert tuple(result.evidence_catalog.columns) == EVIDENCE_CATALOG_COLUMNS
     assert result.planning_precheck_scope == "WRITTEN_ZONING_REGULATION_ONLY"
     assert result.review_scope == "CONFIGURED_USE_CONTROL_ARTICLES_ONLY"
@@ -592,7 +592,49 @@ def test_one_excerpt_cannot_be_reused_with_contradictory_directions(inputs) -> N
     second["evidence_id"] = "E-U-2"
     second["evidence_direction"] = "SUPPORTS_DIFFICULTY"
     payload["chapters"][0]["evidence"] = (first, second)
-    with pytest.raises(ValueError, match="contradictory directions"):
+    with pytest.raises(ValueError, match="chapter-scoped evidence occurrence"):
+        BessZoningPolicyConfig.model_validate(payload)
+
+
+def test_duplicate_chapter_scoped_occurrence_in_one_route_is_rejected(inputs) -> None:
+    payload = _payload(inputs[-1])
+    duplicate = dict(payload["chapters"][0]["evidence"][0])
+    duplicate["evidence_id"] = "E-U-POSITIVE-DUPLICATE"
+    payload["chapters"][0]["evidence"] = (
+        *payload["chapters"][0]["evidence"],
+        duplicate,
+    )
+    payload["chapters"][0]["route_assessments"][0][
+        "positive_evidence_ids"
+    ] = ["E-U-POSITIVE", "E-U-POSITIVE-DUPLICATE"]
+
+    with pytest.raises(ValueError, match="chapter-scoped evidence occurrence"):
+        BessZoningPolicyConfig.model_validate(payload)
+
+
+def test_duplicate_occurrence_in_different_compatible_routes_is_rejected(
+    inputs,
+) -> None:
+    payload = _payload(inputs[-1])
+    duplicate = dict(payload["chapters"][1]["evidence"][0])
+    duplicate["evidence_id"] = "E-N-DUPLICATE-ROUTE"
+    payload["chapters"][1]["evidence"] = (
+        *payload["chapters"][1]["evidence"],
+        duplicate,
+    )
+    payload["chapters"][1]["route_assessments"] = (
+        *payload["chapters"][1]["route_assessments"],
+        {
+            "route_id": "ROUTE-N-DUPLICATE-OCCURRENCE",
+            "route_kind": "DIFFICULTY_ONLY",
+            "positive_evidence_ids": [],
+            "condition_evidence_ids": [],
+            "difficulty_evidence_ids": ["E-N-DUPLICATE-ROUTE"],
+            "applicability_note": "A second route must not duplicate the occurrence.",
+        },
+    )
+
+    with pytest.raises(ValueError, match="chapter-scoped evidence occurrence"):
         BessZoningPolicyConfig.model_validate(payload)
 
 
@@ -625,7 +667,7 @@ def test_duplicate_yaml_key_is_rejected(tmp_path: Path) -> None:
         load_bess_zoning_policy_config(path)
 
 
-@pytest.mark.parametrize("version", [1, 2, 3])
+@pytest.mark.parametrize("version", [1, 2, 3, 4])
 def test_old_policy_schema_versions_are_rejected(inputs, version: int) -> None:
     payload = _payload(inputs[-1])
     payload["schema_version"] = version
@@ -950,6 +992,14 @@ def test_unlinked_difficulty_evidence_is_rejected(inputs) -> None:
     payload = _payload(inputs[-1])
     unlinked = dict(payload["chapters"][1]["evidence"][0])
     unlinked["evidence_id"] = "E-N-UNLINKED"
+    unlinked["source_rule_id"] = "RULE-N-UNLINKED"
+    for field in (
+        "excerpt_start",
+        "excerpt_end",
+        "source_rule_start",
+        "source_rule_end",
+    ):
+        unlinked[field] += 100
     payload["chapters"][1]["evidence"] = (
         *payload["chapters"][1]["evidence"],
         unlinked,
@@ -967,6 +1017,14 @@ def test_unlinked_positive_and_condition_evidence_are_rejected(inputs) -> None:
         payload = _payload(inputs[-1])
         unlinked = dict(payload["chapters"][0]["evidence"][evidence_index])
         unlinked["evidence_id"] = f"E-U-UNLINKED-{direction}"
+        unlinked["source_rule_id"] = f"RULE-U-UNLINKED-{direction}"
+        for field in (
+            "excerpt_start",
+            "excerpt_end",
+            "source_rule_start",
+            "source_rule_end",
+        ):
+            unlinked[field] += 100
         payload["chapters"][0]["evidence"] = (
             *payload["chapters"][0]["evidence"],
             unlinked,
@@ -1175,6 +1233,61 @@ def test_general_section_review_is_explicit_and_valid(inputs) -> None:
         "U", "reviewed_section_ids"
     ]
     assert general_id in reviewed
+
+
+def test_same_general_occurrence_may_be_scoped_to_different_chapters(inputs) -> None:
+    index, structure, config, zones, relations, parcels, policy = inputs
+    general = structure.sections.loc[
+        structure.sections["section_type"].eq("GENERAL")
+    ].iloc[0]
+    fragment = planning_regulation_section_page_fragments(
+        index, zones, relations, config, structure
+    ).set_index(["section_id", "page_number"]).loc[(general["section_id"], 1)]
+    excerpt = "General factual text."
+    start = fragment["raw_text"].index(excerpt)
+    base = {
+        "section_id": general["section_id"],
+        "page_number": 1,
+        "evidence_kind": "TECHNICAL_EQUIPMENT_RULE",
+        "evidence_direction": "CONTEXT_ONLY",
+        "exact_raw_excerpt": excerpt,
+        "excerpt_sha256": sha256(excerpt.encode()).hexdigest(),
+        "section_page_fragment_sha256": fragment[
+            "section_page_fragment_sha256"
+        ],
+        "excerpt_start": start,
+        "excerpt_end": start + len(excerpt),
+        "source_rule_id": "RULE-GENERAL-CONTEXT",
+        "source_rule_excerpt": excerpt,
+        "source_rule_sha256": sha256(excerpt.encode()).hexdigest(),
+        "source_rule_start": start,
+        "source_rule_end": start + len(excerpt),
+        "interpretation_note": "The same factual GENERAL occurrence is chapter-scoped.",
+    }
+    payload = _payload(policy)
+    for chapter, evidence_id in zip(
+        payload["chapters"],
+        ("E-U-GENERAL-CONTEXT", "E-N-GENERAL-CONTEXT"),
+        strict=True,
+    ):
+        chapter["reviewed_section_ids"] = (
+            *chapter["reviewed_section_ids"],
+            general["section_id"],
+        )
+        chapter["evidence"] = (
+            *chapter["evidence"],
+            {**base, "evidence_id": evidence_id},
+        )
+    scoped_policy = BessZoningPolicyConfig.model_validate(payload)
+    result = interpret_bess_zoning(
+        index, structure, config, zones, relations, parcels, scoped_policy
+    )
+    scoped = result.evidence_catalog.loc[
+        result.evidence_catalog["section_id"].eq(general["section_id"])
+        & result.evidence_catalog["excerpt_start"].eq(start)
+    ]
+    assert set(scoped["resolved_zone_chapter_label"]) == {"U", "N"}
+    assert len(scoped) == 2
 
 
 def test_exact_section_page_occurrence_is_auditable(inputs, valid_result) -> None:
@@ -1601,6 +1714,29 @@ def test_coordinated_evidence_catalog_mutation_is_rejected(inputs, valid_result)
         _validate(inputs, mutated)
 
 
+def test_coordinated_catalog_occurrence_duplicate_is_rejected(
+    inputs, valid_result
+) -> None:
+    catalog = valid_result.evidence_catalog.copy(deep=True)
+    occurrence_columns = [
+        "resolved_zone_chapter_label",
+        "section_id",
+        "page_number",
+        "section_page_fragment_sha256",
+        "excerpt_start",
+        "excerpt_end",
+    ]
+    catalog.loc[catalog.index[1], occurrence_columns] = catalog.loc[
+        catalog.index[0], occurrence_columns
+    ].to_numpy()
+    mutated = _result_with_hashes(replace(valid_result, evidence_catalog=catalog))
+    with pytest.raises(
+        BessZoningPrecheckError,
+        match="duplicate chapter-scoped evidence occurrence",
+    ):
+        _validate(inputs, mutated)
+
+
 def test_coordinated_route_table_mutation_is_rejected(inputs, valid_result) -> None:
     routes = valid_result.route_assessments.copy(deep=True)
     routes.loc[0, "applicability_note"] = "Coordinated route mutation."
@@ -1640,7 +1776,7 @@ def test_evidence_route_link_hash_mutation_is_rejected(inputs, valid_result) -> 
         _validate(inputs, mutated)
 
 
-@pytest.mark.parametrize("version", [1, 2, 3])
+@pytest.mark.parametrize("version", [1, 2, 3, 4])
 def test_old_result_hash_schemas_are_rejected(
     inputs, valid_result, version: int
 ) -> None:
@@ -1684,6 +1820,15 @@ def test_readback_result_validates(tmp_path: Path, inputs, valid_result) -> None
         parcels=gpd.read_parquet(parcel_path),
     )
     _validate(inputs, persisted)
+    occurrence_columns = [
+        "resolved_zone_chapter_label",
+        "section_id",
+        "page_number",
+        "section_page_fragment_sha256",
+        "excerpt_start",
+        "excerpt_end",
+    ]
+    assert not persisted.evidence_catalog.duplicated(occurrence_columns).any()
 
 
 def test_policy_yaml_roundtrip_is_strict(tmp_path: Path, inputs) -> None:

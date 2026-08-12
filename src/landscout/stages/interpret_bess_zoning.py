@@ -43,8 +43,8 @@ __all__ = [
     "validate_bess_zoning_precheck",
 ]
 
-POLICY_SCHEMA_VERSION = 4
-RESULT_HASH_SCHEMA_VERSION = 4
+POLICY_SCHEMA_VERSION = 5
+RESULT_HASH_SCHEMA_VERSION = 5
 PLANNING_PRECHECK_SCOPE = "WRITTEN_ZONING_REGULATION_ONLY"
 REVIEW_SCOPE = "CONFIGURED_USE_CONTROL_ARTICLES_ONLY"
 
@@ -145,6 +145,14 @@ EVIDENCE_CATALOG_COLUMNS = (
     "index_content_sha256",
     "structure_result_content_sha256",
     "structure_profile",
+)
+_EVIDENCE_OCCURRENCE_COLUMNS = (
+    "resolved_zone_chapter_label",
+    "section_id",
+    "page_number",
+    "section_page_fragment_sha256",
+    "excerpt_start",
+    "excerpt_end",
 )
 ROUTE_ASSESSMENT_COLUMNS = (
     "route_id",
@@ -484,7 +492,9 @@ class BessZoningPolicyConfig(_StrictConfigModel):
             raise ValueError("chapter policy labels must be unique")
         evidence_ids: set[str] = set()
         route_ids: set[str] = set()
-        excerpt_directions: dict[tuple[str, int, str, int, int], str] = {}
+        chapter_occurrences: dict[
+            tuple[str, str, int, str, int, int], tuple[str, str, str]
+        ] = {}
         source_rules: dict[str, tuple[object, ...]] = {}
         source_rule_occurrences: dict[tuple[object, ...], str] = {}
         source_rule_ranges: dict[tuple[str, int, str], list[tuple[int, int, str]]] = {}
@@ -498,18 +508,23 @@ class BessZoningPolicyConfig(_StrictConfigModel):
                     raise ValueError("evidence IDs must be globally unique")
                 evidence_ids.add(evidence.evidence_id)
                 key = (
+                    chapter.resolved_zone_chapter_label,
                     evidence.section_id,
                     evidence.page_number,
                     evidence.section_page_fragment_sha256,
                     evidence.excerpt_start,
                     evidence.excerpt_end,
                 )
-                previous = excerpt_directions.get(key)
-                if previous is not None and previous != evidence.evidence_direction:
+                previous = chapter_occurrences.get(key)
+                if previous is not None:
                     raise ValueError(
-                        "one exact evidence occurrence cannot use contradictory directions"
+                        "one chapter-scoped evidence occurrence must resolve to exactly one evidence ID, kind, and direction"
                     )
-                excerpt_directions[key] = evidence.evidence_direction
+                chapter_occurrences[key] = (
+                    evidence.evidence_id,
+                    evidence.evidence_kind,
+                    evidence.evidence_direction,
+                )
                 rule_identity = (
                     evidence.section_id,
                     evidence.page_number,
@@ -1127,6 +1142,18 @@ def _required_section_ids_by_chapter(
     return result
 
 
+def _validate_evidence_occurrence_uniqueness(catalog: pd.DataFrame) -> None:
+    missing = set(_EVIDENCE_OCCURRENCE_COLUMNS).difference(catalog.columns)
+    if missing:
+        raise BessZoningPrecheckError(
+            f"Evidence catalog lacks occurrence fields: {sorted(missing)}"
+        )
+    if catalog.duplicated(list(_EVIDENCE_OCCURRENCE_COLUMNS)).any():
+        raise BessZoningPrecheckError(
+            "Evidence catalog contains a duplicate chapter-scoped evidence occurrence"
+        )
+
+
 def _validate_policy_evidence(
     index: PlanningRegulationIndex,
     structure: PlanningRegulationStructureResult,
@@ -1323,6 +1350,7 @@ def _validate_policy_evidence(
     catalog["decision_linked"] = catalog["decision_linked"].astype("bool")
     if catalog["evidence_id"].duplicated().any():
         raise BessZoningPrecheckError("Evidence catalog IDs must be unique")
+    _validate_evidence_occurrence_uniqueness(catalog)
     return chapters, catalog
 
 
@@ -2004,6 +2032,7 @@ def _compare_results(
 ) -> None:
     if not isinstance(result, BessZoningPrecheckResult):
         raise BessZoningPrecheckError("result must be a BessZoningPrecheckResult")
+    _validate_evidence_occurrence_uniqueness(result.evidence_catalog)
     scalar_fields = (
         "result_hash_schema_version",
         "policy_schema_version",
