@@ -15,6 +15,9 @@ from pandas.testing import assert_frame_equal
 from shapely.geometry import Polygon
 
 from landscout import stages
+from landscout.common.planning_text import (
+    normalize_planning_search_text as _normalize_search_text,
+)
 from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
     GpuDocumentMetadata,
@@ -31,7 +34,6 @@ from landscout.stages.index_planning_regulation import (
     SEARCH_HIT_COLUMNS,
     SEARCH_NORMALIZATION_PROFILE,
     PlanningRegulationIndexError,
-    _normalize_search_text,
     index_planning_regulation,
     search_planning_regulation,
     validate_planning_regulation_index,

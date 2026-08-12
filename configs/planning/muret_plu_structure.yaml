@@ -12,6 +12,7 @@ document_layout:
   body_start_page: 1
   table_of_contents_pages: []
   max_heading_continuation_lines: 2
+  include_table_of_contents_in_topic_evidence: false
 
 heading_patterns:
   zone_chapter:
@@ -26,8 +27,8 @@ heading_patterns:
 ignored_patterns:
   page_headers:
     - '^Muret-12ème modification du PLU$'
-  page_footers:
     - '^\d+$'
+  page_footers: []
 
 zone_aliases:
   UAa: "UA"
@@ -92,5 +93,9 @@ topics:
   networks:
     - "réseau"
     - "réseaux"
+
+topic_match_policy:
+  boundary_mode: "token"
+  overlap_resolution: "longest_match"
 
 topic_context_characters: 80

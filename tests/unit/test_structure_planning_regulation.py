@@ -7,6 +7,7 @@ import pandas as pd
 import pytest
 
 from landscout import stages
+from landscout.common.planning_text import normalize_planning_search_text
 from landscout.stages.index_planning_regulation import (
     INDEX_HASH_SCHEMA_VERSION,
     PAGE_HASH_SCHEMA_VERSION,
@@ -20,6 +21,9 @@ from landscout.stages.index_planning_regulation import (
 from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
+    _line_records,
+    _literal_topic_matches,
+    _result_with_hashes,
     _section_content_sha256,
     load_planning_regulation_structure_config,
     structure_planning_regulation,
@@ -27,8 +31,8 @@ from landscout.stages.structure_planning_regulation import (
 )
 
 
-def _index() -> PlanningRegulationIndex:
-    raw_pages = (
+def _index(raw_pages: tuple[str, ...] | None = None) -> PlanningRegulationIndex:
+    raw_pages = raw_pages or (
         "Test PLU\n1\nZONE U\nARTICLE U 1 - TOC ENTRY",
         "Test PLU\n2\nARTICLE 1 - GENERAL PROVISIONS\nGeneral energy rule.",
         "Test PLU\n3\nZONE U\nCharacter of U.\nARTICLE U 1 - USES\nFirst page energy text.",
@@ -91,6 +95,7 @@ def _config(index: PlanningRegulationIndex) -> PlanningRegulationStructureConfig
                 "body_start_page": 1,
                 "table_of_contents_pages": [1],
                 "max_heading_continuation_lines": 2,
+                "include_table_of_contents_in_topic_evidence": False,
             },
             "heading_patterns": {
                 "zone_chapter": [r"^ZONE\s+(?P<label>[A-Za-z0-9]+)$"],
@@ -108,6 +113,10 @@ def _config(index: PlanningRegulationIndex) -> PlanningRegulationStructureConfig
             },
             "zone_aliases": {"Ua": "U"},
             "topics": {"energy": ["energy"], "risk": ["risk"]},
+            "topic_match_policy": {
+                "boundary_mode": "token",
+                "overlap_resolution": "longest_match",
+            },
             "topic_context_characters": 20,
         }
     )
@@ -118,6 +127,7 @@ def _zones(index: PlanningRegulationIndex) -> pd.DataFrame:
     return pd.DataFrame(
         {
             "planning_zone_id": [f"ZONE-{label}" for label in labels],
+            "source_zone_id": [f"SRC-{label}" for label in labels],
             "zone_label_raw": labels,
             "source_document_id": index.document_id,
             "source_archive_sha256": index.archive_sha256,
@@ -130,7 +140,7 @@ def _intersections(index: PlanningRegulationIndex) -> pd.DataFrame:
         {
             "parcel_id": ["PARCEL-1", "PARCEL-2"],
             "planning_zone_id": ["ZONE-U", "ZONE-Ua"],
-            "source_zone_id": ["SRC-U", "SRC-UA"],
+            "source_zone_id": ["SRC-U", "SRC-Ua"],
             "zone_label_raw": ["U", "Ua"],
             "relation_type": ["AREA_OVERLAP", "AREA_OVERLAP"],
             "intersection_area_m2": [100.0, 50.0],
@@ -147,6 +157,19 @@ def valid_result():
         index, _zones(index), _intersections(index), _config(index)
     )
     return index, result
+
+
+def _validate(
+    index: PlanningRegulationIndex,
+    result,
+) -> None:
+    validate_planning_regulation_structure(
+        index,
+        _zones(index),
+        _intersections(index),
+        _config(index),
+        result,
+    )
 
 
 def test_package_exports_clean_high_level_api() -> None:
@@ -211,7 +234,7 @@ def test_realistic_structure_is_deterministic_and_toc_heading_is_ignored(
     valid_result,
 ) -> None:
     index, result = valid_result
-    validate_planning_regulation_structure(index, result)
+    _validate(index, result)
     assert result.sections["section_id"].tolist() == [
         f"SECTION-{number:04d}" for number in range(1, len(result.sections) + 1)
     ]
@@ -289,11 +312,11 @@ def test_coordinated_frame_mutation_is_rejected(
         frame.loc[0, column] = f"{frame.loc[0, column]} changed"
     changed = replace(result, **{frame_name: frame})
     with pytest.raises(PlanningRegulationStructureError):
-        validate_planning_regulation_structure(index, changed)
+        _validate(index, changed)
     # Updating only the exposed envelope hash cannot legitimize inner-row corruption.
     changed = replace(changed, **{hash_name: "f" * 64})
     with pytest.raises(PlanningRegulationStructureError):
-        validate_planning_regulation_structure(index, changed)
+        _validate(index, changed)
 
 
 def test_unknown_topic_page_reference_is_rejected(valid_result) -> None:
@@ -301,9 +324,7 @@ def test_unknown_topic_page_reference_is_rejected(valid_result) -> None:
     evidence = result.topic_evidence.copy(deep=True)
     evidence.loc[0, "page_number"] = 999
     with pytest.raises(PlanningRegulationStructureError, match="unknown page"):
-        validate_planning_regulation_structure(
-            index, replace(result, topic_evidence=evidence)
-        )
+        _validate(index, replace(result, topic_evidence=evidence))
 
 
 def test_coordinated_section_row_mutation_is_caught_by_outer_envelope(
@@ -318,10 +339,8 @@ def test_coordinated_section_row_mutation_is_caught_by_outer_envelope(
     sections.loc[0, "character_count"] = len(sections.loc[0, "raw_text"])
     row = sections.loc[0].to_dict()
     sections.loc[0, "section_content_sha256"] = _section_content_sha256(row)
-    with pytest.raises(PlanningRegulationStructureError, match="sections content hash"):
-        validate_planning_regulation_structure(
-            index, replace(result, sections=sections)
-        )
+    with pytest.raises(PlanningRegulationStructureError):
+        _validate(index, replace(result, sections=sections))
 
 
 def test_dominant_unmapped_zone_stops_processing() -> None:
@@ -334,3 +353,314 @@ def test_dominant_unmapped_zone_stops_processing() -> None:
     ]
     with pytest.raises(PlanningRegulationStructureError, match="Dominant candidate"):
         structure_planning_regulation(index, _zones(index), relations, _config(index))
+
+
+def test_positional_header_footer_filter_preserves_matching_body_lines() -> None:
+    index = _index(
+        (
+            (
+                "\nTest PLU\n\nARTICLE 1 - GENERAL PROVISIONS\n"
+                "Test PLU\n100\nBody text\n\n42\n"
+            ),
+        )
+    )
+    config = _config(index)
+    records = _line_records(index, config)
+    retained = [record.raw for record in records]
+    assert "Test PLU" in retained
+    assert "100" in retained
+    assert "42" not in retained
+    assert retained[0] == "ARTICLE 1 - GENERAL PROVISIONS"
+    assert records[0].page_line_number == 4
+
+
+def test_page_without_configured_header_or_footer_is_unchanged() -> None:
+    index = _index(("ARTICLE 1 - GENERAL\n100\nBody",))
+    config = _config(index)
+    config = config.model_copy(
+        update={
+            "ignored_patterns": config.ignored_patterns.model_copy(
+                update={"page_headers": (), "page_footers": ()}
+            )
+        }
+    )
+    assert [record.raw for record in _line_records(index, config)] == [
+        "ARTICLE 1 - GENERAL",
+        "100",
+        "Body",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("group", "pattern"),
+    [
+        ("zone_chapter", r"^ZONE\s+[A-Z]+$"),
+        ("article", r"^ARTICLE\s+(?P<zone>[A-Z]+)\s+\d+\s+-\s+.*$"),
+        ("general_section", r"^ARTICLE\s+(?P<number>\d+)\s+-\s+.*$"),
+    ],
+)
+def test_heading_patterns_require_mandatory_named_captures(
+    group: str,
+    pattern: str,
+) -> None:
+    index = _index()
+    config = _config(index)
+    patterns = config.heading_patterns.model_copy(update={group: (pattern,)})
+    with pytest.raises(ValueError, match="named captures"):
+        PlanningRegulationStructureConfig.model_validate(
+            config.model_dump(mode="python")
+            | {"heading_patterns": patterns.model_dump(mode="python")}
+        )
+
+
+def test_optional_pattern_lists_may_be_empty() -> None:
+    index = _index()
+    config = _config(index)
+    payload = config.model_dump(mode="python")
+    payload["heading_patterns"]["continuation"] = ()
+    payload["ignored_patterns"] = {"page_headers": (), "page_footers": ()}
+    validated = PlanningRegulationStructureConfig.model_validate(payload)
+    assert validated.heading_patterns.continuation == ()
+    assert validated.ignored_patterns.page_headers == ()
+
+
+@pytest.mark.parametrize(
+    ("mutation", "value"),
+    [
+        ("section_id", "SECTION-9999"),
+        ("start_record_id", "RECORD-999999"),
+        ("source_record_count", 999),
+        ("source_records_sha256", "f" * 64),
+    ],
+)
+def test_lossless_partition_mutation_is_rejected(
+    valid_result,
+    mutation: str,
+    value: object,
+) -> None:
+    index, result = valid_result
+    sections = result.sections.copy(deep=True)
+    sections.loc[0, mutation] = value
+    with pytest.raises(PlanningRegulationStructureError):
+        _validate(index, replace(result, sections=sections))
+
+
+def test_duplicate_or_reordered_record_partition_is_rejected(valid_result) -> None:
+    index, result = valid_result
+    sections = result.sections.copy(deep=True)
+    sections.loc[1, "start_record_id"] = sections.loc[0, "start_record_id"]
+    with pytest.raises(PlanningRegulationStructureError, match="partition"):
+        _validate(index, replace(result, sections=sections))
+
+
+def test_unsorted_section_pages_are_rejected(valid_result) -> None:
+    index, result = valid_result
+    sections = result.sections.copy(deep=True)
+    row_index = sections.index[sections["page_numbers"].map(len).gt(1)][0]
+    sections.at[row_index, "page_numbers"] = tuple(
+        reversed(sections.at[row_index, "page_numbers"])
+    )
+    with pytest.raises(PlanningRegulationStructureError, match="page references"):
+        _validate(index, replace(result, sections=sections))
+
+
+@pytest.mark.parametrize("mutation", ["missing_parent", "parent_after", "zone_mismatch"])
+def test_article_parent_semantics_are_enforced(valid_result, mutation: str) -> None:
+    index, result = valid_result
+    sections = result.sections.copy(deep=True)
+    article_index = sections.index[sections["section_type"].eq("ARTICLE")][0]
+    if mutation == "missing_parent":
+        sections.loc[article_index, "parent_section_id"] = None
+    elif mutation == "parent_after":
+        sections.loc[article_index, "parent_section_id"] = sections.iloc[-1]["section_id"]
+    else:
+        sections.loc[article_index, "zone_chapter_label"] = "N"
+    with pytest.raises(PlanningRegulationStructureError):
+        _validate(index, replace(result, sections=sections))
+
+
+def test_wrong_intersection_source_zone_id_is_rejected(valid_result) -> None:
+    index, result = valid_result
+    intersections = _intersections(index)
+    intersections.loc[0, "source_zone_id"] = "WRONG"
+    with pytest.raises(PlanningRegulationStructureError, match="source-zone"):
+        validate_planning_regulation_structure(
+            index, _zones(index), intersections, _config(index), result
+        )
+
+
+@pytest.mark.parametrize("upper_column", ["parcel_metric_area_m2", "zone_area_m2"])
+def test_intersection_area_cannot_exceed_available_geometry_area(
+    upper_column: str,
+) -> None:
+    index = _index()
+    intersections = _intersections(index)
+    intersections[upper_column] = [99.0, 50.0]
+    with pytest.raises(PlanningRegulationStructureError, match="exceeds"):
+        structure_planning_regulation(
+            index, _zones(index), intersections, _config(index)
+        )
+
+
+@pytest.mark.parametrize(
+    ("column", "value"),
+    [
+        ("mapping_method", "NONE"),
+        ("matched_section_id", "SECTION-0002"),
+        ("resolved_zone_chapter_label", "N"),
+        ("zone_polygon_count", 99),
+        ("candidate_intersection_count", 0),
+        ("dominant_candidate_count", 99),
+    ],
+)
+def test_zone_mapping_contract_mutations_are_rejected(
+    valid_result,
+    column: str,
+    value: object,
+) -> None:
+    index, result = valid_result
+    mapping = result.zone_mapping.copy(deep=True)
+    row_index = mapping.index[mapping["source_zone_label_raw"].eq("U")][0]
+    mapping.loc[row_index, column] = value
+    with pytest.raises(PlanningRegulationStructureError):
+        _validate(index, replace(result, zone_mapping=mapping))
+
+
+def test_alias_chain_resolves_to_final_configured_target() -> None:
+    index = _index()
+    config = _config(index).model_copy(update={"zone_aliases": {"Ua": "Urban", "Urban": "U"}})
+    result = structure_planning_regulation(
+        index, _zones(index), _intersections(index), config
+    )
+    mapping = result.zone_mapping.set_index("source_zone_label_raw")
+    assert mapping.at["Ua", "resolved_zone_chapter_label"] == "U"
+    assert mapping.at["Ua", "mapping_status"] == "CONFIG_ALIAS"
+    assert mapping.at["X", "mapping_status"] == "UNMAPPED"
+
+
+def test_token_boundary_and_longest_match_policy() -> None:
+    raw = (
+        "risque risques dérisque nuisance nuisances réseau réseaux "
+        "équipement d'intérêt collectif intérêt collectif "
+        "incendie défense contre l'incendie"
+    )
+    normalized = normalize_planning_search_text(raw)
+    terms = (
+        "risque",
+        "risques",
+        "nuisance",
+        "nuisances",
+        "réseau",
+        "réseaux",
+        "équipement d'intérêt collectif",
+        "intérêt collectif",
+        "incendie",
+        "défense contre l'incendie",
+    )
+    matches = _literal_topic_matches(normalized, terms)
+    retained = [match.search_term for match in matches]
+    assert retained.count("risque") == 1
+    assert retained.count("risques") == 1
+    assert retained.count("nuisance") == 1
+    assert retained.count("nuisances") == 1
+    assert retained.count("réseau") == 1
+    assert retained.count("réseaux") == 1
+    assert retained.count("équipement d'intérêt collectif") == 1
+    assert retained.count("intérêt collectif") == 1
+    assert retained.count("incendie") == 1
+    assert retained.count("défense contre l'incendie") == 1
+    assert len(matches) == 10
+
+
+@pytest.mark.parametrize(
+    ("column", "value"),
+    [
+        ("evidence_scope", "GENERAL_RULE"),
+        ("zone_chapter_label", "N"),
+        ("article_number_raw", "999"),
+        ("topic", "unconfigured"),
+        ("search_term", "unconfigured"),
+        ("occurrence_count", 99),
+        ("raw_context", "fabricated"),
+        ("first_match_normalized_start", 999),
+    ],
+)
+def test_topic_evidence_semantic_mutations_are_rejected(
+    valid_result,
+    column: str,
+    value: object,
+) -> None:
+    index, result = valid_result
+    evidence = result.topic_evidence.copy(deep=True)
+    zone_rows = evidence.index[evidence["evidence_scope"].eq("ZONE_SPECIFIC_RULE")]
+    row_index = zone_rows[0] if len(zone_rows) else evidence.index[0]
+    evidence.loc[row_index, column] = value
+    with pytest.raises(PlanningRegulationStructureError):
+        _validate(index, replace(result, topic_evidence=evidence))
+
+
+def test_coordinated_topic_evidence_and_hash_mutation_is_rebuilt_and_rejected(
+    valid_result,
+) -> None:
+    index, result = valid_result
+    evidence = result.topic_evidence.copy(deep=True)
+    evidence.loc[0, "raw_context"] = "fabricated"
+    changed = _result_with_hashes(
+        replace(
+            result,
+            topic_evidence=evidence,
+            sections_content_sha256="",
+            zone_map_content_sha256="",
+            topic_evidence_content_sha256="",
+            structure_result_content_sha256="",
+        )
+    )
+    with pytest.raises(PlanningRegulationStructureError):
+        _validate(index, changed)
+
+
+@pytest.mark.parametrize("source_change", ["alias", "topic", "heading", "zone", "area", "relation"])
+def test_source_complete_validator_rejects_post_build_source_change(
+    valid_result,
+    source_change: str,
+) -> None:
+    index, result = valid_result
+    zones = _zones(index)
+    intersections = _intersections(index)
+    config = _config(index)
+    if source_change == "alias":
+        config = config.model_copy(update={"zone_aliases": {"Ua": "N"}})
+    elif source_change == "topic":
+        config = config.model_copy(update={"topics": {"energy": ("electricity",), "risk": ("risk",)}})
+    elif source_change == "heading":
+        patterns = config.heading_patterns.model_copy(
+            update={"zone_chapter": (r"^ZONE\s+(?P<label>[A-Za-z0-9]+)\s*$",)}
+        )
+        config = config.model_copy(update={"heading_patterns": patterns})
+    elif source_change == "zone":
+        zones.loc[0, "source_zone_id"] = "CHANGED"
+        intersections.loc[0, "source_zone_id"] = "CHANGED"
+    elif source_change == "area":
+        intersections.loc[0, "intersection_area_m2"] = 99.0
+    else:
+        intersections.loc[0, "relation_type"] = "TOUCH_ONLY"
+        intersections.loc[0, "intersection_area_m2"] = 0.0
+    with pytest.raises(PlanningRegulationStructureError):
+        validate_planning_regulation_structure(
+            index, zones, intersections, config, result
+        )
+
+
+@pytest.mark.parametrize(
+    "hash_field",
+    [
+        "structure_config_sha256",
+        "zones_content_sha256",
+        "zoning_intersections_content_sha256",
+        "structure_result_content_sha256",
+    ],
+)
+def test_source_and_result_hash_mutation_is_rejected(valid_result, hash_field: str) -> None:
+    index, result = valid_result
+    with pytest.raises(PlanningRegulationStructureError):
+        _validate(index, replace(result, **{hash_field: "f" * 64}))

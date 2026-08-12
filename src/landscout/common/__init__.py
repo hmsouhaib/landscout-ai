@@ -1,0 +1,1 @@
+"""Shared LandScout domain utilities."""

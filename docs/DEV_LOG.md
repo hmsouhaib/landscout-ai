@@ -3,7 +3,7 @@
 ## Current project state
 
 - Current phase: French urban-planning evidence structuring
-- Latest completed step: STEP 7D.4B — factual regulation structure and zone evidence
+- Latest completed step: STEP 7D.4B.1 — hardened regulation evidence fidelity
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: evidence-based planning-rule interpretation design
@@ -1522,6 +1522,84 @@ No legal conclusion is produced.
 No BESS compatibility status is assigned.
 No parcel is rejected.
 No score is calculated.
+
+## STEP 7D.4B.1 — Harden regulation structure and evidence fidelity
+
+- Status: Complete
+- Implementation summary: Closed the parser's remaining trust boundaries without changing its factual section hierarchy or zoning aliases. French literal normalization and raw-span reconstruction now live in one shared `planning_text` module used by both regulation stages. The public validator receives and revalidates the complete index, strict config, ordered zone catalog, ordered zoning relations, and result; it independently rebuilds the expected sections, mapping, evidence, and hashes before accepting a result.
+- Important files: `src/landscout/common/planning_text.py`, `src/landscout/stages/index_planning_regulation.py`, `src/landscout/stages/structure_planning_regulation.py`, `configs/planning/muret_plu_structure.yaml`, and both regulation test modules.
+- Tests/checks: 178 focused index/structure tests pass. They retain the complete `fr_literal_v1` Unicode suite and add positional page filtering, mandatory regex captures, lossless record partitioning, strict hierarchy/mapping contracts, source-complete rebuild validation, area bounds, token boundaries, longest-match overlap handling, match provenance, and coordinated mutation rejection. The complete 934-test suite passes; Ruff and mypy pass.
+
+### Positional source fidelity
+
+Header/footer regexes now operate only at page edges. The parser removes contiguous configured header lines from the leading page region and configured footer lines from the trailing page region, with deterministic surrounding-blank handling. An identical header-looking string or numeric string inside body text is retained. In the current PDF the repeated title and page number are consecutive leading page-header records, so both are configured as headers; the footer list is correctly empty.
+
+Every retained line now has a sequential `record_id`, original page number, original 1-based page-line number, and untouched raw text. Section rows bind their inclusive record boundaries, record count, and ordered record SHA256. The real result is an exact partition:
+
+| Record invariant | Real result |
+| --- | ---: |
+| Retained source records | 6,490 |
+| Omitted retained records | 0 |
+| Duplicated retained records | 0 |
+| Reordered retained records | 0 |
+
+There is no table-of-contents page in the current Muret regulation. The config nevertheless makes TOC page recognition explicit: retained TOC text remains an auditable `OTHER` section, while topic retrieval from configured TOC pages is disabled unless explicitly enabled.
+
+Section IDs are required to be exactly sequential in source order. Pages must be strictly ascending and agree with record boundaries. Each of the 177 `ARTICLE` rows has an earlier `ZONE_CHAPTER` parent with the same canonical label and non-empty number/title; all 13 zone chapters, five general articles, and one cover section satisfy their type-specific null/parent rules. The section totals remain unchanged at 196.
+
+### Complete input and result integrity
+
+Canonical UTF-8 JSON hashes now bind every source used by this step:
+
+- Config schema / SHA256: 1 / `8b324fb6b01486ed82c0660257b401622f7217b4bc95b7ed1e85ae2275a82a8b`
+- Ordered zone-input SHA256: `f9bfcd9d225c4dec964b3b17bf701323e0bc1873a3ad4483b983fc351f189b21`
+- Ordered zoning-intersection SHA256: `f9c2b7a13d5d7c57e250e38ac0286d515f979c0e50cba54b8c2efe90e7e8ce91`
+- Retained source-record SHA256: `5507ec145593dc40d620515304062e2d052658bf89302fce0f95e520a56fdfdb`
+- Ordered sections SHA256: `21b73d967c11ef138ad370642196a2c7512fd1ff49b5e1459cbad6d9656920ad`
+- Ordered zone-map SHA256: `b4bac92e5b97c3470d55d4744df0d6c494e2375d278efe46463617c6ec121ebd`
+- Ordered topic-evidence SHA256: `31bda1efafb75d4e48f42d560de66db8eb8dafe88d2f4aa233444d56c965b158`
+- Complete structure-result SHA256: `d3c7759a56cc38769362fc3c68a81524e5eea992ebd37c05daab7a4b4aaa9200`
+
+Zone identity is now cross-checked through both `planning_zone_id` and authoritative `source_zone_id`, plus raw label and document/archive lineage. When metric denominators are present, intersection area cannot exceed parcel or zone area beyond the existing `1e-6 m²` technical geometry tolerance. Counts are rebuilt from the 221-zone catalog and 5,095 relations. Mapping semantics remain 12 `EXACT`, 17 `CONFIG_ALIAS`, 0 `UNMAPPED`, and 0 `AMBIGUOUS`; all 3,638 candidates remain represented and dominant unresolved candidates remain zero.
+
+### Corrected literal topic evidence
+
+The configured policy is `boundary_mode: token` plus `overlap_resolution: longest_match`. Matches must have token boundaries. Within one topic/section/page, all candidate spans are compared; the longest overlapping term wins, configuration order breaks an equal-length tie, and each retained source span is counted once. This corrects duplicate counting from singular/plural pairs and nested phrases such as `risque`/`risques`, `réseau`/`réseaux`, `intérêt collectif` inside `équipement d'intérêt collectif`, and `incendie` inside `défense contre l'incendie`. It is still literal retrieval: no stemming, synonyms, fuzzy match, LLM, or legal interpretation is used.
+
+Evidence rows now retain the match-policy identifier and first normalized/raw span boundaries. Validators reconstruct matches and contexts from retained source text and require exact topic, configured term, section/page, zone/article, scope, count, provenance, raw context, and normalized context.
+
+| Topic | Corrected rows | Unique retained occurrences |
+| --- | ---: | ---: |
+| `access` | 57 | 174 |
+| `classified_installation` | 17 | 20 |
+| `destination_and_use` | 29 | 30 |
+| `electricity` | 34 | 35 |
+| `energy` | 12 | 22 |
+| `fire_safety` | 31 | 37 |
+| `networks` | 50 | 177 |
+| `nuisance` | 11 | 11 |
+| `public_interest_equipment` | 25 | 25 |
+| `risk` | 46 | 58 |
+| `setbacks` | 130 | 183 |
+| `technical_equipment` | 16 | 27 |
+| **Total** | **458** | **799** |
+
+The former 510 evidence rows and 984 literal occurrences included overlapping configured terms. The new 458 rows and 799 unique retained occurrences are a retrieval-integrity correction; source text, the 196 sections, zone aliases, and parcel/zone facts did not change.
+
+### Outputs and read-back
+
+- Real source-complete structure runtime: 8.975 seconds
+- `muret_plu_regulation_sections.parquet`: 196 rows, 299,138 bytes
+- `muret_plu_zone_section_map.parquet`: 29 rows, 11,117 bytes
+- `muret_plu_topic_evidence.parquet`: 458 rows, 59,411 bytes
+- `muret_plu_structure_index.json`: manifest schema 2, 3,185 bytes
+
+The manifest now persists config schema/hash, both factual input hashes, source-record hash/counts, all result component hashes, complete result hash, match policy, and output counts. All four ignored outputs were rewritten and read back. The source-complete public validator rebuilt the result from the original real index, zones, intersections, and YAML config and accepted the persisted frames with identical hashes.
+
+No legal conclusion.
+No BESS compatibility status.
+No parcel rejection.
+No score.
 
 ## STEP 7D.2 — Normalize GPU zoning and intersect Muret parcels
 
