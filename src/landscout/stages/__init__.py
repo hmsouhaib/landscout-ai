@@ -55,6 +55,14 @@ from landscout.stages.profile_shape import (
     ShapeProfileError,
     profile_shape_distribution,
 )
+from landscout.stages.structure_planning_regulation import (
+    PlanningRegulationStructureConfig,
+    PlanningRegulationStructureError,
+    PlanningRegulationStructureResult,
+    load_planning_regulation_structure_config,
+    structure_planning_regulation,
+    validate_planning_regulation_structure,
+)
 
 __all__ = [
     "BoundaryDistanceProfile",
@@ -74,6 +82,9 @@ __all__ = [
     "PlanningRegulationIndex",
     "PlanningRegulationIndexError",
     "PlanningRegulationSearchResult",
+    "PlanningRegulationStructureConfig",
+    "PlanningRegulationStructureError",
+    "PlanningRegulationStructureResult",
     "ShapeDistributionProfile",
     "ShapeEnrichmentError",
     "ShapeProfileError",
@@ -88,6 +99,7 @@ __all__ = [
     "index_planning_regulation",
     "intersect_parcels_with_gpu_planning_features",
     "intersect_parcels_with_gpu_zoning",
+    "load_planning_regulation_structure_config",
     "normalize_cadastre_parcels",
     "normalize_ign_electricity",
     "parse_ign_voltage",
@@ -95,6 +107,8 @@ __all__ = [
     "profile_grid_proximity",
     "profile_shape_distribution",
     "search_planning_regulation",
+    "structure_planning_regulation",
     "validate_planning_regulation_index",
     "validate_planning_regulation_search_result",
+    "validate_planning_regulation_structure",
 ]

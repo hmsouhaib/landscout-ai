@@ -2,8 +2,8 @@
 
 ## Current project state
 
-- Current phase: French urban-planning regulation retrieval
-- Latest completed step: STEP 7D.4A.2 — sealed regulation-source selection and index lineage
+- Current phase: French urban-planning evidence structuring
+- Latest completed step: STEP 7D.4B — factual regulation structure and zone evidence
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: evidence-based planning-rule interpretation design
@@ -1423,6 +1423,105 @@ No OCR.
 No legal interpretation.
 No zone classification.
 No parcel rejection.
+
+## STEP 7D.4B — Build factual regulation structure and zone evidence
+
+- Status: Complete
+- Implementation summary: Added a document-locked, configuration-driven parser that turns the validated 142-page regulation index into ordered factual sections, maps every raw GPU zoning label using exact headings or explicit aliases, and retrieves literal topic evidence inside the resulting sections. No Muret heading, alias, or topic vocabulary is embedded in Python.
+- Important files: `configs/planning/muret_plu_structure.yaml`, `src/landscout/stages/structure_planning_regulation.py`, `tests/unit/test_structure_planning_regulation.py`, and the four ignored outputs under `data/processed/planning/`.
+- Tests/checks: 19 focused offline tests cover document locks, strict YAML and regex validation, alias cycles, repeated table-of-contents headings, hierarchy, multi-page articles, exact/alias/unmapped/ambiguous mappings, absence of fuzzy matching, mutation detection, page references, input immutability, and the dominant-candidate mapping gate. The complete 889-test suite passes; Ruff and mypy pass.
+
+### Real document-structure inspection
+
+The rules below were derived from the current Muret page index before the YAML grammar was written:
+
+- The extracted 142-page regulation has no separate table-of-contents section. Page 3 contains a factual enumeration of zones inside general article 3, but not a duplicate chapter index.
+- Page 1 is the cover. General provisions use five uppercase headings: `ARTICLE 1 - ...` through `ARTICLE 5 - ...`, starting on pages 2, 2, 3, 3, and 4 respectively and continuing through page 6.
+- Zone chapters use an anchored `ZONE <label>` heading. The 13 observed body chapters begin on pages 7, 21, 35, 47, 59, 70, 80, 92, 101, 113, 119, 124, and 134 for `UA`, `UB`, `UC`, `UD`, `UF`, `UP`, `AU`, `AUp`, `AUf`, `AU 0`, `AUf 0`, `A`, and `N`.
+- Zone articles use `ARTICLE <zone> <number> - <title>` with both hyphen and en-dash separators. Titles can continue over subsequent uppercase lines. The source also contains compact forms such as `ARTICLE UC 10–...` and an uppercase `AUF0` spelling in one article; matching preserves the chapter's raw canonical label while comparing this source spelling case-insensitively.
+- The repeated page header is `Muret-12ème modification du PLU`; the footer is the standalone page number. Both ignored patterns are explicit in YAML. Ordinary mixed-case Code de l'urbanisme citations such as `Article R.111.2.` are not body headings.
+- Article numbering restarts within each zone. Some source chapters omit article numbers rather than presenting a complete 1–14 sequence; the parser records what exists and does not fabricate missing articles.
+
+The YAML source lock binds document ID `33edb4c9f6943c88d8d92518bff20bec`, PDF SHA256 `5358ebad6b0cda6de681ba3536e29b8b6291fb701c7d3711f4ee1d6fdb85c6fb`, page-table SHA256 `928e7e59c45e27c38e39d3f28f3eb10bd2590886416df57efc4ac8e5d8901ec9`, complete index SHA256 `6a0009228ca17128c0a8bb329d9c2277a1b6638708a67b913b72ee93063e42cd`, and normalization profile `fr_literal_v1`. Unknown YAML fields, duplicate YAML keys, bad regexes, blank terms, duplicate normalized terms, and alias cycles fail before parsing.
+
+### Real sections and zone mapping
+
+| Structural result | Count |
+| --- | ---: |
+| All sections | 196 |
+| `OTHER` cover sections | 1 |
+| General sections/articles | 5 |
+| Zone chapters | 13 |
+| Zone articles | 177 |
+| Unique raw GPU zone labels | 29 |
+| `EXACT` mappings | 12 |
+| `CONFIG_ALIAS` mappings | 17 |
+| `UNMAPPED` mappings | 0 |
+| `AMBIGUOUS` mappings | 0 |
+| Candidate parcels affected by unmapped/ambiguous labels | 0 |
+
+Exact chapter matches are `A`, `AU`, `AU0`, `AUf`, `AUp`, `N`, `UA`, `UB`, `UC`, `UD`, `UF`, and `UP`. The 17 explicit aliases map source sub-zone labels only through YAML: `UAa`/`UAb` to `UA`; `UBa`/`UBb` to `UB`; `UFa`/`UFc`/`UFd` to `UF`; `AUa` to `AU`; `AUfa`/`AUfb`/`AUfc`/`AUfd` to `AUf`; `AUfo` to the actual `AUf0` chapter; and `NL`/`Ne`/`Nh`/`Nr` to `N`. Prefix similarity is never a mapping method.
+
+All 3,638 current candidate parcels and 5,095 factual parcel/zone relations were represented in the coverage counts. Every raw label used as the deterministic dominant zone by at least one candidate is `EXACT` or `CONFIG_ALIAS`; the stage would stop on any dominant unresolved label.
+
+### Factual topic evidence
+
+Literal terms are configured by retrieval topic and reuse `fr_literal_v1`; they are not synonyms, rules, or severity labels. One evidence row represents a topic/term/section/page combination and preserves both raw and normalized context.
+
+| Topic | Evidence rows | Literal occurrences |
+| --- | ---: | ---: |
+| `access` | 65 | 188 |
+| `classified_installation` | 17 | 20 |
+| `destination_and_use` | 29 | 30 |
+| `electricity` | 34 | 37 |
+| `energy` | 12 | 22 |
+| `fire_safety` | 36 | 57 |
+| `networks` | 62 | 277 |
+| `nuisance` | 22 | 22 |
+| `public_interest_equipment` | 25 | 25 |
+| `risk` | 49 | 73 |
+| `setbacks` | 133 | 196 |
+| `technical_equipment` | 16 | 27 |
+| `transformer` | 10 | 10 |
+
+| Location | Evidence rows | Literal occurrences |
+| --- | ---: | ---: |
+| General provisions / cover | 13 | 19 |
+| `UA` | 50 | 93 |
+| `UB` | 46 | 90 |
+| `UC` | 44 | 90 |
+| `UD` | 43 | 87 |
+| `UF` | 34 | 73 |
+| `UP` | 43 | 84 |
+| `AU` | 50 | 86 |
+| `AUp` | 39 | 78 |
+| `AUf` | 39 | 84 |
+| `AU0` | 21 | 27 |
+| `AUf0` | 16 | 23 |
+| `A` | 38 | 78 |
+| `N` | 34 | 72 |
+
+`GENERAL_RULE` and `ZONE_SPECIFIC_RULE` describe only where the literal text occurs. Both are retained; neither states legal priority or effect.
+
+### Integrity, outputs, and read-back
+
+- Section hash schema version: 1
+- Structure-config SHA256: `709d63c89d6aa5d668930303e900f655abd83c8a348120c7c2a4d73f8c30a029`
+- Ordered sections SHA256: `df6f9489ee017962637243e0eef851a8e7b15b5853c98511e83de1933973c099`
+- Ordered zone-map SHA256: `1df96ff62d83283c1adf3ceced845fb066fedbcb04434041f65d8e98d60902a5`
+- Ordered topic-evidence SHA256: `09be72cba6d43be2cfbfff1cff75e315f747a58564c9b24aa4fc2b47d577f0d8`
+- Real structure runtime: 8.212 seconds
+- Sections Parquet: `muret_plu_regulation_sections.parquet`, 196 rows, 280,570 bytes
+- Zone-map Parquet: `muret_plu_zone_section_map.parquet`, 29 rows, 11,117 bytes
+- Topic-evidence Parquet: `muret_plu_topic_evidence.parquet`, 510 rows, 50,865 bytes
+- Structure manifest: `muret_plu_structure_index.json`, 2,394 bytes
+
+All ignored outputs were read back. The public validator accepted the reconstructed immutable result, source page references remained valid, and all three ordered-content hashes reproduced exactly. Coordinated mutable-DataFrame changes are rejected by the outer content envelopes.
+
+No legal conclusion is produced.
+No BESS compatibility status is assigned.
+No parcel is rejected.
+No score is calculated.
 
 ## STEP 7D.2 — Normalize GPU zoning and intersect Muret parcels
 

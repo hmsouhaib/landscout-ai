@@ -1,0 +1,96 @@
+schema_version: 1
+structure_profile: "muret_plu_20240215_v1"
+
+document_lock:
+  document_id: "33edb4c9f6943c88d8d92518bff20bec"
+  pdf_sha256: "5358ebad6b0cda6de681ba3536e29b8b6291fb701c7d3711f4ee1d6fdb85c6fb"
+  pages_content_sha256: "928e7e59c45e27c38e39d3f28f3eb10bd2590886416df57efc4ac8e5d8901ec9"
+  index_content_sha256: "6a0009228ca17128c0a8bb329d9c2277a1b6638708a67b913b72ee93063e42cd"
+  normalization_profile: "fr_literal_v1"
+
+document_layout:
+  body_start_page: 1
+  table_of_contents_pages: []
+  max_heading_continuation_lines: 2
+
+heading_patterns:
+  zone_chapter:
+    - '^ZONE\s+(?P<label>[A-Za-z]+(?:\s*0)?)\s*$'
+  article:
+    - '^ARTICLE\s+(?P<zone>[A-Za-z]+(?:\s*0)?)\s+(?P<number>\d+(?:\.\d+)?)\s*[-–—]\s*(?P<title>.*)$'
+  general_section:
+    - '^ARTICLE\s+(?P<number>\d+(?:\.\d+)?)\s*[-–—]\s*(?P<title>.*)$'
+  continuation:
+    - '^[^a-z]*[A-ZÀ-ÖØ-ÞŒ][^a-z]*$'
+
+ignored_patterns:
+  page_headers:
+    - '^Muret-12ème modification du PLU$'
+  page_footers:
+    - '^\d+$'
+
+zone_aliases:
+  UAa: "UA"
+  UAb: "UA"
+  UBa: "UB"
+  UBb: "UB"
+  UFa: "UF"
+  UFc: "UF"
+  UFd: "UF"
+  AUa: "AU"
+  AUfa: "AUf"
+  AUfb: "AUf"
+  AUfc: "AUf"
+  AUfd: "AUf"
+  AUfo: "AUf0"
+  NL: "N"
+  Ne: "N"
+  Nh: "N"
+  Nr: "N"
+
+topics:
+  destination_and_use:
+    - "occupation du sol"
+    - "utilisation du sol"
+    - "destination"
+  public_interest_equipment:
+    - "équipement public"
+    - "équipement d'intérêt collectif"
+    - "service public"
+    - "intérêt collectif"
+  technical_equipment:
+    - "ouvrage technique"
+    - "installations techniques"
+    - "locaux techniques"
+  energy:
+    - "énergie"
+  electricity:
+    - "électricité"
+    - "électrique"
+  transformer:
+    - "transformateur"
+  classified_installation:
+    - "installation classée"
+    - "installations classées"
+    - "ICPE"
+  risk:
+    - "risque"
+    - "risques"
+  nuisance:
+    - "nuisance"
+    - "nuisances"
+  fire_safety:
+    - "incendie"
+    - "défense contre l'incendie"
+  access:
+    - "accès"
+    - "desserte"
+  setbacks:
+    - "recul"
+    - "distance minimale"
+    - "implantation"
+  networks:
+    - "réseau"
+    - "réseaux"
+
+topic_context_characters: 80
