@@ -29,6 +29,7 @@ from landscout.sources.gpu_fr import (
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )
+from landscout.stages.enrich_planning_features import RELATION_COLUMNS
 from landscout.stages.resolve_planning_feature_codes import (
     CODE_DICTIONARY_COLUMNS,
     OFFICIAL_CODE_COLUMNS,
@@ -361,6 +362,7 @@ def _inputs():
         ],
         index=pd.Index([101, 102], name="relation_row"),
     )
+    relations = relations.loc[:, list(RELATION_COLUMNS)]
     return _planning_document(), surface, line, point, relations, _profile()
 
 
@@ -568,6 +570,218 @@ def test_catalogs_and_relations_are_preserved_and_inputs_immutable() -> None:
     assert result.relations.index.equals(inputs[4].index)
 
 
+@pytest.mark.parametrize(
+    ("catalog_position", "column"),
+    [
+        (1, "feature_area_m2"),
+        (2, "feature_length_m"),
+        (3, "point_member_count"),
+        (1, "label_raw"),
+        (1, "source_crs"),
+    ],
+)
+def test_complete_normalized_catalog_schema_is_required(
+    catalog_position: int,
+    column: str,
+) -> None:
+    inputs = list(_inputs())
+    inputs[catalog_position] = inputs[catalog_position].drop(columns=column)
+    with pytest.raises(PlanningFeatureCodeError, match="normalized|schema|column"):
+        resolve_planning_feature_codes(*inputs)
+
+
+def test_unexpected_factual_catalog_column_is_rejected() -> None:
+    inputs = list(_inputs())
+    surface = inputs[1].copy(deep=True)
+    surface["unexpected_fact"] = "not-produced-by-step-7d-3-1"
+    inputs[1] = surface
+    with pytest.raises(PlanningFeatureCodeError, match="normalized|schema|column"):
+        resolve_planning_feature_codes(*inputs)
+
+
+@pytest.mark.parametrize(
+    ("column", "value"),
+    [
+        ("source_identity_kind", "UNKNOWN_KIND"),
+        ("source_identity_field", "LIB_IDINFO"),
+    ],
+)
+def test_cnig_identity_provenance_is_exact(column: str, value: str) -> None:
+    inputs = list(_inputs())
+    surface = inputs[1].copy(deep=True)
+    surface.loc[surface.index[0], column] = value
+    inputs[1] = surface
+    with pytest.raises(PlanningFeatureCodeError, match="identity|provenance|normalized"):
+        resolve_planning_feature_codes(*inputs)
+
+
+@pytest.mark.parametrize(
+    ("logical_layer", "feature_family", "source_feature_id"),
+    [
+        ("information_surface", "INFORMATION", "OGR_FID:1"),
+        ("prescription_surface", "PRESCRIPTION", "1"),
+    ],
+)
+def test_ogr_fid_provenance_is_restricted(
+    logical_layer: str,
+    feature_family: str,
+    source_feature_id: str,
+) -> None:
+    inputs = list(_inputs())
+    surface = inputs[1].copy(deep=True)
+    row_index = surface.index[0]
+    surface.loc[row_index, "logical_layer"] = logical_layer
+    surface.loc[row_index, "feature_family"] = feature_family
+    surface.loc[row_index, "source_identity_kind"] = "ARCHIVE_SCOPED_OGR_FID"
+    surface.loc[row_index, "source_identity_field"] = "OGR_FID"
+    surface.loc[row_index, "source_feature_id"] = source_feature_id
+    inputs[1] = surface
+    with pytest.raises(PlanningFeatureCodeError, match="OGR|identity|provenance|normalized"):
+        resolve_planning_feature_codes(*inputs)
+
+
+def test_source_feature_id_is_unique_inside_logical_layer() -> None:
+    inputs = list(_inputs())
+    surface = inputs[1].copy(deep=True)
+    surface.loc[surface.index[1], "logical_layer"] = surface.iloc[0]["logical_layer"]
+    surface.loc[surface.index[1], "feature_family"] = surface.iloc[0]["feature_family"]
+    surface.loc[surface.index[1], "source_identity_field"] = surface.iloc[0][
+        "source_identity_field"
+    ]
+    surface.loc[surface.index[1], "source_feature_id"] = surface.iloc[0][
+        "source_feature_id"
+    ]
+    inputs[1] = surface
+    with pytest.raises(PlanningFeatureCodeError, match="source_feature_id|unique"):
+        resolve_planning_feature_codes(*inputs)
+
+
+def test_catalog_crs_must_be_canonical_epsg_2154() -> None:
+    inputs = list(_inputs())
+    inputs[1] = inputs[1].to_crs("EPSG:4326")
+    with pytest.raises(PlanningFeatureCodeError, match="EPSG:2154|CRS"):
+        resolve_planning_feature_codes(*inputs)
+
+
+@pytest.mark.parametrize(
+    ("catalog_position", "column", "value"),
+    [
+        (1, "feature_area_m2", 99.0),
+        (2, "feature_length_m", 99.0),
+        (3, "point_member_count", 2),
+    ],
+)
+def test_catalog_geometry_metrics_are_revalidated(
+    catalog_position: int,
+    column: str,
+    value: object,
+) -> None:
+    inputs = list(_inputs())
+    catalog = inputs[catalog_position].copy(deep=True)
+    catalog.loc[catalog.index[0], column] = value
+    inputs[catalog_position] = catalog
+    with pytest.raises(PlanningFeatureCodeError, match="metric|area|length|member"):
+        resolve_planning_feature_codes(*inputs)
+
+
+def test_complete_relation_schema_is_required() -> None:
+    inputs = list(_inputs())
+    inputs[4] = inputs[4].drop(columns="intersection_length_m")
+    with pytest.raises(PlanningFeatureCodeError, match="relation|schema|column"):
+        resolve_planning_feature_codes(*inputs)
+
+
+def test_unexpected_factual_relation_column_is_rejected() -> None:
+    inputs = list(_inputs())
+    relations = inputs[4].copy(deep=True)
+    relations["unexpected_metric"] = 0.0
+    inputs[4] = relations
+    with pytest.raises(PlanningFeatureCodeError, match="relation|schema"):
+        resolve_planning_feature_codes(*inputs)
+
+
+def test_cnig_resolver_invokes_shared_factual_contract(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coding_module = importlib.import_module(
+        "landscout.stages.resolve_planning_feature_codes"
+    )
+    calls = 0
+
+    def reject_shared_contract(*args: object) -> None:
+        nonlocal calls
+        calls += 1
+        raise ValueError("shared factual contract marker")
+
+    monkeypatch.setattr(
+        coding_module,
+        "validate_normalized_planning_feature_inputs",
+        reject_shared_contract,
+    )
+    with pytest.raises(PlanningFeatureCodeError, match="shared factual contract marker"):
+        resolve_planning_feature_codes(*_inputs())
+    assert calls == 1
+
+
+@pytest.mark.parametrize(
+    ("column", "value"),
+    [
+        ("label_raw", "mutated label"),
+        ("source_validity_date_raw", "19990101"),
+        ("regulation_filename_raw", "other.pdf"),
+        ("feature_area_m2", 3.0),
+    ],
+)
+def test_complete_relation_catalog_agreement_is_required(
+    column: str,
+    value: object,
+) -> None:
+    inputs = list(_inputs())
+    relations = inputs[4].copy(deep=True)
+    relations.loc[relations.index[0], column] = value
+    inputs[4] = relations
+    with pytest.raises(
+        PlanningFeatureCodeError, match="catalog|metric|normalized|feature share"
+    ):
+        resolve_planning_feature_codes(*inputs)
+
+
+@pytest.mark.parametrize(
+    ("column", "value"),
+    [
+        ("intersection_area_m2", 0.0),
+        ("intersection_area_m2", -1.0),
+        ("intersection_area_m2", float("inf")),
+        ("parcel_share_pct", 99.0),
+    ],
+)
+def test_surface_relation_metrics_are_revalidated(column: str, value: object) -> None:
+    inputs = list(_inputs())
+    relations = inputs[4].copy(deep=True)
+    relations.loc[relations.index[0], column] = value
+    inputs[4] = relations
+    with pytest.raises(PlanningFeatureCodeError, match="relation|metric|finite|percentage"):
+        resolve_planning_feature_codes(*inputs)
+
+
+@pytest.mark.parametrize(
+    ("column", "value"),
+    [
+        ("intersection_length_m", 0.0),
+        ("relation_type", "TOUCH_ONLY"),
+        ("source_line_length_m", 1.0),
+    ],
+)
+def test_line_relation_metrics_are_revalidated(column: str, value: object) -> None:
+    inputs = list(_inputs())
+    relations = inputs[4].copy(deep=True)
+    line_index = relations.index[relations["geometry_kind"].eq("LINE")][0]
+    relations.loc[line_index, column] = value
+    inputs[4] = relations
+    with pytest.raises(PlanningFeatureCodeError, match="relation|length|catalog"):
+        resolve_planning_feature_codes(*inputs)
+
+
 def test_duplicate_catalog_columns_are_rejected() -> None:
     document, surface, line, point, relations, profile = _inputs()
     duplicate = pd.concat([surface, surface[["planning_feature_id"]]], axis=1)
@@ -633,8 +847,8 @@ def test_surface_geometry_contract_is_enforced(
 @pytest.mark.parametrize(
     ("catalog_name", "geometry"),
     [
-        ("surface", MultiPolygon([Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])])),
-        ("line", MultiLineString([[(0, 0), (1, 1)]])),
+        ("surface", MultiPolygon([Polygon([(0, 0), (2, 0), (2, 2), (0, 2)])])),
+        ("line", MultiLineString([[(0, 0), (2, 0)]])),
         ("point", MultiPoint([(0, 0), (1, 1)])),
     ],
 )
@@ -645,6 +859,8 @@ def test_valid_multi_geometries_are_accepted(
     catalogs = {"surface": surface, "line": line, "point": point}
     catalog = catalogs[catalog_name].copy(deep=True)
     catalog.at[catalog.index[0], "geometry"] = geometry
+    if catalog_name == "point":
+        catalog.at[catalog.index[0], "point_member_count"] = 2
     catalogs[catalog_name] = catalog
     result = resolve_planning_feature_codes(
         document,
@@ -857,6 +1073,36 @@ def test_relation_type_must_match_catalog_geometry_kind(
     ):
         row[column] = feature[column]
     row["relation_type"] = relation_type
+    metric_columns = (
+        "feature_area_m2",
+        "source_line_length_m",
+        "intersection_area_m2",
+        "intersection_length_m",
+        "parcel_share_pct",
+        "feature_share_pct",
+        "point_member_count",
+        "point_members_inside_count",
+        "point_members_boundary_count",
+    )
+    for column in metric_columns:
+        row[column] = None
+    if geometry_kind == "SURFACE":
+        area = 4.0 if relation_type == "AREA_OVERLAP" else 0.0
+        row["feature_area_m2"] = 4.0
+        row["intersection_area_m2"] = area
+        row["parcel_share_pct"] = 100.0 if area else 0.0
+        row["feature_share_pct"] = 100.0 if area else 0.0
+    elif geometry_kind == "LINE":
+        row["source_line_length_m"] = 2.0
+        row["intersection_length_m"] = (
+            2.0 if relation_type == "LENGTH_OVERLAP" else 0.0
+        )
+    else:
+        row["point_member_count"] = 1
+        row["point_members_inside_count"] = 1 if relation_type == "INSIDE" else 0
+        row["point_members_boundary_count"] = (
+            1 if relation_type == "BOUNDARY_TOUCH" else 0
+        )
     candidate = pd.DataFrame([row], columns=relations.columns)
     with pytest.raises(PlanningFeatureCodeError, match="[Rr]elation type|geometry"):
         resolve_planning_feature_codes(
@@ -899,6 +1145,36 @@ def test_valid_relation_types_are_retained(
     ):
         row[column] = feature[column]
     row["relation_type"] = relation_type
+    metric_columns = (
+        "feature_area_m2",
+        "source_line_length_m",
+        "intersection_area_m2",
+        "intersection_length_m",
+        "parcel_share_pct",
+        "feature_share_pct",
+        "point_member_count",
+        "point_members_inside_count",
+        "point_members_boundary_count",
+    )
+    for column in metric_columns:
+        row[column] = None
+    if geometry_kind == "SURFACE":
+        area = 4.0 if relation_type == "AREA_OVERLAP" else 0.0
+        row["feature_area_m2"] = 4.0
+        row["intersection_area_m2"] = area
+        row["parcel_share_pct"] = 100.0 if area else 0.0
+        row["feature_share_pct"] = 100.0 if area else 0.0
+    elif geometry_kind == "LINE":
+        row["source_line_length_m"] = 2.0
+        row["intersection_length_m"] = (
+            2.0 if relation_type == "LENGTH_OVERLAP" else 0.0
+        )
+    else:
+        row["point_member_count"] = 1
+        row["point_members_inside_count"] = 1 if relation_type == "INSIDE" else 0
+        row["point_members_boundary_count"] = (
+            1 if relation_type == "BOUNDARY_TOUCH" else 0
+        )
     candidate = pd.DataFrame([row], columns=relations.columns)
     result = resolve_planning_feature_codes(
         document, surface, line, point, candidate, profile

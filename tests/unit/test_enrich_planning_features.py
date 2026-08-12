@@ -35,6 +35,7 @@ from landscout.stages.enrich_planning_features import (
     PlanningFeaturesError,
     _validate_result,
     intersect_parcels_with_gpu_planning_features,
+    validate_normalized_planning_feature_inputs,
 )
 
 DOCUMENT_ID = "doc-1"
@@ -732,6 +733,53 @@ def _contract_result() -> tuple[gpd.GeoDataFrame, ParcelPlanningFeaturesResult]:
         ),
     ]
     return parcels, _run(layers, parcels)
+
+
+def test_public_normalized_input_contract_validates_step_7d_3_1_result() -> None:
+    _, result = _contract_result()
+    validate_normalized_planning_feature_inputs(
+        result.surface_features,
+        result.line_features,
+        result.point_features,
+        result.relations,
+    )
+
+
+def test_public_normalized_input_contract_is_exported() -> None:
+    from landscout import stages
+
+    assert (
+        stages.validate_normalized_planning_feature_inputs
+        is validate_normalized_planning_feature_inputs
+    )
+    assert "validate_normalized_planning_feature_inputs" in stages.__all__
+
+
+def test_public_normalized_input_contract_rejects_stripped_catalog() -> None:
+    _, result = _contract_result()
+    surface = result.surface_features.drop(columns="label_raw")
+    with pytest.raises(PlanningFeaturesError, match="schema|label_raw"):
+        validate_normalized_planning_feature_inputs(
+            surface,
+            result.line_features,
+            result.point_features,
+            result.relations,
+        )
+
+
+def test_empty_and_nonempty_catalogs_have_identical_kind_schemas() -> None:
+    _, populated = _contract_result()
+    empty = _run([])
+    for populated_catalog, empty_catalog in zip(
+        (
+            populated.surface_features,
+            populated.line_features,
+            populated.point_features,
+        ),
+        (empty.surface_features, empty.line_features, empty.point_features),
+        strict=True,
+    ):
+        assert list(empty_catalog.columns) == list(populated_catalog.columns)
 
 
 @pytest.mark.parametrize("bad_count", [-1, 1.5, float("inf"), "2", True])

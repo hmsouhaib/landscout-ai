@@ -24,6 +24,9 @@ from shapely import to_wkb  # type: ignore[import-untyped]
 from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
 
 from landscout.sources.gpu_fr import GpuPlanningDocument
+from landscout.stages.enrich_planning_features import (
+    validate_normalized_planning_feature_inputs,
+)
 
 __all__ = [
     "CnigFeatureCodeProfile",
@@ -72,78 +75,8 @@ CODE_DICTIONARY_COLUMNS = (
     "standard_model",
 )
 
-_FEATURE_REQUIRED_COLUMNS = (
-    "planning_feature_id",
-    "source_feature_id",
-    "source_identity_kind",
-    "source_identity_field",
-    "logical_layer",
-    "feature_family",
-    "geometry_kind",
-    "type_code_raw",
-    "subtype_code_raw",
-    "source_document_id",
-    "source_archive_sha256",
-    "source_layer",
-    "source_standard_model",
-    "geometry",
-)
-_RELATION_MATCH_COLUMNS = (
-    "source_feature_id",
-    "source_identity_kind",
-    "source_identity_field",
-    "logical_layer",
-    "feature_family",
-    "geometry_kind",
-    "type_code_raw",
-    "subtype_code_raw",
-    "source_document_id",
-    "source_archive_sha256",
-    "source_layer",
-)
 _CODE_PATTERN = re.compile(r"[0-9]{2}")
 _SHA_PATTERN = re.compile(r"[0-9a-f]{64}")
-_CATALOG_STRING_COLUMNS = (
-    "planning_feature_id",
-    "source_feature_id",
-    "source_identity_kind",
-    "source_identity_field",
-    "logical_layer",
-    "feature_family",
-    "geometry_kind",
-    "source_layer",
-)
-
-
-@dataclass(frozen=True)
-class _CatalogContract:
-    geometry_kind: str
-    logical_layers: frozenset[str]
-    geometry_types: frozenset[str]
-
-
-_CATALOG_CONTRACTS = {
-    "surface": _CatalogContract(
-        geometry_kind="SURFACE",
-        logical_layers=frozenset({"prescription_surface", "information_surface"}),
-        geometry_types=frozenset({"Polygon", "MultiPolygon"}),
-    ),
-    "line": _CatalogContract(
-        geometry_kind="LINE",
-        logical_layers=frozenset({"prescription_line", "information_line"}),
-        geometry_types=frozenset({"LineString", "MultiLineString"}),
-    ),
-    "point": _CatalogContract(
-        geometry_kind="POINT",
-        logical_layers=frozenset({"prescription_point", "information_point"}),
-        geometry_types=frozenset({"Point", "MultiPoint"}),
-    ),
-}
-_RELATION_TYPES_BY_GEOMETRY_KIND = {
-    "SURFACE": frozenset({"AREA_OVERLAP", "TOUCH_ONLY"}),
-    "LINE": frozenset({"LENGTH_OVERLAP", "TOUCH_ONLY"}),
-    "POINT": frozenset({"INSIDE", "BOUNDARY_TOUCH"}),
-}
 
 
 class PlanningFeatureCodeError(ValueError):
@@ -413,92 +346,14 @@ def _validated_code_series(series: pd.Series, label: str) -> None:
             )
 
 
-def _validate_exact_string_column(
-    frame: pd.DataFrame,
-    column: str,
-    label: str,
-) -> None:
-    for value in frame[column].tolist():
-        _strict_string(value, f"{label} {column}")
-
-
-def _validate_feature_catalog(
-    frame: object,
-    catalog_kind: str,
+def _validate_catalog_document_lineage(
+    frame: gpd.GeoDataFrame,
     label: str,
     document: GpuPlanningDocument,
     standard_model: str,
 ) -> gpd.GeoDataFrame:
-    if not isinstance(frame, gpd.GeoDataFrame):
-        raise PlanningFeatureCodeError(f"{label} must be a GeoDataFrame")
-    if frame.columns.duplicated().any():
-        raise PlanningFeatureCodeError(f"{label} contains duplicate columns")
-    missing = set(_FEATURE_REQUIRED_COLUMNS).difference(frame.columns)
-    if missing:
-        raise PlanningFeatureCodeError(f"{label} lacks columns: {sorted(missing)}")
-    collisions = set(OFFICIAL_CODE_COLUMNS).intersection(frame.columns)
-    if collisions:
-        raise PlanningFeatureCodeError(
-            f"{label} already contains official-code columns: {sorted(collisions)}"
-        )
-    try:
-        active_geometry = frame.active_geometry_name
-    except Exception as error:
-        raise PlanningFeatureCodeError(
-            f"{label} active geometry is unavailable"
-        ) from error
-    if active_geometry != "geometry":
-        raise PlanningFeatureCodeError(
-            f"{label} must use geometry as its active geometry column"
-        )
-    if frame.crs is None:
-        raise PlanningFeatureCodeError(f"{label} CRS is missing")
-    try:
-        CRS.from_user_input(frame.crs)
-    except Exception as error:
-        raise PlanningFeatureCodeError(f"{label} CRS is invalid") from error
-    contract = _CATALOG_CONTRACTS[catalog_kind]
-    for column in _CATALOG_STRING_COLUMNS:
-        _validate_exact_string_column(frame, column, label)
-    identifiers = frame["planning_feature_id"]
-    if identifiers.duplicated().any():
-        raise PlanningFeatureCodeError(f"{label} planning feature IDs must be unique")
     _validated_code_series(frame["type_code_raw"], f"{label} type code")
     _validated_code_series(frame["subtype_code_raw"], f"{label} subtype code")
-    geometry = frame.geometry
-    if geometry.isna().any():
-        raise PlanningFeatureCodeError(f"{label} geometry must be non-null")
-    if geometry.is_empty.any():
-        raise PlanningFeatureCodeError(f"{label} geometry must be non-empty")
-    if (~geometry.is_valid).any():
-        raise PlanningFeatureCodeError(f"{label} geometry must be valid")
-    geometry_types = set(geometry.geom_type.tolist())
-    if not geometry_types.issubset(contract.geometry_types):
-        raise PlanningFeatureCodeError(
-            f"{label} geometry type differs from its {catalog_kind} contract"
-        )
-    for row in frame[["logical_layer", "feature_family", "geometry_kind"]].itertuples(
-        index=False,
-        name=None,
-    ):
-        logical_layer, family, geometry_kind = row
-        if logical_layer not in contract.logical_layers:
-            raise PlanningFeatureCodeError(
-                f"{label} logical layer differs from its {catalog_kind} contract"
-            )
-        if geometry_kind != contract.geometry_kind:
-            raise PlanningFeatureCodeError(
-                f"{label} geometry kind differs from its {catalog_kind} contract"
-            )
-        expected_family = (
-            "PRESCRIPTION"
-            if str(logical_layer).startswith("prescription_")
-            else "INFORMATION"
-        )
-        if family != expected_family:
-            raise PlanningFeatureCodeError(
-                f"{label} logical layer and feature family disagree"
-            )
     metadata = document.extraction.archive.document
     if not frame["source_document_id"].eq(metadata.document_id).all():
         raise PlanningFeatureCodeError(f"{label} document lineage differs")
@@ -585,83 +440,18 @@ def _catalog_by_id(
 
 
 def _coded_relations(
-    relations: object,
-    originals: Sequence[gpd.GeoDataFrame],
+    relations: pd.DataFrame,
     coded: Sequence[gpd.GeoDataFrame],
 ) -> pd.DataFrame:
-    if not isinstance(relations, pd.DataFrame) or isinstance(
-        relations, gpd.GeoDataFrame
-    ):
-        raise PlanningFeatureCodeError("Planning-feature relations must be a DataFrame")
-    if relations.columns.duplicated().any():
-        raise PlanningFeatureCodeError(
-            "Planning-feature relations contain duplicate columns"
-        )
-    missing = {
-        "parcel_id",
-        "planning_feature_id",
-        "relation_type",
-        *_RELATION_MATCH_COLUMNS,
-    }.difference(relations.columns)
-    if missing:
-        raise PlanningFeatureCodeError(
-            f"Planning-feature relations lack: {sorted(missing)}"
-        )
-    collisions = set(OFFICIAL_CODE_COLUMNS).intersection(relations.columns)
-    if collisions:
-        raise PlanningFeatureCodeError(
-            f"Relations already contain official-code columns: {sorted(collisions)}"
-        )
-    source = _catalog_by_id(originals)
     meanings = _catalog_by_id(coded)
-    _validate_exact_string_column(relations, "parcel_id", "planning-feature relations")
-    _validate_exact_string_column(
-        relations,
-        "planning_feature_id",
-        "planning-feature relations",
-    )
-    if relations.duplicated(["parcel_id", "planning_feature_id"]).any():
-        raise PlanningFeatureCodeError(
-            "Planning-feature relations contain a duplicate parcel/feature pair"
-        )
     output = relations.copy(deep=True)
     appended: dict[str, list[object]] = {column: [] for column in OFFICIAL_CODE_COLUMNS}
     for row in relations.to_dict("records"):
         identifier = _strict_string(row["planning_feature_id"], "relation feature ID")
-        catalog = source.get(identifier)
         meaning = meanings.get(identifier)
-        if catalog is None or meaning is None:
+        if meaning is None:
             raise PlanningFeatureCodeError(
                 "Relation references an unknown feature catalog ID"
-            )
-        for column in _RELATION_MATCH_COLUMNS:
-            left = row[column]
-            right = catalog[column]
-            try:
-                left_missing = pd.isna(left)
-                right_missing = pd.isna(right)
-            except (TypeError, ValueError):
-                left_missing = right_missing = False
-            if (
-                isinstance(left_missing, (bool, np.bool_))
-                and isinstance(right_missing, (bool, np.bool_))
-                and bool(left_missing)
-                and bool(right_missing)
-            ):
-                continue
-            comparison = left == right
-            if not isinstance(comparison, (bool, np.bool_)) or not bool(comparison):
-                raise PlanningFeatureCodeError(
-                    f"Relation/catalog {column} differs for {identifier}"
-                )
-        relation_type = _strict_string(row["relation_type"], "relation type")
-        allowed_relation_types = _RELATION_TYPES_BY_GEOMETRY_KIND[
-            str(catalog["geometry_kind"])
-        ]
-        if relation_type not in allowed_relation_types:
-            raise PlanningFeatureCodeError(
-                f"relation type {relation_type!r} is incompatible with "
-                f"{catalog['geometry_kind']} feature {identifier}"
             )
         for column in OFFICIAL_CODE_COLUMNS:
             appended[column].append(meaning[column])
@@ -808,35 +598,32 @@ def _build_result(
         raise PlanningFeatureCodeError(
             f"Planning document standard {standard!r} differs from code-profile standard"
         )
-    surface = _validate_feature_catalog(
-        surface_features,
-        "surface",
-        "surface feature catalog",
-        planning_document,
-        standard,
+    try:
+        validate_normalized_planning_feature_inputs(
+            surface_features,
+            line_features,
+            point_features,
+            relations,
+        )
+    except ValueError as error:
+        raise PlanningFeatureCodeError(
+            f"Normalized planning-feature inputs are invalid: {error}"
+        ) from error
+    surface = _validate_catalog_document_lineage(
+        surface_features, "surface feature catalog", planning_document, standard
     )
-    line = _validate_feature_catalog(
-        line_features,
-        "line",
-        "line feature catalog",
-        planning_document,
-        standard,
+    line = _validate_catalog_document_lineage(
+        line_features, "line feature catalog", planning_document, standard
     )
-    point = _validate_feature_catalog(
-        point_features,
-        "point",
-        "point feature catalog",
-        planning_document,
-        standard,
+    point = _validate_catalog_document_lineage(
+        point_features, "point feature catalog", planning_document, standard
     )
     profile_hash = _profile_sha256(code_profile)
     coded_surface = _coded_catalog(surface, code_profile, profile_hash)
     coded_line = _coded_catalog(line, code_profile, profile_hash)
     coded_point = _coded_catalog(point, code_profile, profile_hash)
     coded_relations = _coded_relations(
-        relations,
-        (surface, line, point),
-        (coded_surface, coded_line, coded_point),
+        relations, (coded_surface, coded_line, coded_point)
     )
     archive = planning_document.extraction.archive
     result = PlanningFeatureCodeResult(

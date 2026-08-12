@@ -20,6 +20,7 @@ from landscout.stages.enrich_grid_proximity import (
 )
 from landscout.stages.enrich_planning_features import (
     intersect_parcels_with_gpu_planning_features,
+    validate_normalized_planning_feature_inputs,
 )
 from landscout.stages.enrich_planning_zoning import (
     intersect_parcels_with_gpu_zoning,
@@ -138,6 +139,7 @@ __all__ = [
     "search_planning_regulation",
     "structure_planning_regulation",
     "validate_bess_zoning_precheck",
+    "validate_normalized_planning_feature_inputs",
     "validate_planning_feature_code_result",
     "validate_planning_regulation_index",
     "validate_planning_regulation_search_result",

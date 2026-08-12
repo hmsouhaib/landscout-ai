@@ -1399,6 +1399,50 @@ All five ignored outputs were rewritten and read back. The reconstructed schema-
 
 No BESS impact or severity is assigned. No parcel is rejected. No planning score or legal interpretation is produced.
 
+## STEP 7D.5A.2 — Close normalized planning-feature input contracts
+
+- Status: Complete
+- Test-first proof: the first focused collection failed because the reusable factual validator did not exist. The new stripped-catalog and provenance/metric regressions therefore failed at the former STEP 7D.5A.1 boundary before production integration.
+- Focused regression suite: 207 tests pass across STEP 7D.3.1 and STEP 7D.5A coding.
+- Quality gate: `uv run pytest -q` = 1,206 passed; `uv run ruff check .` and `uv run mypy src` pass.
+- CNIG profile / result schemas remain `2` / `2`; the approved official snapshot and exact pair lookup are unchanged.
+
+### One factual contract
+
+`validate_normalized_planning_feature_inputs(...)` is the single reusable contract used by both the STEP 7D.3.1 result validator and the STEP 7D.5A resolver. The coding stage no longer owns a second partial copy of catalog schemas, geometry rules, identity rules, relation schemas, or relation semantics. Its remaining checks are specific to the loaded planning-document lineage, CNIG two-character code format, and official-code enrichment.
+
+The contract requires the exact deterministic factual columns and order for each catalog and the relation table. Empty and populated catalogs now use the same kind-specific schema. All catalogs require canonical `EPSG:2154`, valid non-null and non-empty geometries, and their stored source metric:
+
+- surface `feature_area_m2` is finite, positive, and agrees with polygon area;
+- line `feature_length_m` is finite, positive, and agrees with line length;
+- point `point_member_count` is a strict positive integer equal to the Point/MultiPoint member count.
+
+Metric comparisons reuse `technical_overlay_tolerance(...)`; no new threshold was introduced and no stored metric is repaired or replaced.
+
+Identity provenance is exact. `CNIG_ATTRIBUTE` requires `LIB_IDPSC` for prescriptions and `LIB_IDINFO` for information. `ARCHIVE_SCOPED_OGR_FID` remains limited to `prescription_surface`, requires `OGR_FID`, and requires an `OGR_FID:` source-ID prefix. Source feature IDs are unique inside each logical layer and LandScout planning feature IDs remain globally unique.
+
+Relations require the complete STEP 7D.3.1 schema, unique `(parcel_id, planning_feature_id)` pairs, exact null-safe catalog agreement for raw facts and lineage, and exact agreement with the relevant source feature metric. Area, length, percentage, and point-member semantics are independently revalidated; irrelevant geometry-kind metrics must remain null. This stage does not recompute spatial intersections.
+
+### Real Muret regression and read-back
+
+- Features: 469 surface + 5 line + 5 point = 479; all catalogs passed the complete schema, identity, geometry, metric, and canonical CRS contracts.
+- Relations: 2,414; duplicate pairs 0; all rows passed complete catalog agreement and geometry-specific semantics.
+- Configured/observed official pairs: 12/12; `UNKNOWN_CODE_PAIR` features/relations: 0/0.
+- PRESCRIPTION `15/00` and `15/01` remain separate exact pairs.
+- Lost/extra feature IDs: 0/0; lost/extra relation rows: 0/0.
+- Offline cache inspection, resolution, rewrite, and source-complete read-back runtime: 3.947 seconds.
+
+All schema-v2 integrity hashes are unchanged, proving that valid serialized coding results did not change:
+
+- dictionary: `ee93bfb6b768ffa223775b2821762afc7384d74db8745009a5983494c281c45f`;
+- surface / line / point: `72f598aaa606cd8eb3e2ec1de0570f3cdb520c4e4e5d9aaad506231da748e5ac` / `f19166784d09b073901d82758d8d768fb8ee3b3a006a869ede31696f5a3f8b84` / `dab480976d1506a18469a00fd1f8af4c54668481b9cdfd77b04b030fa94a4c5c`;
+- coded relations: `0c7a5b657c2bb6e8b468be29cc1df4125b869531d1e9db341412d1fec54d59fa`;
+- complete result: `a39099534ee1f8f1675ec6cd07fcc44c08994540e8b5087b9c39d850c20db912`.
+
+The five ignored outputs were rewritten and read back (12 dictionary rows, 469 surface features, 5 line features, 5 point features, and 2,414 relations). A reconstructed immutable result passed the exported source-complete validator against the original factual inputs, checked-in profile, and verified local GPU planning document.
+
+No planning code is interpreted as favorable, restrictive, compatible, or blocking. No BESS severity, parcel rejection, score, live production call, or legal interpretation is introduced.
+
 ## STEP 7D.4C.4 — Enforce unique chapter-scoped evidence occurrences
 
 - Status: Complete

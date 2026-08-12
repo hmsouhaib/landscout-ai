@@ -31,7 +31,10 @@ from shapely import (
 from landscout.sources.gpu_fr import GpuInspectedLayer, GpuPlanningDocument
 from landscout.stages.planning_overlay import technical_overlay_tolerance
 
-__all__ = ["intersect_parcels_with_gpu_planning_features"]
+__all__ = [
+    "intersect_parcels_with_gpu_planning_features",
+    "validate_normalized_planning_feature_inputs",
+]
 
 CALCULATION_CRS = "EPSG:2154"
 PARCEL_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry"})
@@ -160,6 +163,49 @@ COMMON_FEATURE_COLUMNS = (
     "source_layer",
     "source_standard_model",
     "source_crs",
+)
+SURFACE_FEATURE_COLUMNS = (*COMMON_FEATURE_COLUMNS, "geometry", "feature_area_m2")
+LINE_FEATURE_COLUMNS = (*COMMON_FEATURE_COLUMNS, "geometry", "feature_length_m")
+POINT_FEATURE_COLUMNS = (*COMMON_FEATURE_COLUMNS, "geometry", "point_member_count")
+
+_CATALOG_COLUMNS_BY_KIND = {
+    "SURFACE": SURFACE_FEATURE_COLUMNS,
+    "LINE": LINE_FEATURE_COLUMNS,
+    "POINT": POINT_FEATURE_COLUMNS,
+}
+_CATALOG_GEOMETRY_TYPES = {
+    "SURFACE": SURFACE_TYPES,
+    "LINE": LINE_TYPES,
+    "POINT": POINT_TYPES,
+}
+_CATALOG_REQUIRED_EXACT_STRING_COLUMNS = (
+    "planning_feature_id",
+    "source_feature_id",
+    "source_identity_kind",
+    "source_identity_field",
+    "logical_layer",
+    "feature_family",
+    "geometry_kind",
+    "type_code_raw",
+    "subtype_code_raw",
+    "source_document_reference_raw",
+    "source_provider",
+    "source_portal",
+    "source_commune_code",
+    "source_document_id",
+    "source_document_type",
+    "source_archive_name",
+    "source_archive_sha256",
+    "source_layer",
+    "source_crs",
+)
+_CATALOG_OPTIONAL_EXACT_STRING_COLUMNS = (
+    "label_raw",
+    "text_raw",
+    "regulation_filename_raw",
+    "regulation_url_raw",
+    "source_validity_date_raw",
+    "source_standard_model",
 )
 
 RELATION_COLUMNS = (
@@ -306,6 +352,13 @@ def _validate_exact_strings(values: pd.Series, label: str) -> None:
     if values.isna().any():
         raise PlanningFeaturesError(f"{label} values must not be null")
     for value in values.tolist():
+        _strict_string(value, label)
+
+
+def _validate_optional_exact_strings(values: pd.Series, label: str) -> None:
+    for value in values.tolist():
+        if pd.isna(value):
+            continue
         _strict_string(value, label)
 
 
@@ -650,13 +703,14 @@ def _normalize_layer(
 
 def _empty_catalog(kind: GeometryKind) -> gpd.GeoDataFrame:
     data = {column: pd.Series(dtype="object") for column in COMMON_FEATURE_COLUMNS}
+    data["geometry"] = gpd.GeoSeries([], crs=CALCULATION_CRS)
     if kind == "SURFACE":
         data["feature_area_m2"] = pd.Series(dtype="float64")
     elif kind == "LINE":
         data["feature_length_m"] = pd.Series(dtype="float64")
     else:
         data["point_member_count"] = pd.Series(dtype="int64")
-    return gpd.GeoDataFrame(data, geometry=gpd.GeoSeries([], crs=CALCULATION_CRS))
+    return gpd.GeoDataFrame(data, geometry="geometry", crs=CALCULATION_CRS)
 
 
 def _combine_catalogs(
@@ -1049,8 +1103,17 @@ def _integer_values(
 
 
 def _null_safe_equal(left: object, right: object) -> bool:
-    left_null = bool(pd.isna(left))
-    right_null = bool(pd.isna(right))
+    try:
+        left_missing = pd.isna(left)
+        right_missing = pd.isna(right)
+    except (TypeError, ValueError):
+        return False
+    if not isinstance(left_missing, (bool, np.bool_)) or not isinstance(
+        right_missing, (bool, np.bool_)
+    ):
+        return False
+    left_null = bool(left_missing)
+    right_null = bool(right_missing)
     if left_null or right_null:
         return left_null and right_null
     try:
@@ -1070,15 +1133,17 @@ def _require_close(actual: object, expected: float, label: str) -> None:
         raise PlanningFeaturesError(f"{label} must be finite")
     reference = max(abs(number), abs(expected))
     if abs(number - expected) > technical_overlay_tolerance(reference):
-        raise PlanningFeaturesError(f"{label} is inconsistent with relations")
+        raise PlanningFeaturesError(f"{label} is inconsistent")
 
 
 def _validate_catalog_identity(catalog: gpd.GeoDataFrame) -> None:
-    required = set(COMMON_FEATURE_COLUMNS) | {"geometry"}
-    missing = sorted(required - set(catalog.columns))
-    if missing:
-        raise PlanningFeaturesError(
-            "Feature catalog is missing required columns: " + ", ".join(missing)
+    for column in _CATALOG_REQUIRED_EXACT_STRING_COLUMNS:
+        _validate_exact_strings(
+            catalog[column], f"Feature catalog {column.replace('_', ' ')}"
+        )
+    for column in _CATALOG_OPTIONAL_EXACT_STRING_COLUMNS:
+        _validate_optional_exact_strings(
+            catalog[column], f"Feature catalog {column.replace('_', ' ')}"
         )
     _validate_ids(catalog["planning_feature_id"], "planning_feature_id")
     for logical_layer, group in catalog.groupby("logical_layer", sort=False):
@@ -1093,7 +1158,9 @@ def _validate_catalog_identity(catalog: gpd.GeoDataFrame) -> None:
         if row["feature_family"] != spec.feature_family:
             raise PlanningFeaturesError("Feature catalog family is inconsistent")
         if row["geometry_kind"] != spec.geometry_kind:
-            raise PlanningFeaturesError("Feature catalog geometry kind is inconsistent")
+            raise PlanningFeaturesError(
+                "Feature catalog logical layer and geometry kind are inconsistent"
+            )
         kind = row["source_identity_kind"]
         field = row["source_identity_field"]
         if kind not in SOURCE_IDENTITY_KINDS:
@@ -1111,6 +1178,85 @@ def _validate_catalog_identity(catalog: gpd.GeoDataFrame) -> None:
             raise PlanningFeaturesError(
                 "Archive-scoped OGR FID provenance is inconsistent"
             )
+
+
+def _validate_catalog_contract(
+    catalog: object,
+    geometry_kind: GeometryKind,
+) -> gpd.GeoDataFrame:
+    label = f"{geometry_kind} feature catalog"
+    if not isinstance(catalog, gpd.GeoDataFrame):
+        raise PlanningFeaturesError(f"{label} must be a GeoDataFrame")
+    if catalog.columns.duplicated().any():
+        raise PlanningFeaturesError(f"{label} contains duplicate columns")
+    _active_geometry(catalog, label)
+    expected_columns = _CATALOG_COLUMNS_BY_KIND[geometry_kind]
+    if tuple(catalog.columns) != expected_columns:
+        raise PlanningFeaturesError(f"{label} schema is not deterministic")
+    if not _crs(catalog.crs, label).equals(CRS.from_epsg(2154)):
+        raise PlanningFeaturesError(f"{label} must use canonical EPSG:2154")
+    _validate_catalog_identity(catalog)
+    if not catalog.empty and not catalog["geometry_kind"].eq(geometry_kind).all():
+        raise PlanningFeaturesError(f"{label} geometry kind is invalid")
+    _validate_geometries(catalog, _CATALOG_GEOMETRY_TYPES[geometry_kind], label)
+    if geometry_kind == "SURFACE":
+        _numeric_values(
+            catalog,
+            ("feature_area_m2",),
+            "Surface feature",
+            allow_null=False,
+        )
+        if (catalog["feature_area_m2"] <= 0).any():
+            raise PlanningFeaturesError("Surface feature areas must be positive")
+        try:
+            measured = catalog.geometry.area.to_numpy(dtype="float64")
+        except Exception as error:
+            raise PlanningFeaturesError(
+                "Surface feature metric validation failed"
+            ) from error
+        for actual, expected in zip(
+            catalog["feature_area_m2"].tolist(), measured, strict=True
+        ):
+            _require_close(actual, float(expected), "feature_area_m2")
+    elif geometry_kind == "LINE":
+        _numeric_values(
+            catalog,
+            ("feature_length_m",),
+            "Line feature",
+            allow_null=False,
+        )
+        if (catalog["feature_length_m"] <= 0).any():
+            raise PlanningFeaturesError("Line feature lengths must be positive")
+        try:
+            measured = catalog.geometry.length.to_numpy(dtype="float64")
+        except Exception as error:
+            raise PlanningFeaturesError(
+                "Line feature metric validation failed"
+            ) from error
+        for actual, expected in zip(
+            catalog["feature_length_m"].tolist(), measured, strict=True
+        ):
+            _require_close(actual, float(expected), "feature_length_m")
+    else:
+        _integer_values(
+            catalog,
+            ("point_member_count",),
+            "Point feature",
+            allow_null=False,
+        )
+        if (catalog["point_member_count"] < 1).any():
+            raise PlanningFeaturesError("Point features must contain a member")
+        try:
+            member_counts = [len(get_parts(value)) for value in catalog.geometry.array]
+        except Exception as error:
+            raise PlanningFeaturesError(
+                "Point feature member validation failed"
+            ) from error
+        if catalog["point_member_count"].tolist() != member_counts:
+            raise PlanningFeaturesError(
+                "Point feature member count is inconsistent with geometry"
+            )
+    return catalog
 
 
 _RELATION_CATALOG_FIELDS = (
@@ -1146,7 +1292,10 @@ def _validate_relation_catalog_consistency(
         )
     indexed = feature_rows.set_index("planning_feature_id", drop=False)
     for _, relation in relations.iterrows():
-        feature = indexed.loc[relation["planning_feature_id"]]
+        identifier = relation["planning_feature_id"]
+        if identifier not in indexed.index:
+            raise PlanningFeaturesError("Planning relation references an unknown feature")
+        feature = indexed.loc[identifier]
         for column in _RELATION_CATALOG_FIELDS:
             if not _null_safe_equal(relation[column], feature[column]):
                 raise PlanningFeaturesError(
@@ -1181,6 +1330,21 @@ def _validate_relation_semantics(relations: pd.DataFrame) -> None:
     for _, row in relations.iterrows():
         kind = row["geometry_kind"]
         relation_type = row["relation_type"]
+        allowed_relation_types = {
+            "SURFACE": frozenset({"AREA_OVERLAP", "TOUCH_ONLY"}),
+            "LINE": frozenset({"LENGTH_OVERLAP", "TOUCH_ONLY"}),
+            "POINT": frozenset({"INSIDE", "BOUNDARY_TOUCH"}),
+        }.get(kind)
+        if allowed_relation_types is None:
+            raise PlanningFeaturesError("Planning relation geometry kind is invalid")
+        if relation_type not in allowed_relation_types:
+            raise PlanningFeaturesError(
+                f"{kind} relation type is incompatible with its geometry kind"
+            )
+        if pd.isna(row["parcel_metric_area_m2"]) or float(
+            row["parcel_metric_area_m2"]
+        ) <= 0:
+            raise PlanningFeaturesError("Relation parcel metric area must be positive")
         required: tuple[str, ...]
         null_only: tuple[str, ...]
         if kind == "SURFACE":
@@ -1278,6 +1442,49 @@ def _validate_relation_semantics(relations: pd.DataFrame) -> None:
             raise PlanningFeaturesError("Planning relation geometry kind is invalid")
         if any(not pd.isna(row[column]) for column in null_only):
             raise PlanningFeaturesError(f"{kind} relation populated an unrelated metric")
+
+
+def validate_normalized_planning_feature_inputs(
+    surface_features: gpd.GeoDataFrame,
+    line_features: gpd.GeoDataFrame,
+    point_features: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+) -> None:
+    """Validate exact factual STEP 7D.3.1 catalogs and relation semantics."""
+
+    catalogs = (
+        _validate_catalog_contract(surface_features, "SURFACE"),
+        _validate_catalog_contract(line_features, "LINE"),
+        _validate_catalog_contract(point_features, "POINT"),
+    )
+    all_feature_ids = [
+        identifier
+        for catalog in catalogs
+        for identifier in catalog["planning_feature_id"].tolist()
+    ]
+    if len(all_feature_ids) != len(set(all_feature_ids)):
+        raise PlanningFeaturesError(
+            "planning_feature_id values must be globally unique"
+        )
+
+    if not isinstance(relations, pd.DataFrame) or isinstance(
+        relations, gpd.GeoDataFrame
+    ):
+        raise PlanningFeaturesError("Planning relations must be a DataFrame")
+    if relations.columns.duplicated().any():
+        raise PlanningFeaturesError("Planning relations contain duplicate columns")
+    if tuple(relations.columns) != RELATION_COLUMNS:
+        raise PlanningFeaturesError("Planning relation schema is not deterministic")
+    _validate_exact_strings(relations["parcel_id"], "planning relation parcel_id")
+    _validate_exact_strings(
+        relations["planning_feature_id"], "planning relation planning_feature_id"
+    )
+    if relations.duplicated(["parcel_id", "planning_feature_id"]).any():
+        raise PlanningFeaturesError("Parcel/planning-feature relations must be unique")
+    if not set(relations["planning_feature_id"]).issubset(set(all_feature_ids)):
+        raise PlanningFeaturesError("Planning relation references an unknown feature")
+    _validate_relation_semantics(relations)
+    _validate_relation_catalog_consistency(relations, catalogs)
 
 
 def _validate_parcel_summaries(
@@ -1431,90 +1638,19 @@ def _validate_result(
         result.line_features,
         result.point_features,
     )
-    all_feature_ids: list[str] = []
-    for catalog, kind in zip(catalogs, ("SURFACE", "LINE", "POINT"), strict=True):
-        if not _crs(catalog.crs, "Feature catalog").equals(CRS.from_epsg(2154)):
-            raise PlanningFeaturesError("Feature catalog must use EPSG:2154")
-        _validate_catalog_identity(catalog)
-        if not catalog.empty and not catalog["geometry_kind"].eq(kind).all():
-            raise PlanningFeaturesError("Feature catalog geometry kind is invalid")
-        _validate_geometries(
-            catalog,
-            {
-                "SURFACE": SURFACE_TYPES,
-                "LINE": LINE_TYPES,
-                "POINT": POINT_TYPES,
-            }[kind],
-            f"{kind} feature catalog",
-        )
-        if kind == "SURFACE":
-            _numeric_values(
-                catalog, ("feature_area_m2",), "Surface feature", allow_null=False
-            )
-            if (catalog["feature_area_m2"] <= 0).any():
-                raise PlanningFeaturesError("Surface feature areas must be positive")
-            try:
-                measured = catalog.geometry.area.to_numpy(dtype="float64")
-            except Exception as error:
-                raise PlanningFeaturesError(
-                    "Surface feature metric validation failed"
-                ) from error
-            for actual, expected in zip(
-                catalog["feature_area_m2"].tolist(), measured, strict=True
-            ):
-                _require_close(actual, float(expected), "feature_area_m2")
-        elif kind == "LINE":
-            _numeric_values(
-                catalog, ("feature_length_m",), "Line feature", allow_null=False
-            )
-            if (catalog["feature_length_m"] <= 0).any():
-                raise PlanningFeaturesError("Line feature lengths must be positive")
-            try:
-                measured = catalog.geometry.length.to_numpy(dtype="float64")
-            except Exception as error:
-                raise PlanningFeaturesError(
-                    "Line feature metric validation failed"
-                ) from error
-            for actual, expected in zip(
-                catalog["feature_length_m"].tolist(), measured, strict=True
-            ):
-                _require_close(actual, float(expected), "feature_length_m")
-        if kind == "POINT":
-            _integer_values(
-                catalog, ("point_member_count",), "Point feature", allow_null=False
-            )
-            if (catalog["point_member_count"] < 1).any():
-                raise PlanningFeaturesError("Point features must contain a member")
-            try:
-                member_counts = [len(get_parts(value)) for value in catalog.geometry.array]
-            except Exception as error:
-                raise PlanningFeaturesError(
-                    "Point feature member validation failed"
-                ) from error
-            if catalog["point_member_count"].tolist() != member_counts:
-                raise PlanningFeaturesError(
-                    "Point feature member count is inconsistent with geometry"
-                )
-        all_feature_ids.extend(catalog["planning_feature_id"].tolist())
-    if len(all_feature_ids) != len(set(all_feature_ids)):
-        raise PlanningFeaturesError("planning_feature_id values must be globally unique")
+    validate_normalized_planning_feature_inputs(*catalogs, result.relations)
+    all_feature_ids = [
+        identifier
+        for catalog in catalogs
+        for identifier in catalog["planning_feature_id"].tolist()
+    ]
     known_features = set(all_feature_ids)
 
     relations = result.relations
-    if tuple(relations.columns) != RELATION_COLUMNS:
-        raise PlanningFeaturesError("Planning relation schema is not deterministic")
-    if relations.duplicated(["parcel_id", "planning_feature_id"]).any():
-        raise PlanningFeaturesError("Parcel/planning-feature relations must be unique")
-    _validate_exact_strings(relations["parcel_id"], "Relation parcel_id")
-    _validate_exact_strings(
-        relations["planning_feature_id"], "Relation planning_feature_id"
-    )
     if not set(relations["parcel_id"]).issubset(set(output["parcel_id"])):
         raise PlanningFeaturesError("Planning relation references an unknown parcel")
     if not set(relations["planning_feature_id"]).issubset(known_features):
         raise PlanningFeaturesError("Planning relation references an unknown feature")
-    _validate_relation_semantics(relations)
-    _validate_relation_catalog_consistency(relations, catalogs)
     _validate_parcel_summaries(source, output, relations, surface_work)
     for column in (
         "planning_feature_document_id",
