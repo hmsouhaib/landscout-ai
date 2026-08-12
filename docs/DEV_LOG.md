@@ -3,7 +3,7 @@
 ## Current project state
 
 - Current phase: French urban-planning regulation retrieval
-- Latest completed step: STEP 7D.4A — factual page-level Muret PLU regulation index
+- Latest completed step: STEP 7D.4A.1 — generalized, integrity-sealed planning-regulation index
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: evidence-based planning-rule interpretation design
@@ -1333,6 +1333,56 @@ Zero hits mean only that the exact normalized runtime phrase was absent; variant
 Read-back verified document/archive/PDF lineage, PDF hash, page count, unique ordered page numbers, exact text/status/character fields, deterministic repeat extraction, and valid search-hit page references. Generated outputs remain ignored by Git.
 
 No legal or BESS conclusion is produced. No zone is classified, and no parcel is rejected.
+
+## STEP 7D.4A.1 — Generalize and harden planning-regulation indexing
+
+- Status: Complete
+- Implementation summary: Removed the Muret PDF filename constant. Automatic selection now derives the one primary regulation filename from the loaded zoning layer's exact `NOMFIC` values and requires one matching official `written_files` entry plus exactly one matching validated extraction-inventory file. A caller may select explicitly only among filenames that satisfy all three source checks.
+- Search normalization: `fr_literal_v1` applies Unicode compatibility normalization, case and accent folding, whitespace collapsing, canonical apostrophes and dashes, `œ`/`æ` expansion, and soft-hyphen removal. It is literal retrieval only: there is no stemming, synonym expansion, semantic matching, OCR, or legal interpretation. Raw page text is unchanged.
+- Integrity model: each page has a canonical UTF-8 JSON `page_content_sha256` binding its number, extraction state, raw and normalized text, character count, error, and normalization profile. The immutable index carries `pages_content_sha256` over the complete ordered page table. Search results use an immutable lineage envelope and `hits_content_sha256`; validators recompute page text, hashes, source-derived raw/normalized contexts, ordering, counts, page references, and lineage before use.
+- Tests/checks: 62 focused offline tests and the complete 818-test suite pass. They cover generic and explicit source selection, all three source cross-checks, French normalization, raw-context mapping, coordinated mutation, page and envelope hashes, dependency-version failure, search-result lineage/integrity, stable empty results, determinism, and input immutability. Full Ruff and mypy checks pass.
+
+### Real Muret regression
+
+- Source-derived filename: `31395_reglement_20240215.pdf`
+- Unique zoning `NOMFIC` values: 1; official `written_files` matches: 1; extraction-inventory basename matches: 1
+- PDF relative path: `31395_PLU_20240215/Pieces_ecrites/3_Reglement/31395_reglement_20240215.pdf`
+- PDF size / SHA256: 2,162,501 bytes / `5358ebad6b0cda6de681ba3536e29b8b6291fb701c7d3711f4ee1d6fdb85c6fb`
+- Document ID / archive SHA256: `33edb4c9f6943c88d8d92518bff20bec` / `9d6677cd6634b56b712311042f0cc714d5ca42a38f82a417b27dd473255d7d93`
+- Extractor / profile: `pypdf 6.15.0` / `fr_literal_v1`; OCR was not used
+- Pages: 142 (`TEXT` 142, `EMPTY` 0, `ERROR` 0); raw extracted characters: 325,851
+- All 142 page hashes validate. Complete ordered page-table SHA256: `928e7e59c45e27c38e39d3f28f3eb10bd2590886416df57efc4ac8e5d8901ec9`
+- Two independent real extractions produced the same page-table hash. Index plus diagnostic search runtime: 6.558 seconds for the recorded output run.
+- Search-result rows / occurrences: 88 / 137. Complete ordered search-result SHA256: `17b069bbd6142ac4452dc806094e75f21340ef0da929f5c3d3f8b1d356ecd890`
+
+| Runtime term | Hit-page rows | Literal occurrences |
+| --- | ---: | ---: |
+| `batterie` | 0 | 0 |
+| `stockage` | 29 | 35 |
+| `énergie` | 12 | 22 |
+| `poste électrique` | 0 | 0 |
+| `transformateur` | 10 | 10 |
+| `ouvrage technique` | 0 | 0 |
+| `équipement d'intérêt collectif` | 0 | 0 |
+| `service public` | 1 | 1 |
+| `installation classée` | 0 | 0 |
+| `ICPE` | 0 | 0 |
+| `risque` | 25 | 58 |
+| `nuisance` | 11 | 11 |
+
+The improved normalization did not change these real literal counts. Each hit now carries document/archive/PDF lineage plus both a source-derived `raw_context` and a separately labelled `normalized_context`; normalized context is not presented as a source quote.
+
+### Outputs and read-back
+
+- `data/processed/planning/muret_plu_regulation_pages.parquet`: 142 rows, 267,275 bytes
+- `data/processed/planning/muret_plu_regulation_search_hits.parquet`: 88 rows, 15,946 bytes
+- `data/processed/planning/muret_plu_regulation_index.json`: schema version 2, 1,728 bytes
+
+The JSON manifest records source selection, document/archive/PDF lineage, extractor/version, normalization profile, page count, page-table hash, search-result hash, and output row counts. After writing, both Parquet files and the JSON manifest were read back; the strengthened index and search-result validators accepted the reconstructed envelopes with identical hashes and row counts.
+
+No legal or BESS conclusion is produced.
+No zone is classified.
+No parcel is rejected.
 
 ## STEP 7D.2 — Normalize GPU zoning and intersect Muret parcels
 

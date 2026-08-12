@@ -33,8 +33,11 @@ from landscout.stages.filter_parcels import (
 from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     PlanningRegulationIndexError,
+    PlanningRegulationSearchResult,
     index_planning_regulation,
     search_planning_regulation,
+    validate_planning_regulation_index,
+    validate_planning_regulation_search_result,
 )
 from landscout.stages.normalize_cadastre import (
     CadastreNormalizationError,
@@ -70,6 +73,7 @@ __all__ = [
     "ParcelFilterError",
     "PlanningRegulationIndex",
     "PlanningRegulationIndexError",
+    "PlanningRegulationSearchResult",
     "ShapeDistributionProfile",
     "ShapeEnrichmentError",
     "ShapeProfileError",
@@ -91,4 +95,6 @@ __all__ = [
     "profile_grid_proximity",
     "profile_shape_distribution",
     "search_planning_regulation",
+    "validate_planning_regulation_index",
+    "validate_planning_regulation_search_result",
 ]
