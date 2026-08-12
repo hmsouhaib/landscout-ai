@@ -1,11 +1,12 @@
-schema_version: 1
-profile: cnig_plu_2017_muret_observed_pairs_v1
+schema_version: 2
+profile: cnig_plu_2017_muret_observed_pairs_v2
 standard_model: CNIG PLU v2017
+official_text_normalization: GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1
 official_sources:
   prescription: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType
   information: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType
 retrieval_date: 2026-08-12
-canonical_records_sha256: ef00219f39632708de401e9446322dfdce0044ae006de209a983042f5c955cca
+canonical_records_sha256: 5990552a681a9e50c072eb207bf88d25c876f61c89eeb88618e74d905487672c
 records:
   - feature_family: INFORMATION
     type_code: "02"
@@ -31,7 +32,7 @@ records:
   - feature_family: INFORMATION
     type_code: "99"
     subtype_code: "00"
-    official_label: Autre  périmètre, secteur, plan, document, site, projet, espace.
+    official_label: Autre périmètre, secteur, plan, document, site, projet, espace.
     legal_reference: null
     regulation_or_annex_reference: null
     official_source_url: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType
@@ -67,7 +68,7 @@ records:
     type_code: "15"
     subtype_code: "00"
     official_label: Règles d’implantation des constructions
-    legal_reference: L151-17  et L151-18
+    legal_reference: L151-17 et L151-18
     regulation_or_annex_reference: R151-39 dernier al.
     official_source_url: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType
   - feature_family: PRESCRIPTION

@@ -1345,6 +1345,60 @@ Generated outputs:
 
 These official labels are factual CNIG code meanings only. No BESS impact, compatibility, severity, rejection, or planning score is assigned.
 
+## STEP 7D.5A.1 — Harden CNIG snapshot fidelity and public coding contracts
+
+- Status: Complete
+- Test-first proof: the expanded contract suite produced 27 failures against the former schema-v1 implementation, including acceptance of an in-memory profile whose canonical-record hash had been corrupted with `model_copy(update=...)`.
+- Focused regression suite: 94 tests pass.
+- Quality gate: `uv run pytest -q` = 1,173 passed; `uv run ruff check .` and `uv run mypy src` pass.
+- Profile / result schemas: `2` / `2`; schema version 1 is unsupported.
+- Profile: `cnig_plu_2017_muret_observed_pairs_v2`
+- Official-text normalization: `GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1`
+- Retrieval date: 2026-08-12
+- Canonical records SHA256: `5990552a681a9e50c072eb207bf88d25c876f61c89eeb88618e74d905487672c`
+- Complete profile SHA256: `5611b814eb4bc057578b908c6505094f9df5d2c2bf4ca126629b1362983c47ee`
+
+The two CNIG source-table identities are now exact, family-specific constants. Alternate official-host paths, endpoint swaps, query strings, fragments, credentials, ports, HTTP, host changes, and trailing-path variants are rejected. A supplied in-memory Pydantic profile is serialized and fully revalidated rather than trusted, closing `model_construct` and `model_copy` bypasses for schema, endpoint, record order, duplicate pair, nested record, and canonical-hash integrity.
+
+Official display text must already be Unicode NFC with edge whitespace removed and every internal Unicode-whitespace run represented by one ASCII space. Loading never rewrites malformed profile text. The approved snapshot therefore corrects two display artifacts while preserving the official words, case, accents, and punctuation:
+
+- INFORMATION `99/00`: `Autre périmètre, secteur, plan, document, site, projet, espace.`
+- PRESCRIPTION `15/00` legal reference: `L151-17 et L151-18`
+
+The complete ordered 12-record snapshot, all labels/references, both endpoint identities, retrieval date, normalization profile, canonical records hash, and complete profile hash are pinned by an offline regression test.
+
+### Catalog, relation, and public contracts
+
+Every catalog now requires unique columns, an active `geometry` column, a known parseable CRS, exact non-null source identity strings, valid non-null/non-empty geometry, and its geometry-specific layer contract. Surface, line, and point inputs accept their matching single/multi geometry types; logical layer determines PRESCRIPTION versus INFORMATION. Planning feature IDs are globally unique across all three catalogs. Properly typed empty optional catalogs retain their deterministic schema and CRS and remain valid.
+
+Relations require unique columns, exact parcel and feature IDs, unique `(parcel_id, planning_feature_id)` pairs, a feature present in exactly one catalog, exact catalog/source agreement, and geometry-compatible relation vocabulary. No geometry metric is recalculated. The six stable profile, error, result, loader, resolver, and source-complete validator symbols are exported from both the module and `landscout.stages`; private lookup/hash/DataFrame helpers remain unexported.
+
+### Real Muret regression and read-back
+
+- Document ID: `33edb4c9f6943c88d8d92518bff20bec`
+- Archive SHA256: `9d6677cd6634b56b712311042f0cc714d5ca42a38f82a417b27dd473255d7d93`
+- Configured/observed pairs: 12/12
+- Features: 479 input / 479 output / 479 `RESOLVED_OFFICIAL` / 0 `UNKNOWN_CODE_PAIR`
+- Relations: 2,414 input / 2,414 output / 2,414 `RESOLVED_OFFICIAL` / 0 `UNKNOWN_CODE_PAIR`
+- Lost/extra feature IDs: 0/0
+- Lost/extra relation rows: 0/0
+- PRESCRIPTION `15/00` and `15/01`: independently resolved and unchanged
+- Resolution plus source-complete validation runtime: 0.908 seconds
+
+| Component | Rows | Schema-v2 content SHA256 | Output bytes |
+| --- | ---: | --- | ---: |
+| Code dictionary | 12 | `ee93bfb6b768ffa223775b2821762afc7384d74db8745009a5983494c281c45f` | 9,642 |
+| Surface features | 469 | `72f598aaa606cd8eb3e2ec1de0570f3cdb520c4e4e5d9aaad506231da748e5ac` | 355,137 |
+| Line features | 5 | `f19166784d09b073901d82758d8d768fb8ee3b3a006a869ede31696f5a3f8b84` | 37,194 |
+| Point features | 5 | `dab480976d1506a18469a00fd1f8af4c54668481b9cdfd77b04b030fa94a4c5c` | 33,727 |
+| Parcel/feature relations | 2,414 | `0c7a5b657c2bb6e8b468be29cc1df4125b869531d1e9db341412d1fec54d59fa` | 158,650 |
+
+Complete result SHA256: `a39099534ee1f8f1675ec6cd07fcc44c08994540e8b5087b9c39d850c20db912`.
+
+All five ignored outputs were rewritten and read back. The reconstructed schema-v2 result passed the exported source-complete validator against the validated GPU planning document, all four original factual inputs, and the checked-in profile. IDs, order, index, geometries, CRS, raw attributes, source lineage, relation types, and geometry-derived metrics are unchanged.
+
+No BESS impact or severity is assigned. No parcel is rejected. No planning score or legal interpretation is produced.
+
 ## STEP 7D.4C.4 — Enforce unique chapter-scoped evidence occurrences
 
 - Status: Complete

@@ -64,7 +64,12 @@ from landscout.stages.profile_shape import (
     profile_shape_distribution,
 )
 from landscout.stages.resolve_planning_feature_codes import (
+    CnigFeatureCodeProfile,
+    PlanningFeatureCodeError,
+    PlanningFeatureCodeResult,
+    load_cnig_feature_code_profile,
     resolve_planning_feature_codes,
+    validate_planning_feature_code_result,
 )
 from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
@@ -83,6 +88,7 @@ __all__ = [
     "BessZoningPrecheckResult",
     "BoundaryDistanceProfile",
     "CadastreNormalizationError",
+    "CnigFeatureCodeProfile",
     "CoverageStatusCounts",
     "DistanceProfile",
     "GridCoverageAssessmentError",
@@ -95,6 +101,8 @@ __all__ = [
     "IgnVoltageNormalization",
     "NormalizedIgnElectricityData",
     "ParcelFilterError",
+    "PlanningFeatureCodeError",
+    "PlanningFeatureCodeResult",
     "PlanningRegulationIndex",
     "PlanningRegulationIndexError",
     "PlanningRegulationSearchResult",
@@ -117,6 +125,7 @@ __all__ = [
     "intersect_parcels_with_gpu_planning_features",
     "intersect_parcels_with_gpu_zoning",
     "load_bess_zoning_policy_config",
+    "load_cnig_feature_code_profile",
     "load_planning_regulation_structure_config",
     "normalize_cadastre_parcels",
     "normalize_ign_electricity",
@@ -129,6 +138,7 @@ __all__ = [
     "search_planning_regulation",
     "structure_planning_regulation",
     "validate_bess_zoning_precheck",
+    "validate_planning_feature_code_result",
     "validate_planning_regulation_index",
     "validate_planning_regulation_search_result",
     "validate_planning_regulation_structure",
