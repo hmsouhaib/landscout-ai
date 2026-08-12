@@ -1386,6 +1386,118 @@ No zoning value is interpreted as BESS-compatible or BESS-incompatible in STEP 7
 
 No parcel is rejected.
 
+## STEP 7D.3 — Normalize and intersect GPU planning features
+
+- Status: Complete
+- Implementation summary: Added one factual high-level stage for GPU prescription and information layers. It validates the immutable source bundle, normalizes surface/line/point catalogs to EPSG:2154, generates candidate relations through spatial indexing, and applies vectorized geometry-specific measurements. Existing cadastre, shape, grid, coverage, and zoning parcel facts remain unchanged.
+- Important files: `src/landscout/stages/enrich_planning_features.py`, `tests/unit/test_enrich_planning_features.py`, `src/landscout/stages/__init__.py`
+- Tests/checks: 47 focused offline tests pass. The full suite passes with 722 tests; Ruff and mypy pass.
+- Important decisions: Raw codes and text are preserved without interpretation. Surface relations use positive area versus zero-area touch; line relations use positive in-parcel length versus zero-length touch; point relations distinguish interior members from boundary members. Surface coverage is calculated from a union so overlapping source features are not double-counted. The same `1e-6 m²` technical area-comparison tolerance established in STEP 7D.2 is reused and is not a planning threshold.
+- Known issues: The official prescription-surface Shapefile omits `LIB_IDPSC`. For that layer only, LandScout reopens the immutable archive-derived Shapefile, validates row attributes/geometries against the inspected frame, and uses namespaced OGR source FIDs such as `OGR_FID:0`; it never uses the mutable GeoDataFrame index. The current document contains no information-line or information-point layer.
+
+### Real schemas and source identities
+
+| Logical layer | Source layer | Features | Source CRS | Geometry | Authoritative identity |
+| --- | --- | ---: | --- | --- | --- |
+| `prescription_surface` | `31395_PRESCRIPTION_SURF_20240215` | 320 | `IGNF:LAMB93` | Polygon 320 | validated OGR FID because the DBF omits `LIB_IDPSC` |
+| `prescription_line` | `31395_PRESCRIPTION_LIN_20240215` | 5 | `EPSG:2154` | LineString 5 | `LIB_IDPSC` |
+| `prescription_point` | `31395_PRESCRIPTION_PCT_20240215` | 5 | `EPSG:2154` | Point 5 | `LIB_IDPSC` |
+| `information_surface` | `31395_INFO_SURF_20240215` | 149 | `IGNF:LAMB93` | Polygon 148, MultiPolygon 1 | `LIB_IDINFO` |
+| `information_line` | absent | 0 | — | — | — |
+| `information_point` | absent | 0 | — | — | — |
+
+Exact prescription-surface fields:
+
+```text
+LIBELLE, TXT, TYPEPSC, STYPEPSC, NOMFIC, URLFIC, IDURBA, DATVALID, geometry
+```
+
+Exact prescription-line and prescription-point fields:
+
+```text
+LIBELLE, TXT, TYPEPSC, STYPEPSC, NOMFIC, URLFIC, IDURBA, DATVALID, LIB_IDPSC, geometry
+```
+
+Exact information-surface fields:
+
+```text
+LIBELLE, TXT, TYPEINF, STYPEINF, NOMFIC, URLFIC, IDURBA, DATVALID, LIB_IDINFO, geometry
+```
+
+All loaded geometries are non-null, non-empty, valid, and retained without repair. Every source `IDURBA` is `31395_PLU_20240215` and was validated against the loaded archive identity rather than a production constant. Document lineage remains:
+
+- document ID: `33edb4c9f6943c88d8d92518bff20bec`;
+- archive SHA256: `9d6677cd6634b56b712311042f0cc714d5ca42a38f82a417b27dd473255d7d93`;
+- standard: `CNIG PLU v2017`;
+- calculation and normalized catalog CRS: `EPSG:2154`.
+
+### Raw source-code diagnostics
+
+| Logical layer | Raw source code counts |
+| --- | --- |
+| Prescription surface | `TYPEPSC`: `01` 127, `05` 185, `07` 1, `17` 1, `18` 6; `STYPEPSC`: `00` 319, `04` 1 |
+| Prescription line | `TYPEPSC`: `15` 5; `STYPEPSC`: `00` 4, `01` 1 |
+| Prescription point | `TYPEPSC`: `07` 5; `STYPEPSC`: `00` 5 |
+| Information surface | `TYPEINF`: `02` 1, `14` 3, `27` 4, `99` 141; `STYPEINF`: `00` 149 |
+
+Parcel relation rows by raw logical layer/type/subtype:
+
+| Logical layer and raw code | Relations |
+| --- | ---: |
+| Information surface `02/00` | 43 |
+| Information surface `14/00` | 989 |
+| Information surface `27/00` | 178 |
+| Information surface `99/00` | 127 |
+| Prescription surface `01/00` | 619 |
+| Prescription surface `05/00` | 321 |
+| Prescription surface `07/04` | 4 |
+| Prescription surface `17/00` | 6 |
+| Prescription surface `18/00` | 117 |
+| Prescription line `15/00` | 8 |
+| Prescription point `07/00` | 2 |
+
+These counts are source and geometric facts only. They do not assign priority, severity, authorization, or prohibition.
+
+### Real relations, metrics, and integrity
+
+- Input/output parcels: 3,638 / 3,638
+- Lost / extra parcel IDs: 0 / 0
+- Normalized surface / line / point features: 469 / 5 / 5
+- Total unique parcel/feature relations: 2,414
+- Duplicate parcel/feature pairs: 0
+- Relation types: `AREA_OVERLAP` 2,404; `LENGTH_OVERLAP` 8; `INSIDE` 2; `TOUCH_ONLY` 0; `BOUNDARY_TOUCH` 0
+- Relations by layer: prescription surface 1,067; prescription line 8; prescription point 2; information surface 1,337
+- Affected parcels by layer: prescription surface 975; prescription line 8; prescription point 2; information surface 1,261
+- All-planning-surface covered percentage min / p50 / max: 0% / 0.000168550% / 100%
+- Prescription-surface covered percentage min / p50 / max: 0% / 0% / 100%
+- Information-surface covered percentage min / p50 / max: 0% / 0% / 100%
+- In-parcel line-length sum among the 8 affected parcels, min / p50 / max: 15.341 m / 29.489 m / 96.601 m
+- Point members inside / on parcel boundary: 2 / 0
+- Non-finite or negative calculations: 0
+- Real intersection wall-clock duration: 0.936 seconds
+
+The parcel output retains exactly the original 3,638 IDs, order, RangeIndex, WKB geometry, `EPSG:4326` CRS, and every prior field. Catalog lineage, raw codes, relation references, and metric/summary consistency were verified after serialization.
+
+### Outputs and read-back
+
+| Output | Rows | Size | Semantics |
+| --- | ---: | ---: | --- |
+| `data/processed/planning/muret_gpu_surface_features.parquet` | 469 | 343,778 bytes | GeoParquet, `EPSG:2154` |
+| `data/processed/planning/muret_gpu_line_features.parquet` | 5 | 29,168 bytes | GeoParquet, `EPSG:2154` |
+| `data/processed/planning/muret_gpu_point_features.parquet` | 5 | 25,303 bytes | GeoParquet, `EPSG:2154` |
+| `data/processed/planning/muret_bess_planning_features.parquet` | 3,638 | 1,551,346 bytes | GeoParquet, original `EPSG:4326` parcel geometry |
+| `data/processed/planning/muret_bess_planning_feature_relations.parquet` | 2,414 | 132,166 bytes | regular long-form Parquet |
+
+Read-back verified feature IDs, source lineage, raw codes, geometry types, catalog CRSs, parcel IDs/order/prior columns/WKB/CRS, unique relation pairs, known references, nullable geometry-specific metrics, and finite non-negative values. Generated files remain ignored by Git.
+
+Prescription and information codes remain official GPU source facts.
+
+Geometric intersection does not by itself prove that a prescription prohibits or authorizes a BESS project.
+
+No parcel is rejected in STEP 7D.3.
+
+No urban-planning score is calculated.
+
 ## STEP 7D.1.1 — Harden GPU source and extraction integrity
 
 - Status: Complete

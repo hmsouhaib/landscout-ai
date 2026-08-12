@@ -18,6 +18,9 @@ from landscout.stages.enrich_grid_proximity import (
     enrich_parcel_grid_proximity,
     profile_grid_proximity,
 )
+from landscout.stages.enrich_planning_features import (
+    intersect_parcels_with_gpu_planning_features,
+)
 from landscout.stages.enrich_planning_zoning import (
     intersect_parcels_with_gpu_zoning,
 )
@@ -70,6 +73,7 @@ __all__ = [
     "enrich_parcel_shapes",
     "filter_parcels_by_area",
     "filter_parcels_by_shape",
+    "intersect_parcels_with_gpu_planning_features",
     "intersect_parcels_with_gpu_zoning",
     "normalize_cadastre_parcels",
     "normalize_ign_electricity",
