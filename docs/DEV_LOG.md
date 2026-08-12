@@ -1281,6 +1281,70 @@ Distance to an IGN electric line or transformation post does not establish grid 
 
 No BESS grid-distance threshold is selected here.
 
+## STEP 7D.5A — Resolve official CNIG meanings for planning-feature codes
+
+- Status: Complete
+- Test-first proof: the new focused suite was collected before production implementation and failed on the absent `landscout.stages.resolve_planning_feature_codes` module; after implementation, all 29 focused tests pass.
+- Quality gate: `uv run pytest -q` = 1,108 passed; `uv run ruff check .` and `uv run mypy src` pass.
+- Standard lock: `CNIG PLU v2017`
+- Planning document: `33edb4c9f6943c88d8d92518bff20bec`
+- GPU archive SHA256: `9d6677cd6634b56b712311042f0cc714d5ca42a38f82a417b27dd473255d7d93`
+- Offline profile: `cnig_plu_2017_muret_observed_pairs_v1`
+- Profile schema / result-hash schema: `1` / `1`
+- Retrieval date: 2026-08-12
+- Canonical records SHA256: `ef00219f39632708de401e9446322dfdce0044ae006de209a983042f5c955cca`
+- Complete profile SHA256: `ee2509ee4d28923bf598c265cf4d01ee85a6b78d287acc47034141665751fa28`
+
+The official prescription and information tables were inspected once at the GPU CNIG PLU 2017 endpoints and normalized into `configs/planning/cnig_plu_2017_feature_codes.yaml`. Production resolution is offline and performs one exact lookup on `(feature_family, type_code, subtype_code)`; it never calls an API per feature, falls back to a type-only record, or applies prefix/fuzzy matching. The checked-in source URLs are:
+
+- `https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType`
+- `https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType`
+
+The current line catalog contains the additional factual prescription pair `15/01`, which was not included in the ticket's abbreviated observation list. It is retained and resolved from its own official pair record; it is not inferred from `15/00`.
+
+### Observed pairs and official labels
+
+| Logical layer | Family | Pair | Official CNIG label | Features | Parcel relations |
+| --- | --- | --- | --- | ---: | ---: |
+| information_surface | INFORMATION | `02/00` | Zone d'aménagement concerté | 1 | 43 |
+| information_surface | INFORMATION | `14/00` | Périmètre de voisinage d'infrastructure de transport terrestre (secteur affecté par le bruit) | 3 | 989 |
+| information_surface | INFORMATION | `27/00` | Plan d'exposition au bruit des aérodromes | 4 | 178 |
+| information_surface | INFORMATION | `99/00` | Autre  périmètre, secteur, plan, document, site, projet, espace. | 141 | 127 |
+| prescription_surface | PRESCRIPTION | `01/00` | Espace boisé classé | 127 | 619 |
+| prescription_surface | PRESCRIPTION | `05/00` | Emplacement réservé | 185 | 321 |
+| prescription_surface | PRESCRIPTION | `07/04` | Éléments de paysage, (sites et secteurs) à préserver pour des motifs d'ordre écologique | 1 | 4 |
+| prescription_surface | PRESCRIPTION | `17/00` | Secteur à programme de logements mixité sociale en zone U et AU | 1 | 6 |
+| prescription_surface | PRESCRIPTION | `18/00` | Périmètre comportant des orientations d’aménagement et de programmation (OAP) | 6 | 117 |
+| prescription_line | PRESCRIPTION | `15/00` | Règles d’implantation des constructions | 4 | 8 |
+| prescription_line | PRESCRIPTION | `15/01` | Implantation des constructions par rapport aux voies et aux emprises publiques | 1 | 0 |
+| prescription_point | PRESCRIPTION | `07/00` | Patrimoine bâti, paysager ou éléments de paysages à protéger pour des motifs d'ordre culturel, historique, architectural ou écologique | 5 | 2 |
+
+All 479 feature rows and all 2,414 parcel/feature relation rows are `RESOLVED_OFFICIAL`; `UNKNOWN_CODE_PAIR` counts are 0 and 0. Lost/extra feature IDs are 0/0, and lost/extra relation rows are 0/0. Leading-zero type and subtype strings remain unchanged throughout the catalogs and relation table.
+
+### Integrity and outputs
+
+| Component | Rows | Content SHA256 | Output bytes |
+| --- | ---: | --- | ---: |
+| Code dictionary | 12 | `371ee59bf7baca62eb559f69933b35317e948d375baf3ff5c9fb8cf00fa75225` | 9,658 |
+| Surface features | 469 | `2f40e9959c2b70199a798472635cc2fa2d1c98ff96e68f8ee182d725868b2808` | 355,140 |
+| Line features | 5 | `a3735f06815d4f3906a459b2af4153333ad15e3f3fc786460038324efb0ab309` | 37,208 |
+| Point features | 5 | `b2e056473b53c077728851944335a9dc888d99206cc52f2916b98afde517c4ae` | 33,727 |
+| Parcel/feature relations | 2,414 | `0d64738cb284787bc66e415c6bbfb9f8956796841e13e9da9dabcd41ed7a2bcc` | 158,661 |
+
+Complete result SHA256: `894e6225dc9622ee45b3a847de104fb59b94f664c26d3fd87e37d8d290d9b2a6`.
+
+Resolution and source-complete validation took 0.906 seconds with the validated GPU archive and extraction caches. All five outputs were read back, reconstructed into the immutable result, and passed the public source-complete validator. Feature IDs, source IDs, row order, index, geometry, CRS, raw attributes, source lineage, relation types, and every geometry-derived metric remained unchanged.
+
+Generated outputs:
+
+- `data/processed/planning/muret_cnig_plu_2017_feature_codes.parquet`
+- `data/processed/planning/muret_gpu_surface_features_coded.parquet`
+- `data/processed/planning/muret_gpu_line_features_coded.parquet`
+- `data/processed/planning/muret_gpu_point_features_coded.parquet`
+- `data/processed/planning/muret_bess_planning_feature_relations_coded.parquet`
+
+These official labels are factual CNIG code meanings only. No BESS impact, compatibility, severity, rejection, or planning score is assigned.
+
 ## STEP 7D.4C.4 — Enforce unique chapter-scoped evidence occurrences
 
 - Status: Complete

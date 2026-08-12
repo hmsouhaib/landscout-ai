@@ -1,0 +1,93 @@
+schema_version: 1
+profile: cnig_plu_2017_muret_observed_pairs_v1
+standard_model: CNIG PLU v2017
+official_sources:
+  prescription: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType
+  information: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType
+retrieval_date: 2026-08-12
+canonical_records_sha256: ef00219f39632708de401e9446322dfdce0044ae006de209a983042f5c955cca
+records:
+  - feature_family: INFORMATION
+    type_code: "02"
+    subtype_code: "00"
+    official_label: Zone d'aménagement concerté
+    legal_reference: L311-1 code de l’urbanisme
+    regulation_or_annex_reference: R151-52 8°
+    official_source_url: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType
+  - feature_family: INFORMATION
+    type_code: "14"
+    subtype_code: "00"
+    official_label: Périmètre de voisinage d'infrastructure de transport terrestre (secteur affecté par le bruit)
+    legal_reference: L571-10 code de l’environnement
+    regulation_or_annex_reference: R151-53 5°
+    official_source_url: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType
+  - feature_family: INFORMATION
+    type_code: "27"
+    subtype_code: "00"
+    official_label: Plan d'exposition au bruit des aérodromes
+    legal_reference: L112-6 code de l’urbanisme
+    regulation_or_annex_reference: R151-52 2°
+    official_source_url: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType
+  - feature_family: INFORMATION
+    type_code: "99"
+    subtype_code: "00"
+    official_label: Autre  périmètre, secteur, plan, document, site, projet, espace.
+    legal_reference: null
+    regulation_or_annex_reference: null
+    official_source_url: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType
+  - feature_family: PRESCRIPTION
+    type_code: "01"
+    subtype_code: "00"
+    official_label: Espace boisé classé
+    legal_reference: L113-1
+    regulation_or_annex_reference: R151-31 1°
+    official_source_url: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType
+  - feature_family: PRESCRIPTION
+    type_code: "05"
+    subtype_code: "00"
+    official_label: Emplacement réservé
+    legal_reference: L151-41 1° à 3°
+    regulation_or_annex_reference: R151-34 4°, R151-38 1°, R151-43 3°, R151-48 2°, R151-50 1°
+    official_source_url: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType
+  - feature_family: PRESCRIPTION
+    type_code: "07"
+    subtype_code: "00"
+    official_label: Patrimoine bâti, paysager ou éléments de paysages à protéger pour des motifs d'ordre culturel, historique, architectural ou écologique
+    legal_reference: L151-19 et L151-23
+    regulation_or_annex_reference: R151-41 3° Et R151-43
+    official_source_url: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType
+  - feature_family: PRESCRIPTION
+    type_code: "07"
+    subtype_code: "04"
+    official_label: Éléments de paysage, (sites et secteurs) à préserver pour des motifs d'ordre écologique
+    legal_reference: L151-23
+    regulation_or_annex_reference: R151-43 5°
+    official_source_url: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType
+  - feature_family: PRESCRIPTION
+    type_code: "15"
+    subtype_code: "00"
+    official_label: Règles d’implantation des constructions
+    legal_reference: L151-17  et L151-18
+    regulation_or_annex_reference: R151-39 dernier al.
+    official_source_url: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType
+  - feature_family: PRESCRIPTION
+    type_code: "15"
+    subtype_code: "01"
+    official_label: Implantation des constructions par rapport aux voies et aux emprises publiques
+    legal_reference: L151-17 et L151-18
+    regulation_or_annex_reference: R151-39
+    official_source_url: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType
+  - feature_family: PRESCRIPTION
+    type_code: "17"
+    subtype_code: "00"
+    official_label: Secteur à programme de logements mixité sociale en zone U et AU
+    legal_reference: L151-15
+    regulation_or_annex_reference: R151-38 3°
+    official_source_url: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType
+  - feature_family: PRESCRIPTION
+    type_code: "18"
+    subtype_code: "00"
+    official_label: Périmètre comportant des orientations d’aménagement et de programmation (OAP)
+    legal_reference: L151-6 et L151-7
+    regulation_or_annex_reference: R151-6 à R151-8-1
+    official_source_url: https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType

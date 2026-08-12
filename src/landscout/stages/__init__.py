@@ -63,6 +63,9 @@ from landscout.stages.profile_shape import (
     ShapeProfileError,
     profile_shape_distribution,
 )
+from landscout.stages.resolve_planning_feature_codes import (
+    resolve_planning_feature_codes,
+)
 from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
@@ -122,6 +125,7 @@ __all__ = [
     "profile_grid_coverage",
     "profile_grid_proximity",
     "profile_shape_distribution",
+    "resolve_planning_feature_codes",
     "search_planning_regulation",
     "structure_planning_regulation",
     "validate_bess_zoning_precheck",
