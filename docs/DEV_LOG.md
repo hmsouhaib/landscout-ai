@@ -1665,6 +1665,78 @@ No BESS compatibility status.
 No parcel rejection.
 No score.
 
+## STEP 7D.4B.3 — Finalize factual structure edge integrity
+
+- Status: Complete
+- Implementation summary: Closed the final factual structure edges by deriving evidence scope from section type, preserving blank-only configured TOC blocks, retaining ordinary blank gaps and document tails deterministically, validating every configured layout page against the indexed document, and binding every intersection metric actually used by the stage into the source-complete result envelope.
+- Important files: `src/landscout/stages/structure_planning_regulation.py`, `tests/unit/test_structure_planning_regulation.py`, and the four ignored structure outputs under `data/processed/planning/`.
+- Tests/checks: 105 focused structure tests cover the schema-v3, page-layout, evidence-scope, blank-partition, and optional-metric hash contracts. The complete 975-test suite passes; repository-wide Ruff and `mypy src` checks pass.
+
+### Scope, page, and source-record fidelity
+
+Evidence scope now describes exact factual location: `GENERAL` maps to `GENERAL_RULE`; `ZONE_CHAPTER` and `ARTICLE` map to `ZONE_SPECIFIC_RULE`; and cover, preamble, or configured table-of-contents `OTHER` sections map to `OTHER_TEXT`. The current Muret cover has no configured topic hit, so its real evidence remains 13 `GENERAL_RULE` rows and 445 `ZONE_SPECIFIC_RULE` rows; no current row required an `OTHER_TEXT` value.
+
+Forced TOC boundaries are now distinct from ordinary blank-gap boundaries. A configured TOC block made only of retained whitespace remains a separate `OTHER` section with its exact blank records and an empty factual heading; no heading is invented. Several contiguous TOC pages remain one block. Ordinary blank records before a later real heading attach to that following section, while a blank tail at the end of the document remains attached to the preceding factual section. A TOC block followed only by blank tail records remains the preceding factual TOC `OTHER` section. All cases retain exact order with no omitted or duplicated source record.
+
+After validating the regulation index, the stage now requires `body_start_page` and every configured TOC page to reference a real indexed page. Page zero, a page above the page count, and any nonexistent indexed page fail with a controlled structure error. A real indexed `EMPTY` page remains a valid page reference even though it has no topic evidence and may contain no retained line records.
+
+### Complete intersection-input lineage
+
+The real ordered intersection hash columns are persisted as:
+
+```text
+parcel_id
+planning_zone_id
+source_zone_id
+zone_label_raw
+relation_type
+intersection_area_m2
+source_document_id
+source_archive_sha256
+parcel_metric_area_m2
+zone_area_m2
+```
+
+The first eight columns are always required. The two metric upper bounds are appended in that fixed order only when present. This exact list is bound into the intersection-input hash, every component hash, the complete result hash, and the manifest. A still-geometrically-valid change to either optional metric invalidates the prior result instead of passing under a hash that omitted a used input.
+
+The configuration remains schema 2 because its YAML shape is unchanged. The changed evidence vocabulary and source-input semantics use section/hash schema 3; schema versions 1 and 2 are rejected. The ignored structure manifest is schema 4.
+
+### Real Muret regression and read-back
+
+| Factual result | Count |
+| --- | ---: |
+| Retained source records | 6,490 |
+| Omitted / duplicated / reordered records | 0 / 0 / 0 |
+| Sections | 196 |
+| `OTHER` / `GENERAL` / `ZONE_CHAPTER` / `ARTICLE` | 1 / 5 / 13 / 177 |
+| `EXACT` / `CONFIG_ALIAS` mappings | 12 / 17 |
+| `UNMAPPED` / `AMBIGUOUS` mappings | 0 / 0 |
+| Dominant unresolved candidates | 0 |
+| Topic-evidence rows | 458 |
+| Unique retained topic occurrences | 799 |
+| `GENERAL_RULE` / `ZONE_SPECIFIC_RULE` / `OTHER_TEXT` rows | 13 / 445 / 0 |
+
+- Config schema / SHA256: 2 / `13d028fe4b58d30929ff9fdedae90e2cc95983a3296f2f83c2817d0da381107a`
+- Section/hash schema: 3
+- Intersection-input SHA256: `0ab84c4c2832a41901b9392e0ed1b91aa33c6e7cacf639bc4c39196f2597ebe2`
+- Retained source-record SHA256: `2e931b945484ff07728ad4d64a3c9c358809f72c30c60144dba03eb342a41517`
+- Ordered sections SHA256: `cad93569d2cf75b9560d7bfcbf0fcc0b8896b49a2f5357572c88344a3f5e9b64`
+- Ordered zone-map SHA256: `0f39c06ffddc9c7bf0a81e6eac963a9e1247ee0ff478f6be8a2f8e7324172605`
+- Ordered topic-evidence SHA256: `67acf8dbb4010a4702f84be148f3e93973c0d537f7d1c1a73f46cd7138a6452a`
+- Complete structure-result SHA256: `16f8a9edfff0d330f69579310da085f804f4641de973d98e0046bff5ea96b03c`
+- Real source-complete runtime: 8.864 seconds
+- `muret_plu_regulation_sections.parquet`: 196 rows, 299,178 bytes
+- `muret_plu_zone_section_map.parquet`: 29 rows, 11,117 bytes
+- `muret_plu_topic_evidence.parquet`: 458 rows, 59,071 bytes
+- `muret_plu_structure_index.json`: manifest schema 4, 3,577 bytes
+
+All ignored outputs were rewritten. The immutable schema-v3 result was reconstructed from the three Parquet tables and manifest, including the ordered intersection hash-column tuple, then accepted by the source-complete public validator using the original validated regulation index, zone catalog, 5,095 zoning intersections, and schema-v2 configuration.
+
+No legal conclusion.
+No BESS compatibility status.
+No parcel rejection.
+No score.
+
 ## STEP 7D.2 — Normalize GPU zoning and intersect Muret parcels
 
 - Status: Complete

@@ -51,14 +51,16 @@ __all__ = [
     "validate_planning_regulation_structure",
 ]
 
-SECTION_HASH_SCHEMA_VERSION = 2
-STRUCTURE_MANIFEST_SCHEMA_VERSION = 3
+SECTION_HASH_SCHEMA_VERSION = 3
+STRUCTURE_MANIFEST_SCHEMA_VERSION = 4
 _SUPPORTED_CONFIG_SCHEMA_VERSION = 2
 
 _SECTION_TYPES = frozenset({"GENERAL", "ZONE_CHAPTER", "ARTICLE", "OTHER"})
 _MAPPING_STATUSES = frozenset({"EXACT", "CONFIG_ALIAS", "UNMAPPED", "AMBIGUOUS"})
 _MAPPING_METHODS = frozenset({"EXACT_HEADING", "CONFIG_ALIAS", "NONE", "AMBIGUOUS"})
-_EVIDENCE_SCOPES = frozenset({"GENERAL_RULE", "ZONE_SPECIFIC_RULE"})
+_EVIDENCE_SCOPES = frozenset(
+    {"GENERAL_RULE", "ZONE_SPECIFIC_RULE", "OTHER_TEXT"}
+)
 
 _ZONE_INPUT_COLUMNS = (
     "planning_zone_id",
@@ -67,7 +69,7 @@ _ZONE_INPUT_COLUMNS = (
     "source_document_id",
     "source_archive_sha256",
 )
-_INTERSECTION_INPUT_COLUMNS = (
+_REQUIRED_INTERSECTION_INPUT_COLUMNS = (
     "parcel_id",
     "planning_zone_id",
     "source_zone_id",
@@ -76,6 +78,10 @@ _INTERSECTION_INPUT_COLUMNS = (
     "intersection_area_m2",
     "source_document_id",
     "source_archive_sha256",
+)
+_OPTIONAL_INTERSECTION_INPUT_COLUMNS = (
+    "parcel_metric_area_m2",
+    "zone_area_m2",
 )
 
 SECTION_COLUMNS = (
@@ -298,6 +304,7 @@ class PlanningRegulationStructureResult:
     structure_config_schema_version: int
     structure_config_sha256: str
     zones_content_sha256: str
+    zoning_intersection_hash_columns: tuple[str, ...]
     zoning_intersections_content_sha256: str
     source_records_sha256: str
     section_hash_schema_version: int
@@ -327,6 +334,13 @@ class _HeadingEvent:
     zone_chapter_label: str | None
     article_number_raw: str | None
     article_title_raw: str | None
+
+
+@dataclass(frozen=True)
+class _SectionBoundary:
+    record_position: int
+    event: _HeadingEvent | None
+    forced_table_of_contents: bool
 
 
 @dataclass(frozen=True)
@@ -511,6 +525,25 @@ def _validate_document_lock(
             raise PlanningRegulationStructureError(
                 f"Planning structure {label} differs from its document lock"
             )
+    indexed_pages = tuple(
+        _strict_positive_integer(value, "indexed page number")
+        for value in index.pages["page_number"].tolist()
+    )
+    indexed_page_set = set(indexed_pages)
+    if config.document_layout.body_start_page not in indexed_page_set:
+        raise PlanningRegulationStructureError(
+            "body_start_page must reference a real indexed page"
+        )
+    missing_toc_pages = sorted(
+        set(config.document_layout.table_of_contents_pages).difference(
+            indexed_page_set
+        )
+    )
+    if missing_toc_pages:
+        raise PlanningRegulationStructureError(
+            "table_of_contents_pages reference nonexistent indexed pages: "
+            f"{missing_toc_pages}"
+        )
 
 
 def _compiled(patterns: Sequence[str]) -> tuple[re.Pattern[str], ...]:
@@ -754,9 +787,14 @@ def _section_starts(
     records: Sequence[_LineRecord],
     events: Sequence[_HeadingEvent],
     config: PlanningRegulationStructureConfig,
-) -> list[tuple[int, _HeadingEvent | None]]:
-    starts_by_position: dict[int, _HeadingEvent | None] = {
-        event.record_position: event for event in events
+) -> list[_SectionBoundary]:
+    starts_by_position: dict[int, _SectionBoundary] = {
+        event.record_position: _SectionBoundary(
+            record_position=event.record_position,
+            event=event,
+            forced_table_of_contents=False,
+        )
+        for event in events
     }
     record_positions_by_page: dict[int, list[int]] = {}
     for position, record in enumerate(records):
@@ -773,36 +811,97 @@ def _section_starts(
             continue
         block_start = min(positions)
         block_end = max(positions) + 1
-        starts_by_position[block_start] = None
+        starts_by_position[block_start] = _SectionBoundary(
+            record_position=block_start,
+            event=None,
+            forced_table_of_contents=True,
+        )
         if block_end < len(records) and block_end not in starts_by_position:
-            starts_by_position[block_end] = None
-    ordered = sorted(starts_by_position.items())
+            starts_by_position[block_end] = _SectionBoundary(
+                record_position=block_end,
+                event=None,
+                forced_table_of_contents=False,
+            )
+    ordered = sorted(
+        starts_by_position.values(),
+        key=lambda boundary: boundary.record_position,
+    )
+    toc_pages = set(config.document_layout.table_of_contents_pages)
+    for boundary_index, boundary in enumerate(ordered):
+        if boundary.event is None:
+            continue
+        minimum_position = (
+            ordered[boundary_index - 1].record_position
+            if boundary_index > 0
+            else 0
+        )
+        shifted_position = boundary.record_position
+        while (
+            shifted_position > minimum_position
+            and not records[shifted_position - 1].raw.strip()
+            and records[shifted_position - 1].page_number not in toc_pages
+        ):
+            shifted_position -= 1
+        ordered[boundary_index] = replace(
+            boundary,
+            record_position=shifted_position,
+        )
+    compacted: dict[int, _SectionBoundary] = {}
+    for boundary in ordered:
+        existing = compacted.get(boundary.record_position)
+        if (
+            existing is None
+            or boundary.forced_table_of_contents
+            or (
+                not existing.forced_table_of_contents
+                and boundary.event is not None
+            )
+        ):
+            compacted[boundary.record_position] = boundary
+    ordered = sorted(
+        compacted.values(),
+        key=lambda boundary: boundary.record_position,
+    )
     if not ordered:
         raise PlanningRegulationStructureError(
             "No regulation section boundary could be established"
         )
-    first_position, first_event = ordered[0]
-    if first_position > 0:
-        prefix = records[:first_position]
+    first_boundary = ordered[0]
+    if first_boundary.record_position > 0:
+        prefix = records[: first_boundary.record_position]
         if any(record.raw.strip() for record in prefix):
-            ordered.insert(0, (0, None))
+            ordered.insert(
+                0,
+                _SectionBoundary(
+                    record_position=0,
+                    event=None,
+                    forced_table_of_contents=False,
+                ),
+            )
         else:
-            ordered[0] = (0, first_event)
-    coalesced: list[tuple[int, _HeadingEvent | None]] = []
-    for boundary_index, (start, event) in enumerate(ordered):
+            ordered[0] = replace(first_boundary, record_position=0)
+    coalesced: list[_SectionBoundary] = []
+    for boundary_index, boundary in enumerate(ordered):
+        start = boundary.record_position
         end = (
-            ordered[boundary_index + 1][0]
+            ordered[boundary_index + 1].record_position
             if boundary_index + 1 < len(ordered)
             else len(records)
         )
-        if event is None and not any(record.raw.strip() for record in records[start:end]):
+        if (
+            not boundary.forced_table_of_contents
+            and boundary.event is None
+            and not any(record.raw.strip() for record in records[start:end])
+        ):
             if boundary_index + 1 < len(ordered):
-                next_event = ordered[boundary_index + 1][1]
-                ordered[boundary_index + 1] = (start, next_event)
+                ordered[boundary_index + 1] = replace(
+                    ordered[boundary_index + 1],
+                    record_position=start,
+                )
                 continue
             if coalesced:
                 continue
-        coalesced.append((start, event))
+        coalesced.append(boundary)
     return coalesced
 
 
@@ -827,9 +926,11 @@ def _build_sections(
     builds: list[_SectionBuild] = []
     current_chapter_id: str | None = None
     current_chapter_label: str | None = None
-    for start_index, (start, event) in enumerate(starts):
+    for start_index, boundary in enumerate(starts):
+        start = boundary.record_position
+        event = boundary.event
         end = (
-            starts[start_index + 1][0]
+            starts[start_index + 1].record_position
             if start_index + 1 < len(starts)
             else len(records)
         )
@@ -1079,6 +1180,14 @@ def _input_frame_sha256(
     )
 
 
+def _intersection_hash_columns(frame: pd.DataFrame) -> tuple[str, ...]:
+    return _REQUIRED_INTERSECTION_INPUT_COLUMNS + tuple(
+        column
+        for column in _OPTIONAL_INTERSECTION_INPUT_COLUMNS
+        if column in frame.columns
+    )
+
+
 def _resolved_alias(label: str, aliases: Mapping[str, str]) -> str | None:
     if label not in aliases:
         return None
@@ -1260,6 +1369,18 @@ def _literal_topic_matches(
     )
 
 
+def _evidence_scope(section_type: str) -> str:
+    if section_type == "GENERAL":
+        return "GENERAL_RULE"
+    if section_type in {"ZONE_CHAPTER", "ARTICLE"}:
+        return "ZONE_SPECIFIC_RULE"
+    if section_type == "OTHER":
+        return "OTHER_TEXT"
+    raise PlanningRegulationStructureError(
+        "Topic evidence references an unsupported section type"
+    )
+
+
 def _build_topic_evidence(
     index: PlanningRegulationIndex,
     config: PlanningRegulationStructureConfig,
@@ -1305,10 +1426,8 @@ def _build_topic_evidence(
                             "normalized_search_term": first.normalized_term,
                             "match_policy": config.topic_match_policy.identifier,
                             "section_id": section["section_id"],
-                            "evidence_scope": (
-                                "ZONE_SPECIFIC_RULE"
-                                if zone_label is not None
-                                else "GENERAL_RULE"
+                            "evidence_scope": _evidence_scope(
+                                str(section["section_type"])
                             ),
                             "zone_chapter_label": zone_label,
                             "article_number_raw": section["article_number_raw"],
@@ -1383,6 +1502,9 @@ def _frame_hash(
             "structure_config_schema_version": result.structure_config_schema_version,
             "structure_config_sha256": result.structure_config_sha256,
             "zones_content_sha256": result.zones_content_sha256,
+            "zoning_intersection_hash_columns": list(
+                result.zoning_intersection_hash_columns
+            ),
             "zoning_intersections_content_sha256": (
                 result.zoning_intersections_content_sha256
             ),
@@ -1406,6 +1528,9 @@ def _structure_result_content_sha256(
             "structure_config_schema_version": result.structure_config_schema_version,
             "structure_config_sha256": result.structure_config_sha256,
             "zones_content_sha256": result.zones_content_sha256,
+            "zoning_intersection_hash_columns": list(
+                result.zoning_intersection_hash_columns
+            ),
             "zoning_intersections_content_sha256": (
                 result.zoning_intersections_content_sha256
             ),
@@ -1460,6 +1585,7 @@ def _validate_sections(
     index: PlanningRegulationIndex,
     result: PlanningRegulationStructureResult,
     records: Sequence[_LineRecord],
+    config: PlanningRegulationStructureConfig,
 ) -> None:
     frame = result.sections
     if not isinstance(frame, pd.DataFrame) or tuple(frame.columns) != SECTION_COLUMNS:
@@ -1487,10 +1613,6 @@ def _validate_sections(
         for column in ("heading_raw", "heading_normalized", "raw_text", "normalized_text"):
             if not isinstance(row[column], str):
                 raise PlanningRegulationStructureError(f"Section {column} must be a string")
-        if not row["raw_text"].strip() or not row["heading_raw"].strip():
-            raise PlanningRegulationStructureError(
-                "Every section must contain retained source text and a heading"
-            )
         if row["heading_normalized"] != _normalize_search_text(row["heading_raw"]):
             raise PlanningRegulationStructureError("Section heading normalization differs")
         if row["normalized_text"] != _normalize_search_text(row["raw_text"]):
@@ -1509,6 +1631,23 @@ def _validate_sections(
             )
         segment = records[start_record : end_record + 1]
         expected_record_start = end_record + 1
+        blank_toc_other = (
+            section_type == "OTHER"
+            and not row["raw_text"].strip()
+            and any(
+                record.page_number
+                in config.document_layout.table_of_contents_pages
+                for record in segment
+            )
+        )
+        if not row["raw_text"].strip() and not blank_toc_other:
+            raise PlanningRegulationStructureError(
+                "Only an explicit TOC OTHER section may contain blank-only text"
+            )
+        if not row["heading_raw"].strip() and not blank_toc_other:
+            raise PlanningRegulationStructureError(
+                "Every nonblank section must retain a factual heading"
+            )
         if _strict_positive_integer(
             row["source_record_count"], "source record count"
         ) != len(segment):
@@ -1761,9 +1900,7 @@ def _validate_topic_evidence(
         if scope not in _EVIDENCE_SCOPES:
             raise PlanningRegulationStructureError("Evidence scope is invalid")
         section = sections.loc[section_id]
-        zone_label = section["zone_chapter_label"]
-        has_zone = zone_label is not None and not bool(pd.isna(zone_label))
-        expected_scope = "ZONE_SPECIFIC_RULE" if has_zone else "GENERAL_RULE"
+        expected_scope = _evidence_scope(str(section["section_type"]))
         if scope != expected_scope:
             raise PlanningRegulationStructureError(
                 "Topic evidence scope differs from its section location"
@@ -1863,6 +2000,7 @@ def _build_structure_result(
         intersections,
     )
     topic_evidence = _build_topic_evidence(index, config, builds)
+    intersection_hash_columns = _intersection_hash_columns(intersections)
     result = PlanningRegulationStructureResult(
         document_id=index.document_id,
         archive_sha256=index.archive_sha256,
@@ -1876,10 +2014,11 @@ def _build_structure_result(
             zones,
             _ZONE_INPUT_COLUMNS,
         ),
+        zoning_intersection_hash_columns=intersection_hash_columns,
         zoning_intersections_content_sha256=_input_frame_sha256(
             "landscout.planning_regulation.intersections_input",
             intersections,
-            _INTERSECTION_INPUT_COLUMNS,
+            intersection_hash_columns,
         ),
         source_records_sha256=_source_records_sha256(records),
         section_hash_schema_version=SECTION_HASH_SCHEMA_VERSION,
@@ -1945,10 +2084,22 @@ def _validate_result_self(
     expected_intersections_hash = _input_frame_sha256(
         "landscout.planning_regulation.intersections_input",
         intersections,
-        _INTERSECTION_INPUT_COLUMNS,
+        _intersection_hash_columns(intersections),
     )
     if result.zones_content_sha256 != expected_zones_hash:
         raise PlanningRegulationStructureError("Zone input hash differs")
+    expected_intersection_columns = _intersection_hash_columns(intersections)
+    if (
+        type(result.zoning_intersection_hash_columns) is not tuple
+        or not all(
+            isinstance(column, str)
+            for column in result.zoning_intersection_hash_columns
+        )
+        or result.zoning_intersection_hash_columns != expected_intersection_columns
+    ):
+        raise PlanningRegulationStructureError(
+            "Intersection hash columns differ from the factual input schema"
+        )
     if result.zoning_intersections_content_sha256 != expected_intersections_hash:
         raise PlanningRegulationStructureError("Intersection input hash differs")
     _validated_sha256(result.source_records_sha256, "source records SHA256")
@@ -1957,7 +2108,7 @@ def _validate_result_self(
     )
     if schema != SECTION_HASH_SCHEMA_VERSION:
         raise PlanningRegulationStructureError("Unsupported section hash schema version")
-    _validate_sections(index, result, records)
+    _validate_sections(index, result, records, config)
     _validate_zone_mapping(result, config)
     _validate_topic_evidence(index, result, config, builds)
     expected = _result_with_hashes(replace(
@@ -2017,6 +2168,7 @@ def _compare_expected_result(
         "structure_config_schema_version",
         "structure_config_sha256",
         "zones_content_sha256",
+        "zoning_intersection_hash_columns",
         "zoning_intersections_content_sha256",
         "source_records_sha256",
         "section_hash_schema_version",

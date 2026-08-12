@@ -181,14 +181,14 @@ def test_package_exports_clean_high_level_api() -> None:
     assert not any(name.startswith("_build_") for name in stages.__all__)
 
 
-def test_structure_schema_versions_are_explicitly_v2(valid_result) -> None:
+def test_structure_schema_versions_are_explicit(valid_result) -> None:
     index, result = valid_result
     config = _config(index)
     assert config.schema_version == 2
     assert result.structure_config_schema_version == 2
-    assert SECTION_HASH_SCHEMA_VERSION == 2
-    assert result.section_hash_schema_version == 2
-    assert STRUCTURE_MANIFEST_SCHEMA_VERSION == 3
+    assert SECTION_HASH_SCHEMA_VERSION == 3
+    assert result.section_hash_schema_version == 3
+    assert STRUCTURE_MANIFEST_SCHEMA_VERSION == 4
 
 
 @pytest.mark.parametrize("schema_version", [1, 3])
@@ -203,18 +203,26 @@ def test_old_and_unknown_config_schema_versions_are_rejected(
 
 
 @pytest.mark.parametrize("schema_version", [1, 3])
-@pytest.mark.parametrize(
-    "field",
-    ["structure_config_schema_version", "section_hash_schema_version"],
-)
-def test_old_and_unknown_result_schema_versions_are_rejected(
+def test_old_and_unknown_result_config_schema_versions_are_rejected(
     valid_result,
-    field: str,
     schema_version: int,
 ) -> None:
     index, result = valid_result
     with pytest.raises(PlanningRegulationStructureError, match="schema version"):
-        _validate(index, replace(result, **{field: schema_version}))
+        _validate(
+            index,
+            replace(result, structure_config_schema_version=schema_version),
+        )
+
+
+@pytest.mark.parametrize("schema_version", [1, 2, 4])
+def test_old_and_unknown_section_hash_schema_versions_are_rejected(
+    valid_result,
+    schema_version: int,
+) -> None:
+    index, result = valid_result
+    with pytest.raises(PlanningRegulationStructureError, match="schema version"):
+        _validate(index, replace(result, section_hash_schema_version=schema_version))
 
 
 @pytest.mark.parametrize("value", [0, 1, "false", "true", "yes"])
@@ -237,6 +245,71 @@ def test_toc_topic_evidence_flag_accepts_exact_booleans(value: bool) -> None:
     ] = value
     validated = PlanningRegulationStructureConfig.model_validate(payload)
     assert validated.document_layout.include_table_of_contents_in_topic_evidence is value
+
+
+def test_document_layout_accepts_real_first_and_last_indexed_pages() -> None:
+    index, config, result = _structure_with_document_layout(
+        (
+            "CONTENTS",
+            "ZONE U\nARTICLE U 1 - BODY\nBody text",
+            "END CONTENTS",
+        ),
+        toc_pages=(1, 3),
+        body_start_page=1,
+    )
+    validate_planning_regulation_structure(
+        index,
+        _zones(index),
+        _intersections(index),
+        config,
+        result,
+    )
+    assert result.sections.iloc[0]["page_numbers"] == (1,)
+    assert result.sections.iloc[-1]["page_numbers"] == (3,)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("table_of_contents_pages", (0,)),
+        ("table_of_contents_pages", (8,)),
+        ("body_start_page", 8),
+    ],
+)
+def test_document_layout_rejects_nonexistent_indexed_pages(
+    field: str,
+    value: object,
+) -> None:
+    index = _index()
+    config = _config(index)
+    layout = config.document_layout.model_copy(update={field: value})
+    forged = config.model_copy(update={"document_layout": layout})
+    with pytest.raises(PlanningRegulationStructureError):
+        structure_planning_regulation(
+            index,
+            _zones(index),
+            _intersections(index),
+            forged,
+        )
+
+
+def test_existing_empty_toc_page_is_valid_not_nonexistent() -> None:
+    index, config, result = _structure_with_document_layout(
+        (
+            "",
+            "ZONE U\nARTICLE U 1 - BODY\nBody text",
+        ),
+        toc_pages=(1,),
+        body_start_page=2,
+    )
+    assert index.pages.loc[0, "extraction_status"] == "EMPTY"
+    validate_planning_regulation_structure(
+        index,
+        _zones(index),
+        _intersections(index),
+        config,
+        result,
+    )
 
 
 @pytest.mark.parametrize(
@@ -336,6 +409,65 @@ def test_topic_evidence_distinguishes_general_and_zone_specific(valid_result) ->
     assert set(energy["evidence_scope"]) == {"GENERAL_RULE", "ZONE_SPECIFIC_RULE"}
     assert set(energy["occurrence_count"]) == {1}
     assert all(context for context in energy["raw_context"])
+
+
+def test_evidence_scope_is_derived_from_exact_section_type() -> None:
+    index = _index(
+        (
+            "energy cover text",
+            "ARTICLE 1 - GENERAL\nenergy general text",
+            (
+                "ZONE U\nenergy chapter text\n"
+                "ARTICLE U 1 - BODY\nenergy article text"
+            ),
+        )
+    )
+    payload = _config(index).model_dump(mode="python")
+    payload["document_layout"]["table_of_contents_pages"] = ()
+    payload["ignored_patterns"] = {"page_headers": (), "page_footers": ()}
+    config = PlanningRegulationStructureConfig.model_validate(payload)
+    result = structure_planning_regulation(
+        index,
+        _zones(index),
+        _intersections(index),
+        config,
+    )
+
+    section_types = result.sections.set_index("section_id")["section_type"]
+    scopes_by_type = {
+        section_type: set(
+            result.topic_evidence.loc[
+                result.topic_evidence["section_id"].map(section_types).eq(
+                    section_type
+                ),
+                "evidence_scope",
+            ]
+        )
+        for section_type in ("GENERAL", "ZONE_CHAPTER", "ARTICLE", "OTHER")
+    }
+    assert scopes_by_type == {
+        "GENERAL": {"GENERAL_RULE"},
+        "ZONE_CHAPTER": {"ZONE_SPECIFIC_RULE"},
+        "ARTICLE": {"ZONE_SPECIFIC_RULE"},
+        "OTHER": {"OTHER_TEXT"},
+    }
+
+    evidence = result.topic_evidence.copy(deep=True)
+    other_section_ids = set(
+        result.sections.loc[
+            result.sections["section_type"].eq("OTHER"), "section_id"
+        ]
+    )
+    row_index = evidence.index[evidence["section_id"].isin(other_section_ids)][0]
+    evidence.loc[row_index, "evidence_scope"] = "GENERAL_RULE"
+    with pytest.raises(PlanningRegulationStructureError, match="scope"):
+        validate_planning_regulation_structure(
+            index,
+            _zones(index),
+            _intersections(index),
+            config,
+            replace(result, topic_evidence=evidence),
+        )
 
 
 def test_reversed_topic_mapping_keys_do_not_change_output_or_hashes() -> None:
@@ -647,7 +779,7 @@ def test_toc_blocks_anywhere_are_other_and_toggle_topic_evidence() -> None:
     included_toc = included.topic_evidence.loc[
         included.topic_evidence["page_number"].isin(toc_pages)
     ]
-    assert set(included_toc["evidence_scope"]) == {"GENERAL_RULE"}
+    assert set(included_toc["evidence_scope"]) == {"OTHER_TEXT"}
 
 
 def test_blank_gap_after_toc_is_preserved_without_a_blank_other_section() -> None:
@@ -686,6 +818,114 @@ def test_blank_gap_after_toc_is_preserved_without_a_blank_other_section() -> Non
     assert tuple(chapter["page_numbers"]) == (3, 4)
     assert chapter["heading_raw"] == "ZONE U"
     assert chapter["raw_text"].startswith(" \n\t\nZONE U")
+
+
+def _structure_with_document_layout(
+    raw_pages: tuple[str, ...],
+    *,
+    toc_pages: tuple[int, ...] = (),
+    body_start_page: int = 1,
+    include_toc_evidence: bool = False,
+):
+    index = _index(raw_pages)
+    payload = _config(index).model_dump(mode="python")
+    payload["document_layout"].update(
+        {
+            "body_start_page": body_start_page,
+            "table_of_contents_pages": toc_pages,
+            "include_table_of_contents_in_topic_evidence": include_toc_evidence,
+        }
+    )
+    payload["ignored_patterns"] = {"page_headers": (), "page_footers": ()}
+    config = PlanningRegulationStructureConfig.model_validate(payload)
+    result = structure_planning_regulation(
+        index,
+        _zones(index),
+        _intersections(index),
+        config,
+    )
+    validate_planning_regulation_structure(
+        index,
+        _zones(index),
+        _intersections(index),
+        config,
+        result,
+    )
+    assert int(result.sections["source_record_count"].sum()) == len(
+        _line_records(index, config)
+    )
+    return index, config, result
+
+
+@pytest.mark.parametrize(
+    ("toc_raw_pages", "expected_pages"),
+    [
+        ((" \n\t",), (2,)),
+        ((" \n\t", "\t\n "), (2, 3)),
+    ],
+)
+def test_blank_only_toc_blocks_remain_separate_other_sections(
+    toc_raw_pages: tuple[str, ...],
+    expected_pages: tuple[int, ...],
+) -> None:
+    _, _, result = _structure_with_document_layout(
+        (
+            "ARTICLE 1 - GENERAL\nGeneral text",
+            *toc_raw_pages,
+            "ZONE U\nARTICLE U 1 - BODY\nBody text",
+        ),
+        toc_pages=expected_pages,
+    )
+    other = result.sections.loc[result.sections["section_type"].eq("OTHER")]
+    assert len(other) == 1
+    assert tuple(other.iloc[0]["page_numbers"]) == expected_pages
+    assert not str(other.iloc[0]["raw_text"]).strip()
+    assert other.iloc[0]["heading_raw"] == ""
+
+
+def test_blank_toc_followed_only_by_blank_tail_remains_other() -> None:
+    _, _, result = _structure_with_document_layout(
+        (
+            "ZONE U\nARTICLE U 1 - BODY\nBody text",
+            " \n\t",
+            "\t\n ",
+        ),
+        toc_pages=(2,),
+    )
+    other = result.sections.loc[result.sections["section_type"].eq("OTHER")]
+    assert len(other) == 1
+    assert tuple(other.iloc[0]["page_numbers"]) == (2, 3)
+    assert not str(other.iloc[0]["raw_text"]).strip()
+    assert other.iloc[0]["heading_raw"] == ""
+
+
+def test_ordinary_blank_gap_attaches_to_following_real_heading() -> None:
+    _, _, result = _structure_with_document_layout(
+        (
+            "ARTICLE 1 - GENERAL\nGeneral text",
+            " \n\t",
+            "ZONE U\nARTICLE U 1 - BODY\nBody text",
+        )
+    )
+    chapter = result.sections.loc[
+        result.sections["section_type"].eq("ZONE_CHAPTER")
+    ].iloc[0]
+    assert tuple(chapter["page_numbers"]) == (2, 3)
+    assert str(chapter["raw_text"]).startswith(" \n\t\nZONE U")
+    assert chapter["heading_raw"] == "ZONE U"
+
+
+def test_trailing_blank_records_attach_to_preceding_factual_section() -> None:
+    _, _, result = _structure_with_document_layout(
+        (
+            "ZONE U\nARTICLE U 1 - BODY\nBody text",
+            " \n\t",
+        )
+    )
+    final_section = result.sections.iloc[-1]
+    assert final_section["section_type"] == "ARTICLE"
+    assert tuple(final_section["page_numbers"]) == (1, 2)
+    assert str(final_section["raw_text"]).endswith(" \n\t")
 
 
 @pytest.mark.parametrize(
@@ -838,6 +1078,107 @@ def test_intersection_upper_bound_uses_shared_relative_tolerance(
             _zones(index),
             above_tolerance,
             config,
+        )
+
+
+@pytest.mark.parametrize(
+    "optional_columns",
+    [
+        (),
+        ("parcel_metric_area_m2",),
+        ("zone_area_m2",),
+        ("parcel_metric_area_m2", "zone_area_m2"),
+    ],
+)
+def test_intersection_hash_columns_are_actual_and_deterministic(
+    optional_columns: tuple[str, ...],
+) -> None:
+    index = _index()
+    intersections = _intersections(index)
+    for column in reversed(optional_columns):
+        intersections.insert(0, column, [200.0, 100.0])
+    result = structure_planning_regulation(
+        index,
+        _zones(index),
+        intersections,
+        _config(index),
+    )
+    required = (
+        "parcel_id",
+        "planning_zone_id",
+        "source_zone_id",
+        "zone_label_raw",
+        "relation_type",
+        "intersection_area_m2",
+        "source_document_id",
+        "source_archive_sha256",
+    )
+    expected_optional = tuple(
+        column
+        for column in ("parcel_metric_area_m2", "zone_area_m2")
+        if column in optional_columns
+    )
+    assert result.zoning_intersection_hash_columns == required + expected_optional
+    validate_planning_regulation_structure(
+        index,
+        _zones(index),
+        intersections,
+        _config(index),
+        result,
+    )
+
+
+@pytest.mark.parametrize(
+    "changed_column",
+    ["parcel_metric_area_m2", "zone_area_m2"],
+)
+def test_optional_intersection_metric_change_invalidates_existing_result(
+    changed_column: str,
+) -> None:
+    index = _index()
+    intersections = _intersections(index)
+    intersections["parcel_metric_area_m2"] = [200.0, 100.0]
+    intersections["zone_area_m2"] = [300.0, 150.0]
+    result = structure_planning_regulation(
+        index,
+        _zones(index),
+        intersections,
+        _config(index),
+    )
+    changed = intersections.copy(deep=True)
+    changed.loc[0, changed_column] += 1.0
+    with pytest.raises(PlanningRegulationStructureError, match="input hash"):
+        validate_planning_regulation_structure(
+            index,
+            _zones(index),
+            changed,
+            _config(index),
+            result,
+        )
+
+
+def test_intersection_hash_column_lineage_mutation_is_rejected() -> None:
+    index = _index()
+    intersections = _intersections(index)
+    intersections["parcel_metric_area_m2"] = [200.0, 100.0]
+    result = structure_planning_regulation(
+        index,
+        _zones(index),
+        intersections,
+        _config(index),
+    )
+    with pytest.raises(PlanningRegulationStructureError, match="hash columns"):
+        validate_planning_regulation_structure(
+            index,
+            _zones(index),
+            intersections,
+            _config(index),
+            replace(
+                result,
+                zoning_intersection_hash_columns=tuple(
+                    reversed(result.zoning_intersection_hash_columns)
+                ),
+            ),
         )
 
 
