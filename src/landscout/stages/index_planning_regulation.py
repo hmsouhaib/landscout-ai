@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import unicodedata
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from hashlib import sha256
 from importlib.metadata import version
 from numbers import Integral
@@ -13,8 +13,10 @@ from pathlib import Path, PurePosixPath
 from re import escape, finditer, fullmatch, sub
 from typing import Literal
 
+import geopandas as gpd  # type: ignore[import-untyped]
 import pandas as pd  # type: ignore[import-untyped]
 from pypdf import PdfReader
+from pyproj import CRS
 
 from landscout.sources.gpu_fr import (
     GpuArchiveDownload,
@@ -37,6 +39,7 @@ __all__ = [
 
 SEARCH_NORMALIZATION_PROFILE = "fr_literal_v1"
 PAGE_HASH_SCHEMA_VERSION = 1
+INDEX_HASH_SCHEMA_VERSION = 1
 SEARCH_HASH_SCHEMA_VERSION = 1
 
 PAGE_COLUMNS = (
@@ -78,14 +81,20 @@ class PlanningRegulationIndex:
 
     document_id: str
     archive_sha256: str
+    regulation_filename: str
+    source_selection_method: str
+    source_selection_sha256: str
     pdf_relative_path: str
     pdf_size_bytes: int
     pdf_sha256: str
     extraction_library: str
     extraction_library_version: str
     search_normalization_profile: str
+    page_hash_schema_version: int
+    index_hash_schema_version: int
     total_page_count: int
     pages_content_sha256: str
+    index_content_sha256: str
     pages: pd.DataFrame
 
 
@@ -97,11 +106,27 @@ class PlanningRegulationSearchResult:
     archive_sha256: str
     pdf_sha256: str
     search_normalization_profile: str
+    search_hash_schema_version: int
+    index_content_sha256: str
     requested_terms: tuple[str, ...]
     context_characters: int
     hit_count: int
     hits_content_sha256: str
     hits: pd.DataFrame
+
+
+@dataclass(frozen=True)
+class _ZoningSourceFileIntegrity:
+    relative_path: str
+    size_bytes: int
+    sha256: str
+
+
+@dataclass(frozen=True)
+class _ZoningSourceEvidence:
+    source_layer: str
+    driver: str
+    files: tuple[_ZoningSourceFileIntegrity, ...]
 
 
 def _strict_string(value: object, label: str) -> str:
@@ -127,6 +152,15 @@ def _strict_positive_integer(value: object, label: str) -> int:
     return result
 
 
+def _supported_schema_version(value: object, supported: int, label: str) -> int:
+    result = _strict_positive_integer(value, label)
+    if result != supported:
+        raise PlanningRegulationIndexError(
+            f"Unsupported {label}: {result}; expected {supported}"
+        )
+    return result
+
+
 def _validated_sha256(value: object, label: str) -> str:
     checksum = _strict_string(value, label)
     if fullmatch(r"[0-9a-f]{64}", checksum) is None:
@@ -137,13 +171,18 @@ def _validated_sha256(value: object, label: str) -> str:
 
 
 def _canonical_sha256(value: object) -> str:
-    payload = json.dumps(
-        value,
-        ensure_ascii=False,
-        allow_nan=False,
-        sort_keys=True,
-        separators=(",", ":"),
-    ).encode("utf-8")
+    try:
+        payload = json.dumps(
+            value,
+            ensure_ascii=False,
+            allow_nan=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    except Exception as error:
+        raise PlanningRegulationIndexError(
+            "Canonical integrity payload cannot be serialized"
+        ) from error
     return sha256(payload).hexdigest()
 
 
@@ -198,6 +237,303 @@ def _file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _validated_extraction_root(extraction: GpuExtraction) -> tuple[Path, Path]:
+    root = extraction.extraction_root
+    if not isinstance(root, Path) or _is_link_or_junction(root) or not root.is_dir():
+        raise PlanningRegulationIndexError(
+            "GPU extraction root must be a regular directory"
+        )
+    try:
+        return root, root.resolve(strict=True)
+    except OSError as error:
+        raise PlanningRegulationIndexError(
+            "GPU extraction root cannot be resolved safely"
+        ) from error
+
+
+def _inventory_by_relative_path(
+    extraction: GpuExtraction,
+) -> dict[str, GpuExtractedFile]:
+    if type(extraction.files) is not tuple:
+        raise PlanningRegulationIndexError(
+            "GPU extraction inventory must be an immutable tuple"
+        )
+    inventory: dict[str, GpuExtractedFile] = {}
+    for item in extraction.files:
+        if not isinstance(item, GpuExtractedFile):
+            raise PlanningRegulationIndexError("GPU extraction inventory is invalid")
+        relative = _validated_relative_path(item.relative_path).as_posix()
+        if relative in inventory:
+            raise PlanningRegulationIndexError(
+                "GPU extraction inventory contains duplicate paths"
+            )
+        inventory[relative] = item
+    return inventory
+
+
+def _contained_zoning_file(root: Path, root_resolved: Path, relative: str) -> Path:
+    relative_path = _validated_relative_path(relative)
+    path = root.joinpath(*relative_path.parts)
+    current = root
+    for part in relative_path.parts:
+        current /= part
+        if _is_link_or_junction(current):
+            raise PlanningRegulationIndexError(
+                "GPU zoning source path contains a symbolic link or junction"
+            )
+    try:
+        resolved = path.resolve(strict=True)
+        resolved.relative_to(root_resolved)
+    except (OSError, ValueError) as error:
+        raise PlanningRegulationIndexError(
+            "GPU zoning source path escapes the verified extraction root"
+        ) from error
+    if not path.is_file():
+        raise PlanningRegulationIndexError(
+            "GPU zoning source must be an extracted regular file"
+        )
+    return path
+
+
+def _zoning_dataset_relative_path(
+    planning_document: GpuPlanningDocument,
+    root_resolved: Path,
+) -> str:
+    dataset_path = planning_document.zoning.reference.dataset_path
+    if not isinstance(dataset_path, Path) or _is_link_or_junction(dataset_path):
+        raise PlanningRegulationIndexError("GPU zoning source path is invalid")
+    try:
+        relative = dataset_path.resolve(strict=True).relative_to(root_resolved)
+    except (OSError, ValueError) as error:
+        raise PlanningRegulationIndexError(
+            "GPU zoning source path escapes the verified extraction root"
+        ) from error
+    return _validated_relative_path(relative.as_posix()).as_posix()
+
+
+def _zoning_source_family(
+    planning_document: GpuPlanningDocument,
+    root: Path,
+    root_resolved: Path,
+    inventory: dict[str, GpuExtractedFile],
+) -> tuple[tuple[Path, GpuExtractedFile], ...]:
+    reference = planning_document.zoning.reference
+    driver = _strict_string(reference.driver, "GPU zoning source driver")
+    dataset_relative = _zoning_dataset_relative_path(
+        planning_document, root_resolved
+    )
+    dataset_pure = PurePosixPath(dataset_relative)
+    if driver == "GPKG":
+        if dataset_pure.suffix.casefold() != ".gpkg":
+            raise PlanningRegulationIndexError(
+                "GPU zoning GeoPackage source has an inconsistent extension"
+            )
+        expected_paths = {dataset_relative}
+    elif driver == "ESRI Shapefile":
+        if dataset_pure.suffix.casefold() != ".shp":
+            raise PlanningRegulationIndexError(
+                "GPU zoning Shapefile source has an inconsistent extension"
+            )
+        if reference.source_layer != dataset_pure.stem:
+            raise PlanningRegulationIndexError(
+                "GPU zoning Shapefile layer name differs from its source basename"
+            )
+        family_prefix = f"{dataset_pure.stem}.".casefold()
+        family_suffixes = {
+            ".shp",
+            ".shx",
+            ".dbf",
+            ".prj",
+            ".cpg",
+            ".qix",
+            ".qmd",
+            ".sbn",
+            ".sbx",
+        }
+        expected_paths = {
+            relative
+            for relative in inventory
+            if PurePosixPath(relative).parent == dataset_pure.parent
+            and PurePosixPath(relative).name.casefold().startswith(family_prefix)
+            and PurePosixPath(relative).suffix.casefold() in family_suffixes
+        }
+        required_suffixes = {".shp", ".shx", ".dbf"}
+        if not required_suffixes.issubset(
+            {
+                PurePosixPath(relative).suffix.casefold()
+                for relative in expected_paths
+            }
+        ):
+            raise PlanningRegulationIndexError(
+                "GPU zoning Shapefile inventory is missing a required family member"
+            )
+        parent = root.joinpath(*dataset_pure.parent.parts)
+        try:
+            actual_paths = {
+                candidate.resolve(strict=True).relative_to(root_resolved).as_posix()
+                for candidate in parent.iterdir()
+                if candidate.name.casefold().startswith(family_prefix)
+                and candidate.suffix.casefold() in family_suffixes
+            }
+        except (OSError, ValueError) as error:
+            raise PlanningRegulationIndexError(
+                "GPU zoning Shapefile family cannot be inventoried safely"
+            ) from error
+        if actual_paths != expected_paths:
+            raise PlanningRegulationIndexError(
+                "GPU zoning Shapefile family differs from the extraction inventory"
+            )
+    else:
+        raise PlanningRegulationIndexError(
+            "GPU zoning source driver must be GPKG or ESRI Shapefile"
+        )
+
+    if not expected_paths:
+        raise PlanningRegulationIndexError(
+            "GPU zoning source is absent from the extraction inventory"
+        )
+    family: list[tuple[Path, GpuExtractedFile]] = []
+    for relative in sorted(expected_paths):
+        item = inventory.get(relative)
+        if item is None:
+            raise PlanningRegulationIndexError(
+                "GPU zoning source is absent from the extraction inventory"
+            )
+        expected_size = _strict_positive_integer(
+            item.size_bytes, "GPU zoning source inventory size"
+        )
+        expected_sha = _validated_sha256(
+            item.sha256, "GPU zoning source inventory SHA256"
+        )
+        path = _contained_zoning_file(root, root_resolved, relative)
+        try:
+            actual_size = path.stat().st_size
+        except OSError as error:
+            raise PlanningRegulationIndexError(
+                "GPU zoning source size cannot be read"
+            ) from error
+        if actual_size != expected_size:
+            raise PlanningRegulationIndexError(
+                "GPU zoning source size differs from the extraction inventory"
+            )
+        if _file_sha256(path) != expected_sha:
+            raise PlanningRegulationIndexError(
+                "GPU zoning source SHA256 differs from the extraction inventory"
+            )
+        family.append((path, item))
+    return tuple(family)
+
+
+def _same_crs(left: object, right: object) -> bool:
+    if left is None or right is None:
+        return left is None and right is None
+    try:
+        return bool(CRS.from_user_input(left).equals(CRS.from_user_input(right)))
+    except Exception as error:
+        raise PlanningRegulationIndexError(
+            "GPU zoning CRS cannot be validated"
+        ) from error
+
+
+def _compare_loaded_zoning(
+    loaded: gpd.GeoDataFrame,
+    reread: gpd.GeoDataFrame,
+) -> None:
+    try:
+        if not isinstance(loaded, gpd.GeoDataFrame) or not isinstance(
+            reread, gpd.GeoDataFrame
+        ):
+            raise PlanningRegulationIndexError(
+                "GPU zoning source must be a GeoDataFrame"
+            )
+        if len(loaded) != len(reread):
+            raise PlanningRegulationIndexError(
+                "Loaded GPU zoning row count differs from its source"
+            )
+        if tuple(loaded.columns) != tuple(reread.columns):
+            raise PlanningRegulationIndexError(
+                "Loaded GPU zoning columns differ from its source"
+            )
+        if loaded.geometry.name != reread.geometry.name:
+            raise PlanningRegulationIndexError(
+                "Loaded GPU zoning active geometry differs from its source"
+            )
+        if not _same_crs(loaded.crs, reread.crs):
+            raise PlanningRegulationIndexError(
+                "Loaded GPU zoning CRS differs from its source"
+            )
+        geometry_column = reread.geometry.name
+        attributes = [column for column in reread.columns if column != geometry_column]
+        if not loaded[attributes].reset_index(drop=True).equals(
+            reread[attributes].reset_index(drop=True)
+        ):
+            raise PlanningRegulationIndexError(
+                "Loaded GPU zoning attributes or row order differ from its source"
+            )
+        if loaded.geometry.to_wkb().tolist() != reread.geometry.to_wkb().tolist():
+            raise PlanningRegulationIndexError(
+                "Loaded GPU zoning geometry or row order differs from its source"
+            )
+        if "NOMFIC" not in reread.columns:
+            raise PlanningRegulationIndexError("GPU zoning is missing NOMFIC")
+    except PlanningRegulationIndexError:
+        raise
+    except Exception as error:
+        raise PlanningRegulationIndexError(
+            "Loaded GPU zoning cannot be compared safely with its source"
+        ) from error
+
+
+def _revalidate_zoning_source(
+    planning_document: GpuPlanningDocument,
+) -> tuple[gpd.GeoDataFrame, _ZoningSourceEvidence]:
+    """Re-read immutable zoning bytes before trusting source PDF references."""
+
+    try:
+        extraction = planning_document.extraction
+        reference = planning_document.zoning.reference
+        source_layer = _strict_string(
+            reference.source_layer, "GPU zoning source layer"
+        )
+        root, root_resolved = _validated_extraction_root(extraction)
+        family = _zoning_source_family(
+            planning_document,
+            root,
+            root_resolved,
+            _inventory_by_relative_path(extraction),
+        )
+        driver = _strict_string(reference.driver, "GPU zoning source driver")
+        if driver == "GPKG":
+            reread = gpd.read_file(
+                reference.dataset_path, layer=source_layer, engine="pyogrio"
+            )
+        elif driver == "ESRI Shapefile":
+            reread = gpd.read_file(reference.dataset_path, engine="pyogrio")
+        else:  # already rejected by _zoning_source_family
+            raise PlanningRegulationIndexError(
+                "GPU zoning source driver must be GPKG or ESRI Shapefile"
+            )
+        _compare_loaded_zoning(planning_document.zoning.data, reread)
+        return reread, _ZoningSourceEvidence(
+            source_layer=source_layer,
+            driver=driver,
+            files=tuple(
+                _ZoningSourceFileIntegrity(
+                    relative_path=item.relative_path,
+                    size_bytes=item.size_bytes,
+                    sha256=item.sha256,
+                )
+                for _, item in family
+            ),
+        )
+    except PlanningRegulationIndexError:
+        raise
+    except Exception as error:
+        raise PlanningRegulationIndexError(
+            "GPU zoning source cannot be revalidated"
+        ) from error
+
+
 def _validate_document_lineage(planning_document: GpuPlanningDocument) -> tuple[str, str]:
     if not isinstance(planning_document, GpuPlanningDocument):
         raise PlanningRegulationIndexError(
@@ -214,7 +550,9 @@ def _validate_document_lineage(planning_document: GpuPlanningDocument) -> tuple[
     metadata = archive.document
     document_id = _strict_string(metadata.document_id, "GPU document ID")
     archive_sha = _validated_sha256(archive.sha256, "GPU archive SHA256")
-    if archive.archive_format.casefold() != "zip":
+    if not isinstance(archive.archive_format, str) or (
+        archive.archive_format.casefold() != "zip"
+    ):
         raise PlanningRegulationIndexError("GPU archive format must be zip")
     if (
         metadata.document_family != "DU"
@@ -224,6 +562,16 @@ def _validate_document_lineage(planning_document: GpuPlanningDocument) -> tuple[
     ):
         raise PlanningRegulationIndexError(
             "GPU planning document is not the current effective DU"
+        )
+    if type(planning_document.related_layers) is not tuple or type(
+        planning_document.all_spatial_layers
+    ) is not tuple:
+        raise PlanningRegulationIndexError("GPU spatial-layer lineage is invalid")
+    if planning_document.zoning.logical_name != "zoning":
+        raise PlanningRegulationIndexError("GPU zoning logical layer is invalid")
+    if planning_document.zoning.reference not in planning_document.all_spatial_layers:
+        raise PlanningRegulationIndexError(
+            "GPU zoning reference is absent from discovered spatial layers"
         )
     for layer in (planning_document.zoning, *planning_document.related_layers):
         if (
@@ -238,17 +586,24 @@ def _validate_document_lineage(planning_document: GpuPlanningDocument) -> tuple[
     return document_id, archive_sha
 
 
-def _zoning_regulation_filenames(planning_document: GpuPlanningDocument) -> tuple[str, ...]:
-    zoning = planning_document.zoning.data
+def _zoning_regulation_filenames(zoning: gpd.GeoDataFrame) -> tuple[str, ...]:
     if "NOMFIC" not in zoning.columns:
         raise PlanningRegulationIndexError("GPU zoning is missing NOMFIC")
     values: set[str] = set()
-    for value in zoning["NOMFIC"].tolist():
-        if value is None or value is pd.NA or (
-            isinstance(value, float) and pd.isna(value)
-        ):
-            continue
-        values.add(_validated_pdf_basename(value))
+    try:
+        source_values = zoning["NOMFIC"].tolist()
+        for value in source_values:
+            if value is None or value is pd.NA or (
+                isinstance(value, float) and pd.isna(value)
+            ):
+                continue
+            values.add(_validated_pdf_basename(value))
+    except PlanningRegulationIndexError:
+        raise
+    except Exception as error:
+        raise PlanningRegulationIndexError(
+            "GPU zoning NOMFIC values cannot be validated"
+        ) from error
     if not values:
         raise PlanningRegulationIndexError(
             "GPU zoning NOMFIC contains no regulation filename"
@@ -260,7 +615,12 @@ def _written_file_matches(
     planning_document: GpuPlanningDocument, filename: str
 ) -> tuple[GpuWrittenFile, ...]:
     matches: list[GpuWrittenFile] = []
-    for item in planning_document.extraction.archive.document.written_files:
+    written_files = planning_document.extraction.archive.document.written_files
+    if type(written_files) is not tuple:
+        raise PlanningRegulationIndexError(
+            "GPU written-files metadata must be an immutable tuple"
+        )
+    for item in written_files:
         if not isinstance(item, GpuWrittenFile):
             raise PlanningRegulationIndexError("GPU written-files metadata is invalid")
         written_filename = _strict_string(item.filename, "GPU written filename")
@@ -280,22 +640,25 @@ def _written_file_matches(
 def _resolve_regulation_filename(
     planning_document: GpuPlanningDocument,
     regulation_filename: str | None,
-) -> str:
-    referenced = _zoning_regulation_filenames(planning_document)
+) -> tuple[str, str, _ZoningSourceEvidence, GpuWrittenFile]:
+    reread_zoning, zoning_evidence = _revalidate_zoning_source(planning_document)
+    referenced = _zoning_regulation_filenames(reread_zoning)
     if regulation_filename is None:
         if len(referenced) != 1:
             raise PlanningRegulationIndexError(
                 "GPU zoning NOMFIC regulation selection is ambiguous"
             )
         selected = referenced[0]
+        method = "ZONING_NOMFIC"
     else:
         selected = _validated_pdf_basename(regulation_filename)
         if selected not in referenced:
             raise PlanningRegulationIndexError(
                 "Explicit regulation filename is not referenced by zoning NOMFIC"
             )
-    _written_file_matches(planning_document, selected)
-    return selected
+        method = "EXPLICIT_ZONING_NOMFIC"
+    written_file = _written_file_matches(planning_document, selected)[0]
+    return selected, method, zoning_evidence, written_file
 
 
 def _locate_regulation_pdf(
@@ -379,15 +742,31 @@ def _locate_regulation_pdf(
     return path, item
 
 
-def _normalize_search_text_with_mapping(value: str) -> tuple[str, tuple[int, ...]]:
+def _normalize_search_text_with_mapping(
+    value: str,
+) -> tuple[str, tuple[tuple[int, int], ...]]:
     output: list[str] = []
-    raw_positions: list[int] = []
-    pending_space_position: int | None = None
-    for raw_position, raw_character in enumerate(value):
+    raw_spans: list[tuple[int, int]] = []
+    pending_space_span: tuple[int, int] | None = None
+    pending_ignored_start: int | None = None
+    raw_position = 0
+    while raw_position < len(value):
+        raw_character = value[raw_position]
         if raw_character == "\u00ad":
+            if raw_spans:
+                previous_start, _ = raw_spans[-1]
+                raw_spans[-1] = (previous_start, raw_position + 1)
+            if pending_ignored_start is None:
+                pending_ignored_start = raw_position
+            raw_position += 1
             continue
+        raw_end = raw_position + 1
+        while raw_end < len(value) and unicodedata.combining(value[raw_end]):
+            raw_end += 1
+        cluster = value[raw_position:raw_end]
         expanded = _SPECIAL_EXPANSIONS.get(raw_character, raw_character)
-        for character in unicodedata.normalize("NFKD", expanded):
+        emitted: list[str] = []
+        for character in unicodedata.normalize("NFKD", expanded + cluster[1:]):
             if unicodedata.combining(character):
                 continue
             if character in _APOSTROPHES:
@@ -396,18 +775,35 @@ def _normalize_search_text_with_mapping(value: str) -> tuple[str, tuple[int, ...
                 folded = "-"
             else:
                 folded = character.casefold()
-            for normalized_character in folded:
-                if normalized_character.isspace():
-                    if output and pending_space_position is None:
-                        pending_space_position = raw_position
-                    continue
-                if pending_space_position is not None:
-                    output.append(" ")
-                    raw_positions.append(pending_space_position)
-                    pending_space_position = None
-                output.append(normalized_character)
-                raw_positions.append(raw_position)
-    return "".join(output), tuple(raw_positions)
+            emitted.extend(folded)
+        if not emitted:
+            raw_position = raw_end
+            continue
+        if all(character.isspace() for character in emitted):
+            if output:
+                if pending_space_span is None:
+                    pending_space_span = (raw_position, raw_end)
+                else:
+                    pending_space_span = (pending_space_span[0], raw_end)
+            raw_position = raw_end
+            continue
+        if pending_space_span is not None:
+            output.append(" ")
+            raw_spans.append(pending_space_span)
+            pending_space_span = None
+        for normalized_character in emitted:
+            output.append(normalized_character)
+            raw_spans.append(
+                (
+                    pending_ignored_start
+                    if pending_ignored_start is not None
+                    else raw_position,
+                    raw_end,
+                )
+            )
+        pending_ignored_start = None
+        raw_position = raw_end
+    return "".join(output), tuple(raw_spans)
 
 
 def _normalize_search_text(value: str) -> str:
@@ -430,19 +826,37 @@ def _canonical_page_record(row: dict[str, object]) -> dict[str, object]:
     return record
 
 
-def _page_hash_payload(row: dict[str, object]) -> dict[str, object]:
+def _page_hash_payload(
+    row: dict[str, object],
+    page_hash_schema_version: int = PAGE_HASH_SCHEMA_VERSION,
+    search_normalization_profile: str = SEARCH_NORMALIZATION_PROFILE,
+) -> dict[str, object]:
     return {
-        "schema_version": PAGE_HASH_SCHEMA_VERSION,
-        "search_normalization_profile": SEARCH_NORMALIZATION_PROFILE,
+        "schema_version": page_hash_schema_version,
+        "search_normalization_profile": search_normalization_profile,
         "page": _canonical_page_record(row),
     }
 
 
-def _page_content_sha256(row: dict[str, object]) -> str:
-    return _canonical_sha256(_page_hash_payload(row))
+def _page_content_sha256(
+    row: dict[str, object],
+    page_hash_schema_version: int = PAGE_HASH_SCHEMA_VERSION,
+    search_normalization_profile: str = SEARCH_NORMALIZATION_PROFILE,
+) -> str:
+    return _canonical_sha256(
+        _page_hash_payload(
+            row,
+            page_hash_schema_version,
+            search_normalization_profile,
+        )
+    )
 
 
-def _pages_content_sha256(frame: pd.DataFrame) -> str:
+def _pages_content_sha256(
+    frame: pd.DataFrame,
+    page_hash_schema_version: int = PAGE_HASH_SCHEMA_VERSION,
+    search_normalization_profile: str = SEARCH_NORMALIZATION_PROFILE,
+) -> str:
     pages = []
     for row in frame.loc[:, PAGE_COLUMNS].to_dict("records"):
         canonical = _canonical_page_record(row)
@@ -450,8 +864,8 @@ def _pages_content_sha256(frame: pd.DataFrame) -> str:
         pages.append(canonical)
     return _canonical_sha256(
         {
-            "schema_version": PAGE_HASH_SCHEMA_VERSION,
-            "search_normalization_profile": SEARCH_NORMALIZATION_PROFILE,
+            "schema_version": page_hash_schema_version,
+            "search_normalization_profile": search_normalization_profile,
             "pages": pages,
         }
     )
@@ -464,7 +878,78 @@ def _pages_frame(rows: list[dict[str, object]]) -> pd.DataFrame:
     return frame
 
 
-def _validate_pages(frame: pd.DataFrame, total_page_count: int) -> None:
+def _index_hash_payload(index: PlanningRegulationIndex) -> dict[str, object]:
+    return {
+        "domain": "landscout.planning_regulation.index",
+        "index_hash_schema_version": index.index_hash_schema_version,
+        "document_id": index.document_id,
+        "archive_sha256": index.archive_sha256,
+        "regulation_filename": index.regulation_filename,
+        "source_selection_method": index.source_selection_method,
+        "source_selection_sha256": index.source_selection_sha256,
+        "pdf_relative_path": index.pdf_relative_path,
+        "pdf_size_bytes": index.pdf_size_bytes,
+        "pdf_sha256": index.pdf_sha256,
+        "extraction_library": index.extraction_library,
+        "extraction_library_version": index.extraction_library_version,
+        "search_normalization_profile": index.search_normalization_profile,
+        "page_hash_schema_version": index.page_hash_schema_version,
+        "total_page_count": index.total_page_count,
+        "pages_content_sha256": index.pages_content_sha256,
+    }
+
+
+def _index_content_sha256(index: PlanningRegulationIndex) -> str:
+    return _canonical_sha256(_index_hash_payload(index))
+
+
+def _source_selection_sha256(
+    filename: str,
+    method: str,
+    zoning_evidence: _ZoningSourceEvidence,
+    written_file: GpuWrittenFile,
+    pdf_inventory: GpuExtractedFile,
+) -> str:
+    return _canonical_sha256(
+        {
+            "domain": "landscout.planning_regulation.source_selection",
+            "regulation_filename": filename,
+            "source_selection_method": method,
+            "zoning": {
+                "source_layer": zoning_evidence.source_layer,
+                "driver": zoning_evidence.driver,
+                "source_files": [
+                    {
+                        "relative_path": item.relative_path,
+                        "size_bytes": item.size_bytes,
+                        "sha256": item.sha256,
+                    }
+                    for item in zoning_evidence.files
+                ],
+            },
+            "written_file": {
+                "filename": written_file.filename,
+                "title": written_file.title,
+                "document_path": written_file.document_path,
+                "source_url": written_file.source_url,
+            },
+            "pdf_inventory": {
+                "relative_path": pdf_inventory.relative_path,
+                "size_bytes": pdf_inventory.size_bytes,
+                "sha256": pdf_inventory.sha256,
+                "file_type": pdf_inventory.file_type,
+                "category": pdf_inventory.category,
+            },
+        }
+    )
+
+
+def _validate_pages(
+    frame: pd.DataFrame,
+    total_page_count: int,
+    page_hash_schema_version: int,
+    search_normalization_profile: str,
+) -> None:
     if not isinstance(frame, pd.DataFrame):
         raise PlanningRegulationIndexError("Regulation pages must be a DataFrame")
     if tuple(frame.columns) != PAGE_COLUMNS:
@@ -511,7 +996,11 @@ def _validate_pages(frame: pd.DataFrame, total_page_count: int) -> None:
         checksum = _validated_sha256(
             row["page_content_sha256"], "page content SHA256"
         )
-        if checksum != _page_content_sha256(row):
+        if checksum != _page_content_sha256(
+            row,
+            page_hash_schema_version,
+            search_normalization_profile,
+        ):
             raise PlanningRegulationIndexError("Regulation page content hash differs")
 
 
@@ -524,15 +1013,24 @@ def _pypdf_version() -> str:
         ) from error
 
 
-def index_planning_regulation(
+def _index_planning_regulation(
     planning_document: GpuPlanningDocument,
     regulation_filename: str | None = None,
 ) -> PlanningRegulationIndex:
     """Index the source-validated primary written regulation page by page."""
 
     document_id, archive_sha = _validate_document_lineage(planning_document)
-    filename = _resolve_regulation_filename(planning_document, regulation_filename)
+    filename, selection_method, zoning_evidence, written_file = (
+        _resolve_regulation_filename(planning_document, regulation_filename)
+    )
     path, inventory = _locate_regulation_pdf(planning_document, filename)
+    selection_sha = _source_selection_sha256(
+        filename,
+        selection_method,
+        zoning_evidence,
+        written_file,
+        inventory,
+    )
     rows: list[dict[str, object]] = []
     try:
         with path.open("rb") as stream:
@@ -591,30 +1089,64 @@ def index_planning_regulation(
     result = PlanningRegulationIndex(
         document_id=document_id,
         archive_sha256=archive_sha,
+        regulation_filename=filename,
+        source_selection_method=selection_method,
+        source_selection_sha256=selection_sha,
         pdf_relative_path=inventory.relative_path,
         pdf_size_bytes=inventory.size_bytes,
         pdf_sha256=final_sha,
         extraction_library="pypdf",
         extraction_library_version=_pypdf_version(),
         search_normalization_profile=SEARCH_NORMALIZATION_PROFILE,
+        page_hash_schema_version=PAGE_HASH_SCHEMA_VERSION,
+        index_hash_schema_version=INDEX_HASH_SCHEMA_VERSION,
         total_page_count=total_page_count,
         pages_content_sha256=_pages_content_sha256(pages),
+        index_content_sha256="",
         pages=pages,
     )
+    result = replace(result, index_content_sha256=_index_content_sha256(result))
     validate_planning_regulation_index(result)
     return result
 
 
-def validate_planning_regulation_index(index: PlanningRegulationIndex) -> None:
-    """Validate the complete mutable page table against its immutable envelope."""
+def index_planning_regulation(
+    planning_document: GpuPlanningDocument,
+    regulation_filename: str | None = None,
+) -> PlanningRegulationIndex:
+    """Index one source-validated written regulation with controlled failures."""
 
+    try:
+        return _index_planning_regulation(planning_document, regulation_filename)
+    except PlanningRegulationIndexError:
+        raise
+    except Exception as error:
+        raise PlanningRegulationIndexError(
+            "Planning regulation indexing failed safely"
+        ) from error
+
+
+def _validate_planning_regulation_index(index: PlanningRegulationIndex) -> None:
     if not isinstance(index, PlanningRegulationIndex):
         raise PlanningRegulationIndexError(
             "index must be a PlanningRegulationIndex"
         )
     _strict_string(index.document_id, "regulation document ID")
     _validated_sha256(index.archive_sha256, "regulation archive SHA256")
-    _validated_relative_path(index.pdf_relative_path)
+    filename = _validated_pdf_basename(index.regulation_filename)
+    if index.source_selection_method not in {
+        "ZONING_NOMFIC",
+        "EXPLICIT_ZONING_NOMFIC",
+    }:
+        raise PlanningRegulationIndexError(
+            "Regulation source-selection method is unsupported"
+        )
+    _validated_sha256(index.source_selection_sha256, "source selection SHA256")
+    relative_pdf = _validated_relative_path(index.pdf_relative_path)
+    if relative_pdf.name != filename:
+        raise PlanningRegulationIndexError(
+            "Regulation filename differs from PDF relative path"
+        )
     _strict_positive_integer(index.pdf_size_bytes, "regulation PDF size")
     _validated_sha256(index.pdf_sha256, "regulation PDF SHA256")
     if index.extraction_library != "pypdf":
@@ -624,13 +1156,50 @@ def validate_planning_regulation_index(index: PlanningRegulationIndex) -> None:
         raise PlanningRegulationIndexError(
             "Regulation search normalization profile is unsupported"
         )
+    page_schema = _supported_schema_version(
+        index.page_hash_schema_version,
+        PAGE_HASH_SCHEMA_VERSION,
+        "page hash schema version",
+    )
+    _supported_schema_version(
+        index.index_hash_schema_version,
+        INDEX_HASH_SCHEMA_VERSION,
+        "index hash schema version",
+    )
     total = _strict_positive_integer(index.total_page_count, "total page count")
-    _validate_pages(index.pages, total)
+    _validate_pages(
+        index.pages,
+        total,
+        page_schema,
+        index.search_normalization_profile,
+    )
     checksum = _validated_sha256(
         index.pages_content_sha256, "pages content SHA256"
     )
-    if checksum != _pages_content_sha256(index.pages):
+    if checksum != _pages_content_sha256(
+        index.pages,
+        page_schema,
+        index.search_normalization_profile,
+    ):
         raise PlanningRegulationIndexError("Regulation pages envelope hash differs")
+    index_checksum = _validated_sha256(
+        index.index_content_sha256, "index content SHA256"
+    )
+    if index_checksum != _index_content_sha256(index):
+        raise PlanningRegulationIndexError("Regulation index envelope hash differs")
+
+
+def validate_planning_regulation_index(index: PlanningRegulationIndex) -> None:
+    """Validate all page, metadata, and complete index integrity contracts."""
+
+    try:
+        _validate_planning_regulation_index(index)
+    except PlanningRegulationIndexError:
+        raise
+    except Exception as error:
+        raise PlanningRegulationIndexError(
+            "Regulation index validation failed safely"
+        ) from error
 
 
 _validate_index = validate_planning_regulation_index
@@ -670,14 +1239,14 @@ def _empty_hits() -> pd.DataFrame:
 
 def _raw_context(
     raw_text: str,
-    raw_positions: tuple[int, ...],
+    raw_spans: tuple[tuple[int, int], ...],
     normalized_start: int,
     normalized_end: int,
 ) -> str:
     if normalized_start >= normalized_end:
         return ""
-    raw_start = raw_positions[normalized_start]
-    raw_end = raw_positions[normalized_end - 1] + 1
+    raw_start = raw_spans[normalized_start][0]
+    raw_end = raw_spans[normalized_end - 1][1]
     return raw_text[raw_start:raw_end]
 
 
@@ -691,7 +1260,7 @@ def _build_hits(
         pattern = escape(normalized_term)
         for page in index.pages.to_dict("records"):
             raw_text = page["raw_text"]
-            normalized_text, raw_positions = _normalize_search_text_with_mapping(
+            normalized_text, raw_spans = _normalize_search_text_with_mapping(
                 raw_text
             )
             matches = list(finditer(pattern, normalized_text))
@@ -713,7 +1282,7 @@ def _build_hits(
                     "page_number": page["page_number"],
                     "occurrence_count": len(matches),
                     "raw_context": _raw_context(
-                        raw_text, raw_positions, context_start, context_end
+                        raw_text, raw_spans, context_start, context_end
                     ),
                     "normalized_context": normalized_text[
                         context_start:context_end
@@ -733,16 +1302,20 @@ def _hits_content_sha256(
     requested_terms: tuple[str, ...],
     context_characters: int,
     hits: pd.DataFrame,
+    search_hash_schema_version: int = SEARCH_HASH_SCHEMA_VERSION,
 ) -> str:
     return _canonical_sha256(
         {
-            "schema_version": SEARCH_HASH_SCHEMA_VERSION,
+            "domain": "landscout.planning_regulation.search",
+            "search_hash_schema_version": search_hash_schema_version,
+            "index_content_sha256": index.index_content_sha256,
             "document_id": index.document_id,
             "archive_sha256": index.archive_sha256,
             "pdf_sha256": index.pdf_sha256,
             "search_normalization_profile": index.search_normalization_profile,
             "requested_terms": list(requested_terms),
             "context_characters": context_characters,
+            "hit_count": len(hits),
             "hits": hits.loc[:, SEARCH_HIT_COLUMNS].to_dict("records"),
         }
     )
@@ -766,6 +1339,8 @@ def search_planning_regulation(
         archive_sha256=index.archive_sha256,
         pdf_sha256=index.pdf_sha256,
         search_normalization_profile=index.search_normalization_profile,
+        search_hash_schema_version=SEARCH_HASH_SCHEMA_VERSION,
+        index_content_sha256=index.index_content_sha256,
         requested_terms=requested,
         context_characters=context,
         hit_count=len(hits),
@@ -776,12 +1351,10 @@ def search_planning_regulation(
     return result
 
 
-def validate_planning_regulation_search_result(
+def _validate_planning_regulation_search_result(
     index: PlanningRegulationIndex,
     result: PlanningRegulationSearchResult,
 ) -> None:
-    """Validate search lineage, schema, rows, hash, and source-derived contexts."""
-
     validate_planning_regulation_index(index)
     if not isinstance(result, PlanningRegulationSearchResult):
         raise PlanningRegulationIndexError(
@@ -793,8 +1366,18 @@ def validate_planning_regulation_search_result(
         or result.pdf_sha256 != index.pdf_sha256
         or result.search_normalization_profile
         != index.search_normalization_profile
+        or result.index_content_sha256 != index.index_content_sha256
     ):
         raise PlanningRegulationIndexError("Search-result lineage differs from index")
+    search_schema = _supported_schema_version(
+        result.search_hash_schema_version,
+        SEARCH_HASH_SCHEMA_VERSION,
+        "search hash schema version",
+    )
+    if type(result.requested_terms) is not tuple:
+        raise PlanningRegulationIndexError(
+            "Search-result requested_terms must be tuple[str, ...]"
+        )
     validated_terms = _validated_terms(result.requested_terms)
     context = _strict_nonnegative_integer(
         result.context_characters, "context_characters"
@@ -839,10 +1422,32 @@ def validate_planning_regulation_search_result(
     checksum = _validated_sha256(
         result.hits_content_sha256, "hits content SHA256"
     )
-    if checksum != _hits_content_sha256(index, requested, context, result.hits):
+    if checksum != _hits_content_sha256(
+        index,
+        requested,
+        context,
+        result.hits,
+        search_schema,
+    ):
         raise PlanningRegulationIndexError("Search-result content hash differs")
     expected = _build_hits(index, validated_terms, context)
     if not result.hits.reset_index(drop=True).equals(expected):
         raise PlanningRegulationIndexError(
             "Search-result rows differ from deterministic source search"
         )
+
+
+def validate_planning_regulation_search_result(
+    index: PlanningRegulationIndex,
+    result: PlanningRegulationSearchResult,
+) -> None:
+    """Validate search lineage, schema, rows, hash, and source-derived contexts."""
+
+    try:
+        _validate_planning_regulation_search_result(index, result)
+    except PlanningRegulationIndexError:
+        raise
+    except Exception as error:
+        raise PlanningRegulationIndexError(
+            "Regulation search-result validation failed safely"
+        ) from error

@@ -3,7 +3,7 @@
 ## Current project state
 
 - Current phase: French urban-planning regulation retrieval
-- Latest completed step: STEP 7D.4A.1 — generalized, integrity-sealed planning-regulation index
+- Latest completed step: STEP 7D.4A.2 — sealed regulation-source selection and index lineage
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: evidence-based planning-rule interpretation design
@@ -1383,6 +1383,46 @@ The JSON manifest records source selection, document/archive/PDF lineage, extrac
 No legal or BESS conclusion is produced.
 No zone is classified.
 No parcel is rejected.
+
+## STEP 7D.4A.2 — Seal regulation-source selection and index lineage
+
+- Status: Complete
+- Implementation summary: Before trusting zoning `NOMFIC`, the indexer now resolves the zoning dataset under the verified extraction root, rejects links/junctions, checks every relevant source-family member against extraction-inventory path, byte size, and SHA256, re-reads the actual source layer with GeoPandas/pyogrio, and compares row count/order, source layer, CRS, every source attribute (including `LIB_IDZONE` and `NOMFIC`), and geometry WKB against the loaded zoning frame. Both ESRI Shapefile families and GeoPackage layers are covered offline.
+- Source selection: automatic selection is explicitly `ZONING_NOMFIC`. The selected filename, actual zoning layer/driver and ordered source-file integrity, exact official `written_files` entry, and selected PDF inventory record are bound by canonical UTF-8 JSON in `source_selection_sha256`.
+- Complete lineage envelopes: schema version 1 is persisted and strictly enforced independently for page hashes, the complete index hash, and search hashes. `index_content_sha256` binds every immutable index metadata field plus the page-table envelope. Search results bind and must match that exact index hash; sharing a PDF hash alone is insufficient.
+- Raw Unicode contexts: normalized characters now map to source spans rather than single positions. Zero-context retrieval preserves exact source substrings for precomposed and decomposed accents, `œ`/`æ` expansion, typographic apostrophes, and ignored soft hyphens at either match boundary. Raw text remains untouched and normalized context remains separately labelled.
+- Controlled failures: malformed schema values, mutable search-term lists, malformed Pandas cells, inconsistent source metadata, and canonical JSON serialization failures all surface as `PlanningRegulationIndexError`; serialization failures retain the chained cause.
+- Tests/checks: 114 focused offline tests and the complete 870-test suite pass. Full Ruff and mypy checks pass.
+
+### Real Muret regression
+
+- Zoning source: `31395_ZONE_URBA_20240215`, ESRI Shapefile, 221 rows
+- Revalidated source family: 7 files (`.cpg`, `.dbf`, `.prj`, `.qix`, `.qmd`, `.shp`, `.shx`); containment, sizes, and SHA256 values all matched the verified GPU extraction inventory
+- Loaded/source zoning comparison: exact row count/order, CRS, complete attribute table, `LIB_IDZONE`, `NOMFIC`, and geometry WKB passed
+- Selected regulation: `31395_reglement_20240215.pdf` via `ZONING_NOMFIC`
+- Source-selection SHA256: `1b4c1cdb9c12cf6bb9a5bcdb97bf9c972fb9f007472dbf0aae37acb376d5eb32`
+- Page / index / search hash schema versions: 1 / 1 / 1
+- Pages: 142 (`TEXT` 142, `EMPTY` 0, `ERROR` 0); raw characters: 325,851; OCR was not used
+- Pages-content SHA256: `928e7e59c45e27c38e39d3f28f3eb10bd2590886416df57efc4ac8e5d8901ec9`
+- Complete index-content SHA256: `6a0009228ca17128c0a8bb329d9c2277a1b6638708a67b913b72ee93063e42cd`
+- Search rows / occurrences: 88 / 137, unchanged; search-result SHA256: `00428db8cf07767ba0705953a5fda760b6ae97971e3e41b521117501f3a14b95`
+- Two independent real index runs produced identical page-table and complete-index hashes
+- Recorded source revalidation + extraction + diagnostic-search runtime: 11.635 seconds
+
+### Outputs and read-back
+
+- `data/processed/planning/muret_plu_regulation_pages.parquet`: 142 rows, 267,275 bytes
+- `data/processed/planning/muret_plu_regulation_search_hits.parquet`: 88 rows, 15,946 bytes
+- `data/processed/planning/muret_plu_regulation_index.json`: manifest schema 3, 4,374 bytes
+
+The JSON manifest now persists the complete zoning/PDF source-selection evidence, all three hash schema versions, page/index/search hashes, document/archive/PDF lineage, requested terms, and output row counts. Both Parquet files and the JSON manifest were read back into immutable models; both public validators passed, and the persisted source-selection evidence reproduced the recorded selection hash.
+
+SHA256 integrity detects inconsistent or accidental mutation. Official source authenticity remains grounded in the verified GPU archive and extraction inventory.
+
+No OCR.
+No legal interpretation.
+No zone classification.
+No parcel rejection.
 
 ## STEP 7D.2 — Normalize GPU zoning and intersect Muret parcels
 
