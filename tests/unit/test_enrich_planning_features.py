@@ -29,9 +29,11 @@ from landscout.sources.gpu_fr import (
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )
+from landscout.stages import enrich_planning_features as planning_features_module
 from landscout.stages.enrich_planning_features import (
     ParcelPlanningFeaturesResult,
     PlanningFeaturesError,
+    _validate_result,
     intersect_parcels_with_gpu_planning_features,
 )
 
@@ -261,6 +263,8 @@ def test_surface_full_overlap_normalizes_raw_values_and_lineage() -> None:
         f"GPU:{DOCUMENT_ID}:prescription_surface:PSC-1"
     )
     assert feature["source_feature_id"] == "PSC-1"
+    assert feature["source_identity_kind"] == "CNIG_ATTRIBUTE"
+    assert feature["source_identity_field"] == "LIB_IDPSC"
     assert feature["feature_family"] == "PRESCRIPTION"
     assert feature["geometry_kind"] == "SURFACE"
     assert feature["type_code_raw"] == "DYNAMIC-18"
@@ -275,6 +279,8 @@ def test_surface_full_overlap_normalizes_raw_values_and_lineage() -> None:
     assert result.surface_features.crs.to_epsg() == 2154
 
     relation = result.relations.iloc[0]
+    assert relation["source_identity_kind"] == "CNIG_ATTRIBUTE"
+    assert relation["source_identity_field"] == "LIB_IDPSC"
     assert relation["relation_type"] == "AREA_OVERLAP"
     assert relation["intersection_area_m2"] == pytest.approx(100.0)
     assert relation["parcel_share_pct"] == pytest.approx(100.0)
@@ -497,6 +503,11 @@ def test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent(
     )
     result = _run([layer])
     assert result.surface_features.iloc[0]["source_feature_id"] == "OGR_FID:0"
+    assert (
+        result.surface_features.iloc[0]["source_identity_kind"]
+        == "ARCHIVE_SCOPED_OGR_FID"
+    )
+    assert result.surface_features.iloc[0]["source_identity_field"] == "OGR_FID"
     assert result.surface_features.iloc[0]["planning_feature_id"] == (
         f"GPU:{DOCUMENT_ID}:prescription_surface:OGR_FID:0"
     )
@@ -583,6 +594,19 @@ def test_mutated_source_summary_is_rejected(field: str, value: object) -> None:
         _run([corrupted])
 
 
+@pytest.mark.parametrize("bad_count", [True, -1, 1.5, float("inf"), "1"])
+def test_source_summary_counts_are_strict_integers(bad_count: object) -> None:
+    layer = _inspected(
+        "prescription_line",
+        _source_frame(
+            "prescription_line", [LineString([(0, 5), (10, 5)])]
+        ),
+    )
+    corrupted = replace(layer, summary=replace(layer.summary, feature_count=bad_count))
+    with pytest.raises(PlanningFeaturesError, match="integer count|non-negative"):
+        _run([corrupted])
+
+
 def test_reserved_output_column_collision_is_rejected() -> None:
     parcels = _parcels()
     parcels["planning_surface_relation_count"] = 99
@@ -645,3 +669,212 @@ def test_result_frames_are_independent_from_mutable_inputs() -> None:
     parcels.loc[50, "existing_zoning_fact"] = -1
     layer.data.loc[0, "LIBELLE"] = "mutated"
     assert_frame_equal(result.relations, snapshot)
+
+
+@pytest.mark.parametrize(
+    ("logical", "catalog_name"),
+    [
+        ("prescription_surface", "surface_features"),
+        ("prescription_line", "line_features"),
+        ("prescription_point", "point_features"),
+    ],
+)
+def test_present_empty_optional_layer_is_valid(
+    logical: str,
+    catalog_name: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    frame = _source_frame(logical, [])
+    if logical == "prescription_surface":
+        frame = frame.drop(columns="LIB_IDPSC")
+
+        def unexpected_fid_read(*args: object, **kwargs: object) -> object:
+            raise AssertionError("zero-row layers must not reopen OGR source FIDs")
+
+        monkeypatch.setattr(
+            planning_features_module.pyogrio,
+            "read_dataframe",
+            unexpected_fid_read,
+        )
+    result = _run([_inspected(logical, frame)])
+    catalog = getattr(result, catalog_name)
+    assert catalog.empty
+    assert catalog.crs.to_epsg() == 2154
+    assert result.relations.empty
+    assert len(result.parcels) == 1
+    assert result.parcels.iloc[0]["planning_feature_document_id"] == DOCUMENT_ID
+
+
+def _contract_result() -> tuple[gpd.GeoDataFrame, ParcelPlanningFeaturesResult]:
+    parcels = _parcels()
+    layers = [
+        _inspected(
+            "prescription_surface",
+            _source_frame(
+                "prescription_surface",
+                [_rectangle(0, 0, 10, 10)],
+                ids=["SURFACE"],
+            ),
+        ),
+        _inspected(
+            "prescription_line",
+            _source_frame(
+                "prescription_line",
+                [LineString([(-1, 5), (11, 5)])],
+                ids=["LINE"],
+            ),
+        ),
+        _inspected(
+            "prescription_point",
+            _source_frame(
+                "prescription_point", [Point(5, 5)], ids=["POINT"]
+            ),
+        ),
+    ]
+    return parcels, _run(layers, parcels)
+
+
+@pytest.mark.parametrize("bad_count", [-1, 1.5, float("inf"), "2", True])
+def test_strict_relation_integer_counts_are_enforced(bad_count: object) -> None:
+    source, result = _contract_result()
+    relations = result.relations.copy(deep=True)
+    relations["point_member_count"] = relations["point_member_count"].astype(object)
+    point_index = relations.index[relations["geometry_kind"] == "POINT"][0]
+    relations.loc[point_index, "point_member_count"] = bad_count
+    with pytest.raises(PlanningFeaturesError, match="integer count|non-negative"):
+        _validate_result(source, replace(result, relations=relations))
+
+
+@pytest.mark.parametrize("bad_count", [-1, 1.5, float("inf"), "2", True])
+def test_strict_parcel_summary_integer_counts_are_enforced(
+    bad_count: object,
+) -> None:
+    source, result = _contract_result()
+    parcels = result.parcels.copy(deep=True)
+    parcels["planning_line_relation_count"] = parcels[
+        "planning_line_relation_count"
+    ].astype(object)
+    parcels.loc[parcels.index[0], "planning_line_relation_count"] = bad_count
+    with pytest.raises(PlanningFeaturesError, match="integer count|non-negative"):
+        _validate_result(source, replace(result, parcels=parcels))
+
+
+@pytest.mark.parametrize(
+    ("kind", "column", "value"),
+    [
+        ("SURFACE", "relation_type", "TOUCH_ONLY"),
+        ("SURFACE", "parcel_share_pct", 42.0),
+        ("LINE", "relation_type", "TOUCH_ONLY"),
+        ("LINE", "intersection_length_m", 999.0),
+        ("POINT", "relation_type", "BOUNDARY_TOUCH"),
+    ],
+)
+def test_corrupted_relation_semantics_are_rejected(
+    kind: str,
+    column: str,
+    value: object,
+) -> None:
+    source, result = _contract_result()
+    relations = result.relations.copy(deep=True)
+    index = relations.index[relations["geometry_kind"] == kind][0]
+    relations[column] = relations[column].astype(object)
+    relations.loc[index, column] = value
+    with pytest.raises(PlanningFeaturesError):
+        _validate_result(source, replace(result, relations=relations))
+
+
+def test_point_member_relation_semantics_are_exact() -> None:
+    source, result = _contract_result()
+    relations = result.relations.copy(deep=True)
+    index = relations.index[relations["geometry_kind"] == "POINT"][0]
+    relations.loc[index, "point_members_inside_count"] = 0
+    relations.loc[index, "point_members_boundary_count"] = 1
+    with pytest.raises(PlanningFeaturesError, match="relation type"):
+        _validate_result(source, replace(result, relations=relations))
+
+
+@pytest.mark.parametrize(
+    ("column", "value"),
+    [
+        ("source_identity_kind", "NOT_A_KIND"),
+        ("source_identity_field", "WRONG_FIELD"),
+        ("type_code_raw", "MUTATED"),
+        ("source_archive_sha256", "b" * 64),
+    ],
+)
+def test_relation_must_match_feature_catalog(
+    column: str,
+    value: object,
+) -> None:
+    source, result = _contract_result()
+    relations = result.relations.copy(deep=True)
+    relations.loc[relations.index[0], column] = value
+    with pytest.raises(PlanningFeaturesError, match="catalog"):
+        _validate_result(source, replace(result, relations=relations))
+
+
+def test_feature_ids_are_globally_unique_across_catalogs() -> None:
+    source, result = _contract_result()
+    points = result.point_features.copy(deep=True)
+    points.loc[points.index[0], "planning_feature_id"] = result.surface_features.iloc[0][
+        "planning_feature_id"
+    ]
+    with pytest.raises(PlanningFeaturesError, match="globally unique"):
+        _validate_result(source, replace(result, point_features=points))
+
+
+def test_same_source_id_is_allowed_in_distinct_logical_layers() -> None:
+    result = _run(
+        [
+            _inspected(
+                "prescription_line",
+                _source_frame(
+                    "prescription_line",
+                    [LineString([(0, 2), (10, 2)])],
+                    ids=["SHARED"],
+                ),
+            ),
+            _inspected(
+                "prescription_point",
+                _source_frame("prescription_point", [Point(5, 5)], ids=["SHARED"]),
+            ),
+        ]
+    )
+    assert len(result.relations) == 2
+    assert result.relations["planning_feature_id"].nunique() == 2
+
+
+def test_corrupted_parcel_summary_is_rejected() -> None:
+    source, result = _contract_result()
+    parcels = result.parcels.copy(deep=True)
+    parcels.loc[parcels.index[0], "planning_surface_relation_count"] += 1
+    with pytest.raises(PlanningFeaturesError, match="inconsistent with relations"):
+        _validate_result(source, replace(result, parcels=parcels))
+
+
+def test_corrupted_surface_union_contract_is_rejected() -> None:
+    source, result = _contract_result()
+    parcels = result.parcels.copy(deep=True)
+    parcels.loc[
+        parcels.index[0], "planning_surface_covered_union_area_m2"
+    ] = 1000.0
+    with pytest.raises(PlanningFeaturesError, match="union"):
+        _validate_result(source, replace(result, parcels=parcels))
+
+
+def test_geospatial_operation_failure_is_controlled_and_chained(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fail_join(*args: object, **kwargs: object) -> object:
+        raise RuntimeError("synthetic spatial-index failure")
+
+    monkeypatch.setattr(planning_features_module.gpd, "sjoin", fail_join)
+    layer = _inspected(
+        "prescription_line",
+        _source_frame(
+            "prescription_line", [LineString([(0, 5), (10, 5)])]
+        ),
+    )
+    with pytest.raises(PlanningFeaturesError, match="spatial join") as caught:
+        _run([layer])
+    assert isinstance(caught.value.__cause__, RuntimeError)

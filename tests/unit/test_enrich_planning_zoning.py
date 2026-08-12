@@ -30,8 +30,10 @@ from landscout.sources.gpu_fr import (
 from landscout.stages.enrich_planning_zoning import (
     ParcelZoningResult,
     PlanningZoningError,
+    _stabilize_area_relationships,
     intersect_parcels_with_gpu_zoning,
 )
+from landscout.stages.planning_overlay import technical_overlay_tolerance
 
 ARCHIVE_SHA256 = "a" * 64
 ARCHIVE_NAME = "31395_PLU_20240215"
@@ -53,6 +55,18 @@ LOCAL_ENGINEERING_CRS = (
     'AXIS["x",east,LENGTHUNIT["metre",1]],'
     'AXIS["y",north,LENGTHUNIT["metre",1]]]'
 )
+
+
+def test_shared_overlay_tolerance_preserves_zoning_numerical_behavior() -> None:
+    assert technical_overlay_tolerance(100.0) == pytest.approx(1e-6)
+    covered, gap, excess = _stabilize_area_relationships(
+        100.0, 100.0 + 5e-7, 100.0 + 5e-7
+    )
+    assert covered == pytest.approx(100.0)
+    assert gap == pytest.approx(0.0)
+    assert excess == pytest.approx(5e-7)
+    with pytest.raises(PlanningZoningError, match="materially exceeds"):
+        _stabilize_area_relationships(100.0, 100.0 + 2e-6, 100.0 + 2e-6)
 
 
 def _rectangle(x_min: float, y_min: float, x_max: float, y_max: float) -> Polygon:

@@ -26,6 +26,7 @@ from shapely import (
 )
 
 from landscout.sources.gpu_fr import GpuPlanningDocument
+from landscout.stages.planning_overlay import technical_overlay_tolerance
 
 __all__ = ["intersect_parcels_with_gpu_zoning"]
 
@@ -75,12 +76,6 @@ PARCEL_ZONING_OUTPUT_COLUMNS = frozenset(
         "planning_standard_model",
     }
 )
-
-# A one-square-millimetre technical guard for floating-point overlay noise.  It
-# is used only to stabilize impossible tiny negative differences after overlay;
-# it is not a planning or BESS threshold.
-_AREA_ABSOLUTE_TOLERANCE_M2 = 1e-6
-_AREA_RELATIVE_TOLERANCE = 1e-12
 
 INTERSECTION_COLUMNS = (
     "parcel_id",
@@ -521,10 +516,7 @@ def _candidate_intersections(
 
 
 def _technical_area_tolerance(parcel_area_m2: float) -> float:
-    return max(
-        _AREA_ABSOLUTE_TOLERANCE_M2,
-        parcel_area_m2 * _AREA_RELATIVE_TOLERANCE,
-    )
+    return technical_overlay_tolerance(parcel_area_m2)
 
 
 def _stabilize_area_relationships(

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from math import isfinite
-from numbers import Real
+from numbers import Integral, Real
 from pathlib import Path
 from typing import Literal, NamedTuple
 
@@ -29,10 +29,7 @@ from shapely import (
 )
 
 from landscout.sources.gpu_fr import GpuInspectedLayer, GpuPlanningDocument
-from landscout.stages.enrich_planning_zoning import (
-    _AREA_ABSOLUTE_TOLERANCE_M2,
-    _AREA_RELATIVE_TOLERANCE,
-)
+from landscout.stages.planning_overlay import technical_overlay_tolerance
 
 __all__ = ["intersect_parcels_with_gpu_planning_features"]
 
@@ -41,6 +38,11 @@ PARCEL_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry"})
 
 FeatureFamily = Literal["PRESCRIPTION", "INFORMATION"]
 GeometryKind = Literal["SURFACE", "LINE", "POINT"]
+SourceIdentityKind = Literal["CNIG_ATTRIBUTE", "ARCHIVE_SCOPED_OGR_FID"]
+
+SOURCE_IDENTITY_KINDS = frozenset(
+    {"CNIG_ATTRIBUTE", "ARCHIVE_SCOPED_OGR_FID"}
+)
 
 SURFACE_TYPES = frozenset({"Polygon", "MultiPolygon"})
 LINE_TYPES = frozenset({"LineString", "MultiLineString"})
@@ -135,6 +137,8 @@ OPTIONAL_SOURCE_FIELDS = frozenset(
 COMMON_FEATURE_COLUMNS = (
     "planning_feature_id",
     "source_feature_id",
+    "source_identity_kind",
+    "source_identity_field",
     "logical_layer",
     "feature_family",
     "geometry_kind",
@@ -162,6 +166,8 @@ RELATION_COLUMNS = (
     "parcel_id",
     "planning_feature_id",
     "source_feature_id",
+    "source_identity_kind",
+    "source_identity_field",
     "logical_layer",
     "feature_family",
     "geometry_kind",
@@ -232,6 +238,22 @@ PARCEL_OUTPUT_COLUMNS = frozenset(
     }
 )
 
+PARCEL_COUNT_COLUMNS = frozenset(
+    {
+        "planning_surface_relation_count",
+        "planning_surface_area_overlap_count",
+        "planning_surface_touch_count",
+        "prescription_surface_relation_count",
+        "information_surface_relation_count",
+        "planning_line_relation_count",
+        "planning_line_length_overlap_count",
+        "planning_line_touch_count",
+        "planning_point_relation_count",
+        "planning_point_inside_count",
+        "planning_point_boundary_count",
+    }
+)
+
 
 class PlanningFeaturesError(ValueError):
     """Raised when factual GPU feature measurement cannot be completed safely."""
@@ -266,13 +288,25 @@ def _strict_string(value: object, label: str) -> str:
     return value
 
 
+def _strict_nonnegative_integer(value: object, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, Integral):
+        raise PlanningFeaturesError(f"{label} must be an integer count")
+    if value < 0:
+        raise PlanningFeaturesError(f"{label} must be non-negative")
+    return int(value)
+
+
 def _validate_ids(values: pd.Series, label: str) -> None:
+    _validate_exact_strings(values, label)
+    if values.duplicated().any():
+        raise PlanningFeaturesError(f"{label} values must be unique")
+
+
+def _validate_exact_strings(values: pd.Series, label: str) -> None:
     if values.isna().any():
         raise PlanningFeaturesError(f"{label} values must not be null")
     for value in values.tolist():
         _strict_string(value, label)
-    if values.duplicated().any():
-        raise PlanningFeaturesError(f"{label} values must be unique")
 
 
 def _crs(value: object, label: str) -> CRS:
@@ -392,6 +426,20 @@ def _validate_layer_summary(
     geometry = frame.geometry
     non_null = geometry.notna()
     non_empty = non_null & ~geometry.is_empty
+    _strict_nonnegative_integer(summary.feature_count, "summary feature_count")
+    _strict_nonnegative_integer(
+        summary.null_geometry_count, "summary null_geometry_count"
+    )
+    _strict_nonnegative_integer(
+        summary.empty_geometry_count, "summary empty_geometry_count"
+    )
+    _strict_nonnegative_integer(
+        summary.invalid_geometry_count, "summary invalid_geometry_count"
+    )
+    for column, value in summary.null_counts:
+        _strict_nonnegative_integer(value, f"summary {column} null count")
+    for geometry_type, value in summary.geometry_types:
+        _strict_nonnegative_integer(value, f"summary {geometry_type} count")
     if (
         summary.source_document_id != context.document_id
         or summary.source_archive_sha256 != context.archive_sha256
@@ -468,13 +516,22 @@ def _read_ogr_fids(layer: GpuInspectedLayer) -> pd.Series:
     return values
 
 
-def _source_feature_ids(layer: GpuInspectedLayer, spec: _LayerSpec) -> pd.Series:
+def _source_feature_ids(
+    layer: GpuInspectedLayer,
+    spec: _LayerSpec,
+) -> tuple[pd.Series, SourceIdentityKind, str]:
     if spec.identity_field in layer.data.columns:
         result = layer.data[spec.identity_field].reset_index(drop=True).copy()
         _validate_ids(result, spec.identity_field)
-        return result
+        return result, "CNIG_ATTRIBUTE", spec.identity_field
     if spec.logical_layer == "prescription_surface":
-        return _read_ogr_fids(layer)
+        if layer.data.empty:
+            return (
+                pd.Series(dtype="object"),
+                "ARCHIVE_SCOPED_OGR_FID",
+                "OGR_FID",
+            )
+        return _read_ogr_fids(layer), "ARCHIVE_SCOPED_OGR_FID", "OGR_FID"
     raise PlanningFeaturesError(
         f"{spec.logical_layer} is missing required identity field {spec.identity_field}"
     )
@@ -492,8 +549,8 @@ def _normalize_layer(
     context: _PlanningContext,
 ) -> gpd.GeoDataFrame:
     frame = layer.data
-    if not isinstance(frame, gpd.GeoDataFrame) or frame.empty:
-        raise PlanningFeaturesError(f"{spec.logical_layer} must be a non-empty GeoDataFrame")
+    if not isinstance(frame, gpd.GeoDataFrame):
+        raise PlanningFeaturesError(f"{spec.logical_layer} must be a GeoDataFrame")
     _active_geometry(frame, spec.logical_layer)
     required = {spec.type_field, spec.subtype_field, "IDURBA", "geometry"}
     missing = sorted(required - set(frame.columns))
@@ -520,7 +577,7 @@ def _normalize_layer(
             f"{spec.logical_layer} IDURBA does not match planning archive identity"
         )
 
-    source_ids = _source_feature_ids(layer, spec)
+    source_ids, identity_kind, identity_field = _source_feature_ids(layer, spec)
     planning_ids = source_ids.map(
         lambda value: (
             f"GPU:{context.document_id}:{spec.logical_layer}:{value}"
@@ -531,6 +588,8 @@ def _normalize_layer(
         {
             "planning_feature_id": planning_ids.to_numpy(copy=True),
             "source_feature_id": source_ids.to_numpy(copy=True),
+            "source_identity_kind": np.repeat(identity_kind, len(frame)),
+            "source_identity_field": np.repeat(identity_field, len(frame)),
             "logical_layer": np.repeat(spec.logical_layer, len(frame)),
             "feature_family": np.repeat(spec.feature_family, len(frame)),
             "geometry_kind": np.repeat(spec.geometry_kind, len(frame)),
@@ -558,19 +617,34 @@ def _normalize_layer(
     ).reset_index(drop=True)
     _validate_geometries(projected, spec.allowed_geometry_types, spec.logical_layer)
     if spec.geometry_kind == "SURFACE":
-        values = projected.geometry.area.to_numpy(dtype="float64")
+        try:
+            values = projected.geometry.area.to_numpy(dtype="float64")
+        except Exception as error:
+            raise PlanningFeaturesError(
+                f"{spec.logical_layer} area calculation failed"
+            ) from error
         if not np.isfinite(values).all() or (values <= 0).any():
             raise PlanningFeaturesError(f"{spec.logical_layer} areas must be positive")
         projected["feature_area_m2"] = values
     elif spec.geometry_kind == "LINE":
-        values = projected.geometry.length.to_numpy(dtype="float64")
+        try:
+            values = projected.geometry.length.to_numpy(dtype="float64")
+        except Exception as error:
+            raise PlanningFeaturesError(
+                f"{spec.logical_layer} length calculation failed"
+            ) from error
         if not np.isfinite(values).all() or (values <= 0).any():
             raise PlanningFeaturesError(f"{spec.logical_layer} lengths must be positive")
         projected["feature_length_m"] = values
     else:
-        projected["point_member_count"] = [
-            len(get_parts(value)) for value in projected.geometry.array
-        ]
+        try:
+            projected["point_member_count"] = [
+                len(get_parts(value)) for value in projected.geometry.array
+            ]
+        except Exception as error:
+            raise PlanningFeaturesError(
+                f"{spec.logical_layer} point-member calculation failed"
+            ) from error
     return projected
 
 
@@ -607,7 +681,10 @@ def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         geometry=geometry.to_numpy(copy=True),
         crs=CALCULATION_CRS,
     )
-    areas = result.geometry.area.to_numpy(dtype="float64")
+    try:
+        areas = result.geometry.area.to_numpy(dtype="float64")
+    except Exception as error:
+        raise PlanningFeaturesError("Parcel metric-area calculation failed") from error
     if not np.isfinite(areas).all() or (areas <= 0).any():
         raise PlanningFeaturesError("Parcel metric areas must be finite and positive")
     result["_parcel_area_m2"] = areas
@@ -620,16 +697,19 @@ def _relation_base(
 ) -> tuple[pd.DataFrame, np.ndarray, np.ndarray]:
     if catalog.empty or metric.empty:
         return pd.DataFrame(), np.array([], dtype="int64"), np.array([], dtype="int64")
-    candidates = gpd.sjoin(
-        metric[["_parcel_position", "parcel_id", "geometry"]],
-        gpd.GeoDataFrame(
-            {"_feature_position": np.arange(len(catalog), dtype="int64")},
-            geometry=catalog.geometry.to_numpy(copy=True),
-            crs=CALCULATION_CRS,
-        ),
-        how="inner",
-        predicate="intersects",
-    )
+    try:
+        candidates = gpd.sjoin(
+            metric[["_parcel_position", "parcel_id", "geometry"]],
+            gpd.GeoDataFrame(
+                {"_feature_position": np.arange(len(catalog), dtype="int64")},
+                geometry=catalog.geometry.to_numpy(copy=True),
+                crs=CALCULATION_CRS,
+            ),
+            how="inner",
+            predicate="intersects",
+        )
+    except Exception as error:
+        raise PlanningFeaturesError("Planning-feature spatial join failed") from error
     if candidates.empty:
         return pd.DataFrame(), np.array([], dtype="int64"), np.array([], dtype="int64")
     parcel_positions = candidates["_parcel_position"].to_numpy(dtype="int64")
@@ -645,6 +725,8 @@ def _relation_base(
                 for column in (
                     "planning_feature_id",
                     "source_feature_id",
+                    "source_identity_kind",
+                    "source_identity_field",
                     "logical_layer",
                     "feature_family",
                     "geometry_kind",
@@ -680,11 +762,14 @@ def _surface_relations(
     base, parcel_positions, feature_positions = _relation_base(metric, catalog)
     if base.empty:
         return base
-    geometries = intersection(
-        metric.geometry.iloc[parcel_positions].array,
-        catalog.geometry.iloc[feature_positions].array,
-    )
-    areas = np.asarray(shapely_area(geometries), dtype="float64")
+    try:
+        geometries = intersection(
+            metric.geometry.iloc[parcel_positions].array,
+            catalog.geometry.iloc[feature_positions].array,
+        )
+        areas = np.asarray(shapely_area(geometries), dtype="float64")
+    except Exception as error:
+        raise PlanningFeaturesError("Surface intersection calculation failed") from error
     feature_areas = catalog["feature_area_m2"].to_numpy(dtype="float64")[
         feature_positions
     ]
@@ -708,11 +793,14 @@ def _line_relations(
     base, parcel_positions, feature_positions = _relation_base(metric, catalog)
     if base.empty:
         return base
-    geometries = intersection(
-        metric.geometry.iloc[parcel_positions].array,
-        catalog.geometry.iloc[feature_positions].array,
-    )
-    lengths = np.asarray(shapely_length(geometries), dtype="float64")
+    try:
+        geometries = intersection(
+            metric.geometry.iloc[parcel_positions].array,
+            catalog.geometry.iloc[feature_positions].array,
+        )
+        lengths = np.asarray(shapely_length(geometries), dtype="float64")
+    except Exception as error:
+        raise PlanningFeaturesError("Line intersection calculation failed") from error
     source_lengths = catalog["feature_length_m"].to_numpy(dtype="float64")[
         feature_positions
     ]
@@ -735,16 +823,19 @@ def _point_relations(
     base, parcel_positions, feature_positions = _relation_base(metric, catalog)
     if base.empty:
         return base
-    members, relation_positions = get_parts(
-        catalog.geometry.iloc[feature_positions].array,
-        return_index=True,
-    )
-    relation_positions = np.asarray(relation_positions, dtype="int64")
-    member_parcels = metric.geometry.iloc[
-        parcel_positions[relation_positions]
-    ].array
-    inside_mask = np.asarray(contains(member_parcels, members), dtype="bool")
-    covered_mask = np.asarray(covers(member_parcels, members), dtype="bool")
+    try:
+        members, relation_positions = get_parts(
+            catalog.geometry.iloc[feature_positions].array,
+            return_index=True,
+        )
+        relation_positions = np.asarray(relation_positions, dtype="int64")
+        member_parcels = metric.geometry.iloc[
+            parcel_positions[relation_positions]
+        ].array
+        inside_mask = np.asarray(contains(member_parcels, members), dtype="bool")
+        covered_mask = np.asarray(covers(member_parcels, members), dtype="bool")
+    except Exception as error:
+        raise PlanningFeaturesError("Point intersection calculation failed") from error
     member_counts = np.bincount(relation_positions, minlength=len(base))
     inside_counts = np.bincount(
         relation_positions, weights=inside_mask, minlength=len(base)
@@ -784,10 +875,7 @@ def _empty_relations() -> pd.DataFrame:
 
 
 def _technical_tolerance(parcel_area: float) -> float:
-    return max(
-        _AREA_ABSOLUTE_TOLERANCE_M2,
-        parcel_area * _AREA_RELATIVE_TOLERANCE,
-    )
+    return technical_overlay_tolerance(parcel_area)
 
 
 def _surface_union_summary(
@@ -800,7 +888,14 @@ def _surface_union_summary(
         return output
     for position_value, group in positive.groupby("_parcel_position", sort=False):
         position = int(position_value)
-        value = float(shapely_area(union_all(group["_intersection_geometry"].to_numpy())))
+        try:
+            value = float(
+                shapely_area(union_all(group["_intersection_geometry"].to_numpy()))
+            )
+        except Exception as error:
+            raise PlanningFeaturesError(
+                "Surface covered-union calculation failed"
+            ) from error
         if not isfinite(value) or value < 0:
             raise PlanningFeaturesError("Surface covered-union area is invalid")
         area = float(parcel_areas[position])
@@ -937,11 +1032,384 @@ def _numeric_values(
                 )
 
 
+def _integer_values(
+    frame: pd.DataFrame,
+    columns: set[str] | frozenset[str] | tuple[str, ...],
+    label: str,
+    *,
+    allow_null: bool,
+) -> None:
+    for column in columns:
+        for value in frame[column].tolist():
+            if pd.isna(value):
+                if allow_null:
+                    continue
+                raise PlanningFeaturesError(f"{label} {column} must not be null")
+            _strict_nonnegative_integer(value, f"{label} {column}")
+
+
+def _null_safe_equal(left: object, right: object) -> bool:
+    left_null = bool(pd.isna(left))
+    right_null = bool(pd.isna(right))
+    if left_null or right_null:
+        return left_null and right_null
+    try:
+        return bool(left == right)
+    except (TypeError, ValueError):
+        return False
+
+
+def _require_close(actual: object, expected: float, label: str) -> None:
+    if isinstance(actual, bool) or not isinstance(actual, Real):
+        raise PlanningFeaturesError(f"{label} must be numeric")
+    try:
+        number = float(actual)
+    except (TypeError, ValueError, OverflowError) as error:
+        raise PlanningFeaturesError(f"{label} must be finite") from error
+    if not isfinite(number):
+        raise PlanningFeaturesError(f"{label} must be finite")
+    reference = max(abs(number), abs(expected))
+    if abs(number - expected) > technical_overlay_tolerance(reference):
+        raise PlanningFeaturesError(f"{label} is inconsistent with relations")
+
+
+def _validate_catalog_identity(catalog: gpd.GeoDataFrame) -> None:
+    required = set(COMMON_FEATURE_COLUMNS) | {"geometry"}
+    missing = sorted(required - set(catalog.columns))
+    if missing:
+        raise PlanningFeaturesError(
+            "Feature catalog is missing required columns: " + ", ".join(missing)
+        )
+    _validate_ids(catalog["planning_feature_id"], "planning_feature_id")
+    for logical_layer, group in catalog.groupby("logical_layer", sort=False):
+        _validate_ids(
+            group["source_feature_id"], f"{logical_layer} source_feature_id"
+        )
+    for _, row in catalog.iterrows():
+        logical = _strict_string(row["logical_layer"], "logical_layer")
+        if logical not in LAYER_SPECS:
+            raise PlanningFeaturesError("Feature catalog logical layer is invalid")
+        spec = LAYER_SPECS[logical]
+        if row["feature_family"] != spec.feature_family:
+            raise PlanningFeaturesError("Feature catalog family is inconsistent")
+        if row["geometry_kind"] != spec.geometry_kind:
+            raise PlanningFeaturesError("Feature catalog geometry kind is inconsistent")
+        kind = row["source_identity_kind"]
+        field = row["source_identity_field"]
+        if kind not in SOURCE_IDENTITY_KINDS:
+            raise PlanningFeaturesError("Feature source identity kind is invalid")
+        if kind == "CNIG_ATTRIBUTE":
+            if field != spec.identity_field:
+                raise PlanningFeaturesError(
+                    "CNIG source identity field is inconsistent"
+                )
+        elif (
+            logical != "prescription_surface"
+            or field != "OGR_FID"
+            or not str(row["source_feature_id"]).startswith("OGR_FID:")
+        ):
+            raise PlanningFeaturesError(
+                "Archive-scoped OGR FID provenance is inconsistent"
+            )
+
+
+_RELATION_CATALOG_FIELDS = (
+    "source_feature_id",
+    "source_identity_kind",
+    "source_identity_field",
+    "logical_layer",
+    "feature_family",
+    "geometry_kind",
+    "type_code_raw",
+    "subtype_code_raw",
+    "label_raw",
+    "text_raw",
+    "source_document_id",
+    "source_archive_sha256",
+    "source_layer",
+    "source_validity_date_raw",
+    "regulation_filename_raw",
+)
+
+
+def _validate_relation_catalog_consistency(
+    relations: pd.DataFrame,
+    catalogs: tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame],
+) -> None:
+    feature_rows = pd.concat(
+        [catalog.drop(columns="geometry") for catalog in catalogs],
+        ignore_index=True,
+    )
+    if feature_rows["planning_feature_id"].duplicated().any():
+        raise PlanningFeaturesError(
+            "planning_feature_id values must be globally unique"
+        )
+    indexed = feature_rows.set_index("planning_feature_id", drop=False)
+    for _, relation in relations.iterrows():
+        feature = indexed.loc[relation["planning_feature_id"]]
+        for column in _RELATION_CATALOG_FIELDS:
+            if not _null_safe_equal(relation[column], feature[column]):
+                raise PlanningFeaturesError(
+                    f"Relation {column} is inconsistent with feature catalog"
+                )
+        kind = relation["geometry_kind"]
+        metric_column = {
+            "SURFACE": "feature_area_m2",
+            "LINE": "source_line_length_m",
+            "POINT": "point_member_count",
+        }.get(kind)
+        catalog_column = {
+            "SURFACE": "feature_area_m2",
+            "LINE": "feature_length_m",
+            "POINT": "point_member_count",
+        }.get(kind)
+        if (
+            metric_column is None
+            or catalog_column is None
+            or not _null_safe_equal(
+                relation[metric_column], feature[catalog_column]
+            )
+        ):
+            raise PlanningFeaturesError(
+                "Relation feature metric is inconsistent with feature catalog"
+            )
+
+
+def _validate_relation_semantics(relations: pd.DataFrame) -> None:
+    _numeric_values(relations, RELATION_FLOAT_COLUMNS, "Relation", allow_null=True)
+    _integer_values(relations, RELATION_COUNT_COLUMNS, "Relation", allow_null=True)
+    for _, row in relations.iterrows():
+        kind = row["geometry_kind"]
+        relation_type = row["relation_type"]
+        required: tuple[str, ...]
+        null_only: tuple[str, ...]
+        if kind == "SURFACE":
+            required = (
+                "feature_area_m2",
+                "intersection_area_m2",
+                "parcel_share_pct",
+                "feature_share_pct",
+            )
+            if any(pd.isna(row[column]) for column in required):
+                raise PlanningFeaturesError(
+                    "SURFACE relation has a missing required metric"
+                )
+            area = float(row["intersection_area_m2"])
+            expected_relation = "AREA_OVERLAP" if area > 0 else "TOUCH_ONLY"
+            if relation_type != expected_relation:
+                raise PlanningFeaturesError("Surface relation type is inconsistent")
+            null_only = (
+                "source_line_length_m",
+                "intersection_length_m",
+                *RELATION_COUNT_COLUMNS,
+            )
+            parcel_area = float(row["parcel_metric_area_m2"])
+            feature_area = float(row["feature_area_m2"])
+            if parcel_area <= 0 or feature_area <= 0:
+                raise PlanningFeaturesError("Surface reference areas must be positive")
+            if area - parcel_area > technical_overlay_tolerance(parcel_area):
+                raise PlanningFeaturesError("Surface parcel share exceeds 100 percent")
+            if area - feature_area > technical_overlay_tolerance(feature_area):
+                raise PlanningFeaturesError("Surface feature share exceeds 100 percent")
+            expected_parcel_pct = 100.0 * area / parcel_area
+            expected_feature_pct = 100.0 * area / feature_area
+            percentage_tolerance = max(
+                100.0 * technical_overlay_tolerance(parcel_area) / parcel_area,
+                100.0 * technical_overlay_tolerance(feature_area) / feature_area,
+            )
+            if (
+                abs(float(row["parcel_share_pct"]) - expected_parcel_pct)
+                > percentage_tolerance
+                or abs(float(row["feature_share_pct"]) - expected_feature_pct)
+                > percentage_tolerance
+            ):
+                raise PlanningFeaturesError("Surface percentages are inconsistent")
+        elif kind == "LINE":
+            required = ("source_line_length_m", "intersection_length_m")
+            if any(pd.isna(row[column]) for column in required):
+                raise PlanningFeaturesError(
+                    "LINE relation has a missing required metric"
+                )
+            length = float(row["intersection_length_m"])
+            expected_relation = "LENGTH_OVERLAP" if length > 0 else "TOUCH_ONLY"
+            if relation_type != expected_relation:
+                raise PlanningFeaturesError("Line relation type is inconsistent")
+            null_only = (
+                "feature_area_m2",
+                "intersection_area_m2",
+                "parcel_share_pct",
+                "feature_share_pct",
+                *RELATION_COUNT_COLUMNS,
+            )
+            source_length = float(row["source_line_length_m"])
+            if source_length <= 0:
+                raise PlanningFeaturesError("Source line length must be positive")
+            if length - source_length > technical_overlay_tolerance(source_length):
+                raise PlanningFeaturesError(
+                    "Line intersection exceeds source line length"
+                )
+        elif kind == "POINT":
+            required = tuple(RELATION_COUNT_COLUMNS)
+            if any(pd.isna(row[column]) for column in required):
+                raise PlanningFeaturesError(
+                    "POINT relation has a missing required metric"
+                )
+            null_only = (
+                "feature_area_m2",
+                "source_line_length_m",
+                "intersection_area_m2",
+                "intersection_length_m",
+                "parcel_share_pct",
+                "feature_share_pct",
+            )
+            member_count = row["point_member_count"]
+            inside = row["point_members_inside_count"]
+            boundary_count = row["point_members_boundary_count"]
+            if member_count < 1 or inside + boundary_count < 1:
+                raise PlanningFeaturesError("Point relation member counts are invalid")
+            if inside + boundary_count > member_count:
+                raise PlanningFeaturesError("Point covered members exceed source members")
+            expected_relation = "INSIDE" if inside > 0 else "BOUNDARY_TOUCH"
+            if relation_type != expected_relation or (
+                relation_type == "BOUNDARY_TOUCH" and boundary_count <= 0
+            ):
+                raise PlanningFeaturesError("Point relation type is inconsistent")
+        else:
+            raise PlanningFeaturesError("Planning relation geometry kind is invalid")
+        if any(not pd.isna(row[column]) for column in null_only):
+            raise PlanningFeaturesError(f"{kind} relation populated an unrelated metric")
+
+
+def _validate_parcel_summaries(
+    source: gpd.GeoDataFrame,
+    output: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+    surface_work: pd.DataFrame | None,
+) -> None:
+    metric = _metric_parcels(source)
+    metric_areas = dict(
+        zip(metric["parcel_id"].tolist(), metric["_parcel_area_m2"].tolist(), strict=True)
+    )
+    _integer_values(output, PARCEL_COUNT_COLUMNS, "Parcel summary", allow_null=False)
+    float_columns = tuple(
+        PARCEL_OUTPUT_COLUMNS
+        - PARCEL_COUNT_COLUMNS
+        - {"planning_feature_document_id", "planning_feature_archive_sha256"}
+    )
+    _numeric_values(output, float_columns, "Parcel summary", allow_null=False)
+
+    for _, parcel in output.iterrows():
+        parcel_id = parcel["parcel_id"]
+        rows = relations.loc[relations["parcel_id"] == parcel_id]
+        surfaces = rows.loc[rows["geometry_kind"] == "SURFACE"]
+        positive_surfaces = surfaces.loc[
+            surfaces["relation_type"] == "AREA_OVERLAP"
+        ]
+        lines = rows.loc[rows["geometry_kind"] == "LINE"]
+        points = rows.loc[rows["geometry_kind"] == "POINT"]
+        exact_counts = {
+            "planning_surface_relation_count": len(surfaces),
+            "planning_surface_area_overlap_count": len(positive_surfaces),
+            "planning_surface_touch_count": int(
+                surfaces["relation_type"].eq("TOUCH_ONLY").sum()
+            ),
+            "prescription_surface_relation_count": int(
+                surfaces["feature_family"].eq("PRESCRIPTION").sum()
+            ),
+            "information_surface_relation_count": int(
+                surfaces["feature_family"].eq("INFORMATION").sum()
+            ),
+            "planning_line_relation_count": len(lines),
+            "planning_line_length_overlap_count": int(
+                lines["relation_type"].eq("LENGTH_OVERLAP").sum()
+            ),
+            "planning_line_touch_count": int(
+                lines["relation_type"].eq("TOUCH_ONLY").sum()
+            ),
+            "planning_point_relation_count": len(points),
+            "planning_point_inside_count": int(
+                points["point_members_inside_count"].sum()
+            ),
+            "planning_point_boundary_count": int(
+                points["point_members_boundary_count"].sum()
+            ),
+        }
+        for column, expected in exact_counts.items():
+            if parcel[column] != expected:
+                raise PlanningFeaturesError(
+                    f"Parcel summary {column} is inconsistent with relations"
+                )
+        raw_sum = float(positive_surfaces["intersection_area_m2"].sum())
+        line_sum = float(lines["intersection_length_m"].sum())
+        _require_close(
+            parcel["planning_surface_intersection_area_sum_m2"],
+            raw_sum,
+            "planning_surface_intersection_area_sum_m2",
+        )
+        _require_close(
+            parcel["planning_line_intersection_length_sum_m"],
+            line_sum,
+            "planning_line_intersection_length_sum_m",
+        )
+        parcel_area = float(metric_areas[parcel_id])
+        planning_union = float(parcel["planning_surface_covered_union_area_m2"])
+        if planning_union - raw_sum > technical_overlay_tolerance(raw_sum):
+            raise PlanningFeaturesError("Surface union exceeds raw intersection sum")
+        if planning_union - parcel_area > technical_overlay_tolerance(parcel_area):
+            raise PlanningFeaturesError("Surface union exceeds parcel area")
+        for prefix in ("planning", "prescription", "information"):
+            union = float(parcel[f"{prefix}_surface_covered_union_area_m2"])
+            pct = float(parcel[f"{prefix}_surface_covered_pct"])
+            if union - planning_union > technical_overlay_tolerance(planning_union):
+                raise PlanningFeaturesError("Family surface union exceeds total union")
+            expected_pct = 100.0 if union == parcel_area else 100.0 * union / parcel_area
+            pct_tolerance = 100.0 * technical_overlay_tolerance(parcel_area) / parcel_area
+            if abs(pct - expected_pct) > pct_tolerance:
+                raise PlanningFeaturesError(
+                    f"{prefix} surface percentage is inconsistent"
+                )
+
+    if surface_work is not None:
+        areas = metric["_parcel_area_m2"].to_numpy(dtype="float64")
+        positive = (
+            surface_work.loc[surface_work["relation_type"] == "AREA_OVERLAP"]
+            if not surface_work.empty
+            else surface_work
+        )
+        expected_total = _surface_union_summary(positive, areas, len(output))
+        for family, column in (
+            (None, "planning_surface_covered_union_area_m2"),
+            ("PRESCRIPTION", "prescription_surface_covered_union_area_m2"),
+            ("INFORMATION", "information_surface_covered_union_area_m2"),
+        ):
+            expected_union = expected_total
+            if family is not None:
+                family_rows = (
+                    positive.loc[positive["feature_family"] == family]
+                    if not positive.empty
+                    else positive
+                )
+                expected_union = _surface_union_summary(
+                    family_rows, areas, len(output)
+                )
+            for actual, value in zip(
+                output[column].tolist(), expected_union, strict=True
+            ):
+                _require_close(actual, float(value), column)
+
+
 def _validate_result(
     source: gpd.GeoDataFrame,
     result: ParcelPlanningFeaturesResult,
+    surface_work: pd.DataFrame | None = None,
 ) -> None:
     output = result.parcels
+    missing_output = sorted(PARCEL_OUTPUT_COLUMNS - set(output.columns))
+    if missing_output:
+        raise PlanningFeaturesError(
+            "Planning-feature parcel output is missing columns: "
+            + ", ".join(missing_output)
+        )
     if len(output) != len(source):
         raise PlanningFeaturesError("Planning-feature parcel count changed")
     if output["parcel_id"].tolist() != source["parcel_id"].tolist():
@@ -963,91 +1431,118 @@ def _validate_result(
         result.line_features,
         result.point_features,
     )
-    known_features: set[str] = set()
-    for catalog in catalogs:
+    all_feature_ids: list[str] = []
+    for catalog, kind in zip(catalogs, ("SURFACE", "LINE", "POINT"), strict=True):
         if not _crs(catalog.crs, "Feature catalog").equals(CRS.from_epsg(2154)):
             raise PlanningFeaturesError("Feature catalog must use EPSG:2154")
-        _validate_ids(catalog["planning_feature_id"], "planning_feature_id")
-        known_features.update(catalog["planning_feature_id"].tolist())
+        _validate_catalog_identity(catalog)
+        if not catalog.empty and not catalog["geometry_kind"].eq(kind).all():
+            raise PlanningFeaturesError("Feature catalog geometry kind is invalid")
+        _validate_geometries(
+            catalog,
+            {
+                "SURFACE": SURFACE_TYPES,
+                "LINE": LINE_TYPES,
+                "POINT": POINT_TYPES,
+            }[kind],
+            f"{kind} feature catalog",
+        )
+        if kind == "SURFACE":
+            _numeric_values(
+                catalog, ("feature_area_m2",), "Surface feature", allow_null=False
+            )
+            if (catalog["feature_area_m2"] <= 0).any():
+                raise PlanningFeaturesError("Surface feature areas must be positive")
+            try:
+                measured = catalog.geometry.area.to_numpy(dtype="float64")
+            except Exception as error:
+                raise PlanningFeaturesError(
+                    "Surface feature metric validation failed"
+                ) from error
+            for actual, expected in zip(
+                catalog["feature_area_m2"].tolist(), measured, strict=True
+            ):
+                _require_close(actual, float(expected), "feature_area_m2")
+        elif kind == "LINE":
+            _numeric_values(
+                catalog, ("feature_length_m",), "Line feature", allow_null=False
+            )
+            if (catalog["feature_length_m"] <= 0).any():
+                raise PlanningFeaturesError("Line feature lengths must be positive")
+            try:
+                measured = catalog.geometry.length.to_numpy(dtype="float64")
+            except Exception as error:
+                raise PlanningFeaturesError(
+                    "Line feature metric validation failed"
+                ) from error
+            for actual, expected in zip(
+                catalog["feature_length_m"].tolist(), measured, strict=True
+            ):
+                _require_close(actual, float(expected), "feature_length_m")
+        if kind == "POINT":
+            _integer_values(
+                catalog, ("point_member_count",), "Point feature", allow_null=False
+            )
+            if (catalog["point_member_count"] < 1).any():
+                raise PlanningFeaturesError("Point features must contain a member")
+            try:
+                member_counts = [len(get_parts(value)) for value in catalog.geometry.array]
+            except Exception as error:
+                raise PlanningFeaturesError(
+                    "Point feature member validation failed"
+                ) from error
+            if catalog["point_member_count"].tolist() != member_counts:
+                raise PlanningFeaturesError(
+                    "Point feature member count is inconsistent with geometry"
+                )
+        all_feature_ids.extend(catalog["planning_feature_id"].tolist())
+    if len(all_feature_ids) != len(set(all_feature_ids)):
+        raise PlanningFeaturesError("planning_feature_id values must be globally unique")
+    known_features = set(all_feature_ids)
 
     relations = result.relations
     if tuple(relations.columns) != RELATION_COLUMNS:
         raise PlanningFeaturesError("Planning relation schema is not deterministic")
     if relations.duplicated(["parcel_id", "planning_feature_id"]).any():
         raise PlanningFeaturesError("Parcel/planning-feature relations must be unique")
+    _validate_exact_strings(relations["parcel_id"], "Relation parcel_id")
+    _validate_exact_strings(
+        relations["planning_feature_id"], "Relation planning_feature_id"
+    )
     if not set(relations["parcel_id"]).issubset(set(output["parcel_id"])):
         raise PlanningFeaturesError("Planning relation references an unknown parcel")
     if not set(relations["planning_feature_id"]).issubset(known_features):
         raise PlanningFeaturesError("Planning relation references an unknown feature")
-    _numeric_values(relations, RELATION_FLOAT_COLUMNS, "Relation", allow_null=True)
-    _numeric_values(relations, RELATION_COUNT_COLUMNS, "Relation", allow_null=True)
-    for _, row in relations.iterrows():
-        kind = row["geometry_kind"]
-        relation_type = row["relation_type"]
-        required: tuple[str, ...]
-        null_only: tuple[str, ...]
-        if kind == "SURFACE":
-            if relation_type not in {"AREA_OVERLAP", "TOUCH_ONLY"}:
-                raise PlanningFeaturesError("Surface relation type is invalid")
-            required = (
-                "feature_area_m2",
-                "intersection_area_m2",
-                "parcel_share_pct",
-                "feature_share_pct",
-            )
-            null_only = (
-                "source_line_length_m",
-                "intersection_length_m",
-                *RELATION_COUNT_COLUMNS,
-            )
-            parcel_area = float(row["parcel_metric_area_m2"])
-            feature_area = float(row["feature_area_m2"])
-            intersection_area = float(row["intersection_area_m2"])
-            if intersection_area - parcel_area > _technical_tolerance(parcel_area):
-                raise PlanningFeaturesError("Surface parcel share exceeds 100 percent")
-            if intersection_area - feature_area > _technical_tolerance(feature_area):
-                raise PlanningFeaturesError("Surface feature share exceeds 100 percent")
-        elif kind == "LINE":
-            if relation_type not in {"LENGTH_OVERLAP", "TOUCH_ONLY"}:
-                raise PlanningFeaturesError("Line relation type is invalid")
-            required = ("source_line_length_m", "intersection_length_m")
-            null_only = (
-                "feature_area_m2",
-                "intersection_area_m2",
-                "parcel_share_pct",
-                "feature_share_pct",
-                *RELATION_COUNT_COLUMNS,
-            )
-        elif kind == "POINT":
-            if relation_type not in {"INSIDE", "BOUNDARY_TOUCH"}:
-                raise PlanningFeaturesError("Point relation type is invalid")
-            required = tuple(RELATION_COUNT_COLUMNS)
-            null_only = (
-                "feature_area_m2",
-                "source_line_length_m",
-                "intersection_area_m2",
-                "intersection_length_m",
-                "parcel_share_pct",
-                "feature_share_pct",
-            )
-            member_count = int(row["point_member_count"])
-            inside = int(row["point_members_inside_count"])
-            boundary_count = int(row["point_members_boundary_count"])
-            if member_count < 1 or inside + boundary_count < 1:
-                raise PlanningFeaturesError("Point relation member counts are invalid")
-            if inside + boundary_count > member_count:
-                raise PlanningFeaturesError("Point covered members exceed source members")
-        else:
-            raise PlanningFeaturesError("Planning relation geometry kind is invalid")
-        if any(pd.isna(row[column]) for column in required):
-            raise PlanningFeaturesError(f"{kind} relation has a missing required metric")
-        if any(not pd.isna(row[column]) for column in null_only):
-            raise PlanningFeaturesError(f"{kind} relation populated an unrelated metric")
-    summary_numeric = tuple(PARCEL_OUTPUT_COLUMNS - {
+    _validate_relation_semantics(relations)
+    _validate_relation_catalog_consistency(relations, catalogs)
+    _validate_parcel_summaries(source, output, relations, surface_work)
+    for column in (
         "planning_feature_document_id",
         "planning_feature_archive_sha256",
-    })
-    _numeric_values(output, summary_numeric, "Parcel summary", allow_null=False)
+    ):
+        _validate_exact_strings(output[column], column)
+    nonempty_catalogs = [catalog for catalog in catalogs if not catalog.empty]
+    if nonempty_catalogs:
+        expected_document_ids = {
+            value
+            for catalog in nonempty_catalogs
+            for value in catalog["source_document_id"].tolist()
+        }
+        expected_archive_hashes = {
+            value
+            for catalog in nonempty_catalogs
+            for value in catalog["source_archive_sha256"].tolist()
+        }
+        if (
+            len(expected_document_ids) != 1
+            or len(expected_archive_hashes) != 1
+            or set(output["planning_feature_document_id"]) != expected_document_ids
+            or set(output["planning_feature_archive_sha256"])
+            != expected_archive_hashes
+        ):
+            raise PlanningFeaturesError(
+                "Parcel planning-feature lineage is inconsistent with catalogs"
+            )
 
 
 def intersect_parcels_with_gpu_planning_features(
@@ -1071,22 +1566,34 @@ def intersect_parcels_with_gpu_planning_features(
             raise PlanningFeaturesError(f"Duplicate related layer: {logical}")
         layer_map[logical] = inspected_layer
 
-    normalized: list[gpd.GeoDataFrame] = []
+    normalized: dict[str, gpd.GeoDataFrame] = {}
     for logical, spec in LAYER_SPECS.items():
         layer = layer_map.get(logical)
         if layer is not None:
-            normalized.append(_normalize_layer(layer, spec, context))
+            normalized[logical] = _normalize_layer(layer, spec, context)
 
     surfaces = _combine_catalogs(
-        [frame for frame in normalized if frame["geometry_kind"].iloc[0] == "SURFACE"],
+        [
+            normalized[logical]
+            for logical, spec in LAYER_SPECS.items()
+            if spec.geometry_kind == "SURFACE" and logical in normalized
+        ],
         "SURFACE",
     )
     lines = _combine_catalogs(
-        [frame for frame in normalized if frame["geometry_kind"].iloc[0] == "LINE"],
+        [
+            normalized[logical]
+            for logical, spec in LAYER_SPECS.items()
+            if spec.geometry_kind == "LINE" and logical in normalized
+        ],
         "LINE",
     )
     points = _combine_catalogs(
-        [frame for frame in normalized if frame["geometry_kind"].iloc[0] == "POINT"],
+        [
+            normalized[logical]
+            for logical, spec in LAYER_SPECS.items()
+            if spec.geometry_kind == "POINT" and logical in normalized
+        ],
         "POINT",
     )
     metric = _metric_parcels(parcels)
@@ -1114,5 +1621,5 @@ def intersect_parcels_with_gpu_planning_features(
         point_features=points,
         relations=relations,
     )
-    _validate_result(parcels, result)
+    _validate_result(parcels, result, surface_work)
     return result

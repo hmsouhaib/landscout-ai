@@ -1393,13 +1393,13 @@ No parcel is rejected.
 - Important files: `src/landscout/stages/enrich_planning_features.py`, `tests/unit/test_enrich_planning_features.py`, `src/landscout/stages/__init__.py`
 - Tests/checks: 47 focused offline tests pass. The full suite passes with 722 tests; Ruff and mypy pass.
 - Important decisions: Raw codes and text are preserved without interpretation. Surface relations use positive area versus zero-area touch; line relations use positive in-parcel length versus zero-length touch; point relations distinguish interior members from boundary members. Surface coverage is calculated from a union so overlapping source features are not double-counted. The same `1e-6 m²` technical area-comparison tolerance established in STEP 7D.2 is reused and is not a planning threshold.
-- Known issues: The official prescription-surface Shapefile omits `LIB_IDPSC`. For that layer only, LandScout reopens the immutable archive-derived Shapefile, validates row attributes/geometries against the inspected frame, and uses namespaced OGR source FIDs such as `OGR_FID:0`; it never uses the mutable GeoDataFrame index. The current document contains no information-line or information-point layer.
+- Known issues: The official prescription-surface Shapefile omits `LIB_IDPSC`. For that layer only, LandScout reopens the immutable archive-derived Shapefile, validates row attributes/geometries against the inspected frame, and uses namespaced, archive-and-layer-scoped OGR FIDs such as `OGR_FID:0`; an OGR FID is not an official CNIG attribute identity and is stable only with that immutable archive/layer lineage. It never uses the mutable GeoDataFrame index. The current document contains no information-line or information-point layer.
 
 ### Real schemas and source identities
 
-| Logical layer | Source layer | Features | Source CRS | Geometry | Authoritative identity |
+| Logical layer | Source layer | Features | Source CRS | Geometry | Source identity mechanism |
 | --- | --- | ---: | --- | --- | --- |
-| `prescription_surface` | `31395_PRESCRIPTION_SURF_20240215` | 320 | `IGNF:LAMB93` | Polygon 320 | validated OGR FID because the DBF omits `LIB_IDPSC` |
+| `prescription_surface` | `31395_PRESCRIPTION_SURF_20240215` | 320 | `IGNF:LAMB93` | Polygon 320 | `ARCHIVE_SCOPED_OGR_FID` / `OGR_FID` because the DBF omits `LIB_IDPSC`; not a CNIG identity |
 | `prescription_line` | `31395_PRESCRIPTION_LIN_20240215` | 5 | `EPSG:2154` | LineString 5 | `LIB_IDPSC` |
 | `prescription_point` | `31395_PRESCRIPTION_PCT_20240215` | 5 | `EPSG:2154` | Point 5 | `LIB_IDPSC` |
 | `information_surface` | `31395_INFO_SURF_20240215` | 149 | `IGNF:LAMB93` | Polygon 148, MultiPolygon 1 | `LIB_IDINFO` |
@@ -1497,6 +1497,39 @@ Geometric intersection does not by itself prove that a prescription prohibits or
 No parcel is rejected in STEP 7D.3.
 
 No urban-planning score is calculated.
+
+## STEP 7D.3.1 — Harden GPU planning-feature identity and result contracts
+
+- Status: Complete
+- Implementation summary: Kept the factual STEP 7D.3 spatial result unchanged while closing its trust boundaries. Present-but-empty optional related layers are valid inputs; feature and relation records carry explicit source-identity provenance; result validation cross-checks relations against catalogs and parcel summaries; geometry-specific semantics and strict count types are enforced; and geospatial failures become controlled `PlanningFeaturesError` exceptions with chained causes.
+- Important files: `src/landscout/stages/enrich_planning_features.py`, `src/landscout/stages/enrich_planning_zoning.py`, `src/landscout/stages/planning_overlay.py`, `tests/unit/test_enrich_planning_features.py`, `tests/unit/test_enrich_planning_zoning.py`
+- Tests/checks: 147 focused planning-feature/zoning tests and the complete 756-test suite pass. Ruff and mypy pass.
+- Important decisions: `CNIG_ATTRIBUTE` identifies values from `LIB_IDPSC` or `LIB_IDINFO`. `ARCHIVE_SCOPED_OGR_FID` labels the prescription-surface fallback from `OGR_FID`; it is not a CNIG identity and is meaningful only with the namespaced document, logical layer, archive SHA256, and actual source layer. A zero-row prescription-surface layer does not reopen OGR merely to manufacture IDs. Both overlay stages use one shared `1e-6 m²` absolute / `1e-12` relative floating-point comparison tolerance; this is technical, not a planning or BESS threshold.
+- Known issues: The current document has no information-line or information-point source layer. No source code is legally interpreted here.
+
+### Strengthened contracts
+
+- Every normalized feature and relation contains `source_identity_kind` and `source_identity_field`.
+- Counts are finite, non-negative integers and reject booleans, strings, fractions, infinities, and negatives. Point covered-member counts cannot exceed source members.
+- Surface, line, and point relation labels agree exactly with their area, length, and member metrics. Percentages are recomputed; line overlap cannot exceed source length beyond the shared technical tolerance.
+- Relations are null-safely cross-validated against catalogs for ID/provenance, logical layer/family/kind, raw type/subtype/label/text, document/archive/layer lineage, validity date, regulation filename, and source geometry metric.
+- `planning_feature_id` is globally unique across catalogs. Parcel counts, sums, family counts, covered-union bounds, and percentages are independently reconciled with relations and calculation geometries.
+- GeoPandas joins and Shapely intersection, union, member, area, and length operations are wrapped with controlled errors and exception chaining.
+
+### Real Muret regression and read-back
+
+- Parcels: 3,638 input / 3,638 output; lost / extra IDs: 0 / 0.
+- Features: 469 surface, 5 line, 5 point; duplicate global feature IDs: 0.
+- Catalog identity provenance: `ARCHIVE_SCOPED_OGR_FID` 320; `CNIG_ATTRIBUTE` 159.
+- Relations: 2,414; duplicate parcel/feature pairs: 0; `AREA_OVERLAP` 2,404, `LENGTH_OVERLAP` 8, `INSIDE` 2.
+- Relation identity provenance: `ARCHIVE_SCOPED_OGR_FID` 1,067; `CNIG_ATTRIBUTE` 1,347.
+- Wall-clock computation and strengthened validation: 7.289 seconds.
+
+All five processed outputs were rewritten and read back through the hardened validator. IDs, provenance, lineage, raw facts, geometry, CRS, nullable metric schema, strict counts, relation semantics, and parcel summaries passed. Output sizes: surface 345,126 bytes; line 30,446; point 26,581; parcels 1,572,298; relations 134,375. Generated data remains ignored by Git.
+
+Prescription and information codes remain official GPU source facts. An intersection does not itself prove authorization or prohibition.
+
+No parcel is rejected in STEP 7D.3.1. No urban-planning score is calculated.
 
 ## STEP 7D.1.1 — Harden GPU source and extraction integrity
 
