@@ -30,6 +30,12 @@ from landscout.stages.filter_parcels import (
     filter_parcels_by_area,
     filter_parcels_by_shape,
 )
+from landscout.stages.index_planning_regulation import (
+    PlanningRegulationIndex,
+    PlanningRegulationIndexError,
+    index_planning_regulation,
+    search_planning_regulation,
+)
 from landscout.stages.normalize_cadastre import (
     CadastreNormalizationError,
     normalize_cadastre_parcels,
@@ -62,6 +68,8 @@ __all__ = [
     "IgnVoltageNormalization",
     "NormalizedIgnElectricityData",
     "ParcelFilterError",
+    "PlanningRegulationIndex",
+    "PlanningRegulationIndexError",
     "ShapeDistributionProfile",
     "ShapeEnrichmentError",
     "ShapeProfileError",
@@ -73,6 +81,7 @@ __all__ = [
     "enrich_parcel_shapes",
     "filter_parcels_by_area",
     "filter_parcels_by_shape",
+    "index_planning_regulation",
     "intersect_parcels_with_gpu_planning_features",
     "intersect_parcels_with_gpu_zoning",
     "normalize_cadastre_parcels",
@@ -81,4 +90,5 @@ __all__ = [
     "profile_grid_coverage",
     "profile_grid_proximity",
     "profile_shape_distribution",
+    "search_planning_regulation",
 ]

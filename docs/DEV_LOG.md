@@ -2,11 +2,11 @@
 
 ## Current project state
 
-- Current phase: French urban-planning source integrity
-- Latest completed step: STEP 7D.1.1 — hardened GPU document, archive, and extraction integrity
+- Current phase: French urban-planning regulation retrieval
+- Latest completed step: STEP 7D.4A — factual page-level Muret PLU regulation index
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: parcel-to-zoning normalization and intersection design
+- Next step waiting for review: evidence-based planning-rule interpretation design
 
 ## STEP 0 — Environment check
 
@@ -1280,6 +1280,59 @@ All distances remain 2D planar proxy distances calculated in EPSG:2154 from full
 Distance to an IGN electric line or transformation post does not establish grid connection feasibility, capacity, connection cost, or an RTE/DSO connection point.
 
 No BESS grid-distance threshold is selected here.
+
+## STEP 7D.4A — Extract and index the Muret PLU written regulation
+
+- Status: Complete
+- Implementation summary: Added a factual page-level text index for the one validated Muret written-regulation PDF in the current GPU extraction inventory. The stage validates current-document/archive lineage, containment, regular-file status, inventory classification, byte size, and SHA256 before using `pypdf`; it keeps raw extracted text separate from accent/case/whitespace-normalized search text and isolates an extraction failure to its page.
+- Important files: `src/landscout/stages/index_planning_regulation.py`, `tests/unit/test_index_planning_regulation.py`, `src/landscout/stages/__init__.py`, `pyproject.toml`, `uv.lock`
+- Tests/checks: 31 focused offline tests and the complete 787-test suite pass. They cover exact-target API scope, discovery, ambiguity, path/link integrity, size/SHA mismatch, page states and numbering, per-page and reader failures, search normalization, determinism, corrupted-index rejection, and input immutability. Ruff and mypy pass.
+- Important decisions: `pypdf` is the sole added extraction dependency; no OCR dependency or OCR processing is used. Search is literal after Unicode decomposition, accent removal, case folding, and whitespace normalization. A hit is a retrieval fact only and carries no legal or BESS meaning. Complete regulation text is stored only in ignored processed data, not this log or Git.
+- Known issues: Poppler rendering tools were unavailable locally, but all 142 pages yielded deterministic embedded text with no extraction error, replacement character, or NUL character. This step indexes text; it does not claim layout fidelity or interpret the regulation.
+
+### Validated source and extraction
+
+- Document ID: `33edb4c9f6943c88d8d92518bff20bec`
+- Archive SHA256: `9d6677cd6634b56b712311042f0cc714d5ca42a38f82a417b27dd473255d7d93`
+- PDF relative path: `31395_PLU_20240215/Pieces_ecrites/3_Reglement/31395_reglement_20240215.pdf`
+- PDF size: 2,162,501 bytes
+- PDF SHA256: `5358ebad6b0cda6de681ba3536e29b8b6291fb701c7d3711f4ee1d6fdb85c6fb`
+- Extractor: `pypdf 6.15.0`
+- Pages: 142; `TEXT` 142, `EMPTY` 0, `ERROR` 0
+- Total raw extracted characters: 325,851
+- First real extraction/index runtime: 7.621 seconds
+- A second independent extraction produced an identical page table.
+
+### Factual diagnostic searches
+
+Search counts below are page-hit rows / literal normalized occurrences; page numbers are 1-based.
+
+| Runtime term | Hit pages / occurrences | Page numbers |
+| --- | ---: | --- |
+| `batterie` | 0 / 0 | — |
+| `stockage` | 29 / 35 | 8, 11, 22, 24, 25, 26, 36, 38, 39, 40, 48, 51, 52, 63, 64, 65, 74, 75, 81, 84, 85, 95, 96, 106, 107, 127, 128, 137, 138 |
+| `énergie` | 12 / 22 | 4, 11, 25, 39, 51, 63, 74, 84, 95, 106, 127, 138 |
+| `poste électrique` | 0 / 0 | — |
+| `transformateur` | 10 / 10 | 11, 16, 30, 43, 54, 74, 87, 95, 128, 138 |
+| `ouvrage technique` | 0 / 0 | — |
+| `équipement d'intérêt collectif` | 0 / 0 | — |
+| `service public` | 1 / 1 | 6 |
+| `installation classée` | 0 / 0 | — |
+| `ICPE` | 0 / 0 | — |
+| `risque` | 25 / 58 | 5, 8, 9, 22, 23, 35, 36, 37, 48, 49, 60, 61, 71, 72, 80, 81, 82, 94, 104, 114, 125, 126, 134, 135, 136 |
+| `nuisance` | 11 / 11 | 8, 22, 35, 36, 48, 71, 80, 81, 101, 125, 136 |
+
+Zero hits mean only that the exact normalized runtime phrase was absent; variants or different wording are not inferred.
+
+### Outputs and read-back
+
+- `data/processed/planning/muret_plu_regulation_pages.parquet`: 142 rows, 258,518 bytes
+- `data/processed/planning/muret_plu_regulation_search_hits.parquet`: 88 rows, 7,292 bytes
+- `data/processed/planning/muret_plu_regulation_index.json`: 740 bytes
+
+Read-back verified document/archive/PDF lineage, PDF hash, page count, unique ordered page numbers, exact text/status/character fields, deterministic repeat extraction, and valid search-hit page references. Generated outputs remain ignored by Git.
+
+No legal or BESS conclusion is produced. No zone is classified, and no parcel is rejected.
 
 ## STEP 7D.2 — Normalize GPU zoning and intersect Muret parcels
 
