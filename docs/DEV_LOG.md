@@ -1784,6 +1784,92 @@ No BESS compatibility status.
 No parcel rejection.
 No score.
 
+## STEP 7D.4C — Evidence-backed BESS zoning precheck
+
+- Status: Complete
+- Implementation summary: Added a strict, checked-in, source-locked YAML policy and a source-complete interpretation stage that converts only validated written-zoning evidence into conservative chapter, raw-zone, parcel/zone, and parcel-level precheck facts. No runtime LLM, semantic classifier, fuzzy inheritance, or parcel filtering is used.
+- Important files: `configs/planning/muret_bess_zoning_policy.yaml`, `src/landscout/stages/interpret_bess_zoning.py`, `tests/unit/test_interpret_bess_zoning.py`, and the five ignored precheck outputs under `data/processed/planning/`.
+- Tests/checks: 36 focused offline tests cover source locks, strict YAML and duplicate keys, policy completeness, exact evidence excerpts, contradictory-direction rejection, status/evidence prerequisites, exact and configured-alias inheritance, independently recomputed factual mapping counters, mixed-zone aggregation, touch-only handling, input immutability, coordinated mutations, and persisted read-back. The complete 1,020-test suite passes; repository-wide Ruff and `mypy src` checks pass.
+
+### Scope and policy semantics
+
+Every output carries:
+
+```text
+planning_precheck_scope = WRITTEN_ZONING_REGULATION_ONLY
+```
+
+The stage does not interpret `TYPEPSC`, `STYPEPSC`, `TYPEINF`, or `STYPEINF`. Existing prescription/information relation counts remain unchanged, and every parcel explicitly records `non_zoning_planning_features_interpreted = false`. It also does not interpret environmental constraints, permit procedure, grid capacity, or project design.
+
+The policy locks document ID, archive SHA256, PDF SHA256, complete index SHA256, complete factual-structure SHA256, structure profile, and policy schema. It contains exactly one entry for each of the 13 resolved regulation chapters. The source mapping is the only inheritance path: 12 raw labels use `EXACT`, 17 use `CONFIG_ALIAS`, and no label is inferred from a prefix.
+
+The current regulation contains no explicit occurrence of `batterie` and does not classify an electricity-storage installation as one of its planning-use categories. Accordingly, the checked-in policy does not use absence of a prohibition as positive evidence. Each chapter remains `CONDITIONAL_REVIEW / LOW`: the cited text provides an explicit conditional category route or exception, but formal review must determine whether the actual BESS design belongs to that category and meets every condition.
+
+| Chapter | Section / page | Factual evidence used | Status / confidence |
+| --- | --- | --- | --- |
+| UA | `SECTION-0009` / 8 | Conditional ICPE rule | `CONDITIONAL_REVIEW` / `LOW` |
+| UB | `SECTION-0022` / 22 | Conditional ICPE rule | `CONDITIONAL_REVIEW` / `LOW` |
+| UC | `SECTION-0037` / 36 | Conditional ICPE rule | `CONDITIONAL_REVIEW` / `LOW` |
+| UD | `SECTION-0052` / 48 | Conditional ICPE rule | `CONDITIONAL_REVIEW` / `LOW` |
+| UF | `SECTION-0066` / 60 | Conditional ICPE rule | `CONDITIONAL_REVIEW` / `LOW` |
+| UP | `SECTION-0080` / 71 | Public/collective-interest equipment exception | `CONDITIONAL_REVIEW` / `LOW` |
+| AU | `SECTION-0096` / 81 | Access, road, and network prerequisites | `CONDITIONAL_REVIEW` / `LOW` |
+| AUp | `SECTION-0111` / 93 | Access, road, and network prerequisites | `CONDITIONAL_REVIEW` / `LOW` |
+| AUf | `SECTION-0126` / 102 | Road and network prerequisites | `CONDITIONAL_REVIEW` / `LOW` |
+| AU0 | `SECTION-0141` / 114 | Prior PLU-modification requirement | `CONDITIONAL_REVIEW` / `LOW` |
+| AUf0 | `SECTION-0156` / 120 | Prior PLU-modification requirement | `CONDITIONAL_REVIEW` / `LOW` |
+| A | `SECTION-0170` / 125 | Broad restriction with technical-infrastructure exception | `CONDITIONAL_REVIEW` / `LOW` |
+| N | `SECTION-0184` / 135 | Technical-infrastructure/public-service exceptions | `CONDITIONAL_REVIEW` / `LOW` |
+
+All 13 excerpts are exact source substrings, 600 characters or fewer, with individual SHA256 values. Interpretation is confined to separate `interpretation_note`, `rationale`, and `missing_information` fields. Evidence directions are all `CONDITION`: ICPE rule 5, public-interest exception 1, access/network condition 3, other relevant rule 2, and technical-equipment rule 2. All 13 chapters lack explicit BESS wording.
+
+### Integrity and parcel aggregation
+
+The stage independently revalidates the factual structure component hashes, per-section hashes, and complete envelope. It also recomputes the exact zone and intersection input hashes used by STEP 7D.4B before applying policy. The public validator receives the index, factual structure, zone catalog, zoning relations, complete STEP 7D.3 parcel frame, policy, and result; it rebuilds all four outputs and compares every row, scalar, lineage field, and hash.
+
+Positive-area zones alone control parcel aggregation. One status across all positive zones is retained; differing statuses would produce `MIXED_REVIEW_REQUIRED`; no positive-area zone produces `UNKNOWN`. The dominant zone is retained as a separate factual view and never suppresses a non-dominant conflict. `TOUCH_ONLY` remains counted but cannot control status. No geometric area threshold is introduced.
+
+### Real Muret regression
+
+| Result | Count |
+| --- | ---: |
+| Input/output parcels | 3,638 / 3,638 |
+| Chapter policies | 13 |
+| Raw-zone policies | 29 |
+| Positive parcel/zone policy relations | 5,095 |
+| Factual touch-only relations | 0 |
+| `CONDITIONAL_REVIEW` chapters / raw labels / parcels | 13 / 29 / 3,638 |
+| `MIXED_REVIEW_REQUIRED` parcels | 0 |
+| `UNKNOWN` parcels | 0 |
+| Lost / extra parcel IDs | 0 / 0 |
+
+- Policy SHA256: `201bbd8e0a8538f0ecc8ed077290e41f25b2c57723721d69183ab31d0b0be153`
+- Factual structure input SHA256: `e407cb12ef6e2d051dd1929d1dcd56cb3599ea04ece4d92fb036fd73f4405a09`
+- Zone-mapping input SHA256: `718d4721d54a76b8a28d152ba6535b3c948e606b3c4fc8d9f4fe9742c8e99453`
+- Parcel/zoning relation input SHA256: `547614f20eba5ba493d50c0162e498ffa0e7345cce65eb072537f0caf7e7a94b`
+- Chapter/source-zone/parcel-zone hashes: `d77b74d0412fa1772a64cc46f5dc2af7cb457d9ca4823538c3fe5092ead65d6e` / `1447db9885e2c7a9ff3c0399416c442aa9c3bed8be504af9b99b3edad6f56cf5` / `40a88adb1e137d61bfcdd8d991a6b6e897ede86822ab319119c6e034dca236fa`
+- Parcel-output SHA256: `2213be8c264fba06cbb6db16041125c985781122bf0522951c47c093b380c498`
+- Complete result SHA256: `a51146520780e4e4e3b2c8ee89e47230c4164e438ca13a9edc3a3167222cff06`
+- Source-complete runtime: 13.677 seconds
+
+### Outputs and read-back
+
+- `muret_bess_zoning_chapter_policy.parquet`: 13 rows, 15,973 bytes
+- `muret_bess_zoning_source_policy.parquet`: 29 rows, 13,391 bytes
+- `muret_bess_zoning_policy_relations.parquet`: 5,095 rows, 134,757 bytes
+- `muret_bess_zoning_precheck.parquet`: 3,638 rows, 1,585,871 bytes; GeoParquet in the original parcel CRS
+- `muret_bess_zoning_precheck.json`: manifest schema 1, 3,283 bytes
+
+All files were read back. The immutable result was reconstructed from the four persisted Parquet outputs and JSON manifest, then accepted by the public source-complete validator with the original validated inputs. Parcel IDs/order/index, all prior fields, geometry, and CRS were unchanged.
+
+This is a conservative LandScout preliminary screening status.
+
+It is not an authorization, permit decision or legal opinion.
+
+Formal review of the complete planning document, prescriptions, servitudes and project design remains required.
+
+No parcel is rejected in this step.
+
 ## STEP 7D.2 — Normalize GPU zoning and intersect Muret parcels
 
 - Status: Complete

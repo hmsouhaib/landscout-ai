@@ -39,6 +39,14 @@ from landscout.stages.index_planning_regulation import (
     validate_planning_regulation_index,
     validate_planning_regulation_search_result,
 )
+from landscout.stages.interpret_bess_zoning import (
+    BessZoningPolicyConfig,
+    BessZoningPrecheckError,
+    BessZoningPrecheckResult,
+    interpret_bess_zoning,
+    load_bess_zoning_policy_config,
+    validate_bess_zoning_precheck,
+)
 from landscout.stages.normalize_cadastre import (
     CadastreNormalizationError,
     normalize_cadastre_parcels,
@@ -65,6 +73,9 @@ from landscout.stages.structure_planning_regulation import (
 )
 
 __all__ = [
+    "BessZoningPolicyConfig",
+    "BessZoningPrecheckError",
+    "BessZoningPrecheckResult",
     "BoundaryDistanceProfile",
     "CadastreNormalizationError",
     "CoverageStatusCounts",
@@ -97,8 +108,10 @@ __all__ = [
     "filter_parcels_by_area",
     "filter_parcels_by_shape",
     "index_planning_regulation",
+    "interpret_bess_zoning",
     "intersect_parcels_with_gpu_planning_features",
     "intersect_parcels_with_gpu_zoning",
+    "load_bess_zoning_policy_config",
     "load_planning_regulation_structure_config",
     "normalize_cadastre_parcels",
     "normalize_ign_electricity",
@@ -108,6 +121,7 @@ __all__ = [
     "profile_shape_distribution",
     "search_planning_regulation",
     "structure_planning_regulation",
+    "validate_bess_zoning_precheck",
     "validate_planning_regulation_index",
     "validate_planning_regulation_search_result",
     "validate_planning_regulation_structure",
