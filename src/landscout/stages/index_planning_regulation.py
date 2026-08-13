@@ -15,7 +15,6 @@ from typing import Literal
 import geopandas as gpd  # type: ignore[import-untyped]
 import pandas as pd  # type: ignore[import-untyped]
 from pypdf import PdfReader
-from pyproj import CRS
 
 from landscout.common import planning_text
 from landscout.sources.gpu_fr import (
@@ -24,7 +23,9 @@ from landscout.sources.gpu_fr import (
     GpuExtractedFile,
     GpuExtraction,
     GpuPlanningDocument,
+    GpuSpatialInspectionError,
     GpuWrittenFile,
+    revalidate_gpu_spatial_layer_source,
 )
 
 __all__ = [
@@ -239,297 +240,35 @@ def _file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _validated_extraction_root(extraction: GpuExtraction) -> tuple[Path, Path]:
-    root = extraction.extraction_root
-    if not isinstance(root, Path) or _is_link_or_junction(root) or not root.is_dir():
-        raise PlanningRegulationIndexError(
-            "GPU extraction root must be a regular directory"
-        )
-    try:
-        return root, root.resolve(strict=True)
-    except OSError as error:
-        raise PlanningRegulationIndexError(
-            "GPU extraction root cannot be resolved safely"
-        ) from error
-
-
-def _inventory_by_relative_path(
-    extraction: GpuExtraction,
-) -> dict[str, GpuExtractedFile]:
-    if type(extraction.files) is not tuple:
-        raise PlanningRegulationIndexError(
-            "GPU extraction inventory must be an immutable tuple"
-        )
-    inventory: dict[str, GpuExtractedFile] = {}
-    for item in extraction.files:
-        if not isinstance(item, GpuExtractedFile):
-            raise PlanningRegulationIndexError("GPU extraction inventory is invalid")
-        relative = _validated_relative_path(item.relative_path).as_posix()
-        if relative in inventory:
-            raise PlanningRegulationIndexError(
-                "GPU extraction inventory contains duplicate paths"
-            )
-        inventory[relative] = item
-    return inventory
-
-
-def _contained_zoning_file(root: Path, root_resolved: Path, relative: str) -> Path:
-    relative_path = _validated_relative_path(relative)
-    path = root.joinpath(*relative_path.parts)
-    current = root
-    for part in relative_path.parts:
-        current /= part
-        if _is_link_or_junction(current):
-            raise PlanningRegulationIndexError(
-                "GPU zoning source path contains a symbolic link or junction"
-            )
-    try:
-        resolved = path.resolve(strict=True)
-        resolved.relative_to(root_resolved)
-    except (OSError, ValueError) as error:
-        raise PlanningRegulationIndexError(
-            "GPU zoning source path escapes the verified extraction root"
-        ) from error
-    if not path.is_file():
-        raise PlanningRegulationIndexError(
-            "GPU zoning source must be an extracted regular file"
-        )
-    return path
-
-
-def _zoning_dataset_relative_path(
-    planning_document: GpuPlanningDocument,
-    root_resolved: Path,
-) -> str:
-    dataset_path = planning_document.zoning.reference.dataset_path
-    if not isinstance(dataset_path, Path) or _is_link_or_junction(dataset_path):
-        raise PlanningRegulationIndexError("GPU zoning source path is invalid")
-    try:
-        relative = dataset_path.resolve(strict=True).relative_to(root_resolved)
-    except (OSError, ValueError) as error:
-        raise PlanningRegulationIndexError(
-            "GPU zoning source path escapes the verified extraction root"
-        ) from error
-    return _validated_relative_path(relative.as_posix()).as_posix()
-
-
-def _zoning_source_family(
-    planning_document: GpuPlanningDocument,
-    root: Path,
-    root_resolved: Path,
-    inventory: dict[str, GpuExtractedFile],
-) -> tuple[tuple[Path, GpuExtractedFile], ...]:
-    reference = planning_document.zoning.reference
-    driver = _strict_string(reference.driver, "GPU zoning source driver")
-    dataset_relative = _zoning_dataset_relative_path(
-        planning_document, root_resolved
-    )
-    dataset_pure = PurePosixPath(dataset_relative)
-    if driver == "GPKG":
-        if dataset_pure.suffix.casefold() != ".gpkg":
-            raise PlanningRegulationIndexError(
-                "GPU zoning GeoPackage source has an inconsistent extension"
-            )
-        expected_paths = {dataset_relative}
-    elif driver == "ESRI Shapefile":
-        if dataset_pure.suffix.casefold() != ".shp":
-            raise PlanningRegulationIndexError(
-                "GPU zoning Shapefile source has an inconsistent extension"
-            )
-        if reference.source_layer != dataset_pure.stem:
-            raise PlanningRegulationIndexError(
-                "GPU zoning Shapefile layer name differs from its source basename"
-            )
-        family_prefix = f"{dataset_pure.stem}.".casefold()
-        family_suffixes = {
-            ".shp",
-            ".shx",
-            ".dbf",
-            ".prj",
-            ".cpg",
-            ".qix",
-            ".qmd",
-            ".sbn",
-            ".sbx",
-        }
-        expected_paths = {
-            relative
-            for relative in inventory
-            if PurePosixPath(relative).parent == dataset_pure.parent
-            and PurePosixPath(relative).name.casefold().startswith(family_prefix)
-            and PurePosixPath(relative).suffix.casefold() in family_suffixes
-        }
-        required_suffixes = {".shp", ".shx", ".dbf"}
-        if not required_suffixes.issubset(
-            {
-                PurePosixPath(relative).suffix.casefold()
-                for relative in expected_paths
-            }
-        ):
-            raise PlanningRegulationIndexError(
-                "GPU zoning Shapefile inventory is missing a required family member"
-            )
-        parent = root.joinpath(*dataset_pure.parent.parts)
-        try:
-            actual_paths = {
-                candidate.resolve(strict=True).relative_to(root_resolved).as_posix()
-                for candidate in parent.iterdir()
-                if candidate.name.casefold().startswith(family_prefix)
-                and candidate.suffix.casefold() in family_suffixes
-            }
-        except (OSError, ValueError) as error:
-            raise PlanningRegulationIndexError(
-                "GPU zoning Shapefile family cannot be inventoried safely"
-            ) from error
-        if actual_paths != expected_paths:
-            raise PlanningRegulationIndexError(
-                "GPU zoning Shapefile family differs from the extraction inventory"
-            )
-    else:
-        raise PlanningRegulationIndexError(
-            "GPU zoning source driver must be GPKG or ESRI Shapefile"
-        )
-
-    if not expected_paths:
-        raise PlanningRegulationIndexError(
-            "GPU zoning source is absent from the extraction inventory"
-        )
-    family: list[tuple[Path, GpuExtractedFile]] = []
-    for relative in sorted(expected_paths):
-        item = inventory.get(relative)
-        if item is None:
-            raise PlanningRegulationIndexError(
-                "GPU zoning source is absent from the extraction inventory"
-            )
-        expected_size = _strict_positive_integer(
-            item.size_bytes, "GPU zoning source inventory size"
-        )
-        expected_sha = _validated_sha256(
-            item.sha256, "GPU zoning source inventory SHA256"
-        )
-        path = _contained_zoning_file(root, root_resolved, relative)
-        try:
-            actual_size = path.stat().st_size
-        except OSError as error:
-            raise PlanningRegulationIndexError(
-                "GPU zoning source size cannot be read"
-            ) from error
-        if actual_size != expected_size:
-            raise PlanningRegulationIndexError(
-                "GPU zoning source size differs from the extraction inventory"
-            )
-        if _file_sha256(path) != expected_sha:
-            raise PlanningRegulationIndexError(
-                "GPU zoning source SHA256 differs from the extraction inventory"
-            )
-        family.append((path, item))
-    return tuple(family)
-
-
-def _same_crs(left: object, right: object) -> bool:
-    if left is None or right is None:
-        return left is None and right is None
-    try:
-        return bool(CRS.from_user_input(left).equals(CRS.from_user_input(right)))
-    except Exception as error:
-        raise PlanningRegulationIndexError(
-            "GPU zoning CRS cannot be validated"
-        ) from error
-
-
-def _compare_loaded_zoning(
-    loaded: gpd.GeoDataFrame,
-    reread: gpd.GeoDataFrame,
-) -> None:
-    try:
-        if not isinstance(loaded, gpd.GeoDataFrame) or not isinstance(
-            reread, gpd.GeoDataFrame
-        ):
-            raise PlanningRegulationIndexError(
-                "GPU zoning source must be a GeoDataFrame"
-            )
-        if len(loaded) != len(reread):
-            raise PlanningRegulationIndexError(
-                "Loaded GPU zoning row count differs from its source"
-            )
-        if tuple(loaded.columns) != tuple(reread.columns):
-            raise PlanningRegulationIndexError(
-                "Loaded GPU zoning columns differ from its source"
-            )
-        if loaded.geometry.name != reread.geometry.name:
-            raise PlanningRegulationIndexError(
-                "Loaded GPU zoning active geometry differs from its source"
-            )
-        if not _same_crs(loaded.crs, reread.crs):
-            raise PlanningRegulationIndexError(
-                "Loaded GPU zoning CRS differs from its source"
-            )
-        geometry_column = reread.geometry.name
-        attributes = [column for column in reread.columns if column != geometry_column]
-        if not loaded[attributes].reset_index(drop=True).equals(
-            reread[attributes].reset_index(drop=True)
-        ):
-            raise PlanningRegulationIndexError(
-                "Loaded GPU zoning attributes or row order differ from its source"
-            )
-        if loaded.geometry.to_wkb().tolist() != reread.geometry.to_wkb().tolist():
-            raise PlanningRegulationIndexError(
-                "Loaded GPU zoning geometry or row order differs from its source"
-            )
-        if "NOMFIC" not in reread.columns:
-            raise PlanningRegulationIndexError("GPU zoning is missing NOMFIC")
-    except PlanningRegulationIndexError:
-        raise
-    except Exception as error:
-        raise PlanningRegulationIndexError(
-            "Loaded GPU zoning cannot be compared safely with its source"
-        ) from error
-
-
 def _revalidate_zoning_source(
     planning_document: GpuPlanningDocument,
 ) -> tuple[gpd.GeoDataFrame, _ZoningSourceEvidence]:
     """Re-read immutable zoning bytes before trusting source PDF references."""
 
     try:
-        extraction = planning_document.extraction
-        reference = planning_document.zoning.reference
-        source_layer = _strict_string(
-            reference.source_layer, "GPU zoning source layer"
+        source = revalidate_gpu_spatial_layer_source(
+            planning_document, planning_document.zoning
         )
-        root, root_resolved = _validated_extraction_root(extraction)
-        family = _zoning_source_family(
-            planning_document,
-            root,
-            root_resolved,
-            _inventory_by_relative_path(extraction),
-        )
-        driver = _strict_string(reference.driver, "GPU zoning source driver")
-        if driver == "GPKG":
-            reread = gpd.read_file(
-                reference.dataset_path, layer=source_layer, engine="pyogrio"
-            )
-        elif driver == "ESRI Shapefile":
-            reread = gpd.read_file(reference.dataset_path, engine="pyogrio")
-        else:  # already rejected by _zoning_source_family
-            raise PlanningRegulationIndexError(
-                "GPU zoning source driver must be GPKG or ESRI Shapefile"
-            )
-        _compare_loaded_zoning(planning_document.zoning.data, reread)
-        return reread, _ZoningSourceEvidence(
-            source_layer=source_layer,
-            driver=driver,
+        if "NOMFIC" not in source.data.columns:
+            raise PlanningRegulationIndexError("GPU zoning is missing NOMFIC")
+        return source.data, _ZoningSourceEvidence(
+            source_layer=source.source_layer,
+            driver=source.driver,
             files=tuple(
                 _ZoningSourceFileIntegrity(
                     relative_path=item.relative_path,
                     size_bytes=item.size_bytes,
                     sha256=item.sha256,
                 )
-                for _, item in family
+                for item in source.files
             ),
         )
     except PlanningRegulationIndexError:
         raise
+    except GpuSpatialInspectionError as error:
+        raise PlanningRegulationIndexError(
+            f"GPU zoning source integrity cannot be revalidated: {error}"
+        ) from error
     except Exception as error:
         raise PlanningRegulationIndexError(
             "GPU zoning source cannot be revalidated"

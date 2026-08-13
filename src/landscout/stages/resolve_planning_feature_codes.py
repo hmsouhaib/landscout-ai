@@ -38,7 +38,7 @@ __all__ = [
 ]
 
 PROFILE_SCHEMA_VERSION = 2
-RESULT_HASH_SCHEMA_VERSION = 3
+RESULT_HASH_SCHEMA_VERSION = 4
 STANDARD_MODEL = "CNIG PLU v2017"
 OFFICIAL_TEXT_NORMALIZATION = "GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1"
 PRESCRIPTION_OFFICIAL_SOURCE_URL = (
@@ -287,6 +287,8 @@ class PlanningFeatureCodeResult:
     parcel_identity_input_sha256: str
     normalized_catalogs_input_sha256: str
     normalized_relations_input_sha256: str
+    gpu_related_source_files_sha256: str
+    expected_relations_content_sha256: str
     code_dictionary_content_sha256: str
     surface_features_content_sha256: str
     line_features_content_sha256: str
@@ -665,6 +667,12 @@ def _component_metadata(result: PlanningFeatureCodeResult) -> dict[str, object]:
         "normalized_relations_input_sha256": (
             result.normalized_relations_input_sha256
         ),
+        "gpu_related_source_files_sha256": (
+            result.gpu_related_source_files_sha256
+        ),
+        "expected_relations_content_sha256": (
+            result.expected_relations_content_sha256
+        ),
     }
 
 
@@ -735,7 +743,7 @@ def _build_result(
             f"Planning document standard {standard!r} differs from code-profile standard"
         )
     try:
-        validate_normalized_planning_feature_inputs(
+        factual_validation = validate_normalized_planning_feature_inputs(
             planning_document,
             parcels,
             surface_features,
@@ -781,6 +789,12 @@ def _build_result(
         ),
         normalized_relations_input_sha256=_normalized_relations_input_sha256(
             relations
+        ),
+        gpu_related_source_files_sha256=(
+            factual_validation.gpu_related_source_files_sha256
+        ),
+        expected_relations_content_sha256=(
+            factual_validation.expected_relations_content_sha256
         ),
         code_dictionary_content_sha256="",
         surface_features_content_sha256="",
@@ -854,6 +868,8 @@ def validate_planning_feature_code_result(
             "parcel_identity_input_sha256",
             "normalized_catalogs_input_sha256",
             "normalized_relations_input_sha256",
+            "gpu_related_source_files_sha256",
+            "expected_relations_content_sha256",
             "code_dictionary_content_sha256",
             "surface_features_content_sha256",
             "line_features_content_sha256",

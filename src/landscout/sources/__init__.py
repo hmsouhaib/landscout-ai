@@ -20,6 +20,8 @@ from landscout.sources.gpu_fr import (
     GpuSourceConfig,
     GpuSpatialInspectionError,
     GpuSpatialLayerReference,
+    GpuSpatialSourceFileIntegrity,
+    GpuValidatedSpatialLayerSource,
     GpuWrittenFile,
     build_gpu_document_list_url,
     build_gpu_partition,
@@ -31,6 +33,8 @@ from landscout.sources.gpu_fr import (
     ingest_gpu_planning_document,
     inspect_gpu_planning_document,
     load_gpu_source_config,
+    revalidate_gpu_spatial_layer_source,
+    revalidate_gpu_spatial_layer_sources,
     validate_gpu_archive,
 )
 from landscout.sources.ign_bdtopo_fr import (
@@ -95,6 +99,8 @@ __all__ = [
     "GpuSourceConfig",
     "GpuSpatialInspectionError",
     "GpuSpatialLayerReference",
+    "GpuSpatialSourceFileIntegrity",
+    "GpuValidatedSpatialLayerSource",
     "GpuWrittenFile",
     "IgnBdTopoArchiveError",
     "IgnBdTopoArchiveIntegrity",
@@ -146,6 +152,8 @@ __all__ = [
     "load_ign_bdtopo_layer",
     "load_ign_bdtopo_source_config",
     "load_rte_odre_source_config",
+    "revalidate_gpu_spatial_layer_source",
+    "revalidate_gpu_spatial_layer_sources",
     "validate_gpu_archive",
     "validate_ign_bdtopo_archive",
 ]

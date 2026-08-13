@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from copy import deepcopy
 from dataclasses import FrozenInstanceError, replace
 from hashlib import sha256
@@ -204,6 +205,7 @@ def _document(
     zoning_filenames: list[object] | None = None,
     written_filenames: tuple[str, ...] = (DEFAULT_PDF,),
 ) -> GpuPlanningDocument:
+    inventory = tuple(sorted(inventory, key=lambda item: item.relative_path))
     written = tuple(
         GpuWrittenFile(filename=value, title=None, document_path=None, source_url=None)
         for value in written_filenames
@@ -241,6 +243,25 @@ def _document(
         sha256=ARCHIVE_SHA,
         path=root.parent / "source.zip",
         cache_hit=True,
+    )
+    marker = root / ".landscout-gpu-extraction.json"
+    marker.write_text(
+        json.dumps(
+            {
+                "schema_version": 2,
+                "archive_sha256": archive.sha256,
+                "files": [
+                    {
+                        "relative_path": item.relative_path,
+                        "size_bytes": item.size_bytes,
+                        "sha256": item.sha256,
+                    }
+                    for item in inventory
+                ],
+            },
+            sort_keys=True,
+        ),
+        encoding="utf-8",
     )
     extraction = GpuExtraction(
         archive=archive,
@@ -499,7 +520,10 @@ def test_filename_absent_from_inventory_fails(tmp_path: Path) -> None:
         document,
         extraction=replace(document.extraction, files=tuple(items)),
     )
-    with pytest.raises(PlanningRegulationIndexError, match="missing from GPU inventory"):
+    with pytest.raises(
+        PlanningRegulationIndexError,
+        match="missing from GPU inventory|verified manifest",
+    ):
         index_planning_regulation(corrupted)
 
 
@@ -520,7 +544,10 @@ def test_path_outside_root_is_rejected(tmp_path: Path) -> None:
         document,
         extraction=replace(document.extraction, files=(item,)),
     )
-    with pytest.raises(PlanningRegulationIndexError, match="unsafe"):
+    with pytest.raises(
+        PlanningRegulationIndexError,
+        match="unsafe|verified manifest",
+    ):
         index_planning_regulation(corrupted)
 
 

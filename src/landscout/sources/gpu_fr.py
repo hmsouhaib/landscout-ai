@@ -17,6 +17,7 @@ import zipfile
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from hashlib import sha256
+from numbers import Integral
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from shutil import copy2, copyfileobj
 from typing import Annotated, Any, Literal
@@ -279,6 +280,32 @@ class GpuInspectedLayer:
     reference: GpuSpatialLayerReference
     data: gpd.GeoDataFrame
     summary: GpuLayerSummary
+
+
+@dataclass(frozen=True)
+class GpuSpatialSourceFileIntegrity:
+    """One verified physical member of an extracted GPU spatial dataset."""
+
+    relative_path: str
+    file_type: str
+    size_bytes: int
+    sha256: str
+    category: str
+
+
+@dataclass(frozen=True)
+class GpuValidatedSpatialLayerSource:
+    """Freshly reloaded GPU layer plus its extraction-inventory evidence."""
+
+    logical_name: LogicalLayerName
+    source_layer: str
+    driver: str
+    dataset_relative_path: str
+    source_crs: str
+    feature_count: int
+    files: tuple[GpuSpatialSourceFileIntegrity, ...]
+    ogr_fids: tuple[int, ...]
+    data: gpd.GeoDataFrame
 
 
 @dataclass(frozen=True)
@@ -1285,6 +1312,463 @@ def _load_reference(reference: GpuSpatialLayerReference) -> gpd.GeoDataFrame:
         raise GpuSpatialInspectionError(
             f"Cannot load GPU spatial layer: {reference.source_layer}"
         ) from error
+
+
+def _validated_inventory_path(value: object) -> PurePosixPath:
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise GpuSpatialInspectionError(
+            "GPU extraction inventory path must be an exact string"
+        )
+    if "\\" in value or "\x00" in value:
+        raise GpuSpatialInspectionError("GPU extraction inventory path is unsafe")
+    parts = value.split("/")
+    relative = PurePosixPath(value)
+    if (
+        relative.is_absolute()
+        or any(part in {"", ".", ".."} for part in parts)
+        or relative.as_posix() != value
+    ):
+        raise GpuSpatialInspectionError("GPU extraction inventory path is unsafe")
+    return relative
+
+
+def _validated_spatial_root(extraction: GpuExtraction) -> tuple[Path, Path]:
+    root = extraction.extraction_root
+    try:
+        if (
+            not isinstance(root, Path)
+            or _is_link_or_junction(root)
+            or not root.is_dir()
+        ):
+            raise GpuSpatialInspectionError(
+                "GPU extraction root must be a regular directory"
+            )
+        return root, root.resolve(strict=True)
+    except GpuSpatialInspectionError:
+        raise
+    except OSError as error:
+        raise GpuSpatialInspectionError(
+            "GPU extraction root cannot be resolved safely"
+        ) from error
+
+
+def _spatial_inventory(
+    extraction: GpuExtraction,
+) -> dict[str, GpuExtractedFile]:
+    if type(extraction.files) is not tuple:
+        raise GpuSpatialInspectionError(
+            "GPU extraction inventory must be an immutable tuple"
+        )
+    inventory: dict[str, GpuExtractedFile] = {}
+    for item in extraction.files:
+        if not isinstance(item, GpuExtractedFile):
+            raise GpuSpatialInspectionError("GPU extraction inventory is invalid")
+        relative = _validated_inventory_path(item.relative_path).as_posix()
+        if relative.casefold() in {key.casefold() for key in inventory}:
+            raise GpuSpatialInspectionError(
+                "GPU extraction inventory contains duplicate paths"
+            )
+        inventory[relative] = item
+    return inventory
+
+
+def _contained_spatial_path(
+    root: Path,
+    root_resolved: Path,
+    relative: str,
+) -> Path:
+    relative_path = _validated_inventory_path(relative)
+    path = root.joinpath(*relative_path.parts)
+    current = root
+    try:
+        for part in relative_path.parts:
+            current /= part
+            if _is_link_or_junction(current):
+                raise GpuSpatialInspectionError(
+                    "GPU spatial source path contains a symbolic link or junction"
+                )
+        resolved = path.resolve(strict=True)
+        resolved.relative_to(root_resolved)
+        if not path.is_file():
+            raise GpuSpatialInspectionError(
+                "GPU spatial source must be an extracted regular file"
+            )
+        return path
+    except GpuSpatialInspectionError:
+        raise
+    except (OSError, ValueError) as error:
+        raise GpuSpatialInspectionError(
+            "GPU spatial source escapes the verified extraction root"
+        ) from error
+
+
+def _spatial_dataset_relative_path(
+    reference: GpuSpatialLayerReference,
+    root_resolved: Path,
+) -> str:
+    path = reference.dataset_path
+    try:
+        if not isinstance(path, Path) or _is_link_or_junction(path):
+            raise GpuSpatialInspectionError("GPU spatial dataset path is invalid")
+        relative = path.resolve(strict=True).relative_to(root_resolved)
+        return _validated_inventory_path(relative.as_posix()).as_posix()
+    except GpuSpatialInspectionError:
+        raise
+    except (OSError, ValueError) as error:
+        raise GpuSpatialInspectionError(
+            "GPU spatial dataset path escapes the verified extraction root"
+        ) from error
+
+
+def _spatial_source_family(
+    reference: GpuSpatialLayerReference,
+    extraction: GpuExtraction,
+) -> tuple[str, tuple[tuple[Path, GpuExtractedFile], ...]]:
+    root, root_resolved = _validated_spatial_root(extraction)
+    inventory = _spatial_inventory(extraction)
+    relative = _spatial_dataset_relative_path(reference, root_resolved)
+    pure = PurePosixPath(relative)
+    driver = reference.driver
+    if driver == "GPKG":
+        if pure.suffix.casefold() != ".gpkg":
+            raise GpuSpatialInspectionError(
+                "GPU GeoPackage source has an inconsistent extension"
+            )
+        expected_paths = {relative}
+        for suffix in ("-wal", "-shm", "-journal"):
+            if Path(f"{reference.dataset_path}{suffix}").exists():
+                raise GpuSpatialInspectionError(
+                    "GPU GeoPackage has an unbound SQLite sidecar"
+                )
+        try:
+            layers = pyogrio.list_layers(reference.dataset_path)
+            exposed = [
+                value
+                for value in layers[:, 0].tolist()
+                if value == reference.source_layer
+            ]
+        except Exception as error:
+            raise GpuSpatialInspectionError(
+                "Cannot list the verified GPU GeoPackage source"
+            ) from error
+        if len(exposed) != 1:
+            raise GpuSpatialInspectionError(
+                "GPU GeoPackage source layer is missing or ambiguous"
+            )
+    elif driver == "ESRI Shapefile":
+        if pure.suffix.casefold() != ".shp" or reference.source_layer != pure.stem:
+            raise GpuSpatialInspectionError(
+                "GPU Shapefile source identity is inconsistent"
+            )
+        prefix = f"{pure.stem}.".casefold()
+        expected_paths = {
+            candidate
+            for candidate in inventory
+            if PurePosixPath(candidate).parent == pure.parent
+            and PurePosixPath(candidate).name.casefold().startswith(prefix)
+        }
+        required = {".shp", ".shx", ".dbf"}
+        if not required.issubset(
+            {PurePosixPath(candidate).suffix.casefold() for candidate in expected_paths}
+        ):
+            raise GpuSpatialInspectionError(
+                "GPU Shapefile inventory is missing a required family member"
+            )
+        parent = root.joinpath(*pure.parent.parts)
+        try:
+            actual_paths = {
+                candidate.resolve(strict=True)
+                .relative_to(root_resolved)
+                .as_posix()
+                for candidate in parent.iterdir()
+                if candidate.name.casefold().startswith(prefix)
+            }
+        except (OSError, ValueError) as error:
+            raise GpuSpatialInspectionError(
+                "GPU Shapefile family cannot be inventoried safely"
+            ) from error
+        if actual_paths != expected_paths:
+            raise GpuSpatialInspectionError(
+                "GPU Shapefile family differs from the extraction inventory"
+            )
+    else:
+        raise GpuSpatialInspectionError(
+            "GPU spatial source driver must be GPKG or ESRI Shapefile"
+        )
+
+    verified: list[tuple[Path, GpuExtractedFile]] = []
+    for candidate in sorted(expected_paths):
+        item = inventory.get(candidate)
+        if item is None:
+            raise GpuSpatialInspectionError(
+                "GPU spatial source is absent from the extraction inventory"
+            )
+        if (
+            type(item.size_bytes) is not int
+            or item.size_bytes <= 0
+            or not isinstance(item.sha256, str)
+            or re.fullmatch(r"[0-9a-f]{64}", item.sha256) is None
+        ):
+            raise GpuSpatialInspectionError(
+                "GPU spatial source inventory integrity is invalid"
+            )
+        path = _contained_spatial_path(root, root_resolved, candidate)
+        try:
+            actual_size = path.stat().st_size
+            actual_sha = _sha256(path)
+        except OSError as error:
+            raise GpuSpatialInspectionError(
+                "Cannot read GPU spatial source integrity"
+            ) from error
+        if actual_size != item.size_bytes:
+            raise GpuSpatialInspectionError(
+                "GPU spatial source size differs from the extraction inventory"
+            )
+        if actual_sha != item.sha256:
+            raise GpuSpatialInspectionError(
+                "GPU spatial source SHA256 differs from the extraction inventory"
+            )
+        verified.append((path, item))
+    return relative, tuple(verified)
+
+
+def _same_spatial_crs(left: object, right: object) -> bool:
+    try:
+        return bool(CRS.from_user_input(left).equals(CRS.from_user_input(right)))
+    except Exception as error:
+        raise GpuSpatialInspectionError(
+            "GPU spatial source CRS cannot be validated"
+        ) from error
+
+
+def _compare_inspected_spatial_layer(
+    inspected: GpuInspectedLayer,
+    reread: gpd.GeoDataFrame,
+) -> None:
+    loaded = inspected.data
+    try:
+        if not isinstance(loaded, gpd.GeoDataFrame) or not isinstance(
+            reread, gpd.GeoDataFrame
+        ):
+            raise GpuSpatialInspectionError(
+                "GPU spatial layer must be a GeoDataFrame"
+            )
+        if len(loaded) != len(reread):
+            raise GpuSpatialInspectionError(
+                "Loaded GPU spatial row count differs from its source"
+            )
+        if tuple(loaded.columns) != tuple(reread.columns):
+            raise GpuSpatialInspectionError(
+                "Loaded GPU spatial columns differ from its source"
+            )
+        if tuple(str(dtype) for dtype in loaded.dtypes) != tuple(
+            str(dtype) for dtype in reread.dtypes
+        ):
+            raise GpuSpatialInspectionError(
+                "Loaded GPU spatial dtypes differ from its source"
+            )
+        if loaded.geometry.name != reread.geometry.name or not _same_spatial_crs(
+            loaded.crs, reread.crs
+        ):
+            raise GpuSpatialInspectionError(
+                "Loaded GPU spatial geometry metadata differs from its source"
+            )
+        if loaded.attrs != reread.attrs:
+            raise GpuSpatialInspectionError(
+                "Loaded GPU spatial attributes metadata differs from its source"
+            )
+        geometry_column = reread.geometry.name
+        attributes = [column for column in reread.columns if column != geometry_column]
+        if not loaded[attributes].reset_index(drop=True).equals(
+            reread[attributes].reset_index(drop=True)
+        ):
+            raise GpuSpatialInspectionError(
+                "Loaded GPU spatial attributes or row order differ from its source"
+            )
+        if loaded.geometry.to_wkb().tolist() != reread.geometry.to_wkb().tolist():
+            raise GpuSpatialInspectionError(
+                "Loaded GPU spatial geometry or row order differs from its source"
+            )
+    except GpuSpatialInspectionError:
+        raise
+    except Exception as error:
+        raise GpuSpatialInspectionError(
+            "Loaded GPU spatial layer cannot be compared safely"
+        ) from error
+
+
+def _revalidate_gpu_spatial_layer_source(
+    planning_document: GpuPlanningDocument,
+    inspected_layer: GpuInspectedLayer,
+    *,
+    verify_extraction_manifest: bool,
+) -> GpuValidatedSpatialLayerSource:
+    """Verify and freshly reload one extracted GPU spatial-layer source."""
+
+    try:
+        if not isinstance(planning_document, GpuPlanningDocument) or not isinstance(
+            inspected_layer, GpuInspectedLayer
+        ):
+            raise GpuSpatialInspectionError(
+                "GPU planning document or inspected layer is invalid"
+            )
+        if not any(
+            inspected_layer is candidate
+            for candidate in (
+                planning_document.zoning,
+                *planning_document.related_layers,
+            )
+        ):
+            raise GpuSpatialInspectionError(
+                "Inspected GPU layer does not belong to the planning document"
+            )
+        if (
+            sum(
+                reference == inspected_layer.reference
+                for reference in planning_document.all_spatial_layers
+            )
+            != 1
+        ):
+            raise GpuSpatialInspectionError(
+                "Inspected GPU reference must occur exactly once in the spatial inventory"
+            )
+        if verify_extraction_manifest:
+            root, _ = _validated_spatial_root(planning_document.extraction)
+            try:
+                manifest_files = _validate_extraction_manifest(
+                    root, planning_document.extraction.archive
+                )
+            except GpuArchiveError as error:
+                raise GpuSpatialInspectionError(
+                    "GPU extraction manifest cannot verify the spatial source"
+                ) from error
+            if planning_document.extraction.files != manifest_files:
+                raise GpuSpatialInspectionError(
+                    "GPU extraction inventory differs from its verified manifest"
+                )
+        reference = inspected_layer.reference
+        relative, family = _spatial_source_family(
+            reference, planning_document.extraction
+        )
+        with_fids = pyogrio.read_dataframe(
+            reference.dataset_path,
+            layer=reference.source_layer,
+            fid_as_index=True,
+        )
+        if (
+            not with_fids.index.is_unique
+            or any(
+                isinstance(value, bool)
+                or not isinstance(value, Integral)
+                or int(value) < 0
+                for value in with_fids.index
+            )
+        ):
+            raise GpuSpatialInspectionError(
+                "GPU spatial source exposes invalid source FIDs"
+            )
+        ogr_fids = tuple(int(value) for value in with_fids.index)
+        reread = with_fids.reset_index(drop=True)
+        _compare_inspected_spatial_layer(inspected_layer, reread)
+        expected_summary = _summarize_layer(
+            reread, reference, planning_document.extraction
+        )
+        if inspected_layer.summary != expected_summary:
+            raise GpuSpatialInspectionError(
+                "GPU inspected-layer summary differs from its fresh source"
+            )
+        post_relative, post_family = _spatial_source_family(
+            reference, planning_document.extraction
+        )
+        if post_relative != relative or tuple(
+            item.relative_path for _, item in post_family
+        ) != tuple(item.relative_path for _, item in family):
+            raise GpuSpatialInspectionError(
+                "GPU spatial source family changed during verification"
+            )
+        for path, item in post_family:
+            if path.stat().st_size != item.size_bytes or _sha256(path) != item.sha256:
+                raise GpuSpatialInspectionError(
+                    "GPU spatial source changed during verification"
+                )
+        return GpuValidatedSpatialLayerSource(
+            logical_name=inspected_layer.logical_name,
+            source_layer=reference.source_layer,
+            driver=reference.driver,
+            dataset_relative_path=relative,
+            source_crs=expected_summary.crs,
+            feature_count=len(reread),
+            files=tuple(
+                GpuSpatialSourceFileIntegrity(
+                    relative_path=item.relative_path,
+                    file_type=item.file_type,
+                    size_bytes=item.size_bytes,
+                    sha256=item.sha256,
+                    category=item.category,
+                )
+                for _, item in family
+            ),
+            ogr_fids=ogr_fids,
+            data=reread,
+        )
+    except GpuSpatialInspectionError:
+        raise
+    except Exception as error:
+        raise GpuSpatialInspectionError(
+            "GPU spatial source cannot be revalidated"
+        ) from error
+
+
+def revalidate_gpu_spatial_layer_source(
+    planning_document: GpuPlanningDocument,
+    inspected_layer: GpuInspectedLayer,
+) -> GpuValidatedSpatialLayerSource:
+    """Verify and freshly reload one extracted GPU spatial-layer source."""
+
+    return _revalidate_gpu_spatial_layer_source(
+        planning_document,
+        inspected_layer,
+        verify_extraction_manifest=True,
+    )
+
+
+def revalidate_gpu_spatial_layer_sources(
+    planning_document: GpuPlanningDocument,
+    inspected_layers: tuple[GpuInspectedLayer, ...],
+) -> tuple[GpuValidatedSpatialLayerSource, ...]:
+    """Verify an ordered collection of extracted GPU spatial-layer sources."""
+
+    if type(inspected_layers) is not tuple:
+        raise GpuSpatialInspectionError(
+            "Inspected GPU spatial layers must be an immutable tuple"
+        )
+    if len({layer.logical_name for layer in inspected_layers}) != len(
+        inspected_layers
+    ):
+        raise GpuSpatialInspectionError(
+            "Inspected GPU spatial layers contain a duplicate logical name"
+        )
+    try:
+        root, _ = _validated_spatial_root(planning_document.extraction)
+        manifest_files = _validate_extraction_manifest(
+            root, planning_document.extraction.archive
+        )
+    except (AttributeError, TypeError, GpuArchiveError) as error:
+        raise GpuSpatialInspectionError(
+            "GPU extraction manifest cannot verify the spatial sources"
+        ) from error
+    if planning_document.extraction.files != manifest_files:
+        raise GpuSpatialInspectionError(
+            "GPU extraction inventory differs from its verified manifest"
+        )
+    return tuple(
+        _revalidate_gpu_spatial_layer_source(
+            planning_document,
+            layer,
+            verify_extraction_manifest=False,
+        )
+        for layer in inspected_layers
+    )
 
 
 def _crs_text(frame: gpd.GeoDataFrame) -> str:

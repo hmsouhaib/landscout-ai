@@ -20,6 +20,7 @@ from landscout.stages.enrich_grid_proximity import (
 )
 from landscout.stages.enrich_planning_features import (
     ParcelPlanningFeaturesResult,
+    PlanningFeatureInputValidation,
     PlanningFeaturesError,
     intersect_parcels_with_gpu_planning_features,
     validate_normalized_planning_feature_inputs,
@@ -107,6 +108,7 @@ __all__ = [
     "ParcelPlanningFeaturesResult",
     "PlanningFeatureCodeError",
     "PlanningFeatureCodeResult",
+    "PlanningFeatureInputValidation",
     "PlanningFeaturesError",
     "PlanningRegulationIndex",
     "PlanningRegulationIndexError",

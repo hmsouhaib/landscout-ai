@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import json
+from dataclasses import dataclass, replace
+from datetime import date, datetime
+from hashlib import sha256
 from math import isfinite
 from numbers import Integral, Real
-from pathlib import Path
 from typing import Literal, NamedTuple
 
 import geopandas as gpd  # type: ignore[import-untyped]
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
-import pyogrio  # type: ignore[import-untyped]
 from pyproj import CRS
 from shapely import (  # type: ignore[import-untyped]
     area as shapely_area,
@@ -29,11 +30,18 @@ from shapely import (
     length as shapely_length,
 )
 
-from landscout.sources.gpu_fr import GpuInspectedLayer, GpuPlanningDocument
+from landscout.sources.gpu_fr import (
+    GpuInspectedLayer,
+    GpuPlanningDocument,
+    GpuSpatialInspectionError,
+    GpuValidatedSpatialLayerSource,
+    revalidate_gpu_spatial_layer_sources,
+)
 from landscout.stages.planning_overlay import technical_overlay_tolerance
 
 __all__ = [
     "ParcelPlanningFeaturesResult",
+    "PlanningFeatureInputValidation",
     "PlanningFeaturesError",
     "intersect_parcels_with_gpu_planning_features",
     "validate_normalized_planning_feature_inputs",
@@ -320,6 +328,17 @@ class ParcelPlanningFeaturesResult:
 
 
 @dataclass(frozen=True)
+class PlanningFeatureInputValidation:
+    """Immutable source-completeness evidence for normalized planning facts."""
+
+    gpu_related_source_files_sha256: str
+    expected_relations_content_sha256: str
+    related_source_layer_count: int
+    related_source_file_count: int
+    expected_relation_count: int
+
+
+@dataclass(frozen=True)
 class _PlanningContext:
     provider: str
     portal: str
@@ -552,53 +571,10 @@ def _project_geometry(frame: gpd.GeoDataFrame, label: str) -> gpd.GeoSeries:
         ) from error
 
 
-def _read_ogr_fids(layer: GpuInspectedLayer) -> pd.Series:
-    """Read source-driver FIDs, not mutable GeoDataFrame index labels.
-
-    The current official prescription-surface Shapefile omits `LIB_IDPSC`.
-    Its OGR feature identifier is therefore the only source-record identity.
-    It is tied to the immutable archive/layer lineage and validated against a
-    fresh read of every source row before use.
-    """
-
-    path = layer.reference.dataset_path
-    if not isinstance(path, Path) or not path.is_file():
-        raise PlanningFeaturesError(
-            f"{layer.logical_name} has no identity field and source FIDs are unavailable"
-        )
-    try:
-        reread = pyogrio.read_dataframe(
-            path,
-            layer=layer.reference.source_layer,
-            fid_as_index=True,
-        )
-    except Exception as error:
-        raise PlanningFeaturesError(
-            f"{layer.logical_name} source FIDs cannot be read"
-        ) from error
-    if len(reread) != len(layer.data) or not np.array_equal(
-        reread.geometry.to_wkb(), layer.data.geometry.to_wkb()
-    ):
-        raise PlanningFeaturesError(
-            f"{layer.logical_name} source FID order does not match loaded data"
-        )
-    common = [column for column in layer.data.columns if column != "geometry"]
-    if common and not reread[common].reset_index(drop=True).equals(
-        layer.data[common].reset_index(drop=True)
-    ):
-        raise PlanningFeaturesError(
-            f"{layer.logical_name} source attributes changed since inspection"
-        )
-    values = pd.Series(
-        [f"OGR_FID:{value}" for value in reread.index.tolist()], dtype="object"
-    )
-    _validate_ids(values, f"{layer.logical_name} OGR FID")
-    return values
-
-
 def _source_feature_ids(
     layer: GpuInspectedLayer,
     spec: _LayerSpec,
+    validated_source: GpuValidatedSpatialLayerSource,
 ) -> tuple[pd.Series, SourceIdentityKind, str]:
     if spec.identity_field in layer.data.columns:
         result = layer.data[spec.identity_field].reset_index(drop=True).copy()
@@ -611,7 +587,16 @@ def _source_feature_ids(
                 "ARCHIVE_SCOPED_OGR_FID",
                 "OGR_FID",
             )
-        return _read_ogr_fids(layer), "ARCHIVE_SCOPED_OGR_FID", "OGR_FID"
+        if len(validated_source.ogr_fids) != len(layer.data):
+            raise PlanningFeaturesError(
+                f"{layer.logical_name} verified source FIDs are unavailable"
+            )
+        values = pd.Series(
+            [f"OGR_FID:{value}" for value in validated_source.ogr_fids],
+            dtype="object",
+        )
+        _validate_ids(values, f"{layer.logical_name} OGR FID")
+        return values, "ARCHIVE_SCOPED_OGR_FID", "OGR_FID"
     raise PlanningFeaturesError(
         f"{spec.logical_layer} is missing required identity field {spec.identity_field}"
     )
@@ -627,6 +612,7 @@ def _normalize_layer(
     layer: GpuInspectedLayer,
     spec: _LayerSpec,
     context: _PlanningContext,
+    validated_source: GpuValidatedSpatialLayerSource,
 ) -> gpd.GeoDataFrame:
     frame = layer.data
     if not isinstance(frame, gpd.GeoDataFrame):
@@ -657,7 +643,9 @@ def _normalize_layer(
             f"{spec.logical_layer} IDURBA does not match planning archive identity"
         )
 
-    source_ids, identity_kind, identity_field = _source_feature_ids(layer, spec)
+    source_ids, identity_kind, identity_field = _source_feature_ids(
+        layer, spec, validated_source
+    )
     planning_ids = source_ids.map(
         lambda value: (
             f"GPU:{context.document_id}:{spec.logical_layer}:{value}"
@@ -754,7 +742,12 @@ def _combine_catalogs(
 
 def _normalized_catalogs(
     planning_document: GpuPlanningDocument,
-) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame]:
+) -> tuple[
+    gpd.GeoDataFrame,
+    gpd.GeoDataFrame,
+    gpd.GeoDataFrame,
+    tuple[GpuValidatedSpatialLayerSource, ...],
+]:
     """Rebuild canonical catalogs from the inspected GPU related layers only."""
 
     context = _planning_context(planning_document)
@@ -775,10 +768,27 @@ def _normalized_catalogs(
             raise PlanningFeaturesError(f"Duplicate related layer: {logical}")
         layer_map[logical] = inspected_layer
 
-    normalized = {
-        logical: _normalize_layer(layer, LAYER_SPECS[logical], context)
-        for logical, layer in layer_map.items()
+    try:
+        validated_sources = revalidate_gpu_spatial_layer_sources(
+            planning_document,
+            tuple(
+                layer_map[logical] for logical in LAYER_SPECS if logical in layer_map
+            ),
+        )
+    except GpuSpatialInspectionError as error:
+        raise PlanningFeaturesError(
+            "Related GPU spatial sources failed physical revalidation"
+        ) from error
+    source_by_logical: dict[str, GpuValidatedSpatialLayerSource] = {
+        source.logical_name: source for source in validated_sources
     }
+    normalized: dict[str, gpd.GeoDataFrame] = {}
+    for logical, layer in layer_map.items():
+        source = source_by_logical[logical]
+        fresh_layer = replace(layer, data=source.data)
+        normalized[logical] = _normalize_layer(
+            fresh_layer, LAYER_SPECS[logical], context, source
+        )
 
     def combined(kind: GeometryKind) -> gpd.GeoDataFrame:
         return _combine_catalogs(
@@ -790,7 +800,12 @@ def _normalized_catalogs(
             kind,
         )
 
-    return combined("SURFACE"), combined("LINE"), combined("POINT")
+    return (
+        combined("SURFACE"),
+        combined("LINE"),
+        combined("POINT"),
+        validated_sources,
+    )
 
 
 def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -992,6 +1007,134 @@ def _empty_relations() -> pd.DataFrame:
                 )
             )
             for column in RELATION_COLUMNS
+        }
+    )
+
+
+def _build_relation_tables(
+    metric: gpd.GeoDataFrame,
+    surfaces: gpd.GeoDataFrame,
+    lines: gpd.GeoDataFrame,
+    points: gpd.GeoDataFrame,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    surface_work = _surface_relations(metric, surfaces)
+    line_work = _line_relations(metric, lines)
+    point_work = _point_relations(metric, points)
+    work_frames = [
+        frame
+        for frame in (surface_work, line_work, point_work)
+        if not frame.empty
+    ]
+    if not work_frames:
+        return surface_work, line_work, point_work, _empty_relations()
+    combined = pd.concat(work_frames, ignore_index=True)
+    combined = combined.sort_values(
+        ["_parcel_position", "planning_feature_id"], kind="stable"
+    ).reset_index(drop=True)
+    relations = combined.loc[:, RELATION_COLUMNS].copy()
+    for column in RELATION_COUNT_COLUMNS:
+        relations[column] = pd.array(relations[column], dtype="Int64")
+    return surface_work, line_work, point_work, relations
+
+
+def _canonical_integrity_value(value: object) -> object:
+    if isinstance(value, (datetime, date, pd.Timestamp)):
+        return value.isoformat()
+    if isinstance(value, np.generic):
+        return _canonical_integrity_value(value.item())
+    if value is None or value is pd.NA:
+        return None
+    try:
+        missing = pd.isna(value)
+    except (TypeError, ValueError):
+        missing = False
+    if isinstance(missing, (bool, np.bool_)) and bool(missing):
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, Integral):
+        return int(value)
+    if isinstance(value, Real):
+        number = float(value)
+        if not isfinite(number):
+            raise PlanningFeaturesError(
+                "Integrity payload contains non-finite numeric data"
+            )
+        return number
+    if isinstance(value, str):
+        return value
+    raise PlanningFeaturesError(
+        f"Integrity payload contains unsupported value {type(value).__name__}"
+    )
+
+
+def _canonical_integrity_sha256(payload: object) -> str:
+    try:
+        encoded = json.dumps(
+            payload,
+            ensure_ascii=False,
+            allow_nan=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    except Exception as error:
+        raise PlanningFeaturesError(
+            "Planning-feature integrity payload cannot be serialized"
+        ) from error
+    return sha256(encoded).hexdigest()
+
+
+def _gpu_related_source_files_sha256(
+    planning_document: GpuPlanningDocument,
+    sources: tuple[GpuValidatedSpatialLayerSource, ...],
+) -> str:
+    return _canonical_integrity_sha256(
+        {
+            "domain": "landscout.planning_features.verified_gpu_sources.v1",
+            "source_archive_sha256": planning_document.extraction.archive.sha256,
+            "layers": [
+                {
+                    "logical_layer": source.logical_name,
+                    "driver": source.driver,
+                    "source_layer": source.source_layer,
+                    "dataset_relative_path": source.dataset_relative_path,
+                    "source_feature_count": source.feature_count,
+                    "source_crs": source.source_crs,
+                    "ogr_fids": list(source.ogr_fids),
+                    "files": [
+                        {
+                            "relative_path": item.relative_path,
+                            "file_type": item.file_type,
+                            "size_bytes": item.size_bytes,
+                            "sha256": item.sha256,
+                            "category": item.category,
+                        }
+                        for item in sorted(
+                            source.files, key=lambda value: value.relative_path
+                        )
+                    ],
+                }
+                for source in sorted(sources, key=lambda value: value.logical_name)
+            ],
+        }
+    )
+
+
+def _expected_relations_content_sha256(relations: pd.DataFrame) -> str:
+    return _canonical_integrity_sha256(
+        {
+            "domain": "landscout.planning_features.expected_relations.v1",
+            "columns": [str(column) for column in relations.columns],
+            "index_names": [
+                None if name is None else str(name) for name in relations.index.names
+            ],
+            "index": [
+                _canonical_integrity_value(value) for value in relations.index.tolist()
+            ],
+            "rows": [
+                [_canonical_integrity_value(value) for value in row]
+                for row in relations.itertuples(index=False, name=None)
+            ],
         }
     )
 
@@ -1553,6 +1696,90 @@ def _validate_relation_semantics(relations: pd.DataFrame) -> None:
             raise PlanningFeaturesError(f"{kind} relation populated an unrelated metric")
 
 
+def _compare_rebuilt_relations(
+    supplied: pd.DataFrame,
+    expected: pd.DataFrame,
+) -> None:
+    if tuple(supplied.columns) != tuple(expected.columns):
+        raise PlanningFeaturesError(
+            "Planning relation schema differs from the spatial reconstruction"
+        )
+    if not supplied.index.equals(expected.index):
+        raise PlanningFeaturesError(
+            "Planning relation index or row order differs from the spatial reconstruction"
+        )
+    if len(supplied) != len(expected):
+        raise PlanningFeaturesError(
+            "Planning relation count differs from the spatial reconstruction"
+        )
+    for column in RELATION_COLUMNS:
+        actual_values = supplied[column].tolist()
+        expected_values = expected[column].tolist()
+        for position, (actual, rebuilt) in enumerate(
+            zip(actual_values, expected_values, strict=True)
+        ):
+            label = f"Planning relation {column} at row {position}"
+            if column in RELATION_FLOAT_COLUMNS:
+                actual_missing = bool(pd.isna(actual))
+                expected_missing = bool(pd.isna(rebuilt))
+                if actual_missing or expected_missing:
+                    if actual_missing != expected_missing:
+                        raise PlanningFeaturesError(
+                            f"{label} null pattern differs from spatial reconstruction"
+                        )
+                    continue
+                _require_close(actual, float(rebuilt), label)
+            elif not _null_safe_equal(actual, rebuilt):
+                raise PlanningFeaturesError(
+                    f"{label} differs from the spatial reconstruction"
+                )
+
+
+def _compare_rebuilt_parcel_output(
+    supplied: gpd.GeoDataFrame,
+    expected: gpd.GeoDataFrame,
+) -> None:
+    if tuple(supplied.columns) != tuple(expected.columns):
+        raise PlanningFeaturesError(
+            "Planning-feature parcel output schema differs from reconstruction"
+        )
+    if not supplied.index.equals(expected.index):
+        raise PlanningFeaturesError(
+            "Planning-feature parcel output index differs from reconstruction"
+        )
+    if not _crs(supplied.crs, "Parcel output").equals(
+        _crs(expected.crs, "Expected parcel output")
+    ) or not np.array_equal(supplied.geometry.to_wkb(), expected.geometry.to_wkb()):
+        raise PlanningFeaturesError(
+            "Planning-feature parcel geometry or CRS differs from reconstruction"
+        )
+    summary_float_columns = (
+        PARCEL_OUTPUT_COLUMNS
+        - PARCEL_COUNT_COLUMNS
+        - {"planning_feature_document_id", "planning_feature_archive_sha256"}
+    )
+    for column in supplied.columns:
+        if column == "geometry":
+            continue
+        if column in summary_float_columns:
+            for position, (actual, rebuilt) in enumerate(
+                zip(
+                    supplied[column].tolist(),
+                    expected[column].tolist(),
+                    strict=True,
+                )
+            ):
+                _require_close(
+                    actual,
+                    float(rebuilt),
+                    f"Parcel summary {column} at row {position}",
+                )
+        elif not supplied[column].equals(expected[column]):
+            raise PlanningFeaturesError(
+                f"Planning-feature parcel column {column} differs from reconstruction"
+            )
+
+
 def _validate_normalized_planning_feature_inputs(
     planning_document: GpuPlanningDocument,
     parcels: gpd.GeoDataFrame,
@@ -1560,12 +1787,27 @@ def _validate_normalized_planning_feature_inputs(
     line_features: gpd.GeoDataFrame,
     point_features: gpd.GeoDataFrame,
     relations: pd.DataFrame,
-) -> None:
+) -> PlanningFeatureInputValidation:
     """Validate exact STEP 7D.3.1 facts against their document and parcels."""
 
+    present_outputs = PARCEL_OUTPUT_COLUMNS & set(parcels.columns)
+    if present_outputs and present_outputs != PARCEL_OUTPUT_COLUMNS:
+        missing = sorted(PARCEL_OUTPUT_COLUMNS - present_outputs)
+        raise PlanningFeaturesError(
+            "Parcel planning-feature summaries are incomplete: " + ", ".join(missing)
+        )
     _validate_parcels(parcels, allow_output_columns=True)
-    metric_parcels = _metric_parcels(parcels)
-    expected_catalogs = _normalized_catalogs(planning_document)
+    source_parcels = (
+        parcels.drop(columns=list(PARCEL_OUTPUT_COLUMNS))
+        if present_outputs
+        else parcels
+    )
+    _validate_parcels(source_parcels)
+    metric_parcels = _metric_parcels(source_parcels)
+    surfaces, lines, points, validated_sources = _normalized_catalogs(
+        planning_document
+    )
+    expected_catalogs = (surfaces, lines, points)
 
     catalogs = (
         _validate_catalog_contract(surface_features, "SURFACE"),
@@ -1626,6 +1868,52 @@ def _validate_normalized_planning_feature_inputs(
         )
     _validate_relation_semantics(relations)
     _validate_relation_catalog_consistency(relations, catalogs)
+    surface_work, line_work, point_work, expected_relations = _build_relation_tables(
+        metric_parcels, *expected_catalogs
+    )
+    _compare_rebuilt_relations(relations, expected_relations)
+
+    if present_outputs:
+        context = _planning_context(planning_document)
+        expected_output = _attach_parcel_summaries(
+            source_parcels,
+            metric_parcels,
+            surface_work,
+            line_work,
+            point_work,
+            context,
+        )
+        _compare_rebuilt_parcel_output(parcels, expected_output)
+        _validate_parcel_summaries(
+            source_parcels, parcels, expected_relations, surface_work
+        )
+        if not parcels["planning_feature_document_id"].eq(context.document_id).all():
+            raise PlanningFeaturesError(
+                "Parcel planning-feature document lineage differs"
+            )
+        if not parcels["planning_feature_archive_sha256"].eq(
+            context.archive_sha256
+        ).all():
+            raise PlanningFeaturesError(
+                "Parcel planning-feature archive lineage differs"
+            )
+
+    unique_files = {
+        item.relative_path
+        for source in validated_sources
+        for item in source.files
+    }
+    return PlanningFeatureInputValidation(
+        gpu_related_source_files_sha256=_gpu_related_source_files_sha256(
+            planning_document, validated_sources
+        ),
+        expected_relations_content_sha256=(
+            _expected_relations_content_sha256(expected_relations)
+        ),
+        related_source_layer_count=len(validated_sources),
+        related_source_file_count=len(unique_files),
+        expected_relation_count=len(expected_relations),
+    )
 
 
 def validate_normalized_planning_feature_inputs(
@@ -1635,11 +1923,11 @@ def validate_normalized_planning_feature_inputs(
     line_features: gpd.GeoDataFrame,
     point_features: gpd.GeoDataFrame,
     relations: pd.DataFrame,
-) -> None:
+) -> PlanningFeatureInputValidation:
     """Validate exact STEP 7D.3.1 facts against their document and parcels."""
 
     try:
-        _validate_normalized_planning_feature_inputs(
+        return _validate_normalized_planning_feature_inputs(
             planning_document,
             parcels,
             surface_features,
@@ -1779,6 +2067,7 @@ def _validate_result(
     surface_work: pd.DataFrame | None = None,
     *,
     planning_document: GpuPlanningDocument,
+    source_inputs_already_rebuilt: bool = False,
 ) -> None:
     output = result.parcels
     missing_output = sorted(PARCEL_OUTPUT_COLUMNS - set(output.columns))
@@ -1808,12 +2097,13 @@ def _validate_result(
         result.line_features,
         result.point_features,
     )
-    validate_normalized_planning_feature_inputs(
-        planning_document,
-        source,
-        *catalogs,
-        result.relations,
-    )
+    if not source_inputs_already_rebuilt:
+        validate_normalized_planning_feature_inputs(
+            planning_document,
+            source,
+            *catalogs,
+            result.relations,
+        )
     all_feature_ids = [
         identifier
         for catalog in catalogs
@@ -1868,22 +2158,11 @@ def intersect_parcels_with_gpu_planning_features(
 
     _validate_parcels(parcels)
     context = _planning_context(planning_document)
-    surfaces, lines, points = _normalized_catalogs(planning_document)
+    surfaces, lines, points, _ = _normalized_catalogs(planning_document)
     metric = _metric_parcels(parcels)
-    surface_work = _surface_relations(metric, surfaces)
-    line_work = _line_relations(metric, lines)
-    point_work = _point_relations(metric, points)
-    work_frames = [frame for frame in (surface_work, line_work, point_work) if not frame.empty]
-    if work_frames:
-        combined = pd.concat(work_frames, ignore_index=True)
-        combined = combined.sort_values(
-            ["_parcel_position", "planning_feature_id"], kind="stable"
-        ).reset_index(drop=True)
-        relations = combined.loc[:, RELATION_COLUMNS].copy()
-        for column in RELATION_COUNT_COLUMNS:
-            relations[column] = pd.array(relations[column], dtype="Int64")
-    else:
-        relations = _empty_relations()
+    surface_work, line_work, point_work, relations = _build_relation_tables(
+        metric, surfaces, lines, points
+    )
     parcel_output = _attach_parcel_summaries(
         parcels, metric, surface_work, line_work, point_work, context
     )
@@ -1899,5 +2178,6 @@ def intersect_parcels_with_gpu_planning_features(
         result,
         surface_work,
         planning_document=planning_document,
+        source_inputs_already_rebuilt=True,
     )
     return result

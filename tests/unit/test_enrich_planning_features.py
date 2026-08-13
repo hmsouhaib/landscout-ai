@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import json
+import shutil
+import tempfile
 from copy import deepcopy
 from dataclasses import FrozenInstanceError, replace
+from hashlib import sha256
 from pathlib import Path
 
 import geopandas as gpd  # type: ignore[import-untyped]
@@ -20,9 +24,12 @@ from shapely.geometry import (
 )
 
 from landscout import stages
+from landscout.sources import gpu_fr as gpu_source_module
 from landscout.sources.gpu_fr import (
+    EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
+    GpuExtractedFile,
     GpuExtraction,
     GpuInspectedLayer,
     GpuLayerSummary,
@@ -32,6 +39,7 @@ from landscout.sources.gpu_fr import (
 from landscout.stages import enrich_planning_features as planning_features_module
 from landscout.stages.enrich_planning_features import (
     ParcelPlanningFeaturesResult,
+    PlanningFeatureInputValidation,
     PlanningFeaturesError,
     _validate_result,
     intersect_parcels_with_gpu_planning_features,
@@ -158,9 +166,91 @@ def _inspected(logical: str, frame: gpd.GeoDataFrame) -> GpuInspectedLayer:
     )
 
 
+def _physical_inventory(root: Path) -> tuple[GpuExtractedFile, ...]:
+    records: list[GpuExtractedFile] = []
+    for path in sorted((item for item in root.rglob("*") if item.is_file()), key=str):
+        if path.parent == root and path.name == EXTRACTION_MANIFEST_NAME:
+            continue
+        suffix = path.suffix.casefold()
+        records.append(
+            GpuExtractedFile(
+                relative_path=path.relative_to(root).as_posix(),
+                file_type=suffix.lstrip(".") or "none",
+                size_bytes=path.stat().st_size,
+                sha256=sha256(path.read_bytes()).hexdigest(),
+                category="SPATIAL_DATA",
+            )
+        )
+    return tuple(records)
+
+
+def _write_extraction_manifest(
+    root: Path,
+    archive_sha256: str,
+    files: tuple[GpuExtractedFile, ...],
+) -> None:
+    payload = {
+        "schema_version": 2,
+        "archive_sha256": archive_sha256,
+        "files": [
+            {
+                "relative_path": item.relative_path,
+                "size_bytes": item.size_bytes,
+                "sha256": item.sha256,
+            }
+            for item in files
+        ],
+    }
+    (root / EXTRACTION_MANIFEST_NAME).write_text(
+        json.dumps(payload, sort_keys=True, separators=(",", ":")),
+        encoding="utf-8",
+    )
+
+
+def _materialize_layer(root: Path, layer: GpuInspectedLayer) -> GpuInspectedLayer:
+    reference = layer.reference
+    if reference.dataset_path.is_file():
+        path = reference.dataset_path.resolve()
+    else:
+        path = root / f"{layer.logical_name}.gpkg"
+        layer.data.to_file(
+            path,
+            layer=reference.source_layer,
+            driver="GPKG",
+            engine="pyogrio",
+            index=False,
+        )
+        reference = replace(reference, dataset_path=path, driver="GPKG")
+    reread = gpd.read_file(
+        path,
+        layer=reference.source_layer if reference.driver == "GPKG" else None,
+        engine="pyogrio",
+    )
+    return replace(
+        layer,
+        reference=replace(reference, dataset_path=path),
+        data=reread,
+        summary=_summary(reread, reference.source_layer),
+    )
+
+
 def _planning_document(
     layers: list[GpuInspectedLayer] | None = None,
 ) -> GpuPlanningDocument:
+    requested_layers = list(layers or [])
+    existing_paths = [
+        layer.reference.dataset_path.resolve()
+        for layer in requested_layers
+        if layer.reference.dataset_path.is_file()
+    ]
+    extraction_root = (
+        existing_paths[0].parent
+        if existing_paths
+        else Path(tempfile.mkdtemp(prefix="landscout-feature-source-"))
+    )
+    related = tuple(
+        _materialize_layer(extraction_root, layer) for layer in requested_layers
+    )
     metadata = GpuDocumentMetadata(
         provider="Géoportail de l'Urbanisme",
         portal="GPU",
@@ -195,24 +285,34 @@ def _planning_document(
         path=Path("synthetic.zip"),
         cache_hit=True,
     )
-    extraction = GpuExtraction(
-        archive=archive,
-        extraction_root=Path("synthetic"),
-        files=(),
-        standard_models=(STANDARD,),
-        cache_hit=True,
-    )
     zoning_frame = gpd.GeoDataFrame(
         {"zone": ["Z"]}, geometry=[_rectangle(-10, -10, 20, 20)], crs="EPSG:2154"
     )
-    zoning_ref = GpuSpatialLayerReference(Path("zoning.gpkg"), "ZONING", "GPKG")
+    zoning_path = extraction_root / "zoning.gpkg"
+    zoning_frame.to_file(
+        zoning_path,
+        layer="ZONING",
+        driver="GPKG",
+        engine="pyogrio",
+        index=False,
+    )
+    zoning_frame = gpd.read_file(zoning_path, layer="ZONING", engine="pyogrio")
+    zoning_ref = GpuSpatialLayerReference(zoning_path, "ZONING", "GPKG")
     zoning = GpuInspectedLayer(
         logical_name="zoning",
         reference=zoning_ref,
         data=zoning_frame,
         summary=_summary(zoning_frame, "ZONING"),
     )
-    related = tuple(layers or [])
+    inventory = _physical_inventory(extraction_root)
+    _write_extraction_manifest(extraction_root, ARCHIVE_SHA, inventory)
+    extraction = GpuExtraction(
+        archive=archive,
+        extraction_root=extraction_root,
+        files=inventory,
+        standard_models=(STANDARD,),
+        cache_hit=True,
+    )
     return GpuPlanningDocument(
         extraction=extraction,
         all_spatial_layers=(zoning_ref, *(layer.reference for layer in related)),
@@ -279,7 +379,8 @@ def test_surface_full_overlap_normalizes_raw_values_and_lineage() -> None:
     assert feature["source_document_id"] == DOCUMENT_ID
     assert feature["source_archive_sha256"] == ARCHIVE_SHA
     assert feature["source_layer"] == "SOURCE_PRESCRIPTION_SURFACE"
-    assert feature["source_crs"] == "IGNF:LAMB93"
+    # The physical GPKG round-trip exposes the equivalent canonical CRS identity.
+    assert feature["source_crs"] == "EPSG:2154"
     assert feature["feature_area_m2"] == pytest.approx(100.0)
     assert result.surface_features.crs.to_epsg() == 2154
 
@@ -539,6 +640,20 @@ def test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent(
     )
 
 
+def test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback() -> None:
+    frame = _source_frame(
+        "prescription_surface", [_rectangle(0, 0, 10, 10)]
+    ).drop(columns="LIB_IDPSC")
+    result = _run([_inspected("prescription_surface", frame)])
+    feature = result.surface_features.iloc[0]
+    assert feature["source_feature_id"] == "OGR_FID:1"
+    assert feature["source_identity_kind"] == "ARCHIVE_SCOPED_OGR_FID"
+    assert feature["source_identity_field"] == "OGR_FID"
+    assert feature["planning_feature_id"] == (
+        f"GPU:{DOCUMENT_ID}:prescription_surface:OGR_FID:1"
+    )
+
+
 def test_idurba_mismatch_is_rejected() -> None:
     frame = _source_frame(
         "prescription_line", [LineString([(0, 5), (10, 5)])], document_refs=["OTHER"]
@@ -599,7 +714,7 @@ def test_missing_crs_is_rejected(target: str) -> None:
         [LineString([(0, 5), (10, 5)])],
         crs=None if target == "source" else "EPSG:2154",
     )
-    with pytest.raises(PlanningFeaturesError, match="CRS"):
+    with pytest.raises(PlanningFeaturesError, match="CRS|physical revalidation"):
         _run([_inspected("prescription_line", frame)], parcel)
 
 
@@ -626,9 +741,12 @@ def test_mutated_source_summary_is_rejected(field: str, value: object) -> None:
         "prescription_line",
         _source_frame("prescription_line", [LineString([(0, 5), (10, 5)])]),
     )
-    corrupted = replace(layer, summary=replace(layer.summary, **{field: value}))
-    with pytest.raises(PlanningFeaturesError, match="summary"):
-        _run([corrupted])
+    planning_document = _planning_document([layer])
+    stored = planning_document.related_layers[0]
+    corrupted = replace(stored, summary=replace(stored.summary, **{field: value}))
+    changed = replace(planning_document, related_layers=(corrupted,))
+    with pytest.raises(PlanningFeaturesError, match="summary|physical revalidation"):
+        intersect_parcels_with_gpu_planning_features(_parcels(), changed)
 
 
 @pytest.mark.parametrize("bad_count", [True, -1, 1.5, float("inf"), "1"])
@@ -637,9 +755,17 @@ def test_source_summary_counts_are_strict_integers(bad_count: object) -> None:
         "prescription_line",
         _source_frame("prescription_line", [LineString([(0, 5), (10, 5)])]),
     )
-    corrupted = replace(layer, summary=replace(layer.summary, feature_count=bad_count))
-    with pytest.raises(PlanningFeaturesError, match="integer count|non-negative"):
-        _run([corrupted])
+    planning_document = _planning_document([layer])
+    stored = planning_document.related_layers[0]
+    corrupted = replace(
+        stored, summary=replace(stored.summary, feature_count=bad_count)
+    )
+    changed = replace(planning_document, related_layers=(corrupted,))
+    with pytest.raises(
+        PlanningFeaturesError,
+        match="integer count|non-negative|summary|physical revalidation",
+    ):
+        intersect_parcels_with_gpu_planning_features(_parcels(), changed)
 
 
 def test_reserved_output_column_collision_is_rejected() -> None:
@@ -726,14 +852,19 @@ def test_present_empty_optional_layer_is_valid(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     frame = _source_frame(logical, [])
+    fid_reads = 0
     if logical == "prescription_surface":
         frame = frame.drop(columns="LIB_IDPSC")
+        real_read_dataframe = gpu_source_module.pyogrio.read_dataframe
 
         def unexpected_fid_read(*args: object, **kwargs: object) -> object:
-            raise AssertionError("zero-row layers must not reopen OGR source FIDs")
+            nonlocal fid_reads
+            if kwargs.get("fid_as_index"):
+                fid_reads += 1
+            return real_read_dataframe(*args, **kwargs)
 
         monkeypatch.setattr(
-            planning_features_module.pyogrio,
+            gpu_source_module.pyogrio,
             "read_dataframe",
             unexpected_fid_read,
         )
@@ -744,6 +875,8 @@ def test_present_empty_optional_layer_is_valid(
     assert result.relations.empty
     assert len(result.parcels) == 1
     assert result.parcels.iloc[0]["planning_feature_document_id"] == DOCUMENT_ID
+    if logical == "prescription_surface":
+        assert fid_reads == 1
 
 
 def _contract_result() -> tuple[
@@ -825,12 +958,50 @@ def _source_complete_contract() -> tuple[
     return planning_document, parcels, result
 
 
+def _two_parcel_source_complete_contract() -> tuple[
+    GpuPlanningDocument,
+    gpd.GeoDataFrame,
+    ParcelPlanningFeaturesResult,
+]:
+    """Build equal-area parcels so relation identity cannot hide behind area checks."""
+
+    parcels = _parcels(
+        [_rectangle(0, 0, 10, 10), _rectangle(20, 0, 30, 10)],
+        ids=["P-1", "P-2"],
+    )
+    layers = [
+        _inspected(
+            "prescription_surface",
+            _source_frame(
+                "prescription_surface",
+                [_rectangle(0, 0, 10, 10)],
+                ids=["SURFACE"],
+                type_codes=["07"],
+                subtype_codes=["04"],
+            ),
+        ),
+        _inspected(
+            "prescription_line",
+            _source_frame(
+                "prescription_line",
+                [LineString([(0, 5), (10, 5)])],
+                ids=["LINE"],
+                type_codes=["15"],
+                subtype_codes=["00"],
+            ),
+        ),
+    ]
+    planning_document = _planning_document(layers)
+    result = intersect_parcels_with_gpu_planning_features(parcels, planning_document)
+    return planning_document, parcels, result
+
+
 def _validate_source_complete(
     planning_document: GpuPlanningDocument,
     parcels: gpd.GeoDataFrame,
     result: ParcelPlanningFeaturesResult,
-) -> None:
-    validate_normalized_planning_feature_inputs(
+) -> PlanningFeatureInputValidation:
+    return validate_normalized_planning_feature_inputs(
         planning_document,
         parcels,
         result.surface_features,
@@ -874,9 +1045,55 @@ def _without_related_layer(
     )
 
 
+def _refresh_extraction_inventory(
+    planning_document: GpuPlanningDocument,
+) -> GpuPlanningDocument:
+    extraction = planning_document.extraction
+    files = _physical_inventory(extraction.extraction_root)
+    _write_extraction_manifest(
+        extraction.extraction_root,
+        extraction.archive.sha256,
+        files,
+    )
+    return replace(
+        planning_document,
+        extraction=replace(
+            extraction,
+            files=files,
+        ),
+    )
+
+
+def _replace_layer_reference(
+    planning_document: GpuPlanningDocument,
+    logical_name: str,
+    reference: GpuSpatialLayerReference,
+) -> GpuPlanningDocument:
+    related = tuple(
+        replace(layer, reference=reference)
+        if layer.logical_name == logical_name
+        else layer
+        for layer in planning_document.related_layers
+    )
+    old_reference = next(
+        layer.reference
+        for layer in planning_document.related_layers
+        if layer.logical_name == logical_name
+    )
+    spatial = tuple(
+        reference if item == old_reference else item
+        for item in planning_document.all_spatial_layers
+    )
+    return replace(
+        planning_document,
+        related_layers=related,
+        all_spatial_layers=spatial,
+    )
+
+
 def test_public_normalized_input_contract_validates_step_7d_3_1_result() -> None:
     planning_document, parcels, result = _source_complete_contract()
-    validate_normalized_planning_feature_inputs(
+    validation = validate_normalized_planning_feature_inputs(
         planning_document,
         parcels,
         result.surface_features,
@@ -884,6 +1101,16 @@ def test_public_normalized_input_contract_validates_step_7d_3_1_result() -> None
         result.point_features,
         result.relations,
     )
+    assert isinstance(validation, PlanningFeatureInputValidation)
+    assert validation.related_source_layer_count == 3
+    assert validation.related_source_file_count == 3
+    assert validation.expected_relation_count == len(result.relations)
+    for value in (
+        validation.gpu_related_source_files_sha256,
+        validation.expected_relations_content_sha256,
+    ):
+        assert len(value) == 64
+        int(value, 16)
 
 
 def test_public_normalized_input_contract_wraps_malformed_document_context() -> None:
@@ -909,6 +1136,34 @@ def test_public_normalized_input_contract_is_exported() -> None:
         is validate_normalized_planning_feature_inputs
     )
     assert "validate_normalized_planning_feature_inputs" in stages.__all__
+    assert stages.PlanningFeatureInputValidation is PlanningFeatureInputValidation
+    assert "PlanningFeatureInputValidation" in stages.__all__
+
+
+def test_public_source_validation_hashes_survive_parquet_readback(
+    tmp_path: Path,
+) -> None:
+    planning_document, parcels, result = _source_complete_contract()
+    original = _validate_source_complete(planning_document, parcels, result)
+    paths = {
+        "surface_features": tmp_path / "surface.parquet",
+        "line_features": tmp_path / "line.parquet",
+        "point_features": tmp_path / "point.parquet",
+        "relations": tmp_path / "relations.parquet",
+    }
+    result.surface_features.to_parquet(paths["surface_features"], index=True)
+    result.line_features.to_parquet(paths["line_features"], index=True)
+    result.point_features.to_parquet(paths["point_features"], index=True)
+    result.relations.to_parquet(paths["relations"], index=True)
+    validation = validate_normalized_planning_feature_inputs(
+        planning_document,
+        parcels,
+        gpd.read_parquet(paths["surface_features"]),
+        gpd.read_parquet(paths["line_features"]),
+        gpd.read_parquet(paths["point_features"]),
+        pd.read_parquet(paths["relations"]),
+    )
+    assert validation == original
 
 
 def test_public_normalized_input_contract_rejects_stripped_catalog() -> None:
@@ -978,6 +1233,8 @@ def test_strict_parcel_summary_integer_counts_are_enforced(
     [
         ("SURFACE", "relation_type", "TOUCH_ONLY"),
         ("SURFACE", "parcel_share_pct", 42.0),
+        ("SURFACE", "intersection_area_m2", None),
+        ("SURFACE", "source_line_length_m", 0.0),
         ("LINE", "relation_type", "TOUCH_ONLY"),
         ("LINE", "intersection_length_m", 999.0),
         ("POINT", "relation_type", "BOUNDARY_TOUCH"),
@@ -1020,6 +1277,8 @@ def test_point_member_relation_semantics_are_exact() -> None:
     [
         ("source_identity_kind", "NOT_A_KIND"),
         ("source_identity_field", "WRONG_FIELD"),
+        ("feature_family", "INFORMATION"),
+        ("geometry_kind", "LINE"),
         ("type_code_raw", "MUTATED"),
         ("source_archive_sha256", "b" * 64),
     ],
@@ -1030,8 +1289,14 @@ def test_relation_must_match_feature_catalog(
 ) -> None:
     planning_document, source, result = _contract_result()
     relations = result.relations.copy(deep=True)
-    relations.loc[relations.index[0], column] = value
-    with pytest.raises(PlanningFeaturesError, match="catalog"):
+    index = relations.index[0]
+    if column == "geometry_kind":
+        index = relations.index[relations["geometry_kind"].eq("SURFACE")][0]
+    relations.loc[index, column] = value
+    with pytest.raises(
+        PlanningFeaturesError,
+        match="catalog|geometry kind|LINE relation|unrelated metric",
+    ):
         _validate_result(
             source,
             replace(result, relations=relations),
@@ -1132,6 +1397,96 @@ def test_source_complete_contract_rejects_coherent_parcel_metric_mutation() -> N
     corrupted = replace(result, relations=relations)
     with pytest.raises(PlanningFeaturesError, match="parcel|metric|source"):
         _validate_source_complete(planning_document, parcels, corrupted)
+
+
+def test_source_complete_contract_rejects_same_area_wrong_parcel_relation() -> None:
+    planning_document, parcels, result = _two_parcel_source_complete_contract()
+    relations = result.relations.copy(deep=True)
+    relations.loc[relations.index[0], "parcel_id"] = "P-2"
+    corrupted = replace(result, relations=relations)
+    with pytest.raises(PlanningFeaturesError, match="relation|parcel|rebuilt|source"):
+        _validate_source_complete(planning_document, parcels, corrupted)
+
+
+def test_source_complete_contract_rejects_missing_expected_relation() -> None:
+    planning_document, parcels, result = _two_parcel_source_complete_contract()
+    corrupted = replace(result, relations=result.relations.iloc[1:].copy())
+    with pytest.raises(PlanningFeaturesError, match="relation|rebuilt|source"):
+        _validate_source_complete(planning_document, parcels, corrupted)
+
+
+def test_source_complete_contract_rejects_extra_geometrically_false_relation() -> None:
+    planning_document, parcels, result = _two_parcel_source_complete_contract()
+    extra = result.relations.iloc[[0]].copy(deep=True)
+    extra.loc[extra.index[0], "parcel_id"] = "P-2"
+    relations = pd.concat([result.relations, extra], ignore_index=True)
+    corrupted = replace(result, relations=relations)
+    with pytest.raises(PlanningFeaturesError, match="relation|rebuilt|source"):
+        _validate_source_complete(planning_document, parcels, corrupted)
+
+
+def test_source_complete_contract_rejects_reordered_relations() -> None:
+    planning_document, parcels, result = _two_parcel_source_complete_contract()
+    relations = result.relations.iloc[::-1].reset_index(drop=True)
+    corrupted = replace(result, relations=relations)
+    with pytest.raises(PlanningFeaturesError, match="relation|order|rebuilt"):
+        _validate_source_complete(planning_document, parcels, corrupted)
+
+
+def test_source_complete_contract_rejects_coherent_but_wrong_line_metric() -> None:
+    planning_document, parcels, result = _two_parcel_source_complete_contract()
+    relations = result.relations.copy(deep=True)
+    line_mask = relations["geometry_kind"].eq("LINE")
+    relations.loc[line_mask, "intersection_length_m"] = 5.0
+    corrupted = replace(result, relations=relations)
+    with pytest.raises(PlanningFeaturesError, match="relation|metric|rebuilt"):
+        _validate_source_complete(planning_document, parcels, corrupted)
+
+
+def test_source_complete_contract_accepts_complete_parcel_output_summaries() -> None:
+    planning_document, _, result = _source_complete_contract()
+    _validate_source_complete(planning_document, result.parcels, result)
+
+
+def test_source_complete_contract_rejects_partial_parcel_output_columns() -> None:
+    planning_document, parcels, result = _source_complete_contract()
+    partial = parcels.copy(deep=True)
+    partial["planning_surface_relation_count"] = 1
+    with pytest.raises(PlanningFeaturesError, match="[Pp]arcel|output|summary|columns"):
+        _validate_source_complete(planning_document, partial, result)
+
+
+def test_source_complete_contract_rejects_corrupted_complete_parcel_summaries() -> None:
+    planning_document, _, result = _source_complete_contract()
+    corrupted = result.parcels.copy(deep=True)
+    corrupted.loc[corrupted.index[0], "planning_surface_relation_count"] += 1
+    with pytest.raises(PlanningFeaturesError, match="parcel|summary|relation"):
+        _validate_source_complete(planning_document, corrupted, result)
+
+
+@pytest.mark.parametrize(
+    ("column", "value"),
+    [
+        ("planning_feature_document_id", "other-document"),
+        ("planning_feature_archive_sha256", "f" * 64),
+        ("planning_surface_covered_union_area_m2", 50.0),
+        ("planning_surface_covered_pct", 50.0),
+        ("planning_line_intersection_length_sum_m", 5.0),
+        ("planning_point_inside_count", 0),
+    ],
+)
+def test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact(
+    column: str,
+    value: object,
+) -> None:
+    planning_document, _, result = _source_complete_contract()
+    corrupted = result.parcels.copy(deep=True)
+    corrupted.loc[corrupted.index[0], column] = value
+    with pytest.raises(
+        PlanningFeaturesError,
+        match="parcel|summary|relation|lineage|document|archive|union|percentage",
+    ):
+        _validate_source_complete(planning_document, corrupted, result)
 
 
 def test_source_complete_contract_rejects_duplicate_parcel_ids() -> None:
@@ -1362,3 +1717,299 @@ def test_gpu_source_z_is_normalized_to_canonical_2d(
     result = _run([_inspected(logical, _source_frame(logical, [geometry]))])
     catalog = getattr(result, catalog_name)
     assert not catalog.geometry.has_z.any()
+
+
+def test_source_complete_contract_rejects_tampered_gpkg_inventory_hash() -> None:
+    planning_document, parcels, result = _source_complete_contract()
+    layer = planning_document.related_layers[0]
+    relative = layer.reference.dataset_path.relative_to(
+        planning_document.extraction.extraction_root
+    ).as_posix()
+    files = tuple(
+        replace(item, sha256="f" * 64) if item.relative_path == relative else item
+        for item in planning_document.extraction.files
+    )
+    changed = replace(
+        planning_document,
+        extraction=replace(planning_document.extraction, files=files),
+    )
+    with pytest.raises(PlanningFeaturesError, match="source|file|inventory|SHA"):
+        _validate_source_complete(changed, parcels, result)
+
+
+def test_source_complete_contract_rejects_tampered_gpkg_size() -> None:
+    planning_document, parcels, result = _source_complete_contract()
+    layer = planning_document.related_layers[0]
+    relative = layer.reference.dataset_path.relative_to(
+        planning_document.extraction.extraction_root
+    ).as_posix()
+    files = tuple(
+        replace(item, size_bytes=item.size_bytes + 1)
+        if item.relative_path == relative
+        else item
+        for item in planning_document.extraction.files
+    )
+    changed = replace(
+        planning_document,
+        extraction=replace(planning_document.extraction, files=files),
+    )
+    with pytest.raises(PlanningFeaturesError, match="source|file|inventory|size"):
+        _validate_source_complete(changed, parcels, result)
+
+
+def test_source_complete_contract_rejects_changed_gpkg_bytes() -> None:
+    planning_document, parcels, result = _source_complete_contract()
+    path = planning_document.related_layers[0].reference.dataset_path
+    with path.open("ab") as stream:
+        stream.write(b"tamper")
+    with pytest.raises(PlanningFeaturesError, match="source|file|inventory|size|SHA"):
+        _validate_source_complete(planning_document, parcels, result)
+
+
+def test_source_complete_contract_rejects_same_size_gpkg_byte_tamper() -> None:
+    planning_document, parcels, result = _source_complete_contract()
+    path = planning_document.related_layers[0].reference.dataset_path
+    payload = bytearray(path.read_bytes())
+    payload[-1] ^= 1
+    path.write_bytes(payload)
+    with pytest.raises(PlanningFeaturesError, match="source|file|inventory|SHA"):
+        _validate_source_complete(planning_document, parcels, result)
+
+
+def test_source_complete_contract_rejects_coherently_changed_physical_gpkg() -> None:
+    planning_document, parcels, result = _source_complete_contract()
+    layer = planning_document.related_layers[0]
+    changed_source = layer.data.copy(deep=True)
+    changed_source.loc[changed_source.index[0], "LIBELLE"] = "Changed on disk"
+    changed_source.to_file(
+        layer.reference.dataset_path,
+        layer=layer.reference.source_layer,
+        driver="GPKG",
+        engine="pyogrio",
+        index=False,
+    )
+    coherent_inventory = _refresh_extraction_inventory(planning_document)
+    with pytest.raises(PlanningFeaturesError, match="source|file|loaded|changed"):
+        _validate_source_complete(coherent_inventory, parcels, result)
+
+
+def test_source_complete_contract_rejects_changed_physical_gpkg_geometry() -> None:
+    planning_document, parcels, result = _source_complete_contract()
+    layer = planning_document.related_layers[0]
+    changed_source = layer.data.copy(deep=True)
+    changed_source.at[changed_source.index[0], "geometry"] = _rectangle(0, 0, 5, 10)
+    changed_source.to_file(
+        layer.reference.dataset_path,
+        layer=layer.reference.source_layer,
+        driver="GPKG",
+        engine="pyogrio",
+        index=False,
+    )
+    coherent_inventory = _refresh_extraction_inventory(planning_document)
+    with pytest.raises(PlanningFeaturesError, match="source|geometry|loaded|changed"):
+        _validate_source_complete(coherent_inventory, parcels, result)
+
+
+def test_source_complete_contract_rejects_reordered_physical_gpkg_rows() -> None:
+    parcels = _parcels(
+        [_rectangle(0, 0, 10, 10), _rectangle(20, 0, 30, 10)],
+        ids=["P-1", "P-2"],
+    )
+    layer = _inspected(
+        "prescription_surface",
+        _source_frame(
+            "prescription_surface",
+            [_rectangle(0, 0, 10, 10), _rectangle(20, 0, 30, 10)],
+            ids=["ONE", "TWO"],
+            type_codes=["07", "07"],
+            subtype_codes=["04", "04"],
+        ),
+    )
+    planning_document = _planning_document([layer])
+    result = intersect_parcels_with_gpu_planning_features(parcels, planning_document)
+    stored = planning_document.related_layers[0]
+    stored.data.iloc[::-1].reset_index(drop=True).to_file(
+        stored.reference.dataset_path,
+        layer=stored.reference.source_layer,
+        driver="GPKG",
+        engine="pyogrio",
+        index=False,
+    )
+    coherent_inventory = _refresh_extraction_inventory(planning_document)
+    with pytest.raises(PlanningFeaturesError, match="source|order|loaded|changed"):
+        _validate_source_complete(coherent_inventory, parcels, result)
+
+
+def test_source_complete_contract_rejects_loaded_source_attrs_not_on_disk() -> None:
+    planning_document, parcels, result = _source_complete_contract()
+    layer = planning_document.related_layers[0]
+    loaded = layer.data.copy(deep=True)
+    loaded.attrs["unpersisted_source_note"] = "tampered"
+    changed = replace(
+        planning_document,
+        related_layers=tuple(
+            replace(item, data=loaded) if item is layer else item
+            for item in planning_document.related_layers
+        ),
+    )
+    with pytest.raises(PlanningFeaturesError, match="source|attrs|metadata|loaded"):
+        _validate_source_complete(changed, parcels, result)
+
+
+def test_source_complete_contract_rejects_dataset_outside_extraction_root(
+    tmp_path: Path,
+) -> None:
+    planning_document, parcels, result = _source_complete_contract()
+    layer = planning_document.related_layers[0]
+    outside = tmp_path / "outside.gpkg"
+    shutil.copyfile(layer.reference.dataset_path, outside)
+    reference = replace(layer.reference, dataset_path=outside)
+    changed = _replace_layer_reference(
+        planning_document, layer.logical_name, reference
+    )
+    with pytest.raises(PlanningFeaturesError, match="source|root|outside|contain"):
+        _validate_source_complete(changed, parcels, result)
+
+
+def test_source_complete_contract_rejects_linked_spatial_dataset(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    planning_document, parcels, result = _source_complete_contract()
+    dataset = planning_document.related_layers[0].reference.dataset_path
+    actual_link_check = gpu_source_module._is_link_or_junction
+
+    def synthetic_link(path: Path) -> bool:
+        return path == dataset or actual_link_check(path)
+
+    monkeypatch.setattr(
+        gpu_source_module,
+        "_is_link_or_junction",
+        synthetic_link,
+    )
+    with pytest.raises(PlanningFeaturesError, match="source|link|junction|dataset"):
+        _validate_source_complete(planning_document, parcels, result)
+
+
+def _shapefile_source_complete_contract(
+    root: Path,
+) -> tuple[GpuPlanningDocument, gpd.GeoDataFrame, ParcelPlanningFeaturesResult]:
+    source_layer = "PRESCRIPTION_SURFACE"
+    path = root / f"{source_layer}.shp"
+    frame = _source_frame(
+        "prescription_surface",
+        [_rectangle(0, 0, 10, 10)],
+        ids=["SHAPE-1"],
+        type_codes=["07"],
+        subtype_codes=["04"],
+    )
+    frame.to_file(path, driver="ESRI Shapefile", engine="pyogrio", index=False)
+    loaded = gpd.read_file(path, engine="pyogrio")
+    layer = replace(
+        _inspected("prescription_surface", loaded),
+        reference=GpuSpatialLayerReference(path, source_layer, "ESRI Shapefile"),
+        summary=_summary(loaded, source_layer),
+    )
+    document = _planning_document([layer])
+    parcels = _parcels()
+    result = intersect_parcels_with_gpu_planning_features(parcels, document)
+    return document, parcels, result
+
+
+def _shapefile_ogr_fid_source_complete_contract(
+    root: Path,
+) -> tuple[GpuPlanningDocument, gpd.GeoDataFrame, ParcelPlanningFeaturesResult]:
+    source_layer = "PRESCRIPTION_SURFACE"
+    path = root / f"{source_layer}.shp"
+    frame = _source_frame(
+        "prescription_surface",
+        [_rectangle(0, 0, 5, 10), _rectangle(5, 0, 10, 10)],
+        ids=["DROP-ONE", "DROP-TWO"],
+        type_codes=["07", "07"],
+        subtype_codes=["04", "04"],
+    ).drop(columns="LIB_IDPSC")
+    frame.to_file(path, driver="ESRI Shapefile", engine="pyogrio", index=False)
+    loaded = gpd.read_file(path, engine="pyogrio")
+    layer = replace(
+        _inspected("prescription_surface", loaded),
+        reference=GpuSpatialLayerReference(path, source_layer, "ESRI Shapefile"),
+        summary=_summary(loaded, source_layer),
+    )
+    document = _planning_document([layer])
+    parcels = _parcels()
+    result = intersect_parcels_with_gpu_planning_features(parcels, document)
+    return document, parcels, result
+
+
+def test_source_complete_contract_binds_every_shapefile_sidecar(
+    tmp_path: Path,
+) -> None:
+    planning_document, parcels, result = _shapefile_source_complete_contract(tmp_path)
+    sidecar = next(
+        item
+        for item in planning_document.extraction.files
+        if item.relative_path.casefold().endswith(".prj")
+    )
+    files = tuple(
+        item
+        for item in planning_document.extraction.files
+        if item.relative_path != sidecar.relative_path
+    )
+    changed = replace(
+        planning_document,
+        extraction=replace(planning_document.extraction, files=files),
+    )
+    with pytest.raises(
+        PlanningFeaturesError,
+        match="shapefile|sidecar|inventory|physical revalidation",
+    ):
+        _validate_source_complete(changed, parcels, result)
+
+
+@pytest.mark.parametrize("changed_fids", [(10, 11), (1, 0)])
+def test_source_complete_contract_rejects_changed_or_reordered_ogr_fids(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    changed_fids: tuple[int, int],
+) -> None:
+    planning_document, parcels, result = _shapefile_ogr_fid_source_complete_contract(
+        tmp_path
+    )
+    actual_read = gpu_source_module.pyogrio.read_dataframe
+
+    def changed_fid_read(*args: object, **kwargs: object) -> gpd.GeoDataFrame:
+        reread = actual_read(*args, **kwargs)
+        if kwargs.get("fid_as_index"):
+            reread.index = pd.Index(changed_fids, name="fid")
+        return reread
+
+    monkeypatch.setattr(
+        gpu_source_module.pyogrio,
+        "read_dataframe",
+        changed_fid_read,
+    )
+    with pytest.raises(PlanningFeaturesError, match="source|FID|identity|catalog"):
+        _validate_source_complete(planning_document, parcels, result)
+
+
+def test_source_complete_contract_requires_shapefile_core_members(
+    tmp_path: Path,
+) -> None:
+    planning_document, parcels, result = _shapefile_source_complete_contract(tmp_path)
+    layer = planning_document.related_layers[0]
+    layer.reference.dataset_path.with_suffix(".shx").unlink()
+    with pytest.raises(PlanningFeaturesError, match="shapefile|shx|source|file"):
+        _validate_source_complete(planning_document, parcels, result)
+
+
+def test_source_complete_contract_rejects_changed_shapefile_sidecar_bytes(
+    tmp_path: Path,
+) -> None:
+    planning_document, parcels, result = _shapefile_source_complete_contract(tmp_path)
+    layer = planning_document.related_layers[0]
+    cpg = layer.reference.dataset_path.with_suffix(".cpg")
+    cpg.write_text("UTF-8\n", encoding="utf-8")
+    with pytest.raises(
+        PlanningFeaturesError,
+        match="shapefile|sidecar|size|SHA|physical revalidation",
+    ):
+        _validate_source_complete(planning_document, parcels, result)

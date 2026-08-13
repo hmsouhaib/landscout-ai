@@ -1505,6 +1505,58 @@ All five ignored Parquets were rewritten. The new ignored schema-v3 manifest is 
 
 Official CNIG mappings and coded DataFrame facts remain unchanged. No BESS impact or severity is assigned. No parcel is rejected. No score or legal interpretation is produced. No new dataset is downloaded and no parcel/feature spatial intersection is recomputed in this step.
 
+## STEP 7D.5A.4 — Prove GPU-source and parcel-feature relation completeness
+
+- Status: Complete
+- Test-first proof: against the former STEP 7D.5A.3 boundary, 7 of 8 initial relation/parcel-summary probes failed because a same-area wrong parcel, a missing or additional relation, reordered relations, a coherently changed metric, and partial or corrupt summaries were accepted. A second physical-source probe failed all 9 cases covering inventory SHA/size drift, changed bytes, coordinated on-disk data drift, row-order drift, extraction-root escape, and incomplete or changed Shapefile families. These cases are permanent regressions.
+- Focused verification: 301 planning-feature/CNIG coding tests and 114 regulation-index tests pass. The complete suite passes with 1,300 tests; `uv run ruff check .` and `uv run mypy src` pass.
+- CNIG profile schema: `2` (unchanged); result-hash and ignored-manifest schemas: `4` / `4`. Results claiming schema 1, 2, or 3 are unsupported.
+- Official profile and exact family/type/subtype lookup remain `cnig_plu_2017_muret_observed_pairs_v2`; no official code record changed.
+
+### Verified physical GPU sources
+
+Generic extracted-spatial-source verification now lives in the GPU source adapter and is reused by both planning-feature normalization and regulation indexing. The adapter first validates the schema-v2 extraction manifest against the archive SHA256 and complete extraction inventory. For each related layer it then proves extraction-root containment, rejects links/junctions and path escapes, binds the complete physical family, checks every member's size and SHA256, fresh-reads with Pyogrio and source FIDs, and exact-compares source layer, driver, rows/order, columns/dtypes, attributes, metadata, CRS, geometry WKB, and inspected summary. The family is enumerated and hashed again after the read.
+
+The real Muret package passed with four populated related layers and 28 physical files. All four are ESRI Shapefile families; each family contains the required `.shp`, `.shx`, and `.dbf` plus every present `.cpg`, `.prj`, `.qix`, and `.qmd` sidecar. Fresh FID order is 0–319 for prescription surfaces, 0–4 for prescription lines, 0–4 for prescription points, and 0–148 for information surfaces. No machine-local absolute path is persisted.
+
+Canonical verified-source SHA256: `696dc64a939edcad94c5d4c9febed87bcaa40af30400baf54d8fef0e79b5b66a`.
+
+### Complete spatial relation and parcel-summary reconstruction
+
+The shared factual validator now regenerates the complete relation set with the same local vectorized spatial-index/intersection implementation used by STEP 7D.3.1. It compares supplied and rebuilt row count, index/order, parcel and feature identities, relation types, lineage, null patterns, count fields, and every geometry-derived metric. Floating comparisons use only `technical_overlay_tolerance(...)`; supplied values are never repaired or replaced.
+
+A parcel input may contain none of the STEP 7D.3.1 summary fields or the complete deterministic set, never a partial set. When complete summaries are present, the validator reconstructs all relation counts, raw sums, surface unions and percentages, line/point summaries, and document/archive lineage from the verified relations and exact parcel geometry.
+
+Real reconstruction results:
+
+- source parcels / features / supplied relations: 3,638 / 479 / 2,414;
+- expected / supplied relation rows: 2,414 / 2,414;
+- missing / extra relations: 0 / 0;
+- parcel-feature identity, relation-type, null-pattern, and metric mismatches: 0;
+- lost / extra parcel IDs, feature IDs, and relation rows: 0/0, 0/0, and 0/0;
+- configured / observed CNIG pairs: 12 / 12;
+- resolved features / relations: 479 / 2,414; unknown pairs: 0 / 0.
+
+Canonical rebuilt-relation SHA256: `35c824984eab7cdbf253a04dc6b143441bb4ecf11938afa70557f578c9ffc150`.
+
+### Schema-v4 outputs and read-back
+
+Both new source hashes are included in every component hash and the complete result hash. The five coded DataFrames remain exactly equal to their schema-v3 predecessors in values, columns, dtypes, index, geometry, and CRS.
+
+| Component | Rows | Schema-v4 content SHA256 | Output bytes |
+| --- | ---: | --- | ---: |
+| Code dictionary | 12 | `52f1af7f64d4dc7b805359791246edb0601f732c798838235cfec9f7e8c93c72` | 9,642 |
+| Surface features | 469 | `69137af25420bcb63cf596b729fd36174437c2b754f711c6bc5882cf3d6c7e87` | 355,137 |
+| Line features | 5 | `b25e149a274c71045bc36783288446b512fbf220bbd72617e39a451ca6720653` | 37,194 |
+| Point features | 5 | `c3a7d4e912c5a5fbaa0bb4863213e08922f281102bf5f582e53e8e85fc722b92` | 33,727 |
+| Parcel/feature relations | 2,414 | `a898d4cb2f033f0e287f76d2649932cefe0686426b8b5f0a5800364c8068d7be` | 158,650 |
+
+Complete result SHA256: `474e6ec0a0c2b1e48830734de78069d2ccd1d1451fc76be1bba178592e008744`.
+
+The offline reconstruction, physical verification, relation rebuild, coding, temporary read-back, and source-complete validation took 33.875 seconds. All five ignored Parquets were rewritten and read back. The 3,198-byte schema-v4 manifest was written last; a new immutable result reconstructed solely from its persisted scalars and the five persisted frames passed the public source-complete validator against the original local GPU document, 3,638 parcels, factual catalogs, 2,414 relations, and checked-in profile.
+
+No external API or download was used. No planning code is interpreted as favorable, restrictive, compatible, or blocking. No BESS impact or severity is assigned. No parcel is rejected. No score or legal conclusion is produced.
+
 ## STEP 7D.4C.4 — Enforce unique chapter-scoped evidence occurrences
 
 - Status: Complete
