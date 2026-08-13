@@ -19,12 +19,13 @@ import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 import yaml  # type: ignore[import-untyped]
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, model_validator
-from pyproj import CRS
 from shapely import to_wkb  # type: ignore[import-untyped]
 from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
 
+from landscout.common.frame_integrity import deterministic_frame_schema_signature
 from landscout.sources.gpu_fr import GpuInspectedLayer, GpuPlanningDocument
 from landscout.stages.enrich_planning_features import (
+    PlanningFeatureInputValidation,
     validate_normalized_planning_feature_inputs,
 )
 
@@ -38,7 +39,7 @@ __all__ = [
 ]
 
 PROFILE_SCHEMA_VERSION = 2
-RESULT_HASH_SCHEMA_VERSION = 4
+RESULT_HASH_SCHEMA_VERSION = 5
 STANDARD_MODEL = "CNIG PLU v2017"
 OFFICIAL_TEXT_NORMALIZATION = "GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1"
 PRESCRIPTION_OFFICIAL_SOURCE_URL = (
@@ -383,7 +384,9 @@ def _dictionary(
         }
         for record in profile.records
     ]
-    return pd.DataFrame(rows, columns=CODE_DICTIONARY_COLUMNS)
+    output = pd.DataFrame(rows, columns=CODE_DICTIONARY_COLUMNS)
+    output.index = pd.Index(np.arange(len(output), dtype="int64"))
+    return output
 
 
 def _lookup(
@@ -427,6 +430,9 @@ def _coded_catalog(
         values = np.empty(len(output), dtype=object)
         values[:] = columns[column]
         output[column] = values
+    output.index = pd.Index(
+        output.index.to_numpy(copy=True), name=output.index.name
+    )
     return output
 
 
@@ -465,6 +471,9 @@ def _coded_relations(
         values = np.empty(len(output), dtype=object)
         values[:] = appended[column]
         output[column] = values
+    output.index = pd.Index(
+        output.index.to_numpy(copy=True), name=output.index.name
+    )
     return output
 
 
@@ -507,23 +516,13 @@ def _canonical_value(value: object) -> object:
 
 def _frame_payload(frame: pd.DataFrame) -> dict[str, object]:
     payload: dict[str, object] = {
-        "columns": [str(column) for column in frame.columns],
-        "dtypes": [str(dtype) for dtype in frame.dtypes],
-        "index_names": [
-            None if name is None else str(name) for name in frame.index.names
-        ],
+        "schema": deterministic_frame_schema_signature(frame),
         "index": [_canonical_value(value) for value in frame.index.tolist()],
         "rows": [
             [_canonical_value(value) for value in row]
             for row in frame.itertuples(index=False, name=None)
         ],
     }
-    if isinstance(frame, gpd.GeoDataFrame):
-        payload["geometry_column"] = frame.geometry.name
-        try:
-            payload["crs"] = CRS.from_user_input(frame.crs).to_json_dict()
-        except Exception as error:
-            raise PlanningFeatureCodeError("Cannot serialize feature CRS") from error
     return payload
 
 
@@ -736,25 +735,27 @@ def _build_result(
     point_features: gpd.GeoDataFrame,
     relations: pd.DataFrame,
     code_profile: CnigFeatureCodeProfile,
+    factual_validation: PlanningFeatureInputValidation | None = None,
 ) -> PlanningFeatureCodeResult:
     standard = _planning_standard(planning_document)
     if standard != code_profile.standard_model:
         raise PlanningFeatureCodeError(
             f"Planning document standard {standard!r} differs from code-profile standard"
         )
-    try:
-        factual_validation = validate_normalized_planning_feature_inputs(
-            planning_document,
-            parcels,
-            surface_features,
-            line_features,
-            point_features,
-            relations,
-        )
-    except ValueError as error:
-        raise PlanningFeatureCodeError(
-            f"Normalized planning-feature inputs are invalid: {error}"
-        ) from error
+    if factual_validation is None:
+        try:
+            factual_validation = validate_normalized_planning_feature_inputs(
+                planning_document,
+                parcels,
+                surface_features,
+                line_features,
+                point_features,
+                relations,
+            )
+        except ValueError as error:
+            raise PlanningFeatureCodeError(
+                f"Normalized planning-feature inputs are invalid: {error}"
+            ) from error
     surface = _validate_catalog_document_lineage(
         surface_features, "surface feature catalog", planning_document, standard
     )
@@ -811,6 +812,57 @@ def _build_result(
     return _result_with_hashes(result)
 
 
+def _validate_result_envelope(result: PlanningFeatureCodeResult) -> None:
+    if not isinstance(result, PlanningFeatureCodeResult):
+        raise PlanningFeatureCodeError("result must be a PlanningFeatureCodeResult")
+    for value, expected_version, label in (
+        (
+            result.result_hash_schema_version,
+            RESULT_HASH_SCHEMA_VERSION,
+            "result hash schema version",
+        ),
+        (
+            result.profile_schema_version,
+            PROFILE_SCHEMA_VERSION,
+            "profile schema version",
+        ),
+    ):
+        if type(value) is not int or value != expected_version:
+            raise PlanningFeatureCodeError(f"unsupported {label}: {value!r}")
+    if tuple(result.code_dictionary.columns) != CODE_DICTIONARY_COLUMNS:
+        raise PlanningFeatureCodeError("code dictionary columns are invalid")
+    for frame, label, geospatial in (
+        (result.surface_features, "surface features", True),
+        (result.line_features, "line features", True),
+        (result.point_features, "point features", True),
+        (result.relations, "coded relations", False),
+    ):
+        if geospatial and not isinstance(frame, gpd.GeoDataFrame):
+            raise PlanningFeatureCodeError(f"{label} must be a GeoDataFrame")
+        if not geospatial and (
+            not isinstance(frame, pd.DataFrame)
+            or isinstance(frame, gpd.GeoDataFrame)
+        ):
+            raise PlanningFeatureCodeError(f"{label} must be a DataFrame")
+        if tuple(frame.columns[-len(OFFICIAL_CODE_COLUMNS) :]) != OFFICIAL_CODE_COLUMNS:
+            raise PlanningFeatureCodeError(
+                f"{label} official-code columns are invalid"
+            )
+        if frame.columns.duplicated().any():
+            raise PlanningFeatureCodeError(f"{label} contains duplicate columns")
+    rebuilt_hashes = _result_with_hashes(result)
+    for field in (
+        "code_dictionary_content_sha256",
+        "surface_features_content_sha256",
+        "line_features_content_sha256",
+        "point_features_content_sha256",
+        "relations_content_sha256",
+        "complete_result_content_sha256",
+    ):
+        if getattr(result, field) != getattr(rebuilt_hashes, field):
+            raise PlanningFeatureCodeError(f"result hash {field} is invalid")
+
+
 def _compare_frame(actual: pd.DataFrame, expected: pd.DataFrame, label: str) -> None:
     if _canonical_value(_frame_payload(actual)) != _canonical_value(
         _frame_payload(expected)
@@ -831,22 +883,7 @@ def validate_planning_feature_code_result(
     """Rebuild and validate a coded result from every factual source input."""
 
     try:
-        if not isinstance(result, PlanningFeatureCodeResult):
-            raise PlanningFeatureCodeError("result must be a PlanningFeatureCodeResult")
-        for value, expected_version, label in (
-            (
-                result.result_hash_schema_version,
-                RESULT_HASH_SCHEMA_VERSION,
-                "result hash schema version",
-            ),
-            (
-                result.profile_schema_version,
-                PROFILE_SCHEMA_VERSION,
-                "profile schema version",
-            ),
-        ):
-            if type(value) is not int or value != expected_version:
-                raise PlanningFeatureCodeError(f"unsupported {label}: {value!r}")
+        _validate_result_envelope(result)
         expected = _build_result(
             planning_document,
             parcels,
@@ -911,6 +948,20 @@ def resolve_planning_feature_codes(
 
     try:
         profile = _resolved_profile(code_profile)
+        standard = _planning_standard(planning_document)
+        if standard != profile.standard_model:
+            raise PlanningFeatureCodeError(
+                f"Planning document standard {standard!r} differs from "
+                "code-profile standard"
+            )
+        factual_validation = validate_normalized_planning_feature_inputs(
+            planning_document,
+            parcels,
+            surface_features,
+            line_features,
+            point_features,
+            relations,
+        )
         result = _build_result(
             planning_document,
             parcels,
@@ -919,20 +970,16 @@ def resolve_planning_feature_codes(
             point_features,
             relations,
             profile,
+            factual_validation,
         )
-        validate_planning_feature_code_result(
-            planning_document,
-            parcels,
-            surface_features,
-            line_features,
-            point_features,
-            relations,
-            profile,
-            result,
-        )
+        _validate_result_envelope(result)
         return result
     except PlanningFeatureCodeError:
         raise
+    except ValueError as error:
+        raise PlanningFeatureCodeError(
+            f"Planning-feature code resolution failed: {error}"
+        ) from error
     except Exception as error:
         raise PlanningFeatureCodeError(
             "Planning-feature code resolution failed safely"

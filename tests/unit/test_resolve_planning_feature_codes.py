@@ -1745,9 +1745,10 @@ def test_checked_in_official_snapshot_is_complete_for_observed_muret_pairs() -> 
         ("result_hash_schema_version", 1),
         ("result_hash_schema_version", 2),
         ("result_hash_schema_version", 3),
-        ("result_hash_schema_version", 5),
-        ("result_hash_schema_version", 4.0),
-        ("result_hash_schema_version", "4"),
+        ("result_hash_schema_version", 4),
+        ("result_hash_schema_version", 6),
+        ("result_hash_schema_version", 5.0),
+        ("result_hash_schema_version", "5"),
         ("profile_schema_version", True),
         ("profile_schema_version", 0),
         ("profile_schema_version", 1),
@@ -1768,7 +1769,7 @@ def test_result_schema_versions_are_strict(field: str, value: object) -> None:
 def test_step_7d_3_1_output_integrates_with_public_coding_api() -> None:
     inputs = _integration_inputs()
     result = _public_resolve_planning_feature_codes(*inputs)
-    assert result.result_hash_schema_version == 4
+    assert result.result_hash_schema_version == 5
     assert result.profile_schema_version == 2
     assert len(result.surface_features) == 2
     assert len(result.line_features) == 1
@@ -1776,6 +1777,40 @@ def test_step_7d_3_1_output_integrates_with_public_coding_api() -> None:
     assert len(result.relations) == 2
     assert set(result.surface_features["official_code_status"]) == {"RESOLVED_OFFICIAL"}
     _public_validate_planning_feature_code_result(*inputs, result)
+
+
+def test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inputs = _integration_inputs()
+    coding_module = importlib.import_module(
+        "landscout.stages.resolve_planning_feature_codes"
+    )
+    enrich_module = importlib.import_module(
+        "landscout.stages.enrich_planning_features"
+    )
+    actual_physical = enrich_module.revalidate_gpu_spatial_layer_sources
+    actual_relations = enrich_module._build_relation_tables
+    calls = {"physical": 0, "relations": 0}
+
+    def counted_physical(*args: object, **kwargs: object) -> object:
+        calls["physical"] += 1
+        return actual_physical(*args, **kwargs)
+
+    def counted_relations(*args: object, **kwargs: object) -> object:
+        calls["relations"] += 1
+        return actual_relations(*args, **kwargs)
+
+    monkeypatch.setattr(
+        enrich_module, "revalidate_gpu_spatial_layer_sources", counted_physical
+    )
+    monkeypatch.setattr(enrich_module, "_build_relation_tables", counted_relations)
+
+    result = coding_module.resolve_planning_feature_codes(*inputs)
+    assert calls == {"physical": 1, "relations": 1}
+
+    coding_module.validate_planning_feature_code_result(*inputs, result)
+    assert calls == {"physical": 2, "relations": 2}
 
 
 def test_coded_result_persists_all_source_input_hashes() -> None:
@@ -1960,7 +1995,7 @@ def test_coding_api_rejects_relation_set_not_rebuilt_from_geometry(
         _public_resolve_planning_feature_codes(*inputs)
 
 
-def test_schema_v4_parquet_readback_preserves_source_hash_envelope(
+def test_schema_v5_parquet_readback_preserves_source_hash_envelope(
     tmp_path: Path,
 ) -> None:
     inputs = _integration_inputs()
@@ -1988,7 +2023,7 @@ def test_schema_v4_parquet_readback_preserves_source_hash_envelope(
     _public_validate_planning_feature_code_result(*inputs, persisted)
 
 
-def test_schema_v4_public_api_signatures_remain_source_complete() -> None:
+def test_schema_v5_public_api_signatures_remain_source_complete() -> None:
     assert tuple(
         inspect.signature(_public_resolve_planning_feature_codes).parameters
     ) == (

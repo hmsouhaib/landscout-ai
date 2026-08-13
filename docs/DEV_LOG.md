@@ -1505,6 +1505,58 @@ All five ignored Parquets were rewritten. The new ignored schema-v3 manifest is 
 
 Official CNIG mappings and coded DataFrame facts remain unchanged. No BESS impact or severity is assigned. No parcel is rejected. No score or legal interpretation is produced. No new dataset is downloaded and no parcel/feature spatial intersection is recomputed in this step.
 
+## STEP 7D.5A.5 — Finalize deterministic relation schemas and GPU validation boundaries
+
+- Status: Complete
+- Test-first proof: the initial v4 probe failed 12 cases. Object/category relation dtypes, relation index name/dtype changes, a float32 parcel summary, and same-values schema mutations were accepted; the expected-relation hash ignored dtype/index metadata; one resolver call performed physical verification and relation reconstruction twice; dotted sibling Shapefiles were merged into one family; malformed batch items leaked `AttributeError`; and schema 4 was still accepted. Every case is now a permanent regression.
+- Quality gates: 1,315 tests pass; `uv run ruff check .` and `uv run mypy src` pass.
+- CNIG profile schema: `2` (unchanged); result-hash and ignored-manifest schemas: `5` / `5`. Results claiming schemas 1 through 4 are rejected. The approved `cnig_plu_2017_muret_observed_pairs_v2` snapshot and exact family/type/subtype lookup are unchanged.
+
+### Deterministic frame schemas
+
+One shared internal schema signature now binds ordered columns and dtype strings, index class, index names, index level dtypes, active geometry column, and canonical CRS. Normalized catalogs, rebuilt relations, complete parcel-summary outputs, source/component hashes, and persisted-result comparisons all use this identity.
+
+The reconstructed STEP 7D.3.1 relation table now has explicit canonical string, `float64`, and nullable `Int64` dtypes. Validation requires the supplied relation schema, index metadata, row order, values, and null patterns to match exactly; technical tolerance applies only to factual floating metric values. Parcel summaries likewise require exact reconstructed columns, dtypes, index metadata, geometry column, and CRS. Parquet read-back retains the canonical schemas.
+
+Canonical schema-bound expected-relation SHA256: `885c8f863e27b286e91805ff6a58338eca4fd38fb4568f8bfd67eb8147c247b6`.
+
+### GPU and resolver boundaries
+
+`resolve_planning_feature_codes(...)` performs the heavy factual validation exactly once, retains its immutable validation evidence, builds the coded result, and runs only a lightweight official-column/hash envelope check. The public persisted-result validator remains independent: it freshly verifies the GPU files, rebuilds all spatial relations and coded outputs, and compares the persisted result.
+
+The public GPU batch revalidator now validates the planning-document type, exact tuple input, every inspected-layer type, and logical-name uniqueness before attribute access. All malformed inputs fail as controlled `GpuSpatialInspectionError` instances. Shapefile families use exact supported identities for `.shp`, `.shx`, `.dbf`, `.prj`, `.cpg`, `.qix`, `.qmd`, `.sbn`, `.sbx`, and `.shp.xml`; dotted sibling datasets such as `roads.archive.shp` are not absorbed into the `roads.shp` family.
+
+### Real Muret regression and schema-v5 read-back
+
+- related GPU layers / verified physical files: 4 / 28;
+- parcels / normalized features / supplied relations: 3,638 / 479 / 2,414;
+- expected / supplied relations: 2,414 / 2,414;
+- missing / extra / identity / metric mismatches: 0 / 0 / 0 / 0;
+- configured / observed CNIG pairs: 12 / 12;
+- resolved features / relations: 479 / 2,414; unknown pairs: 0 / 0.
+
+Schema-v5 input hashes:
+
+- planning document context: `6cdd8fb8dcdf2702f2e4dc73a23d7e373bbf5ce7daa9983846fd07a693e90a55`;
+- parcel identity: `baab1a3a704068dd905a3838123269766e447da8e13964a26b3eb2da2e62ec1f`;
+- normalized catalogs / supplied relations: `3d710386ea5ee42aacfeb0dea6903ebd473fe8c34f85ec7af57187cf691f1cf4` / `4a4d533c220e23acb5dcdcccec837f46dcbce4c60a7f2508db3e3e0015ca2e29`;
+- physical GPU source files: `696dc64a939edcad94c5d4c9febed87bcaa40af30400baf54d8fef0e79b5b66a`;
+- schema-bound rebuilt relations: `885c8f863e27b286e91805ff6a58338eca4fd38fb4568f8bfd67eb8147c247b6`.
+
+| Component | Rows | Schema-v5 content SHA256 | Output bytes |
+| --- | ---: | --- | ---: |
+| Code dictionary | 12 | `27e3c4e17fd4d82f5bc7a9aa1c3b7cb91b35b4146f8a4aadf43903d429a9e569` | 9,642 |
+| Surface features | 469 | `1893d22fe9e5c39c6fc61ebb2999deeb30ec5b0c16697a45bfb7ab4dd8d62f14` | 355,137 |
+| Line features | 5 | `92a8fd0ed64c4970327f3077c620b64ae047c5e39ab532e04e6595080c53209e` | 37,194 |
+| Point features | 5 | `893e621a754311fbae37649c98f5210eefe30776fec07e1b31300fef608517cf` | 33,727 |
+| Parcel/feature relations | 2,414 | `f122d828415c8541b7119e2b4079b2521580f14c5ddc82edf9efd4aaf88f84f3` | 158,650 |
+
+Complete result SHA256: `b56b195b32914583e6599fe96b3d29977c52450c9755228d89ce7e192903ab3e`.
+
+The offline resolver plus independent public validation took 17.718 seconds. All five ignored Parquets were rewritten without changing values, columns, dtypes, index, geometry, or CRS; their byte sizes remain unchanged. The 3,199-byte schema-v5 manifest was written last. A new immutable result reconstructed solely from the persisted manifest scalars and five read-back frames passed the full source-complete validator against the original cached GPU extraction, parcel frame, normalized catalogs, factual relations, and checked-in profile.
+
+No external API or download was used. No planning code is interpreted as favorable, restrictive, compatible, or blocking. No BESS impact or severity is assigned. No parcel is rejected. No score or legal conclusion is produced.
+
 ## STEP 7D.5A.4 — Prove GPU-source and parcel-feature relation completeness
 
 - Status: Complete

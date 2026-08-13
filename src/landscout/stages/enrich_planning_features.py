@@ -30,6 +30,7 @@ from shapely import (
     length as shapely_length,
 )
 
+from landscout.common.frame_integrity import deterministic_frame_schema_signature
 from landscout.sources.gpu_fr import (
     GpuInspectedLayer,
     GpuPlanningDocument,
@@ -267,6 +268,9 @@ RELATION_COUNT_COLUMNS = frozenset(
         "point_members_inside_count",
         "point_members_boundary_count",
     }
+)
+RELATION_STRING_COLUMNS = frozenset(RELATION_COLUMNS) - RELATION_FLOAT_COLUMNS - (
+    RELATION_COUNT_COLUMNS
 )
 
 PARCEL_OUTPUT_COLUMNS = frozenset(
@@ -995,7 +999,7 @@ def _point_relations(
 
 
 def _empty_relations() -> pd.DataFrame:
-    return pd.DataFrame(
+    output = pd.DataFrame(
         {
             column: pd.Series(
                 dtype=(
@@ -1003,12 +1007,13 @@ def _empty_relations() -> pd.DataFrame:
                     if column in RELATION_FLOAT_COLUMNS
                     else "Int64"
                     if column in RELATION_COUNT_COLUMNS
-                    else "object"
+                    else "str"
                 )
             )
             for column in RELATION_COLUMNS
         }
     )
+    return output
 
 
 def _build_relation_tables(
@@ -1032,6 +1037,8 @@ def _build_relation_tables(
         ["_parcel_position", "planning_feature_id"], kind="stable"
     ).reset_index(drop=True)
     relations = combined.loc[:, RELATION_COLUMNS].copy()
+    for column in RELATION_STRING_COLUMNS:
+        relations[column] = relations[column].astype("str")
     for column in RELATION_COUNT_COLUMNS:
         relations[column] = pd.array(relations[column], dtype="Int64")
     return surface_work, line_work, point_work, relations
@@ -1123,11 +1130,8 @@ def _gpu_related_source_files_sha256(
 def _expected_relations_content_sha256(relations: pd.DataFrame) -> str:
     return _canonical_integrity_sha256(
         {
-            "domain": "landscout.planning_features.expected_relations.v1",
-            "columns": [str(column) for column in relations.columns],
-            "index_names": [
-                None if name is None else str(name) for name in relations.index.names
-            ],
+            "domain": "landscout.planning_features.expected_relations.v2",
+            "schema": deterministic_frame_schema_signature(relations),
             "index": [
                 _canonical_integrity_value(value) for value in relations.index.tolist()
             ],
@@ -1484,9 +1488,9 @@ def _compare_normalized_catalog(
     expected: gpd.GeoDataFrame,
     label: str,
 ) -> None:
-    if not supplied.index.equals(expected.index):
-        raise PlanningFeaturesError(f"{label} index differs from normalized GPU source")
-    if tuple(supplied.columns) != tuple(expected.columns):
+    if deterministic_frame_schema_signature(
+        supplied
+    ) != deterministic_frame_schema_signature(expected):
         raise PlanningFeaturesError(f"{label} schema differs from normalized GPU source")
     try:
         supplied_crs = _crs(supplied.crs, label)
@@ -1700,7 +1704,9 @@ def _compare_rebuilt_relations(
     supplied: pd.DataFrame,
     expected: pd.DataFrame,
 ) -> None:
-    if tuple(supplied.columns) != tuple(expected.columns):
+    if deterministic_frame_schema_signature(
+        supplied
+    ) != deterministic_frame_schema_signature(expected):
         raise PlanningFeaturesError(
             "Planning relation schema differs from the spatial reconstruction"
         )
@@ -1739,7 +1745,9 @@ def _compare_rebuilt_parcel_output(
     supplied: gpd.GeoDataFrame,
     expected: gpd.GeoDataFrame,
 ) -> None:
-    if tuple(supplied.columns) != tuple(expected.columns):
+    if deterministic_frame_schema_signature(
+        supplied
+    ) != deterministic_frame_schema_signature(expected):
         raise PlanningFeaturesError(
             "Planning-feature parcel output schema differs from reconstruction"
         )

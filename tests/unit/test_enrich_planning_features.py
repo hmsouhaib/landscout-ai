@@ -1151,10 +1151,10 @@ def test_public_source_validation_hashes_survive_parquet_readback(
         "point_features": tmp_path / "point.parquet",
         "relations": tmp_path / "relations.parquet",
     }
-    result.surface_features.to_parquet(paths["surface_features"], index=True)
-    result.line_features.to_parquet(paths["line_features"], index=True)
-    result.point_features.to_parquet(paths["point_features"], index=True)
-    result.relations.to_parquet(paths["relations"], index=True)
+    result.surface_features.to_parquet(paths["surface_features"], index=False)
+    result.line_features.to_parquet(paths["line_features"], index=False)
+    result.point_features.to_parquet(paths["point_features"], index=False)
+    result.relations.to_parquet(paths["relations"], index=False)
     validation = validate_normalized_planning_feature_inputs(
         planning_document,
         parcels,
@@ -1433,6 +1433,108 @@ def test_source_complete_contract_rejects_reordered_relations() -> None:
         _validate_source_complete(planning_document, parcels, corrupted)
 
 
+@pytest.mark.parametrize(
+    ("column", "dtype"),
+    [
+        ("intersection_area_m2", "object"),
+        ("point_member_count", "object"),
+        ("relation_type", "category"),
+    ],
+)
+def test_source_complete_contract_rejects_noncanonical_relation_dtype(
+    column: str,
+    dtype: str,
+) -> None:
+    planning_document, parcels, result = _source_complete_contract()
+    relations = result.relations.copy(deep=True)
+    relations[column] = relations[column].astype(dtype)
+    with pytest.raises(PlanningFeaturesError, match="schema|dtype|relation"):
+        _validate_source_complete(
+            planning_document, parcels, replace(result, relations=relations)
+        )
+
+
+def test_source_complete_contract_rejects_relation_index_name_change() -> None:
+    planning_document, parcels, result = _source_complete_contract()
+    relations = result.relations.copy(deep=True)
+    relations.index = relations.index.rename("changed_relation_row")
+    with pytest.raises(PlanningFeaturesError, match="schema|index|relation"):
+        _validate_source_complete(
+            planning_document, parcels, replace(result, relations=relations)
+        )
+
+
+def test_source_complete_contract_rejects_relation_index_dtype_change() -> None:
+    planning_document, parcels, result = _source_complete_contract()
+    relations = result.relations.copy(deep=True)
+    relations.index = pd.Index(
+        np.asarray(relations.index, dtype="int32"),
+        name=relations.index.name,
+    )
+    assert str(relations.index.dtype) == "int32"
+    with pytest.raises(PlanningFeaturesError, match="schema|index|relation"):
+        _validate_source_complete(
+            planning_document, parcels, replace(result, relations=relations)
+        )
+
+
+def test_source_complete_contract_rejects_relation_index_class_change() -> None:
+    planning_document, parcels, result = _source_complete_contract()
+    assert isinstance(result.relations.index, pd.RangeIndex)
+    relations = result.relations.copy(deep=True)
+    relations.index = pd.Index(
+        relations.index.to_numpy(copy=True),
+        dtype="int64",
+        name=relations.index.name,
+    )
+    assert type(relations.index) is pd.Index
+    with pytest.raises(PlanningFeaturesError, match="schema|index|relation"):
+        validate_normalized_planning_feature_inputs(
+            planning_document,
+            parcels,
+            result.surface_features,
+            result.line_features,
+            result.point_features,
+            relations,
+        )
+
+
+def test_expected_relation_hash_binds_dtype_and_index_metadata() -> None:
+    _, _, result = _source_complete_contract()
+    original = planning_features_module._expected_relations_content_sha256(
+        result.relations
+    )
+    object_dtype = result.relations.copy(deep=True)
+    object_dtype["intersection_area_m2"] = object_dtype[
+        "intersection_area_m2"
+    ].astype("object")
+    named_index = result.relations.copy(deep=True)
+    named_index.index = named_index.index.rename("relation_row")
+    int32_index = result.relations.copy(deep=True)
+    int32_index.index = pd.Index(
+        np.asarray(int32_index.index, dtype="int32"),
+        name=int32_index.index.name,
+    )
+    plain_index = result.relations.copy(deep=True)
+    plain_index.index = pd.Index(
+        plain_index.index.to_numpy(copy=True),
+        dtype="int64",
+        name=plain_index.index.name,
+    )
+    assert original != planning_features_module._expected_relations_content_sha256(
+        object_dtype
+    )
+    assert original != planning_features_module._expected_relations_content_sha256(
+        named_index
+    )
+    assert original != planning_features_module._expected_relations_content_sha256(
+        int32_index
+    )
+    assert original != planning_features_module._expected_relations_content_sha256(
+        plain_index
+    )
+
+
 def test_source_complete_contract_rejects_coherent_but_wrong_line_metric() -> None:
     planning_document, parcels, result = _two_parcel_source_complete_contract()
     relations = result.relations.copy(deep=True)
@@ -1461,6 +1563,16 @@ def test_source_complete_contract_rejects_corrupted_complete_parcel_summaries() 
     corrupted = result.parcels.copy(deep=True)
     corrupted.loc[corrupted.index[0], "planning_surface_relation_count"] += 1
     with pytest.raises(PlanningFeaturesError, match="parcel|summary|relation"):
+        _validate_source_complete(planning_document, corrupted, result)
+
+
+def test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype() -> None:
+    planning_document, _, result = _source_complete_contract()
+    corrupted = result.parcels.copy(deep=True)
+    corrupted["planning_surface_covered_pct"] = corrupted[
+        "planning_surface_covered_pct"
+    ].astype("float32")
+    with pytest.raises(PlanningFeaturesError, match="parcel|schema|dtype|summary"):
         _validate_source_complete(planning_document, corrupted, result)
 
 
@@ -2013,3 +2125,52 @@ def test_source_complete_contract_rejects_changed_shapefile_sidecar_bytes(
         match="shapefile|sidecar|size|SHA|physical revalidation",
     ):
         _validate_source_complete(planning_document, parcels, result)
+
+
+def test_shapefile_family_excludes_dotted_sibling_dataset(tmp_path: Path) -> None:
+    planning_document, parcels, result = _shapefile_source_complete_contract(tmp_path)
+    before = _validate_source_complete(planning_document, parcels, result)
+    primary = planning_document.related_layers[0].reference.dataset_path
+    sibling = primary.with_name(f"{primary.stem}.archive.shp")
+    gpd.GeoDataFrame(
+        {"sibling": [1]},
+        geometry=[_rectangle(20, 20, 21, 21)],
+        crs="EPSG:2154",
+    ).to_file(sibling, driver="ESRI Shapefile", engine="pyogrio", index=False)
+    refreshed = _refresh_extraction_inventory(planning_document)
+    after = _validate_source_complete(refreshed, parcels, result)
+    assert after.related_source_file_count == before.related_source_file_count
+    assert (
+        after.gpu_related_source_files_sha256
+        == before.gpu_related_source_files_sha256
+    )
+
+
+@pytest.mark.parametrize("bad_item", [None, object()])
+def test_batch_gpu_revalidation_rejects_malformed_layer_items(
+    bad_item: object,
+) -> None:
+    planning_document, _, _ = _source_complete_contract()
+    with pytest.raises(gpu_source_module.GpuSpatialInspectionError):
+        gpu_source_module.revalidate_gpu_spatial_layer_sources(
+            planning_document,
+            (bad_item,),  # type: ignore[arg-type]
+        )
+
+
+def test_batch_gpu_revalidation_rejects_malformed_planning_document() -> None:
+    with pytest.raises(gpu_source_module.GpuSpatialInspectionError):
+        gpu_source_module.revalidate_gpu_spatial_layer_sources(
+            object(),  # type: ignore[arg-type]
+            (),
+        )
+
+
+def test_batch_gpu_revalidation_rejects_duplicate_logical_name() -> None:
+    planning_document, _, _ = _source_complete_contract()
+    layer = planning_document.related_layers[0]
+    with pytest.raises(gpu_source_module.GpuSpatialInspectionError, match="duplicate"):
+        gpu_source_module.revalidate_gpu_spatial_layer_sources(
+            planning_document,
+            (layer, layer),
+        )

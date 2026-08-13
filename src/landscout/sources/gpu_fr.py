@@ -1460,12 +1460,26 @@ def _spatial_source_family(
             raise GpuSpatialInspectionError(
                 "GPU Shapefile source identity is inconsistent"
             )
-        prefix = f"{pure.stem}.".casefold()
+        family_names = {
+            f"{pure.stem}{suffix}".casefold()
+            for suffix in (
+                ".shp",
+                ".shx",
+                ".dbf",
+                ".prj",
+                ".cpg",
+                ".qix",
+                ".qmd",
+                ".sbn",
+                ".sbx",
+                ".shp.xml",
+            )
+        }
         expected_paths = {
             candidate
             for candidate in inventory
             if PurePosixPath(candidate).parent == pure.parent
-            and PurePosixPath(candidate).name.casefold().startswith(prefix)
+            and PurePosixPath(candidate).name.casefold() in family_names
         }
         required = {".shp", ".shx", ".dbf"}
         if not required.issubset(
@@ -1481,7 +1495,7 @@ def _spatial_source_family(
                 .relative_to(root_resolved)
                 .as_posix()
                 for candidate in parent.iterdir()
-                if candidate.name.casefold().startswith(prefix)
+                if candidate.name.casefold() in family_names
             }
         except (OSError, ValueError) as error:
             raise GpuSpatialInspectionError(
@@ -1732,15 +1746,21 @@ def revalidate_gpu_spatial_layer_source(
     )
 
 
-def revalidate_gpu_spatial_layer_sources(
+def _revalidate_gpu_spatial_layer_sources(
     planning_document: GpuPlanningDocument,
     inspected_layers: tuple[GpuInspectedLayer, ...],
 ) -> tuple[GpuValidatedSpatialLayerSource, ...]:
-    """Verify an ordered collection of extracted GPU spatial-layer sources."""
-
+    if not isinstance(planning_document, GpuPlanningDocument):
+        raise GpuSpatialInspectionError(
+            "planning_document must be a GpuPlanningDocument"
+        )
     if type(inspected_layers) is not tuple:
         raise GpuSpatialInspectionError(
             "Inspected GPU spatial layers must be an immutable tuple"
+        )
+    if any(not isinstance(layer, GpuInspectedLayer) for layer in inspected_layers):
+        raise GpuSpatialInspectionError(
+            "Every inspected GPU spatial layer must be a GpuInspectedLayer"
         )
     if len({layer.logical_name for layer in inspected_layers}) != len(
         inspected_layers
@@ -1769,6 +1789,24 @@ def revalidate_gpu_spatial_layer_sources(
         )
         for layer in inspected_layers
     )
+
+
+def revalidate_gpu_spatial_layer_sources(
+    planning_document: GpuPlanningDocument,
+    inspected_layers: tuple[GpuInspectedLayer, ...],
+) -> tuple[GpuValidatedSpatialLayerSource, ...]:
+    """Verify an ordered collection of extracted GPU spatial-layer sources."""
+
+    try:
+        return _revalidate_gpu_spatial_layer_sources(
+            planning_document, inspected_layers
+        )
+    except GpuSpatialInspectionError:
+        raise
+    except Exception as error:
+        raise GpuSpatialInspectionError(
+            "GPU spatial-layer batch input or validation is malformed"
+        ) from error
 
 
 def _crs_text(frame: gpd.GeoDataFrame) -> str:
