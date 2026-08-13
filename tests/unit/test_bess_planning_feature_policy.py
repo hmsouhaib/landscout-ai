@@ -5,6 +5,7 @@ import json
 import tomllib
 from dataclasses import fields, replace
 from hashlib import sha256
+from io import BytesIO
 from pathlib import Path
 
 import pandas as pd
@@ -24,6 +25,7 @@ from landscout.stages.bess_planning_feature_policy import (
     validate_bess_planning_feature_policy_result,
 )
 from landscout.stages.resolve_planning_feature_codes import (
+    load_cnig_feature_code_profile,
     resolve_planning_feature_codes,
 )
 
@@ -201,6 +203,37 @@ def _write_artifacts(
     return parquet, manifest_path, manifest
 
 
+def _checked_in_policy_result() -> BessPlanningFeaturePolicyResult:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    config = load_bess_planning_feature_policy_config(POLICY_PATH)
+    cnig_profile = load_cnig_feature_code_profile(
+        Path("configs/planning/cnig_plu_2017_feature_codes.yaml")
+    )
+    cnig_module = importlib.import_module(
+        "landscout.stages.resolve_planning_feature_codes"
+    )
+    policy_module = importlib.import_module(
+        "landscout.stages.bess_planning_feature_policy"
+    )
+    locked_coded = replace(
+        coded,
+        profile=config.source_lock.cnig_profile,
+        profile_schema_version=config.source_lock.cnig_profile_schema_version,
+        profile_sha256=config.source_lock.cnig_profile_sha256,
+        source_document_id=config.source_lock.document_id,
+        source_archive_sha256=config.source_lock.archive_sha256,
+        result_hash_schema_version=(config.source_lock.cnig_result_hash_schema_version),
+        complete_result_content_sha256=(
+            config.source_lock.cnig_complete_result_content_sha256
+        ),
+        code_dictionary=cnig_module._dictionary(
+            cnig_profile, config.source_lock.cnig_profile_sha256
+        ),
+    )
+    return policy_module._build_result(config, locked_coded)
+
+
 def test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status() -> (
     None
 ):
@@ -256,6 +289,12 @@ def test_checked_in_policy_complete_snapshot_is_immutable() -> None:
         == EXPECTED_POLICY_ENTRIES_SHA256
     )
     assert _canonical_sha256(config.model_dump(mode="json")) == EXPECTED_POLICY_SHA256
+
+
+def test_checked_in_compiled_policy_result_hashes_are_pinned() -> None:
+    result = _checked_in_policy_result()
+    assert result.policy_table_content_sha256 == EXPECTED_POLICY_TABLE_SHA256
+    assert result.complete_result_content_sha256 == EXPECTED_COMPLETE_RESULT_SHA256
 
 
 @pytest.mark.parametrize(
@@ -670,6 +709,58 @@ def test_artifact_loader_rejects_parquet_replacement(tmp_path: Path) -> None:
         module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
 
 
+def test_artifact_loader_parses_the_exact_verified_parquet_bytes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _, _, _, result = _compiled_fixture()
+    parquet, manifest_path, _ = _write_artifacts(tmp_path, result)
+    replacement = tmp_path / "replacement.parquet"
+    result.policy_table.to_parquet(replacement, index=True, compression="gzip")
+    original_read_bytes = Path.read_bytes
+    verified_bytes = original_read_bytes(parquet)
+    replacement_bytes = original_read_bytes(replacement)
+    assert replacement_bytes != verified_bytes
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    original_read_parquet = module.pd.read_parquet
+    replacement_performed = False
+    parsed_payloads: list[tuple[str, bytes]] = []
+
+    def replace_after_byte_read(path: Path) -> bytes:
+        nonlocal replacement_performed
+        payload = original_read_bytes(path)
+        if path == parquet and not replacement_performed:
+            path.write_bytes(replacement_bytes)
+            replacement_performed = True
+        return payload
+
+    def old_hash_then_replace(path: Path) -> str:
+        nonlocal replacement_performed
+        payload = original_read_bytes(path)
+        if path == parquet and not replacement_performed:
+            path.write_bytes(replacement_bytes)
+            replacement_performed = True
+        return sha256(payload).hexdigest()
+
+    def observed_read_parquet(
+        source: object, *args: object, **kwargs: object
+    ) -> object:
+        if isinstance(source, BytesIO):
+            parsed_payloads.append(("buffer", source.getvalue()))
+        else:
+            path = Path(source)
+            parsed_payloads.append(("path", original_read_bytes(path)))
+        return original_read_parquet(source, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_bytes", replace_after_byte_read)
+    monkeypatch.setattr(module, "_file_sha256", old_hash_then_replace, raising=False)
+    monkeypatch.setattr(module.pd, "read_parquet", observed_read_parquet)
+    loaded = module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+    assert replacement_performed
+    assert parsed_payloads == [("buffer", verified_bytes)]
+    assert_frame_equal(result.policy_table, loaded.policy_table, check_dtype=True)
+
+
 def test_locally_invalid_result_fast_fails_before_source_validation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -698,6 +789,53 @@ def test_locally_invalid_result_fast_fails_before_source_validation(
                 *inputs, coded, config, invalid
             )
     assert calls == 0
+
+
+def test_compiler_wrong_source_lock_fast_fails_before_source_validation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inputs, coded, config, _ = _compiled_fixture()
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    calls = 0
+
+    def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+
+    wrong_lock = config.source_lock.model_copy(
+        update={"document_id": "another-document"}
+    )
+    wrong_config = config.model_copy(update={"source_lock": wrong_lock})
+    monkeypatch.setattr(module, "validate_planning_feature_code_result", counted)
+    with pytest.raises(BessPlanningFeaturePolicyError, match="lock|document"):
+        module.compile_bess_planning_feature_policy(*inputs, coded, wrong_config)
+    assert calls == 0
+
+
+def test_forged_matching_lock_still_runs_source_complete_validation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inputs, coded, config, _ = _compiled_fixture()
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    actual = module.validate_planning_feature_code_result
+    calls = 0
+
+    def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+        actual(*args, **kwargs)
+
+    forged_coded = replace(coded, source_document_id="forged-document")
+    forged_lock = config.source_lock.model_copy(
+        update={"document_id": "forged-document"}
+    )
+    forged_config = config.model_copy(update={"source_lock": forged_lock})
+    monkeypatch.setattr(module, "validate_planning_feature_code_result", counted)
+    with pytest.raises(BessPlanningFeaturePolicyError, match="Source-complete|source"):
+        module.compile_bess_planning_feature_policy(
+            *inputs, forged_coded, forged_config
+        )
+    assert calls == 1
 
 
 def test_compiler_and_public_validator_invoke_source_complete_coding_validation(

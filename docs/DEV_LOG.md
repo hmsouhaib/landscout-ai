@@ -1584,6 +1584,41 @@ Both generated files were read back through the strict artifact loader, then the
 
 No local feature text or regulation content is interpreted. No feature, relation, or parcel status is produced. No parcel is rejected, no score is created, and no authorization or prohibition is claimed.
 
+## STEP 7D.5B.1.2 — Finalize BESS CNIG policy hash and artifact integrity
+
+- Status: Complete
+- Scope: compiled-hash regression, verified-byte artifact loading, and compiler validation order only. The policy YAML, approved CNIG profile, 12 decisions, schema versions, normalized table, and persisted artifacts are unchanged.
+- Test-first proof: the new timing-boundary regression demonstrated that the previous loader could hash Parquet A, accept its manifest, and then parse a path replaced by physically different Parquet B. A second regression showed that a mismatched policy source lock still invoked the heavy CNIG source validator once. Both defects are now permanent tests in the 68-test focused policy suite.
+- Quality gates: all 1,383 tests pass; repository-wide Ruff and `mypy src` checks pass.
+
+### Immutable result hashes
+
+The formerly passive expected compiled-result constants are active offline assertions. The checked-in policy result is deterministically reconstructed from the approved policy and CNIG snapshots and must retain:
+
+- canonical policy-entry SHA256: `1d3e63f1123000402065b74402cb1e2295db2ac5655209ce410aaf36bfc2be91`;
+- complete policy SHA256: `1cfca0eb3d777e9b6604748e8a81609abe7b728de8d0695711cd569180df6489`;
+- policy-table SHA256: `225105fe488e21f8aa080751812dde1671340c26620cae1d8372c2e59488ed41`;
+- complete result SHA256: `84a59b418f5a53bc61df73296964b2847cc5d3529c10d0c6912c96222edba09c`.
+
+The distribution remains 3 `LIKELY_MATERIAL_CONSTRAINT`, 3 `MATERIAL_REVIEW_REQUIRED`, 2 `DESIGN_REVIEW_REQUIRED`, 3 `CONTEXT_REVIEW_REQUIRED`, and 1 `UNKNOWN`; confidence remains 8 `HIGH`, 3 `MEDIUM`, and 1 `LOW`. Policy pairs / missing / extra remain 12 / 0 / 0.
+
+### Verified bytes and compiler ordering
+
+The artifact loader now reads the complete Parquet payload exactly once, validates the payload length and SHA256, and parses that same immutable byte payload through `BytesIO`. It never hashes one path read and parses a second path read. Existing pre-load replacement, wrong-size, wrong-SHA, valid-artifact, row-count, schema, table-hash, and complete-hash checks remain enforced.
+
+Policy compilation now performs strict config revalidation, cheap source-lock comparison, complete CNIG source validation, policy construction, and local result-envelope validation in that order. A wrong lock performs zero heavy validations. A matching lock performs exactly one. A forged coded-result scalar paired with a forged matching policy lock still reaches and fails the mandatory source-complete CNIG validator.
+
+The existing artifacts did not require rewriting:
+
+- policy Parquet: 12 rows, 20,526 bytes, physical SHA256 `2a2e4f105f23053fec6fd68505fc1b41ffa5813a890c1242b157ec970f03fd31`;
+- strict artifact manifest: schema 2, 2,402 bytes;
+- policy/result schemas: 1 / 1, unchanged;
+- verified-byte load plus independent source-complete Muret validation runtime: 10.556 seconds.
+
+The unchanged artifacts passed the strict local loader and the full public validator with the original GPU document, parcel input, factual feature catalogs and relations, approved CNIG profile, and schema-v5 coded result.
+
+No policy is applied to features, relations, or parcels. No aggregation, rejection, score, authorization, or prohibition is produced.
+
 ## STEP 7D.5A.5 — Finalize deterministic relation schemas and GPU validation boundaries
 
 - Status: Complete

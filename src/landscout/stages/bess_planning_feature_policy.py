@@ -9,6 +9,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, replace
 from datetime import date, datetime
 from hashlib import sha256
+from io import BytesIO
 from numbers import Integral, Real
 from pathlib import Path
 from typing import Literal
@@ -764,7 +765,6 @@ def _build_result(
     config: BessPlanningFeaturePolicyConfig,
     coded_result: PlanningFeatureCodeResult,
 ) -> BessPlanningFeaturePolicyResult:
-    _validate_source_lock(config, coded_result)
     dictionary = _validate_policy_completeness(config, coded_result)
     policy_hash = _policy_sha256(config)
     result = BessPlanningFeaturePolicyResult(
@@ -862,14 +862,6 @@ def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
     return output
 
 
-def _file_sha256(path: Path) -> str:
-    digest = sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
 def load_bess_planning_feature_policy_artifacts(
     parquet_path: str | Path,
     manifest_path: str | Path,
@@ -888,15 +880,16 @@ def load_bess_planning_feature_policy_artifacts(
             raise BessPlanningFeaturePolicyError(
                 "Artifact manifest Parquet filename differs from the supplied file"
             )
-        if parquet.stat().st_size != manifest.parquet_size_bytes:
+        parquet_payload = parquet.read_bytes()
+        if len(parquet_payload) != manifest.parquet_size_bytes:
             raise BessPlanningFeaturePolicyError(
                 "Artifact manifest Parquet size differs from the supplied file"
             )
-        if _file_sha256(parquet) != manifest.parquet_sha256:
+        if sha256(parquet_payload).hexdigest() != manifest.parquet_sha256:
             raise BessPlanningFeaturePolicyError(
                 "Artifact manifest Parquet SHA256 differs from the supplied file"
             )
-        table = pd.read_parquet(parquet)
+        table = pd.read_parquet(BytesIO(parquet_payload))
         if len(table) != manifest.parquet_row_count:
             raise BessPlanningFeaturePolicyError(
                 "Artifact manifest Parquet row count differs from the supplied file"
@@ -963,6 +956,7 @@ def compile_bess_planning_feature_policy(
 
     try:
         config = _resolved_policy_config(policy_config)
+        _validate_source_lock(config, coded_result)
         _validate_coded_source(
             planning_document,
             parcels,
@@ -1001,6 +995,7 @@ def validate_bess_planning_feature_policy_result(
     try:
         _validate_result_envelope(result)
         config = _resolved_policy_config(policy_config)
+        _validate_source_lock(config, coded_result)
         _validate_coded_source(
             planning_document,
             parcels,
