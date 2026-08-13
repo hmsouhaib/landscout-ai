@@ -29,16 +29,24 @@ from landscout.sources.gpu_fr import (
     GpuPlanningDocument,
     GpuSpatialLayerReference,
 )
-from landscout.stages.enrich_planning_features import RELATION_COLUMNS
+from landscout.stages.enrich_planning_features import (
+    RELATION_COLUMNS,
+    intersect_parcels_with_gpu_planning_features,
+)
 from landscout.stages.resolve_planning_feature_codes import (
     CODE_DICTIONARY_COLUMNS,
     OFFICIAL_CODE_COLUMNS,
     CnigFeatureCodeProfile,
     PlanningFeatureCodeError,
+    PlanningFeatureCodeResult,
     _result_with_hashes,
     load_cnig_feature_code_profile,
-    resolve_planning_feature_codes,
-    validate_planning_feature_code_result,
+)
+from landscout.stages.resolve_planning_feature_codes import (
+    resolve_planning_feature_codes as _public_resolve_planning_feature_codes,
+)
+from landscout.stages.resolve_planning_feature_codes import (
+    validate_planning_feature_code_result as _public_validate_planning_feature_code_result,
 )
 
 P_URL = "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType"
@@ -116,7 +124,10 @@ def _profile() -> CnigFeatureCodeProfile:
     return CnigFeatureCodeProfile.model_validate(_profile_payload())
 
 
-def _planning_document(standard: str = "CNIG PLU v2017") -> GpuPlanningDocument:
+def _planning_document(
+    standard: str = "CNIG PLU v2017",
+    related_layers: tuple[GpuInspectedLayer, ...] = (),
+) -> GpuPlanningDocument:
     document = GpuDocumentMetadata(
         provider="Géoportail de l'Urbanisme",
         portal="https://www.geoportail-urbanisme.gouv.fr",
@@ -179,7 +190,12 @@ def _planning_document(standard: str = "CNIG PLU v2017") -> GpuPlanningDocument:
         invalid_geometry_count=0,
     )
     zoning = GpuInspectedLayer("zoning", reference, zoning_data, summary)
-    return GpuPlanningDocument(extraction, (reference,), zoning, ())
+    return GpuPlanningDocument(
+        extraction,
+        (reference, *(layer.reference for layer in related_layers)),
+        zoning,
+        related_layers,
+    )
 
 
 def _base_row(
@@ -222,7 +238,7 @@ def _base_row(
     }
 
 
-def _inputs():
+def _legacy_inputs():
     surface_rows = [
         _base_row(
             "F-P-0700",
@@ -381,11 +397,207 @@ def _empty_catalog(kind: str) -> gpd.GeoDataFrame:
     return template.iloc[0:0].copy()
 
 
+def _integration_source_frame(
+    logical_layer: str,
+    geometries: list[object],
+    source_ids: list[str],
+    type_codes: list[str],
+    subtype_codes: list[str],
+) -> gpd.GeoDataFrame:
+    prescription = logical_layer.startswith("prescription")
+    return gpd.GeoDataFrame(
+        {
+            "LIBELLE": [f"Label {identifier}" for identifier in source_ids],
+            "TXT": [None] * len(source_ids),
+            ("TYPEPSC" if prescription else "TYPEINF"): type_codes,
+            ("STYPEPSC" if prescription else "STYPEINF"): subtype_codes,
+            "NOMFIC": [None] * len(source_ids),
+            "URLFIC": [None] * len(source_ids),
+            "IDURBA": ["31395_PLU_20240215"] * len(source_ids),
+            "DATVALID": ["20240215"] * len(source_ids),
+            ("LIB_IDPSC" if prescription else "LIB_IDINFO"): source_ids,
+        },
+        geometry=geometries,
+        crs="EPSG:2154",
+    )
+
+
+def _integration_layer(
+    logical_layer: str,
+    frame: gpd.GeoDataFrame,
+) -> GpuInspectedLayer:
+    source_layer = logical_layer.upper()
+    reference = GpuSpatialLayerReference(
+        Path(f"{logical_layer}.gpkg"), source_layer, "GPKG"
+    )
+    geometry = frame.geometry
+    non_null = ~geometry.isna()
+    non_empty = non_null & ~geometry.is_empty
+    summary = GpuLayerSummary(
+        source_document_id="doc-1",
+        source_archive_sha256="a" * 64,
+        source_layer=source_layer,
+        crs=frame.crs.to_string(),
+        feature_count=len(frame),
+        columns=tuple(str(column) for column in frame.columns),
+        dtypes=tuple(
+            (str(column), str(dtype)) for column, dtype in frame.dtypes.items()
+        ),
+        null_counts=tuple(
+            (str(column), int(frame[column].isna().sum())) for column in frame.columns
+        ),
+        geometry_types=tuple(
+            (str(name), int(count))
+            for name, count in geometry.geom_type.value_counts().sort_index().items()
+        ),
+        null_geometry_count=int((~non_null).sum()),
+        empty_geometry_count=int((non_null & geometry.is_empty).sum()),
+        invalid_geometry_count=int((non_empty & ~geometry.is_valid).sum()),
+    )
+    return GpuInspectedLayer(logical_layer, reference, frame, summary)  # type: ignore[arg-type]
+
+
+def _integration_inputs() -> tuple[
+    GpuPlanningDocument,
+    gpd.GeoDataFrame,
+    gpd.GeoDataFrame,
+    gpd.GeoDataFrame,
+    gpd.GeoDataFrame,
+    pd.DataFrame,
+    CnigFeatureCodeProfile,
+]:
+    layers = (
+        _integration_layer(
+            "prescription_surface",
+            _integration_source_frame(
+                "prescription_surface",
+                [Polygon([(0, 0), (2, 0), (2, 2), (0, 2)])],
+                ["P-1"],
+                ["07"],
+                ["00"],
+            ),
+        ),
+        _integration_layer(
+            "information_surface",
+            _integration_source_frame(
+                "information_surface",
+                [Polygon([(3, 0), (5, 0), (5, 2), (3, 2)])],
+                ["I-1"],
+                ["02"],
+                ["00"],
+            ),
+        ),
+        _integration_layer(
+            "prescription_line",
+            _integration_source_frame(
+                "prescription_line",
+                [LineString([(0, 1), (2, 1)])],
+                ["P-2"],
+                ["07"],
+                ["04"],
+            ),
+        ),
+        _integration_layer(
+            "information_point",
+            _integration_source_frame(
+                "information_point",
+                [Point(10, 10)],
+                ["I-2"],
+                ["99"],
+                ["00"],
+            ),
+        ),
+    )
+    planning_document = _planning_document(related_layers=layers)
+    parcels = _integration_parcels()
+    normalized = intersect_parcels_with_gpu_planning_features(
+        parcels, planning_document
+    )
+    return (
+        planning_document,
+        parcels,
+        normalized.surface_features,
+        normalized.line_features,
+        normalized.point_features,
+        normalized.relations,
+        _profile(),
+    )
+
+
+def _integration_parcels() -> gpd.GeoDataFrame:
+    return gpd.GeoDataFrame(
+        {"parcel_id": ["PARCEL-1"], "existing_fact": [7]},
+        geometry=[Polygon([(0, 0), (2, 0), (2, 2), (0, 2)])],
+        crs="EPSG:2154",
+        index=pd.Index([91], name="parcel_row"),
+    )
+
+
+def _inputs() -> tuple[
+    GpuPlanningDocument,
+    gpd.GeoDataFrame,
+    gpd.GeoDataFrame,
+    gpd.GeoDataFrame,
+    pd.DataFrame,
+    CnigFeatureCodeProfile,
+]:
+    document, _, surface, line, point, relations, profile = _integration_inputs()
+    return document, surface, line, point, relations, profile
+
+
+def resolve_planning_feature_codes(
+    planning_document: GpuPlanningDocument,
+    surface_features: gpd.GeoDataFrame,
+    line_features: gpd.GeoDataFrame,
+    point_features: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+    code_profile: CnigFeatureCodeProfile | str | Path,
+) -> PlanningFeatureCodeResult:
+    """Exercise the new bound API while keeping legacy unit call sites compact."""
+
+    return _public_resolve_planning_feature_codes(
+        planning_document,
+        _integration_parcels(),
+        surface_features,
+        line_features,
+        point_features,
+        relations,
+        code_profile,
+    )
+
+
+def validate_planning_feature_code_result(
+    planning_document: GpuPlanningDocument,
+    surface_features: gpd.GeoDataFrame,
+    line_features: gpd.GeoDataFrame,
+    point_features: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+    code_profile: CnigFeatureCodeProfile | str | Path,
+    result: PlanningFeatureCodeResult,
+) -> None:
+    _public_validate_planning_feature_code_result(
+        planning_document,
+        _integration_parcels(),
+        surface_features,
+        line_features,
+        point_features,
+        relations,
+        code_profile,
+        result,
+    )
+
+
 def test_exact_family_pair_resolution_and_leading_zeros() -> None:
     result = resolve_planning_feature_codes(*_inputs())
     surface = result.surface_features.set_index("planning_feature_id")
-    assert surface.loc["F-P-0700", "official_code_label"] == "Prescription seven"
-    assert surface.loc["F-I-0200", "official_code_label"] == "Information two"
+    assert (
+        surface.loc["GPU:doc-1:prescription_surface:P-1", "official_code_label"]
+        == "Prescription seven"
+    )
+    assert (
+        surface.loc["GPU:doc-1:information_surface:I-1", "official_code_label"]
+        == "Information two"
+    )
     assert (
         result.line_features.iloc[0]["official_code_label"]
         == "Prescription seven subtype four"
@@ -397,14 +609,17 @@ def test_exact_family_pair_resolution_and_leading_zeros() -> None:
 
 def test_no_type_only_or_cross_family_fallback_and_unknown_is_retained() -> None:
     document, surface, line, point, relations, profile = _inputs()
-    line = line.copy(deep=True)
-    line.loc[line.index[0], "subtype_code_raw"] = "09"
-    relations = relations.copy(deep=True)
-    relations.loc[
-        relations["planning_feature_id"].eq("F-P-0704"), "subtype_code_raw"
-    ] = "09"
-    point = point.copy(deep=True)
-    point.loc[point.index[0], ["type_code_raw", "subtype_code_raw"]] = ["07", "00"]
+    payload = _profile_payload()
+    payload["records"] = [
+        record
+        for record in payload["records"]
+        if not (
+            (record["feature_family"], record["type_code"], record["subtype_code"])
+            in {("PRESCRIPTION", "07", "04"), ("INFORMATION", "99", "00")}
+        )
+    ]
+    payload["canonical_records_sha256"] = _records_hash(payload["records"])
+    profile = CnigFeatureCodeProfile.model_validate(payload)
     result = resolve_planning_feature_codes(
         document, surface, line, point, relations, profile
     )
@@ -611,7 +826,9 @@ def test_cnig_identity_provenance_is_exact(column: str, value: str) -> None:
     surface = inputs[1].copy(deep=True)
     surface.loc[surface.index[0], column] = value
     inputs[1] = surface
-    with pytest.raises(PlanningFeatureCodeError, match="identity|provenance|normalized"):
+    with pytest.raises(
+        PlanningFeatureCodeError, match="identity|provenance|normalized"
+    ):
         resolve_planning_feature_codes(*inputs)
 
 
@@ -636,7 +853,9 @@ def test_ogr_fid_provenance_is_restricted(
     surface.loc[row_index, "source_identity_field"] = "OGR_FID"
     surface.loc[row_index, "source_feature_id"] = source_feature_id
     inputs[1] = surface
-    with pytest.raises(PlanningFeatureCodeError, match="OGR|identity|provenance|normalized"):
+    with pytest.raises(
+        PlanningFeatureCodeError, match="OGR|identity|provenance|normalized"
+    ):
         resolve_planning_feature_codes(*inputs)
 
 
@@ -718,7 +937,9 @@ def test_cnig_resolver_invokes_shared_factual_contract(
         "validate_normalized_planning_feature_inputs",
         reject_shared_contract,
     )
-    with pytest.raises(PlanningFeatureCodeError, match="shared factual contract marker"):
+    with pytest.raises(
+        PlanningFeatureCodeError, match="shared factual contract marker"
+    ):
         resolve_planning_feature_codes(*_inputs())
     assert calls == 1
 
@@ -760,7 +981,9 @@ def test_surface_relation_metrics_are_revalidated(column: str, value: object) ->
     relations = inputs[4].copy(deep=True)
     relations.loc[relations.index[0], column] = value
     inputs[4] = relations
-    with pytest.raises(PlanningFeatureCodeError, match="relation|metric|finite|percentage"):
+    with pytest.raises(
+        PlanningFeatureCodeError, match="relation|metric|finite|percentage"
+    ):
         resolve_planning_feature_codes(*inputs)
 
 
@@ -855,19 +1078,29 @@ def test_surface_geometry_contract_is_enforced(
 def test_valid_multi_geometries_are_accepted(
     catalog_name: str, geometry: object
 ) -> None:
-    document, surface, line, point, relations, profile = _inputs()
-    catalogs = {"surface": surface, "line": line, "point": point}
-    catalog = catalogs[catalog_name].copy(deep=True)
-    catalog.at[catalog.index[0], "geometry"] = geometry
-    if catalog_name == "point":
-        catalog.at[catalog.index[0], "point_member_count"] = 2
-    catalogs[catalog_name] = catalog
-    result = resolve_planning_feature_codes(
-        document,
-        catalogs["surface"],
-        catalogs["line"],
-        catalogs["point"],
-        relations,
+    document, parcels, _, _, _, _, profile = _integration_inputs()
+    target_logical = {
+        "surface": "prescription_surface",
+        "line": "prescription_line",
+        "point": "information_point",
+    }[catalog_name]
+    changed_layers: list[GpuInspectedLayer] = []
+    for layer in document.related_layers:
+        if layer.logical_name != target_logical:
+            changed_layers.append(layer)
+            continue
+        source = layer.data.copy(deep=True)
+        source.at[source.index[0], "geometry"] = geometry
+        changed_layers.append(_integration_layer(target_logical, source))
+    changed_document = replace(document, related_layers=tuple(changed_layers))
+    normalized = intersect_parcels_with_gpu_planning_features(parcels, changed_document)
+    result = _public_resolve_planning_feature_codes(
+        changed_document,
+        parcels,
+        normalized.surface_features,
+        normalized.line_features,
+        normalized.point_features,
+        normalized.relations,
         profile,
     )
     assert getattr(result, f"{catalog_name}_features").geometry.iloc[0].equals(geometry)
@@ -961,23 +1194,33 @@ def test_planning_feature_ids_are_globally_unique_across_catalogs() -> None:
     line.loc[line.index[0], "planning_feature_id"] = surface.iloc[0][
         "planning_feature_id"
     ]
-    with pytest.raises(PlanningFeatureCodeError, match="unique|catalog"):
+    with pytest.raises(PlanningFeatureCodeError, match="unique|catalog|deterministic"):
         resolve_planning_feature_codes(
             document, surface, line, point, relations, profile
         )
 
 
 def test_valid_empty_optional_catalogs_preserve_schema_and_crs() -> None:
-    document, surface, _, _, relations, profile = _inputs()
-    line = _empty_catalog("LINE")
-    point = _empty_catalog("POINT")
-    relations = relations.loc[relations["geometry_kind"].eq("SURFACE")].copy()
-    result = resolve_planning_feature_codes(
-        document, surface, line, point, relations, profile
+    document, parcels, _, _, _, _, profile = _integration_inputs()
+    surface_layers = tuple(
+        layer
+        for layer in document.related_layers
+        if layer.logical_name in {"prescription_surface", "information_surface"}
+    )
+    document = replace(document, related_layers=surface_layers)
+    normalized = intersect_parcels_with_gpu_planning_features(parcels, document)
+    result = _public_resolve_planning_feature_codes(
+        document,
+        parcels,
+        normalized.surface_features,
+        normalized.line_features,
+        normalized.point_features,
+        normalized.relations,
+        profile,
     )
     for original, coded in (
-        (line, result.line_features),
-        (point, result.point_features),
+        (normalized.line_features, result.line_features),
+        (normalized.point_features, result.point_features),
     ):
         assert coded.empty
         assert coded.crs == original.crs
@@ -990,7 +1233,11 @@ def test_valid_empty_optional_catalogs_preserve_schema_and_crs() -> None:
 def test_relation_catalog_code_mismatch_is_rejected() -> None:
     document, surface, line, point, relations, profile = _inputs()
     relations = relations.copy(deep=True)
-    relations.loc[relations.index[0], "subtype_code_raw"] = "04"
+    relation_index = relations.index[0]
+    original = relations.loc[relation_index, "subtype_code_raw"]
+    relations.loc[relation_index, "subtype_code_raw"] = (
+        "04" if original != "04" else "00"
+    )
     with pytest.raises(PlanningFeatureCodeError, match="catalog"):
         resolve_planning_feature_codes(
             document, surface, line, point, relations, profile
@@ -1070,6 +1317,10 @@ def test_relation_type_must_match_catalog_geometry_kind(
         "source_document_id",
         "source_archive_sha256",
         "source_layer",
+        "label_raw",
+        "text_raw",
+        "source_validity_date_raw",
+        "regulation_filename_raw",
     ):
         row[column] = feature[column]
     row["relation_type"] = relation_type
@@ -1094,9 +1345,7 @@ def test_relation_type_must_match_catalog_geometry_kind(
         row["feature_share_pct"] = 100.0 if area else 0.0
     elif geometry_kind == "LINE":
         row["source_line_length_m"] = 2.0
-        row["intersection_length_m"] = (
-            2.0 if relation_type == "LENGTH_OVERLAP" else 0.0
-        )
+        row["intersection_length_m"] = 2.0 if relation_type == "LENGTH_OVERLAP" else 0.0
     else:
         row["point_member_count"] = 1
         row["point_members_inside_count"] = 1 if relation_type == "INSIDE" else 0
@@ -1142,6 +1391,10 @@ def test_valid_relation_types_are_retained(
         "source_document_id",
         "source_archive_sha256",
         "source_layer",
+        "label_raw",
+        "text_raw",
+        "source_validity_date_raw",
+        "regulation_filename_raw",
     ):
         row[column] = feature[column]
     row["relation_type"] = relation_type
@@ -1166,9 +1419,7 @@ def test_valid_relation_types_are_retained(
         row["feature_share_pct"] = 100.0 if area else 0.0
     elif geometry_kind == "LINE":
         row["source_line_length_m"] = 2.0
-        row["intersection_length_m"] = (
-            2.0 if relation_type == "LENGTH_OVERLAP" else 0.0
-        )
+        row["intersection_length_m"] = 2.0 if relation_type == "LENGTH_OVERLAP" else 0.0
     else:
         row["point_member_count"] = 1
         row["point_members_inside_count"] = 1 if relation_type == "INSIDE" else 0
@@ -1406,9 +1657,23 @@ def test_checked_in_official_snapshot_is_complete_for_observed_muret_pairs() -> 
 
 
 @pytest.mark.parametrize(
-    "field", ["result_hash_schema_version", "profile_schema_version"]
+    ("field", "value"),
+    [
+        ("result_hash_schema_version", True),
+        ("result_hash_schema_version", 0),
+        ("result_hash_schema_version", 1),
+        ("result_hash_schema_version", 2),
+        ("result_hash_schema_version", 4),
+        ("result_hash_schema_version", 3.0),
+        ("result_hash_schema_version", "3"),
+        ("profile_schema_version", True),
+        ("profile_schema_version", 0),
+        ("profile_schema_version", 1),
+        ("profile_schema_version", 3),
+        ("profile_schema_version", 2.0),
+        ("profile_schema_version", "2"),
+    ],
 )
-@pytest.mark.parametrize("value", [True, 0, 1, 3, 2.0, "2"])
 def test_result_schema_versions_are_strict(field: str, value: object) -> None:
     inputs = _inputs()
     result = resolve_planning_feature_codes(*inputs)
@@ -1416,3 +1681,132 @@ def test_result_schema_versions_are_strict(field: str, value: object) -> None:
         validate_planning_feature_code_result(
             *inputs, replace(result, **{field: value})
         )
+
+
+def test_step_7d_3_1_output_integrates_with_public_coding_api() -> None:
+    inputs = _integration_inputs()
+    result = _public_resolve_planning_feature_codes(*inputs)
+    assert result.result_hash_schema_version == 3
+    assert result.profile_schema_version == 2
+    assert len(result.surface_features) == 2
+    assert len(result.line_features) == 1
+    assert len(result.point_features) == 1
+    assert len(result.relations) == 2
+    assert set(result.surface_features["official_code_status"]) == {"RESOLVED_OFFICIAL"}
+    _public_validate_planning_feature_code_result(*inputs, result)
+
+
+def test_coded_result_persists_all_source_input_hashes() -> None:
+    result = _public_resolve_planning_feature_codes(*_integration_inputs())
+    for field in (
+        "planning_document_context_sha256",
+        "parcel_identity_input_sha256",
+        "normalized_catalogs_input_sha256",
+        "normalized_relations_input_sha256",
+    ):
+        value = getattr(result, field)
+        assert isinstance(value, str)
+        assert len(value) == 64
+        int(value, 16)
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "planning_document_context_sha256",
+        "parcel_identity_input_sha256",
+        "normalized_catalogs_input_sha256",
+        "normalized_relations_input_sha256",
+    ],
+)
+def test_source_input_hash_mutation_is_rejected(field: str) -> None:
+    inputs = _integration_inputs()
+    result = _public_resolve_planning_feature_codes(*inputs)
+    with pytest.raises(PlanningFeatureCodeError, match="hash|rebuilt|source"):
+        _public_validate_planning_feature_code_result(
+            *inputs, replace(result, **{field: "f" * 64})
+        )
+
+
+def test_parcel_source_change_invalidates_coded_result() -> None:
+    inputs = list(_integration_inputs())
+    result = _public_resolve_planning_feature_codes(*inputs)
+    parcels = inputs[1].copy(deep=True)
+    parcels.loc[parcels.index[0], "parcel_id"] = "CHANGED-PARCEL"
+    inputs[1] = parcels
+    with pytest.raises(PlanningFeatureCodeError, match="parcel|source|rebuilt"):
+        _public_validate_planning_feature_code_result(*inputs, result)
+
+
+def test_gpu_document_context_change_invalidates_coded_result() -> None:
+    inputs = list(_integration_inputs())
+    result = _public_resolve_planning_feature_codes(*inputs)
+    planning_document = inputs[0]
+    archive = planning_document.extraction.archive
+    changed_document = replace(archive.document, provider="Changed provider")
+    inputs[0] = replace(
+        planning_document,
+        extraction=replace(
+            planning_document.extraction,
+            archive=replace(archive, document=changed_document),
+        ),
+    )
+    with pytest.raises(PlanningFeatureCodeError, match="document|source|rebuilt"):
+        _public_validate_planning_feature_code_result(*inputs, result)
+
+
+def test_normalized_catalog_change_invalidates_coded_result_even_when_coherent() -> (
+    None
+):
+    inputs = list(_integration_inputs())
+    result = _public_resolve_planning_feature_codes(*inputs)
+    surface = inputs[2].copy(deep=True)
+    relations = inputs[5].copy(deep=True)
+    feature_id = surface.iloc[0]["planning_feature_id"]
+    surface.loc[surface.index[0], "label_raw"] = "Coherently changed"
+    relations.loc[relations["planning_feature_id"].eq(feature_id), "label_raw"] = (
+        "Coherently changed"
+    )
+    inputs[2] = surface
+    inputs[5] = relations
+    with pytest.raises(PlanningFeatureCodeError, match="normalized|source|rebuilt"):
+        _public_validate_planning_feature_code_result(*inputs, result)
+
+
+def test_normalized_relation_change_invalidates_coded_result() -> None:
+    inputs = list(_integration_inputs())
+    result = _public_resolve_planning_feature_codes(*inputs)
+    relations = inputs[5].copy(deep=True)
+    line_mask = relations["geometry_kind"].eq("LINE")
+    relations.loc[line_mask, "parcel_metric_area_m2"] = 8.0
+    inputs[5] = relations
+    with pytest.raises(PlanningFeatureCodeError, match="[Rr]elation|source|rebuilt"):
+        _public_validate_planning_feature_code_result(*inputs, result)
+
+
+def test_schema_v3_parquet_readback_preserves_source_hash_envelope(
+    tmp_path: Path,
+) -> None:
+    inputs = _integration_inputs()
+    result = _public_resolve_planning_feature_codes(*inputs)
+    paths = {
+        name: tmp_path / f"integrated-{name}.parquet"
+        for name in (
+            "code_dictionary",
+            "surface_features",
+            "line_features",
+            "point_features",
+            "relations",
+        )
+    }
+    for name, path in paths.items():
+        getattr(result, name).to_parquet(path, index=True)
+    persisted = replace(
+        result,
+        code_dictionary=pd.read_parquet(paths["code_dictionary"]),
+        surface_features=gpd.read_parquet(paths["surface_features"]),
+        line_features=gpd.read_parquet(paths["line_features"]),
+        point_features=gpd.read_parquet(paths["point_features"]),
+        relations=pd.read_parquet(paths["relations"]),
+    )
+    _public_validate_planning_feature_code_result(*inputs, persisted)

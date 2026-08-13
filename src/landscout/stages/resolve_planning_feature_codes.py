@@ -7,7 +7,7 @@ import math
 import re
 import unicodedata
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import asdict, dataclass, replace
 from datetime import date, datetime
 from hashlib import sha256
 from numbers import Integral, Real
@@ -23,7 +23,7 @@ from pyproj import CRS
 from shapely import to_wkb  # type: ignore[import-untyped]
 from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
 
-from landscout.sources.gpu_fr import GpuPlanningDocument
+from landscout.sources.gpu_fr import GpuInspectedLayer, GpuPlanningDocument
 from landscout.stages.enrich_planning_features import (
     validate_normalized_planning_feature_inputs,
 )
@@ -38,7 +38,7 @@ __all__ = [
 ]
 
 PROFILE_SCHEMA_VERSION = 2
-RESULT_HASH_SCHEMA_VERSION = 2
+RESULT_HASH_SCHEMA_VERSION = 3
 STANDARD_MODEL = "CNIG PLU v2017"
 OFFICIAL_TEXT_NORMALIZATION = "GPU_DISPLAY_TEXT_NFC_WHITESPACE_V1"
 PRESCRIPTION_OFFICIAL_SOURCE_URL = (
@@ -283,6 +283,10 @@ class PlanningFeatureCodeResult:
     profile_sha256: str
     source_document_id: str
     source_archive_sha256: str
+    planning_document_context_sha256: str
+    parcel_identity_input_sha256: str
+    normalized_catalogs_input_sha256: str
+    normalized_relations_input_sha256: str
     code_dictionary_content_sha256: str
     surface_features_content_sha256: str
     line_features_content_sha256: str
@@ -521,6 +525,127 @@ def _frame_payload(frame: pd.DataFrame) -> dict[str, object]:
     return payload
 
 
+def _source_frame_sha256(domain: str, frame: pd.DataFrame) -> str:
+    return _canonical_json_sha256(
+        {
+            "domain": domain,
+            "result_hash_schema_version": RESULT_HASH_SCHEMA_VERSION,
+            "frame": _frame_payload(frame),
+        }
+    )
+
+
+def _inspected_layer_payload(layer: GpuInspectedLayer) -> dict[str, object]:
+    try:
+        logical_name = _strict_string(layer.logical_name, "GPU logical layer name")
+        reference = layer.reference
+        summary = layer.summary
+        data = layer.data
+        if not isinstance(data, gpd.GeoDataFrame):
+            raise PlanningFeatureCodeError("GPU inspected layer data is invalid")
+        return {
+            "logical_name": logical_name,
+            "source_layer": _strict_string(
+                reference.source_layer, "GPU source layer"
+            ),
+            "driver": _strict_string(reference.driver, "GPU driver"),
+            "summary": asdict(summary),
+            "source_data_sha256": _source_frame_sha256(
+                "landscout.cnig_feature_codes.gpu_source_layer", data
+            ),
+        }
+    except PlanningFeatureCodeError:
+        raise
+    except Exception as error:
+        raise PlanningFeatureCodeError(
+            "GPU inspected-layer context cannot be serialized"
+        ) from error
+
+
+def _planning_document_context_sha256(document: GpuPlanningDocument) -> str:
+    try:
+        archive = document.extraction.archive
+        related = sorted(
+            (_inspected_layer_payload(layer) for layer in document.related_layers),
+            key=lambda item: str(item["logical_name"]),
+        )
+        spatial_references = sorted(
+            (
+                {
+                    "source_layer": _strict_string(
+                        reference.source_layer, "GPU spatial source layer"
+                    ),
+                    "driver": _strict_string(
+                        reference.driver, "GPU spatial source driver"
+                    ),
+                }
+                for reference in document.all_spatial_layers
+            ),
+            key=lambda item: (str(item["source_layer"]), str(item["driver"])),
+        )
+        return _canonical_json_sha256(
+            {
+                "domain": "landscout.cnig_feature_codes.planning_document_input",
+                "result_hash_schema_version": RESULT_HASH_SCHEMA_VERSION,
+                "document_metadata": asdict(archive.document),
+                "archive": {
+                    "filename": archive.filename,
+                    "archive_format": archive.archive_format,
+                    "file_size": archive.file_size,
+                    "sha256": archive.sha256,
+                },
+                "standard_models": sorted(document.extraction.standard_models),
+                "spatial_references": spatial_references,
+                "zoning": _inspected_layer_payload(document.zoning),
+                "related_layers": related,
+            }
+        )
+    except PlanningFeatureCodeError:
+        raise
+    except Exception as error:
+        raise PlanningFeatureCodeError(
+            "Planning-document context cannot be hashed safely"
+        ) from error
+
+
+def _parcel_identity_input_sha256(parcels: gpd.GeoDataFrame) -> str:
+    try:
+        identity = gpd.GeoDataFrame(
+            parcels[["parcel_id", "geometry"]].copy(deep=True),
+            geometry="geometry",
+            crs=parcels.crs,
+        )
+    except Exception as error:
+        raise PlanningFeatureCodeError(
+            "Parcel identity input cannot be serialized"
+        ) from error
+    return _source_frame_sha256(
+        "landscout.cnig_feature_codes.parcel_identity_input", identity
+    )
+
+
+def _normalized_catalogs_input_sha256(
+    surface_features: gpd.GeoDataFrame,
+    line_features: gpd.GeoDataFrame,
+    point_features: gpd.GeoDataFrame,
+) -> str:
+    return _canonical_json_sha256(
+        {
+            "domain": "landscout.cnig_feature_codes.normalized_catalogs_input",
+            "result_hash_schema_version": RESULT_HASH_SCHEMA_VERSION,
+            "surface": _frame_payload(surface_features),
+            "line": _frame_payload(line_features),
+            "point": _frame_payload(point_features),
+        }
+    )
+
+
+def _normalized_relations_input_sha256(relations: pd.DataFrame) -> str:
+    return _source_frame_sha256(
+        "landscout.cnig_feature_codes.normalized_relations_input", relations
+    )
+
+
 def _component_metadata(result: PlanningFeatureCodeResult) -> dict[str, object]:
     return {
         "result_hash_schema_version": result.result_hash_schema_version,
@@ -530,6 +655,16 @@ def _component_metadata(result: PlanningFeatureCodeResult) -> dict[str, object]:
         "profile_sha256": result.profile_sha256,
         "source_document_id": result.source_document_id,
         "source_archive_sha256": result.source_archive_sha256,
+        "planning_document_context_sha256": (
+            result.planning_document_context_sha256
+        ),
+        "parcel_identity_input_sha256": result.parcel_identity_input_sha256,
+        "normalized_catalogs_input_sha256": (
+            result.normalized_catalogs_input_sha256
+        ),
+        "normalized_relations_input_sha256": (
+            result.normalized_relations_input_sha256
+        ),
     }
 
 
@@ -587,6 +722,7 @@ def _result_with_hashes(result: PlanningFeatureCodeResult) -> PlanningFeatureCod
 
 def _build_result(
     planning_document: GpuPlanningDocument,
+    parcels: gpd.GeoDataFrame,
     surface_features: gpd.GeoDataFrame,
     line_features: gpd.GeoDataFrame,
     point_features: gpd.GeoDataFrame,
@@ -600,6 +736,8 @@ def _build_result(
         )
     try:
         validate_normalized_planning_feature_inputs(
+            planning_document,
+            parcels,
             surface_features,
             line_features,
             point_features,
@@ -634,6 +772,16 @@ def _build_result(
         profile_sha256=profile_hash,
         source_document_id=archive.document.document_id,
         source_archive_sha256=archive.sha256,
+        planning_document_context_sha256=_planning_document_context_sha256(
+            planning_document
+        ),
+        parcel_identity_input_sha256=_parcel_identity_input_sha256(parcels),
+        normalized_catalogs_input_sha256=_normalized_catalogs_input_sha256(
+            surface_features, line_features, point_features
+        ),
+        normalized_relations_input_sha256=_normalized_relations_input_sha256(
+            relations
+        ),
         code_dictionary_content_sha256="",
         surface_features_content_sha256="",
         line_features_content_sha256="",
@@ -658,6 +806,7 @@ def _compare_frame(actual: pd.DataFrame, expected: pd.DataFrame, label: str) -> 
 
 def validate_planning_feature_code_result(
     planning_document: GpuPlanningDocument,
+    parcels: gpd.GeoDataFrame,
     surface_features: gpd.GeoDataFrame,
     line_features: gpd.GeoDataFrame,
     point_features: gpd.GeoDataFrame,
@@ -686,6 +835,7 @@ def validate_planning_feature_code_result(
                 raise PlanningFeatureCodeError(f"unsupported {label}: {value!r}")
         expected = _build_result(
             planning_document,
+            parcels,
             surface_features,
             line_features,
             point_features,
@@ -700,6 +850,10 @@ def validate_planning_feature_code_result(
             "profile_sha256",
             "source_document_id",
             "source_archive_sha256",
+            "planning_document_context_sha256",
+            "parcel_identity_input_sha256",
+            "normalized_catalogs_input_sha256",
+            "normalized_relations_input_sha256",
             "code_dictionary_content_sha256",
             "surface_features_content_sha256",
             "line_features_content_sha256",
@@ -730,6 +884,7 @@ def validate_planning_feature_code_result(
 
 def resolve_planning_feature_codes(
     planning_document: GpuPlanningDocument,
+    parcels: gpd.GeoDataFrame,
     surface_features: gpd.GeoDataFrame,
     line_features: gpd.GeoDataFrame,
     point_features: gpd.GeoDataFrame,
@@ -742,6 +897,7 @@ def resolve_planning_feature_codes(
         profile = _resolved_profile(code_profile)
         result = _build_result(
             planning_document,
+            parcels,
             surface_features,
             line_features,
             point_features,
@@ -750,6 +906,7 @@ def resolve_planning_feature_codes(
         )
         validate_planning_feature_code_result(
             planning_document,
+            parcels,
             surface_features,
             line_features,
             point_features,

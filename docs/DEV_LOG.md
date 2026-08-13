@@ -1443,6 +1443,68 @@ The five ignored outputs were rewritten and read back (12 dictionary rows, 469 s
 
 No planning code is interpreted as favorable, restrictive, compatible, or blocking. No BESS severity, parcel rejection, score, live production call, or legal interpretation is introduced.
 
+## STEP 7D.5A.3 — Bind normalized planning facts to GPU and parcel identity
+
+- Status: Complete
+- Test-first proof: against the former STEP 7D.5A.2 boundary, 32 feature-stage regressions failed on the old context-free validator/export/source-binding behavior, and all 11 new resolver API/hash regressions failed on the old six-argument coding contract. After implementation, 120 feature-stage and 135 coding-stage focused tests pass.
+- Quality gate: `uv run pytest -q` = 1,254 passed; `uv run ruff check .` and `uv run mypy src` pass.
+- CNIG profile schema: `2` (unchanged); result-hash and ignored-manifest schemas: `3` / `3`. Results claiming schema 1 or 2 are unsupported.
+- Profile and exact official pair lookup: `cnig_plu_2017_muret_observed_pairs_v2`; unchanged.
+- Planning document / archive: `33edb4c9f6943c88d8d92518bff20bec` / `9d6677cd6634b56b712311042f0cc714d5ca42a38f82a417b27dd473255d7d93`.
+
+### Source-complete factual boundary
+
+`validate_normalized_planning_feature_inputs(planning_document, parcels, surface_features, line_features, point_features, relations)` is now the only public factual-input contract. STEP 7D.3.1 and CNIG coding both use the same private normalization implementation; no weaker public overload remains. The validator rebuilds the three catalogs from the inspected GPU related layers and exact-compares schema, dtypes, row count/order, index, every raw attribute, deterministic identifiers, provenance, geometry WKB, CRS, and stored geometry metrics.
+
+Every feature ID must equal `GPU:{source_document_id}:{logical_layer}:{source_feature_id}`. Catalog provenance must equal the current GPU provider, portal, commune, document type, archive name/SHA256, logical IDURBA archive identity, standard model, physical source layer, and inspected source CRS. A populated catalog cannot be supplied for an absent GPU layer. Current inspected layers remain:
+
+| Logical layer | Source rows | Inspected source CRS | Normalized catalog |
+| --- | ---: | --- | --- |
+| `prescription_surface` | 320 | `IGNF:LAMB93` | surface, EPSG:2154, canonical 2D |
+| `prescription_line` | 5 | `EPSG:2154` | line, EPSG:2154, canonical 2D |
+| `prescription_point` | 5 | `EPSG:2154` | point, EPSG:2154, canonical 2D |
+| `information_surface` | 149 | `IGNF:LAMB93` | surface, EPSG:2154, canonical 2D |
+| `information_line` | absent | n/a | empty deterministic line catalog |
+| `information_point` | absent | n/a | empty deterministic point catalog |
+
+Supplied normalized Polygon/MultiPolygon, LineString/MultiLineString, and Point/MultiPoint geometries must have coordinate dimension exactly two. Only source normalization may create the canonical 2D copy; validation never hides a Z/M ordinate with `force_2d`.
+
+The unchanged 3,638-parcel source is EPSG:4326. Parcel IDs are exact and unique; order, index, CRS, and geometry WKB are bound by the parcel-input hash. Parcel area is independently measured on a calculation-only EPSG:2154 copy and every relation's stored `parcel_metric_area_m2` must agree using only `technical_overlay_tolerance(...)`. All 2,414 relations resolve to a real source parcel and exact source feature. The parcel input is never reprojected or rewritten.
+
+### Schema-v3 source and result integrity
+
+Four new canonical UTF-8 JSON hashes bind the complete source context before official columns are appended:
+
+- planning-document context: `fd15de370fdbbbc6688cb9211fc5b09058797ded9184263566e2ebee0dc7caa9`;
+- parcel identity input: `100cf574d4f965153626cfcea57106b189498c36a1686d968ce980b272bf451f`;
+- normalized catalogs input: `07bcfc3c1afb168b72e6711164874f5af56995c0b0f329dee25d929a9d505ade`;
+- normalized relations input: `e9616edb6e09a7fd901774270a11ba717aa8c97dd7427dd14e445b661bc71097`.
+
+The document payload excludes machine-local cache paths and operational cache state, while binding official document metadata, archive identity, standard lineage, physical/logical layer mapping, inspected summaries, and complete loaded source-layer facts. Every output component hash includes all four input hashes.
+
+### Real Muret regression, outputs, and read-back
+
+- Source parcels / features / relations: 3,638 / 479 / 2,414.
+- Surface / line / point catalogs: 469 / 5 / 5; all EPSG:2154 and canonical 2D.
+- Configured/observed pairs: 12/12; leading-zero strings unchanged; PRESCRIPTION `15/00` and `15/01` remain distinct.
+- Resolved feature/relation rows: 479 / 2,414; unknown pairs: 0 / 0.
+- Lost/extra parcel IDs, feature IDs, and relation rows: 0/0, 0/0, and 0/0.
+- Offline reconstruction, resolution, source-complete validation, persistence, and read-back runtime: 5.158 seconds.
+
+| Component | Rows | Schema-v3 content SHA256 | Output bytes |
+| --- | ---: | --- | ---: |
+| Code dictionary | 12 | `4238f069d84c6641e90702ebace797ec0d84a391ebf80c071858684b66b02355` | 9,642 |
+| Surface features | 469 | `bb8df32392fc271bd28aaf481a1235ab2ecc417f1a7757f6f1747424d6024540` | 355,137 |
+| Line features | 5 | `15be09bd8d7dd42682cb536bd4aad59621d058df7a7e3af3995171bcf0eced4b` | 37,194 |
+| Point features | 5 | `21814ad5d006097c2b83e189a63dcb708a19416b85cfeccfc81bbcbc6894a875` | 33,727 |
+| Parcel/feature relations | 2,414 | `f5d1ea58be9cd780b1d8d4d3238c8d896f5df1db1265da9aacd3fe7d76f3e48c` | 158,650 |
+
+Complete result SHA256: `14cc65fff65cf135f2f672c1a04a6fd66a52e396c36326bedab11770b595e148`.
+
+All five ignored Parquets were rewritten. The new ignored schema-v3 manifest is `data/processed/planning/muret_cnig_plu_2017_feature_codes.json` (2,788 bytes). Read-back reconstructed every immutable result scalar from the manifest rather than reusing the in-memory envelope, loaded all five frames from disk, checked exact filenames/row counts/diagnostics, and passed the public source-complete validator against the original GPU document, parcels, factual catalogs, relations, and checked-in profile.
+
+Official CNIG mappings and coded DataFrame facts remain unchanged. No BESS impact or severity is assigned. No parcel is rejected. No score or legal interpretation is produced. No new dataset is downloaded and no parcel/feature spatial intersection is recomputed in this step.
+
 ## STEP 7D.4C.4 — Enforce unique chapter-scoped evidence occurrences
 
 - Status: Complete

@@ -20,6 +20,7 @@ from shapely import (
     contains,
     covers,
     force_2d,
+    get_coordinate_dimension,
     get_parts,
     intersection,
     union_all,
@@ -32,6 +33,8 @@ from landscout.sources.gpu_fr import GpuInspectedLayer, GpuPlanningDocument
 from landscout.stages.planning_overlay import technical_overlay_tolerance
 
 __all__ = [
+    "ParcelPlanningFeaturesResult",
+    "PlanningFeaturesError",
     "intersect_parcels_with_gpu_planning_features",
     "validate_normalized_planning_feature_inputs",
 ]
@@ -402,16 +405,40 @@ def _validate_geometries(
         )
 
 
-def _validate_parcels(parcels: gpd.GeoDataFrame) -> CRS:
+def _validate_two_dimensional_geometry(
+    frame: gpd.GeoDataFrame,
+    label: str,
+) -> None:
+    try:
+        dimensions = np.asarray(
+            get_coordinate_dimension(frame.geometry.array), dtype="int64"
+        )
+        if (dimensions != 2).any():
+            raise PlanningFeaturesError(f"{label} geometry must be canonical 2D")
+    except PlanningFeaturesError:
+        raise
+    except Exception as error:
+        raise PlanningFeaturesError(
+            f"{label} geometry dimensionality cannot be validated"
+        ) from error
+
+
+def _validate_parcels(
+    parcels: gpd.GeoDataFrame,
+    *,
+    allow_output_columns: bool = False,
+) -> CRS:
     if not isinstance(parcels, gpd.GeoDataFrame):
         raise PlanningFeaturesError("Parcels must be a GeoDataFrame")
+    if parcels.columns.duplicated().any():
+        raise PlanningFeaturesError("Parcels contain duplicate columns")
     missing = sorted(PARCEL_REQUIRED_COLUMNS - set(parcels.columns))
     if missing:
         raise PlanningFeaturesError(
             "Parcels are missing required columns: " + ", ".join(missing)
         )
     collisions = sorted(PARCEL_OUTPUT_COLUMNS & set(parcels.columns))
-    if collisions:
+    if collisions and not allow_output_columns:
         raise PlanningFeaturesError(
             "Parcels already contain planning-feature output columns: "
             + ", ".join(collisions)
@@ -723,6 +750,47 @@ def _combine_catalogs(
     )
     _validate_ids(combined["planning_feature_id"], "planning_feature_id")
     return combined
+
+
+def _normalized_catalogs(
+    planning_document: GpuPlanningDocument,
+) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame]:
+    """Rebuild canonical catalogs from the inspected GPU related layers only."""
+
+    context = _planning_context(planning_document)
+    spatial_inventory = tuple(planning_document.all_spatial_layers)
+    inspected_layers = (planning_document.zoning, *planning_document.related_layers)
+    for layer in inspected_layers:
+        if sum(reference == layer.reference for reference in spatial_inventory) != 1:
+            raise PlanningFeaturesError(
+                f"{layer.logical_name} inspected reference must occur exactly once "
+                "in the GPU spatial-layer inventory"
+            )
+    layer_map: dict[str, GpuInspectedLayer] = {}
+    for inspected_layer in planning_document.related_layers:
+        logical = str(inspected_layer.logical_name)
+        if logical not in LAYER_SPECS:
+            raise PlanningFeaturesError(f"Unsupported related layer: {logical}")
+        if logical in layer_map:
+            raise PlanningFeaturesError(f"Duplicate related layer: {logical}")
+        layer_map[logical] = inspected_layer
+
+    normalized = {
+        logical: _normalize_layer(layer, LAYER_SPECS[logical], context)
+        for logical, layer in layer_map.items()
+    }
+
+    def combined(kind: GeometryKind) -> gpd.GeoDataFrame:
+        return _combine_catalogs(
+            [
+                normalized[logical]
+                for logical, spec in LAYER_SPECS.items()
+                if spec.geometry_kind == kind and logical in normalized
+            ],
+            kind,
+        )
+
+    return combined("SURFACE"), combined("LINE"), combined("POINT")
 
 
 def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -1161,6 +1229,14 @@ def _validate_catalog_identity(catalog: gpd.GeoDataFrame) -> None:
             raise PlanningFeaturesError(
                 "Feature catalog logical layer and geometry kind are inconsistent"
             )
+        expected_planning_id = (
+            f"GPU:{row['source_document_id']}:{logical}:"
+            f"{row['source_feature_id']}"
+        )
+        if row["planning_feature_id"] != expected_planning_id:
+            raise PlanningFeaturesError(
+                "planning_feature_id differs from deterministic GPU identity"
+            )
         kind = row["source_identity_kind"]
         field = row["source_identity_field"]
         if kind not in SOURCE_IDENTITY_KINDS:
@@ -1199,6 +1275,7 @@ def _validate_catalog_contract(
     if not catalog.empty and not catalog["geometry_kind"].eq(geometry_kind).all():
         raise PlanningFeaturesError(f"{label} geometry kind is invalid")
     _validate_geometries(catalog, _CATALOG_GEOMETRY_TYPES[geometry_kind], label)
+    _validate_two_dimensional_geometry(catalog, label)
     if geometry_kind == "SURFACE":
         _numeric_values(
             catalog,
@@ -1257,6 +1334,38 @@ def _validate_catalog_contract(
                 "Point feature member count is inconsistent with geometry"
             )
     return catalog
+
+
+def _compare_normalized_catalog(
+    supplied: gpd.GeoDataFrame,
+    expected: gpd.GeoDataFrame,
+    label: str,
+) -> None:
+    if not supplied.index.equals(expected.index):
+        raise PlanningFeaturesError(f"{label} index differs from normalized GPU source")
+    if tuple(supplied.columns) != tuple(expected.columns):
+        raise PlanningFeaturesError(f"{label} schema differs from normalized GPU source")
+    try:
+        supplied_crs = _crs(supplied.crs, label)
+        expected_crs = _crs(expected.crs, f"expected {label}")
+        geometry_equal = np.array_equal(
+            supplied.geometry.to_wkb(), expected.geometry.to_wkb()
+        )
+        attributes_equal = supplied.drop(columns="geometry").equals(
+            expected.drop(columns="geometry")
+        )
+    except PlanningFeaturesError:
+        raise
+    except Exception as error:
+        raise PlanningFeaturesError(
+            f"{label} cannot be compared with normalized GPU source"
+        ) from error
+    if (
+        not supplied_crs.equals(expected_crs)
+        or not geometry_equal
+        or not attributes_equal
+    ):
+        raise PlanningFeaturesError(f"{label} differs from normalized GPU source")
 
 
 _RELATION_CATALOG_FIELDS = (
@@ -1444,19 +1553,32 @@ def _validate_relation_semantics(relations: pd.DataFrame) -> None:
             raise PlanningFeaturesError(f"{kind} relation populated an unrelated metric")
 
 
-def validate_normalized_planning_feature_inputs(
+def _validate_normalized_planning_feature_inputs(
+    planning_document: GpuPlanningDocument,
+    parcels: gpd.GeoDataFrame,
     surface_features: gpd.GeoDataFrame,
     line_features: gpd.GeoDataFrame,
     point_features: gpd.GeoDataFrame,
     relations: pd.DataFrame,
 ) -> None:
-    """Validate exact factual STEP 7D.3.1 catalogs and relation semantics."""
+    """Validate exact STEP 7D.3.1 facts against their document and parcels."""
+
+    _validate_parcels(parcels, allow_output_columns=True)
+    metric_parcels = _metric_parcels(parcels)
+    expected_catalogs = _normalized_catalogs(planning_document)
 
     catalogs = (
         _validate_catalog_contract(surface_features, "SURFACE"),
         _validate_catalog_contract(line_features, "LINE"),
         _validate_catalog_contract(point_features, "POINT"),
     )
+    for supplied, expected, label in zip(
+        catalogs,
+        expected_catalogs,
+        ("SURFACE feature catalog", "LINE feature catalog", "POINT feature catalog"),
+        strict=True,
+    ):
+        _compare_normalized_catalog(supplied, expected, label)
     all_feature_ids = [
         identifier
         for catalog in catalogs
@@ -1483,8 +1605,54 @@ def validate_normalized_planning_feature_inputs(
         raise PlanningFeaturesError("Parcel/planning-feature relations must be unique")
     if not set(relations["planning_feature_id"]).issubset(set(all_feature_ids)):
         raise PlanningFeaturesError("Planning relation references an unknown feature")
+    parcel_areas = dict(
+        zip(
+            metric_parcels["parcel_id"].tolist(),
+            metric_parcels["_parcel_area_m2"].tolist(),
+            strict=True,
+        )
+    )
+    for parcel_id, actual_area in relations[
+        ["parcel_id", "parcel_metric_area_m2"]
+    ].itertuples(index=False, name=None):
+        if parcel_id not in parcel_areas:
+            raise PlanningFeaturesError(
+                "Planning relation references an unknown source parcel"
+            )
+        _require_close(
+            actual_area,
+            float(parcel_areas[parcel_id]),
+            "Relation parcel metric area",
+        )
     _validate_relation_semantics(relations)
     _validate_relation_catalog_consistency(relations, catalogs)
+
+
+def validate_normalized_planning_feature_inputs(
+    planning_document: GpuPlanningDocument,
+    parcels: gpd.GeoDataFrame,
+    surface_features: gpd.GeoDataFrame,
+    line_features: gpd.GeoDataFrame,
+    point_features: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+) -> None:
+    """Validate exact STEP 7D.3.1 facts against their document and parcels."""
+
+    try:
+        _validate_normalized_planning_feature_inputs(
+            planning_document,
+            parcels,
+            surface_features,
+            line_features,
+            point_features,
+            relations,
+        )
+    except PlanningFeaturesError:
+        raise
+    except Exception as error:
+        raise PlanningFeaturesError(
+            "Normalized planning-feature input validation failed safely"
+        ) from error
 
 
 def _validate_parcel_summaries(
@@ -1609,6 +1777,8 @@ def _validate_result(
     source: gpd.GeoDataFrame,
     result: ParcelPlanningFeaturesResult,
     surface_work: pd.DataFrame | None = None,
+    *,
+    planning_document: GpuPlanningDocument,
 ) -> None:
     output = result.parcels
     missing_output = sorted(PARCEL_OUTPUT_COLUMNS - set(output.columns))
@@ -1638,7 +1808,12 @@ def _validate_result(
         result.line_features,
         result.point_features,
     )
-    validate_normalized_planning_feature_inputs(*catalogs, result.relations)
+    validate_normalized_planning_feature_inputs(
+        planning_document,
+        source,
+        *catalogs,
+        result.relations,
+    )
     all_feature_ids = [
         identifier
         for catalog in catalogs
@@ -1693,45 +1868,7 @@ def intersect_parcels_with_gpu_planning_features(
 
     _validate_parcels(parcels)
     context = _planning_context(planning_document)
-    layer_map: dict[str, GpuInspectedLayer] = {}
-    for inspected_layer in planning_document.related_layers:
-        logical = str(inspected_layer.logical_name)
-        if logical not in LAYER_SPECS:
-            raise PlanningFeaturesError(f"Unsupported related layer: {logical}")
-        if logical in layer_map:
-            raise PlanningFeaturesError(f"Duplicate related layer: {logical}")
-        layer_map[logical] = inspected_layer
-
-    normalized: dict[str, gpd.GeoDataFrame] = {}
-    for logical, spec in LAYER_SPECS.items():
-        layer = layer_map.get(logical)
-        if layer is not None:
-            normalized[logical] = _normalize_layer(layer, spec, context)
-
-    surfaces = _combine_catalogs(
-        [
-            normalized[logical]
-            for logical, spec in LAYER_SPECS.items()
-            if spec.geometry_kind == "SURFACE" and logical in normalized
-        ],
-        "SURFACE",
-    )
-    lines = _combine_catalogs(
-        [
-            normalized[logical]
-            for logical, spec in LAYER_SPECS.items()
-            if spec.geometry_kind == "LINE" and logical in normalized
-        ],
-        "LINE",
-    )
-    points = _combine_catalogs(
-        [
-            normalized[logical]
-            for logical, spec in LAYER_SPECS.items()
-            if spec.geometry_kind == "POINT" and logical in normalized
-        ],
-        "POINT",
-    )
+    surfaces, lines, points = _normalized_catalogs(planning_document)
     metric = _metric_parcels(parcels)
     surface_work = _surface_relations(metric, surfaces)
     line_work = _line_relations(metric, lines)
@@ -1757,5 +1894,10 @@ def intersect_parcels_with_gpu_planning_features(
         point_features=points,
         relations=relations,
     )
-    _validate_result(parcels, result, surface_work)
+    _validate_result(
+        parcels,
+        result,
+        surface_work,
+        planning_document=planning_document,
+    )
     return result
