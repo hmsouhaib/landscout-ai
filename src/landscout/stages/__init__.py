@@ -9,10 +9,12 @@ from landscout.stages.assess_grid_coverage import (
     profile_grid_coverage,
 )
 from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyArtifactManifest,
     BessPlanningFeaturePolicyConfig,
     BessPlanningFeaturePolicyError,
     BessPlanningFeaturePolicyResult,
     compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_artifacts,
     load_bess_planning_feature_policy_config,
     validate_bess_planning_feature_policy_result,
 )
@@ -95,6 +97,7 @@ from landscout.stages.structure_planning_regulation import (
 )
 
 __all__ = [
+    "BessPlanningFeaturePolicyArtifactManifest",
     "BessPlanningFeaturePolicyConfig",
     "BessPlanningFeaturePolicyError",
     "BessPlanningFeaturePolicyResult",
@@ -143,6 +146,7 @@ __all__ = [
     "interpret_bess_zoning",
     "intersect_parcels_with_gpu_planning_features",
     "intersect_parcels_with_gpu_zoning",
+    "load_bess_planning_feature_policy_artifacts",
     "load_bess_planning_feature_policy_config",
     "load_bess_zoning_policy_config",
     "load_cnig_feature_code_profile",

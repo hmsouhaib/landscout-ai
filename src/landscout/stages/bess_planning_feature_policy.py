@@ -35,17 +35,21 @@ from landscout.stages.resolve_planning_feature_codes import (
 )
 
 __all__ = [
+    "BessPlanningFeaturePolicyArtifactManifest",
     "BessPlanningFeaturePolicyConfig",
     "BessPlanningFeaturePolicyError",
     "BessPlanningFeaturePolicyResult",
     "compile_bess_planning_feature_policy",
+    "load_bess_planning_feature_policy_artifacts",
     "load_bess_planning_feature_policy_config",
     "validate_bess_planning_feature_policy_result",
 ]
 
 POLICY_SCHEMA_VERSION = 1
 RESULT_HASH_SCHEMA_VERSION = 1
+ARTIFACT_MANIFEST_SCHEMA_VERSION = 2
 POLICY_SCOPE = "OFFICIAL_CNIG_CODE_MEANING_ONLY"
+ARTIFACT_KIND = "BESS_CNIG_FEATURE_POLICY_RESULT"
 
 FeatureFamily = Literal["PRESCRIPTION", "INFORMATION"]
 PrecheckStatus = Literal[
@@ -92,6 +96,43 @@ POLICY_TABLE_COLUMNS = (
     "cnig_profile_sha256",
     "cnig_complete_result_content_sha256",
 )
+POLICY_TABLE_DTYPES = tuple(
+    "int64"
+    if column == "status_priority"
+    else "bool"
+    if column
+    in {
+        "local_feature_text_interpreted",
+        "local_regulation_content_interpreted",
+        "legal_conclusion_produced",
+    }
+    else "str"
+    for column in POLICY_TABLE_COLUMNS
+)
+POLICY_TABLE_SCHEMA_SIGNATURE: dict[str, object] = {
+    "columns": list(POLICY_TABLE_COLUMNS),
+    "dtypes": list(POLICY_TABLE_DTYPES),
+    "index_class": "pandas.Index",
+    "index_names": [None],
+    "index_level_dtypes": ["int64"],
+}
+NULL_REFERENCE_LITERALS = frozenset({"None", "nan", "<NA>"})
+POLICY_RESULT_SCALAR_FIELDS = (
+    "policy_schema_version",
+    "result_hash_schema_version",
+    "policy_profile",
+    "policy_scope",
+    "policy_sha256",
+    "source_document_id",
+    "source_archive_sha256",
+    "cnig_profile",
+    "cnig_profile_schema_version",
+    "cnig_profile_sha256",
+    "cnig_result_hash_schema_version",
+    "cnig_complete_result_content_sha256",
+    "policy_table_content_sha256",
+    "complete_result_content_sha256",
+)
 
 
 class BessPlanningFeaturePolicyError(ValueError):
@@ -102,9 +143,21 @@ class _StrictPolicyModel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
 
+class PolicyTableSchemaSignature(_StrictPolicyModel):
+    """Immutable persisted schema identity for the normalized policy table."""
+
+    columns: tuple[StrictStr, ...]
+    dtypes: tuple[StrictStr, ...]
+    index_class: StrictStr
+    index_names: tuple[StrictStr | None, ...]
+    index_level_dtypes: tuple[StrictStr, ...]
+
+
 def _exact_string(value: object, label: str) -> str:
     if not isinstance(value, str) or not value or value != value.strip():
-        raise ValueError(f"{label} must be an exact non-empty string without edge whitespace")
+        raise ValueError(
+            f"{label} must be an exact non-empty string without edge whitespace"
+        )
     return value
 
 
@@ -199,9 +252,7 @@ def _canonical_json_sha256(value: object) -> str:
 
 
 def _policy_entries_sha256(entries: tuple[PolicyEntry, ...]) -> str:
-    return _canonical_json_sha256(
-        [entry.model_dump(mode="json") for entry in entries]
-    )
+    return _canonical_json_sha256([entry.model_dump(mode="json") for entry in entries])
 
 
 class BessPlanningFeaturePolicyConfig(_StrictPolicyModel):
@@ -218,7 +269,10 @@ class BessPlanningFeaturePolicyConfig(_StrictPolicyModel):
 
     @model_validator(mode="after")
     def _validate_policy(self) -> BessPlanningFeaturePolicyConfig:
-        if type(self.schema_version) is not int or self.schema_version != POLICY_SCHEMA_VERSION:
+        if (
+            type(self.schema_version) is not int
+            or self.schema_version != POLICY_SCHEMA_VERSION
+        ):
             raise ValueError(
                 f"policy schema version must equal {POLICY_SCHEMA_VERSION}"
             )
@@ -230,9 +284,13 @@ class BessPlanningFeaturePolicyConfig(_StrictPolicyModel):
             or self.local_regulation_content_interpreted is not False
             or self.legal_conclusion_produced is not False
         ):
-            raise ValueError("policy interpretation and legal-conclusion flags must be false")
+            raise ValueError(
+                "policy interpretation and legal-conclusion flags must be false"
+            )
         if set(self.status_priority) != ALLOWED_STATUSES:
-            raise ValueError("status priority must contain every allowed status exactly once")
+            raise ValueError(
+                "status priority must contain every allowed status exactly once"
+            )
         priorities = list(self.status_priority.values())
         if any(type(value) is not int or value <= 0 for value in priorities):
             raise ValueError("status priority values must be strict positive integers")
@@ -243,15 +301,21 @@ class BessPlanningFeaturePolicyConfig(_StrictPolicyModel):
             for entry in self.entries
         ]
         if len(keys) != len(set(keys)):
-            raise ValueError("policy entries contain a duplicate family/type/subtype pair")
+            raise ValueError(
+                "policy entries contain a duplicate family/type/subtype pair"
+            )
         if keys != sorted(keys):
-            raise ValueError("policy entries must use deterministic family/type/subtype order")
+            raise ValueError(
+                "policy entries must use deterministic family/type/subtype order"
+            )
         _sha256_string(
             self.canonical_policy_entries_sha256,
             "canonical_policy_entries_sha256",
         )
         if _policy_entries_sha256(self.entries) != self.canonical_policy_entries_sha256:
-            raise ValueError("canonical policy-entry SHA256 differs from policy entries")
+            raise ValueError(
+                "canonical policy-entry SHA256 differs from policy entries"
+            )
         return self
 
 
@@ -336,6 +400,94 @@ class BessPlanningFeaturePolicyResult:
     policy_table_content_sha256: str
     complete_result_content_sha256: str
     policy_table: pd.DataFrame
+
+
+class BessPlanningFeaturePolicyArtifactManifest(_StrictPolicyModel):
+    """Strict physical binding between one policy table and its hash envelope."""
+
+    schema_version: StrictInt
+    artifact_kind: Literal["BESS_CNIG_FEATURE_POLICY_RESULT"]
+    policy_schema_version: StrictInt
+    result_hash_schema_version: StrictInt
+    policy_profile: StrictStr
+    policy_scope: Literal["OFFICIAL_CNIG_CODE_MEANING_ONLY"]
+    policy_sha256: StrictStr
+    source_document_id: StrictStr
+    source_archive_sha256: StrictStr
+    cnig_profile: StrictStr
+    cnig_profile_schema_version: StrictInt
+    cnig_profile_sha256: StrictStr
+    cnig_result_hash_schema_version: StrictInt
+    cnig_complete_result_content_sha256: StrictStr
+    policy_table_content_sha256: StrictStr
+    complete_result_content_sha256: StrictStr
+    parquet_filename: StrictStr
+    parquet_row_count: StrictInt
+    parquet_size_bytes: StrictInt
+    parquet_sha256: StrictStr
+    policy_table_schema_signature: PolicyTableSchemaSignature
+
+    @model_validator(mode="after")
+    def _validate_manifest(self) -> BessPlanningFeaturePolicyArtifactManifest:
+        if (
+            type(self.schema_version) is not int
+            or self.schema_version != ARTIFACT_MANIFEST_SCHEMA_VERSION
+        ):
+            raise ValueError(
+                "artifact manifest schema version must equal "
+                f"{ARTIFACT_MANIFEST_SCHEMA_VERSION}"
+            )
+        if (
+            type(self.policy_schema_version) is not int
+            or self.policy_schema_version != POLICY_SCHEMA_VERSION
+        ):
+            raise ValueError("artifact policy schema version is unsupported")
+        if (
+            type(self.result_hash_schema_version) is not int
+            or self.result_hash_schema_version != RESULT_HASH_SCHEMA_VERSION
+        ):
+            raise ValueError("artifact result hash schema version is unsupported")
+        for exact_value, label in (
+            (self.policy_profile, "policy_profile"),
+            (self.source_document_id, "source_document_id"),
+            (self.cnig_profile, "cnig_profile"),
+        ):
+            _exact_string(exact_value, label)
+        for hash_value, label in (
+            (self.policy_sha256, "policy_sha256"),
+            (self.source_archive_sha256, "source_archive_sha256"),
+            (self.cnig_profile_sha256, "cnig_profile_sha256"),
+            (
+                self.cnig_complete_result_content_sha256,
+                "cnig_complete_result_content_sha256",
+            ),
+            (self.policy_table_content_sha256, "policy_table_content_sha256"),
+            (self.complete_result_content_sha256, "complete_result_content_sha256"),
+            (self.parquet_sha256, "parquet_sha256"),
+        ):
+            _sha256_string(hash_value, label)
+        for integer_value, label, allow_zero in (
+            (self.cnig_profile_schema_version, "cnig_profile_schema_version", False),
+            (
+                self.cnig_result_hash_schema_version,
+                "cnig_result_hash_schema_version",
+                False,
+            ),
+            (self.parquet_row_count, "parquet_row_count", True),
+            (self.parquet_size_bytes, "parquet_size_bytes", False),
+        ):
+            minimum = 0 if allow_zero else 1
+            if type(integer_value) is not int or integer_value < minimum:
+                raise ValueError(f"{label} is invalid")
+        _exact_string(self.parquet_filename, "parquet_filename")
+        filename = Path(self.parquet_filename)
+        if (
+            filename.is_absolute()
+            or filename.name != self.parquet_filename
+            or filename.suffix.lower() != ".parquet"
+        ):
+            raise ValueError("parquet_filename must be one local Parquet filename")
+        return self
 
 
 def _null_value(value: object) -> object:
@@ -475,9 +627,7 @@ def _validate_policy_completeness(
             raise BessPlanningFeaturePolicyError(
                 f"Policy official label mismatch for pair {key}"
             )
-        if not _null_safe_equal(
-            entry.expected_legal_reference, row["legal_reference"]
-        ):
+        if not _null_safe_equal(entry.expected_legal_reference, row["legal_reference"]):
             raise BessPlanningFeaturePolicyError(
                 f"Policy legal reference mismatch for pair {key}"
             )
@@ -535,14 +685,19 @@ def _policy_table(
             }
         )
     output = pd.DataFrame(rows, columns=POLICY_TABLE_COLUMNS)
-    string_columns = set(POLICY_TABLE_COLUMNS) - {
-        "status_priority",
-        "local_feature_text_interpreted",
-        "local_regulation_content_interpreted",
-        "legal_conclusion_produced",
-    }
+    string_columns = tuple(
+        column
+        for column in POLICY_TABLE_COLUMNS
+        if column
+        not in {
+            "status_priority",
+            "local_feature_text_interpreted",
+            "local_regulation_content_interpreted",
+            "legal_conclusion_produced",
+        }
+    )
     for column in string_columns:
-        output[column] = output[column].astype("str")
+        output[column] = pd.array(output[column].tolist(), dtype="str")
     output["status_priority"] = output["status_priority"].astype("int64")
     for column in (
         "local_feature_text_interpreted",
@@ -655,10 +810,25 @@ def _validate_result_envelope(result: BessPlanningFeaturePolicyResult) -> None:
         result.policy_table, gpd.GeoDataFrame
     ):
         raise BessPlanningFeaturePolicyError("policy table must be a DataFrame")
-    if result.policy_table.columns.duplicated().any() or tuple(
-        result.policy_table.columns
-    ) != POLICY_TABLE_COLUMNS:
+    if (
+        result.policy_table.columns.duplicated().any()
+        or tuple(result.policy_table.columns) != POLICY_TABLE_COLUMNS
+    ):
         raise BessPlanningFeaturePolicyError("policy table schema is invalid")
+    if (
+        deterministic_frame_schema_signature(result.policy_table)
+        != POLICY_TABLE_SCHEMA_SIGNATURE
+    ):
+        raise BessPlanningFeaturePolicyError("policy table schema is invalid")
+    for column in (
+        "official_legal_reference",
+        "official_regulation_reference",
+    ):
+        for value in result.policy_table[column].tolist():
+            if isinstance(value, str) and value in NULL_REFERENCE_LITERALS:
+                raise BessPlanningFeaturePolicyError(
+                    f"{column} contains a literal null replacement"
+                )
     for value, label in (
         (result.policy_sha256, "policy_sha256"),
         (result.source_archive_sha256, "source_archive_sha256"),
@@ -679,6 +849,76 @@ def _validate_result_envelope(result: BessPlanningFeaturePolicyResult) -> None:
         raise BessPlanningFeaturePolicyError("policy table hash is invalid")
     if result.complete_result_content_sha256 != rebuilt.complete_result_content_sha256:
         raise BessPlanningFeaturePolicyError("complete result hash is invalid")
+
+
+def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    output: dict[str, object] = {}
+    for key, value in pairs:
+        if key in output:
+            raise BessPlanningFeaturePolicyError(
+                f"Duplicate JSON artifact key: {key!r}"
+            )
+        output[key] = value
+    return output
+
+
+def _file_sha256(path: Path) -> str:
+    digest = sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def load_bess_planning_feature_policy_artifacts(
+    parquet_path: str | Path,
+    manifest_path: str | Path,
+) -> BessPlanningFeaturePolicyResult:
+    """Load and locally validate one physically sealed compiled-policy artifact."""
+
+    try:
+        parquet = Path(parquet_path)
+        manifest_file = Path(manifest_path)
+        payload = json.loads(
+            manifest_file.read_text(encoding="utf-8"),
+            object_pairs_hook=_unique_json_object,
+        )
+        manifest = BessPlanningFeaturePolicyArtifactManifest.model_validate(payload)
+        if manifest.parquet_filename != parquet.name:
+            raise BessPlanningFeaturePolicyError(
+                "Artifact manifest Parquet filename differs from the supplied file"
+            )
+        if parquet.stat().st_size != manifest.parquet_size_bytes:
+            raise BessPlanningFeaturePolicyError(
+                "Artifact manifest Parquet size differs from the supplied file"
+            )
+        if _file_sha256(parquet) != manifest.parquet_sha256:
+            raise BessPlanningFeaturePolicyError(
+                "Artifact manifest Parquet SHA256 differs from the supplied file"
+            )
+        table = pd.read_parquet(parquet)
+        if len(table) != manifest.parquet_row_count:
+            raise BessPlanningFeaturePolicyError(
+                "Artifact manifest Parquet row count differs from the supplied file"
+            )
+        actual_schema = deterministic_frame_schema_signature(table)
+        declared_schema = manifest.policy_table_schema_signature.model_dump(mode="json")
+        if actual_schema != declared_schema:
+            raise BessPlanningFeaturePolicyError(
+                "Artifact manifest policy-table schema differs from the supplied file"
+            )
+        result = BessPlanningFeaturePolicyResult(
+            **{name: getattr(manifest, name) for name in POLICY_RESULT_SCALAR_FIELDS},
+            policy_table=table,
+        )
+        _validate_result_envelope(result)
+        return result
+    except BessPlanningFeaturePolicyError:
+        raise
+    except Exception as error:
+        raise BessPlanningFeaturePolicyError(
+            f"BESS CNIG feature policy artifacts are invalid: {error}"
+        ) from error
 
 
 def _validate_coded_source(
@@ -759,6 +999,7 @@ def validate_bess_planning_feature_policy_result(
     """Rebuild and validate a normalized policy from every factual source input."""
 
     try:
+        _validate_result_envelope(result)
         config = _resolved_policy_config(policy_config)
         _validate_coded_source(
             planning_document,
@@ -770,25 +1011,8 @@ def validate_bess_planning_feature_policy_result(
             code_profile,
             coded_result,
         )
-        _validate_result_envelope(result)
         expected = _build_result(config, coded_result)
-        scalar_fields = (
-            "policy_schema_version",
-            "result_hash_schema_version",
-            "policy_profile",
-            "policy_scope",
-            "policy_sha256",
-            "source_document_id",
-            "source_archive_sha256",
-            "cnig_profile",
-            "cnig_profile_schema_version",
-            "cnig_profile_sha256",
-            "cnig_result_hash_schema_version",
-            "cnig_complete_result_content_sha256",
-            "policy_table_content_sha256",
-            "complete_result_content_sha256",
-        )
-        for field in scalar_fields:
+        for field in POLICY_RESULT_SCALAR_FIELDS:
             if getattr(result, field) != getattr(expected, field):
                 raise BessPlanningFeaturePolicyError(
                     f"result {field} differs from rebuilt policy"

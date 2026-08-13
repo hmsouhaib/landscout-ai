@@ -1550,6 +1550,40 @@ The persisted table and manifest were read back, every immutable result scalar w
 
 These are conservative preliminary review classifications. `LIKELY_MATERIAL_CONSTRAINT` does not mean prohibited. No status is applied to a feature, relation, or parcel in this step. No BESS authorization or prohibition is claimed. No parcel is rejected and no score is created.
 
+## STEP 7D.5B.1.1 — Harden BESS CNIG policy snapshot and persisted artifacts
+
+- Status: Complete
+- Scope: dependency, immutable snapshot, local artifact integrity, and validation ordering only. The 12 approved policy decisions, priorities, rationales, required actions, limitations, and source locks are unchanged. No policy is applied to features, relations, or parcels.
+- Test-first proof: before the fix, five focused probes failed. Pandas was only transitive; coordinated replacements of a missing official reference by each of `"None"`, `"nan"`, and `"<NA>"` passed the local envelope; and an invalid local result invoked the source-complete CNIG validator before failing its own hash check. These defects and the strict artifact cases are permanent regressions in the 64-test focused suite.
+- Quality gates: all 1,379 tests pass; repository-wide Ruff and `mypy src` checks pass.
+
+### Runtime and immutable policy contract
+
+`pandas>=3.0,<4` is now a direct LandScout runtime dependency. Both nullable official-reference columns are built explicitly with the Pandas 3 nullable `str` representation. For `INFORMATION 99/00`, `official_legal_reference` and `official_regulation_reference` are true missing values before persistence and after Parquet read-back; textual null sentinels are rejected.
+
+The checked-in profile-v1 snapshot is pinned offline across its complete source lock, status-priority map, flags, ordered entry payload, and full canonical policy payload:
+
+- canonical policy-entry SHA256: `1d3e63f1123000402065b74402cb1e2295db2ac5655209ce410aaf36bfc2be91`;
+- complete policy SHA256: `1cfca0eb3d777e9b6604748e8a81609abe7b728de8d0695711cd569180df6489`;
+- normalized policy-table SHA256: `225105fe488e21f8aa080751812dde1671340c26620cae1d8372c2e59488ed41`;
+- complete result SHA256: `84a59b418f5a53bc61df73296964b2847cc5d3529c10d0c6912c96222edba09c`.
+
+The exact distribution remains 3 `LIKELY_MATERIAL_CONSTRAINT`, 3 `MATERIAL_REVIEW_REQUIRED`, 2 `DESIGN_REVIEW_REQUIRED`, 3 `CONTEXT_REVIEW_REQUIRED`, and 1 `UNKNOWN`; confidence remains 8 `HIGH`, 3 `MEDIUM`, and 1 `LOW`. Policy pairs / missing / extra remain 12 / 0 / 0, with no official-label or reference mismatch.
+
+### Strict artifacts and validation order
+
+The artifact manifest alone advances from schema 1 to schema 2; policy and result-hash schemas remain 1. The frozen strict manifest binds every immutable result scalar plus the exact Parquet filename, row count, byte size, file SHA256, and deterministic table-schema signature. JSON duplicate keys and unknown fields are rejected. The high-level artifact loader verifies the physical file before reading it, reconstructs the immutable result, and runs the lightweight local envelope validator.
+
+The public source-complete policy validator now checks the local type, schema, table schema, component hash, and complete hash before any GPU-file reread or spatial-relation reconstruction. A locally valid artifact still triggers exactly one independent schema-v5 CNIG source-complete validation.
+
+- `data/processed/planning/muret_bess_cnig_feature_policy.parquet`: 12 rows, 20,526 bytes, physical SHA256 `2a2e4f105f23053fec6fd68505fc1b41ffa5813a890c1242b157ec970f03fd31`;
+- `data/processed/planning/muret_bess_cnig_feature_policy.json`: strict schema 2, 2,402 bytes;
+- offline compile, temporary artifact validation, publication, strict reload, and final source-complete validation runtime: 19.386 seconds.
+
+Both generated files were read back through the strict artifact loader, then the loaded result passed the full public validator with the original GPU document, parcels, factual feature catalogs/relations, approved CNIG profile, schema-v5 coded result, and unchanged policy YAML.
+
+No local feature text or regulation content is interpreted. No feature, relation, or parcel status is produced. No parcel is rejected, no score is created, and no authorization or prohibition is claimed.
+
 ## STEP 7D.5A.5 — Finalize deterministic relation schemas and GPU validation boundaries
 
 - Status: Complete

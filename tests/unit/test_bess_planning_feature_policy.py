@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib
 import json
+import tomllib
 from dataclasses import fields, replace
 from hashlib import sha256
 from pathlib import Path
@@ -13,6 +14,7 @@ from pydantic import ValidationError
 from test_resolve_planning_feature_codes import _integration_inputs
 
 from landscout import stages
+from landscout.common.frame_integrity import deterministic_frame_schema_signature
 from landscout.stages.bess_planning_feature_policy import (
     BessPlanningFeaturePolicyConfig,
     BessPlanningFeaturePolicyError,
@@ -48,6 +50,34 @@ EXPECTED_MURET_DECISIONS = {
     ("PRESCRIPTION", "17", "00"): ("MATERIAL_REVIEW_REQUIRED", "MEDIUM"),
     ("PRESCRIPTION", "18", "00"): ("MATERIAL_REVIEW_REQUIRED", "HIGH"),
 }
+EXPECTED_POLICY_ENTRIES_SHA256 = (
+    "1d3e63f1123000402065b74402cb1e2295db2ac5655209ce410aaf36bfc2be91"
+)
+EXPECTED_POLICY_SHA256 = (
+    "1cfca0eb3d777e9b6604748e8a81609abe7b728de8d0695711cd569180df6489"
+)
+EXPECTED_POLICY_TABLE_SHA256 = (
+    "225105fe488e21f8aa080751812dde1671340c26620cae1d8372c2e59488ed41"
+)
+EXPECTED_COMPLETE_RESULT_SHA256 = (
+    "84a59b418f5a53bc61df73296964b2847cc5d3529c10d0c6912c96222edba09c"
+)
+EXPECTED_SOURCE_LOCK = {
+    "document_id": "33edb4c9f6943c88d8d92518bff20bec",
+    "archive_sha256": (
+        "9d6677cd6634b56b712311042f0cc714d5ca42a38f82a417b27dd473255d7d93"
+    ),
+    "cnig_profile": "cnig_plu_2017_muret_observed_pairs_v2",
+    "cnig_profile_schema_version": 2,
+    "cnig_profile_sha256": (
+        "5611b814eb4bc057578b908c6505094f9df5d2c2bf4ca126629b1362983c47ee"
+    ),
+    "cnig_result_hash_schema_version": 5,
+    "cnig_complete_result_content_sha256": (
+        "b56b195b32914583e6599fe96b3d29977c52450c9755228d89ce7e192903ab3e"
+    ),
+}
+ARTIFACT_KIND = "BESS_CNIG_FEATURE_POLICY_RESULT"
 
 
 def _canonical_sha256(value: object) -> str:
@@ -133,11 +163,49 @@ def _validated_config(payload: dict[str, object]) -> BessPlanningFeaturePolicyCo
     return BessPlanningFeaturePolicyConfig.model_validate(payload)
 
 
-def test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status() -> None:
-    inputs, coded, config, result = _compiled_fixture()
-    validate_bess_planning_feature_policy_result(
-        *inputs, coded, config, result
+def _artifact_manifest(
+    result: BessPlanningFeaturePolicyResult,
+    parquet: Path,
+) -> dict[str, object]:
+    scalar_names = tuple(
+        field.name
+        for field in fields(BessPlanningFeaturePolicyResult)
+        if field.name != "policy_table"
     )
+    return {
+        "schema_version": 2,
+        "artifact_kind": ARTIFACT_KIND,
+        **{name: getattr(result, name) for name in scalar_names},
+        "parquet_filename": parquet.name,
+        "parquet_row_count": len(result.policy_table),
+        "parquet_size_bytes": parquet.stat().st_size,
+        "parquet_sha256": sha256(parquet.read_bytes()).hexdigest(),
+        "policy_table_schema_signature": deterministic_frame_schema_signature(
+            result.policy_table
+        ),
+    }
+
+
+def _write_artifacts(
+    tmp_path: Path,
+    result: BessPlanningFeaturePolicyResult,
+) -> tuple[Path, Path, dict[str, object]]:
+    parquet = tmp_path / "policy.parquet"
+    manifest_path = tmp_path / "policy.json"
+    result.policy_table.to_parquet(parquet, index=True)
+    manifest = _artifact_manifest(result, parquet)
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return parquet, manifest_path, manifest
+
+
+def test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status() -> (
+    None
+):
+    inputs, coded, config, result = _compiled_fixture()
+    validate_bess_planning_feature_policy_result(*inputs, coded, config, result)
     assert result.policy_schema_version == 1
     assert result.result_hash_schema_version == 1
     assert result.policy_scope == POLICY_SCOPE
@@ -147,9 +215,7 @@ def test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status()
         for column in ("parcel_id", "planning_feature_id", "relation_type")
     )
     assert result.policy_table["local_feature_text_interpreted"].eq(False).all()
-    assert result.policy_table["local_regulation_content_interpreted"].eq(
-        False
-    ).all()
+    assert result.policy_table["local_regulation_content_interpreted"].eq(False).all()
     assert result.policy_table["legal_conclusion_produced"].eq(False).all()
 
 
@@ -172,6 +238,98 @@ def test_checked_in_policy_pins_all_twelve_exact_muret_decisions() -> None:
     assert ("PRESCRIPTION", "15", "00") in actual
     assert ("PRESCRIPTION", "15", "01") in actual
     assert all(len(key[1]) == len(key[2]) == 2 for key in actual)
+
+
+def test_checked_in_policy_complete_snapshot_is_immutable() -> None:
+    config = load_bess_planning_feature_policy_config(POLICY_PATH)
+    assert config.schema_version == 1
+    assert config.profile == "muret_bess_cnig_feature_policy_v1"
+    assert config.policy_scope == POLICY_SCOPE
+    assert config.local_feature_text_interpreted is False
+    assert config.local_regulation_content_interpreted is False
+    assert config.legal_conclusion_produced is False
+    assert config.source_lock.model_dump(mode="json") == EXPECTED_SOURCE_LOCK
+    assert config.status_priority == STATUS_PRIORITIES
+    assert config.canonical_policy_entries_sha256 == EXPECTED_POLICY_ENTRIES_SHA256
+    assert (
+        _canonical_sha256([entry.model_dump(mode="json") for entry in config.entries])
+        == EXPECTED_POLICY_ENTRIES_SHA256
+    )
+    assert _canonical_sha256(config.model_dump(mode="json")) == EXPECTED_POLICY_SHA256
+
+
+@pytest.mark.parametrize(
+    "field",
+    ["rationale", "required_human_action", "limitations"],
+)
+def test_profile_v1_snapshot_detects_policy_text_drift(field: str) -> None:
+    config = load_bess_planning_feature_policy_config(POLICY_PATH)
+    payload = config.model_dump(mode="json")
+    entries = payload["entries"]
+    assert isinstance(entries, list)
+    entries[0][field] = f"{entries[0][field]} Changed."
+    payload["canonical_policy_entries_sha256"] = _canonical_sha256(entries)
+    changed = BessPlanningFeaturePolicyConfig.model_validate(payload)
+    assert changed.profile == "muret_bess_cnig_feature_policy_v1"
+    assert _canonical_sha256(changed.model_dump(mode="json")) != EXPECTED_POLICY_SHA256
+
+
+def test_profile_v1_snapshot_detects_source_lock_drift() -> None:
+    config = load_bess_planning_feature_policy_config(POLICY_PATH)
+    payload = config.model_dump(mode="json")
+    source_lock = payload["source_lock"]
+    assert isinstance(source_lock, dict)
+    source_lock["document_id"] = "another-document"
+    changed = BessPlanningFeaturePolicyConfig.model_validate(payload)
+    assert changed.profile == "muret_bess_cnig_feature_policy_v1"
+    assert _canonical_sha256(changed.model_dump(mode="json")) != EXPECTED_POLICY_SHA256
+
+
+def test_pandas_is_a_direct_bounded_runtime_dependency() -> None:
+    project = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))[
+        "project"
+    ]
+    assert "pandas>=3.0,<4" in project["dependencies"]
+
+
+def test_information_9900_official_references_remain_missing() -> None:
+    _, _, _, result = _compiled_fixture()
+    row = result.policy_table.loc[
+        (result.policy_table["feature_family"] == "INFORMATION")
+        & (result.policy_table["type_code"] == "99")
+        & (result.policy_table["subtype_code"] == "00")
+    ].iloc[0]
+    assert pd.isna(row["official_legal_reference"])
+    assert pd.isna(row["official_regulation_reference"])
+
+
+@pytest.mark.parametrize(
+    ("column", "literal"),
+    [
+        (column, literal)
+        for column in (
+            "official_legal_reference",
+            "official_regulation_reference",
+        )
+        for literal in ("None", "nan", "<NA>")
+    ],
+)
+def test_null_reference_literal_is_rejected_by_local_envelope(
+    column: str,
+    literal: str,
+) -> None:
+    _, _, _, result = _compiled_fixture()
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    table = result.policy_table.copy(deep=True)
+    row = table.index[
+        (table["feature_family"] == "INFORMATION")
+        & (table["type_code"] == "99")
+        & (table["subtype_code"] == "00")
+    ][0]
+    table.loc[row, column] = literal
+    coordinated = module._result_with_hashes(replace(result, policy_table=table))
+    with pytest.raises(BessPlanningFeaturePolicyError, match="reference|null|missing"):
+        module._validate_result_envelope(coordinated)
 
 
 @pytest.mark.parametrize(
@@ -224,7 +382,9 @@ def test_extra_policy_pair_is_rejected_without_type_fallback() -> None:
         }
     )
     entries.append(extra)
-    entries.sort(key=lambda row: (row["feature_family"], row["type_code"], row["subtype_code"]))
+    entries.sort(
+        key=lambda row: (row["feature_family"], row["type_code"], row["subtype_code"])
+    )
     config = _validated_config(payload)
     with pytest.raises(BessPlanningFeaturePolicyError, match="extra|pair"):
         compile_bess_planning_feature_policy(*inputs, coded, config)
@@ -249,7 +409,9 @@ def test_prescription_information_code_spaces_remain_separate() -> None:
     entries = payload["entries"]
     assert isinstance(entries, list)
     entries[0]["feature_family"] = "PRESCRIPTION"
-    entries.sort(key=lambda row: (row["feature_family"], row["type_code"], row["subtype_code"]))
+    entries.sort(
+        key=lambda row: (row["feature_family"], row["type_code"], row["subtype_code"])
+    )
     config = _validated_config(payload)
     with pytest.raises(BessPlanningFeaturePolicyError, match="missing|extra|pair"):
         compile_bess_planning_feature_policy(*inputs, coded, config)
@@ -364,9 +526,7 @@ def test_malformed_sha256_is_rejected() -> None:
 
 def test_in_memory_config_is_revalidated_before_compilation() -> None:
     inputs, coded, config, _ = _compiled_fixture()
-    corrupted = config.model_copy(
-        update={"canonical_policy_entries_sha256": "f" * 64}
-    )
+    corrupted = config.model_copy(update={"canonical_policy_entries_sha256": "f" * 64})
     with pytest.raises(BessPlanningFeaturePolicyError, match="in-memory|canonical"):
         compile_bess_planning_feature_policy(*inputs, coded, corrupted)
 
@@ -386,12 +546,14 @@ def test_policy_entries_require_deterministic_order() -> None:
 def test_policy_table_is_sorted_and_preserves_leading_zero_codes() -> None:
     _, _, _, result = _compiled_fixture()
     keys = list(
-        result.policy_table[
-            ["feature_family", "type_code", "subtype_code"]
-        ].itertuples(index=False, name=None)
+        result.policy_table[["feature_family", "type_code", "subtype_code"]].itertuples(
+            index=False, name=None
+        )
     )
     assert keys == sorted(keys)
-    assert all(len(type_code) == len(subtype_code) == 2 for _, type_code, subtype_code in keys)
+    assert all(
+        len(type_code) == len(subtype_code) == 2 for _, type_code, subtype_code in keys
+    )
 
 
 def test_policy_table_mutation_is_rejected() -> None:
@@ -406,9 +568,7 @@ def test_policy_table_mutation_is_rejected() -> None:
 
 def test_coordinated_policy_table_and_hash_mutation_is_rejected() -> None:
     inputs, coded, config, result = _compiled_fixture()
-    module = importlib.import_module(
-        "landscout.stages.bess_planning_feature_policy"
-    )
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
     table = result.policy_table.copy(deep=True)
     table.loc[table.index[0], "rationale"] = "Coordinated but false rationale."
     coordinated = module._result_with_hashes(replace(result, policy_table=table))
@@ -422,33 +582,122 @@ def test_persisted_parquet_and_json_readback_is_source_complete(
     tmp_path: Path,
 ) -> None:
     inputs, coded, config, result = _compiled_fixture()
-    parquet = tmp_path / "policy.parquet"
-    manifest_path = tmp_path / "policy.json"
-    result.policy_table.to_parquet(parquet, index=True)
-    scalar_names = tuple(
-        field.name
-        for field in fields(BessPlanningFeaturePolicyResult)
-        if field.name != "policy_table"
+    parquet, manifest_path, _ = _write_artifacts(tmp_path, result)
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    persisted = module.load_bess_planning_feature_policy_artifacts(
+        parquet, manifest_path
     )
-    manifest = {name: getattr(result, name) for name in scalar_names}
-    manifest["schema_version"] = 1
-    manifest["output"] = {
-        "filename": parquet.name,
-        "row_count": len(result.policy_table),
-    }
+    assert_frame_equal(result.policy_table, persisted.policy_table, check_dtype=True)
+    row = persisted.policy_table.loc[
+        (persisted.policy_table["feature_family"] == "INFORMATION")
+        & (persisted.policy_table["type_code"] == "99")
+        & (persisted.policy_table["subtype_code"] == "00")
+    ].iloc[0]
+    assert pd.isna(row["official_legal_reference"])
+    assert pd.isna(row["official_regulation_reference"])
+    validate_bess_planning_feature_policy_result(*inputs, coded, config, persisted)
+
+
+def test_artifact_manifest_model_is_strict_and_frozen(tmp_path: Path) -> None:
+    _, _, _, result = _compiled_fixture()
+    parquet, _, manifest = _write_artifacts(tmp_path, result)
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    validated = module.BessPlanningFeaturePolicyArtifactManifest.model_validate(
+        manifest
+    )
+    assert validated.schema_version == 2
+    assert validated.artifact_kind == ARTIFACT_KIND
+    assert validated.parquet_filename == parquet.name
+    with pytest.raises(ValidationError):
+        validated.parquet_row_count = 0
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (lambda value: value.update(schema_version=1), "schema"),
+        (lambda value: value.update(unknown_field=True), "manifest|artifact"),
+        (lambda value: value.update(parquet_filename="other.parquet"), "filename"),
+        (lambda value: value.update(parquet_row_count=999), "row"),
+        (lambda value: value.update(parquet_size_bytes=999), "size"),
+        (lambda value: value.update(parquet_sha256="f" * 64), "SHA|hash"),
+        (
+            lambda value: value["policy_table_schema_signature"].update(
+                index_names=["changed"]
+            ),
+            "schema",
+        ),
+        (lambda value: value.update(policy_table_content_sha256="f" * 64), "hash"),
+        (lambda value: value.update(complete_result_content_sha256="f" * 64), "hash"),
+        (lambda value: value.pop("policy_profile"), "manifest|artifact"),
+    ],
+)
+def test_artifact_loader_rejects_manifest_mismatch(
+    tmp_path: Path,
+    mutation: object,
+    message: str,
+) -> None:
+    _, _, _, result = _compiled_fixture()
+    parquet, manifest_path, manifest = _write_artifacts(tmp_path, result)
+    assert callable(mutation)
+    mutation(manifest)
     manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
         encoding="utf-8",
     )
-    decoded = json.loads(manifest_path.read_text(encoding="utf-8"))
-    persisted = BessPlanningFeaturePolicyResult(
-        **{name: decoded[name] for name in scalar_names},
-        policy_table=pd.read_parquet(parquet),
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    with pytest.raises(BessPlanningFeaturePolicyError, match=message):
+        module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+
+
+def test_artifact_loader_rejects_duplicate_json_key(tmp_path: Path) -> None:
+    _, _, _, result = _compiled_fixture()
+    parquet, manifest_path, _ = _write_artifacts(tmp_path, result)
+    manifest_path.write_text(
+        '{"schema_version": 2, "schema_version": 2}\n', encoding="utf-8"
     )
-    assert_frame_equal(result.policy_table, persisted.policy_table, check_dtype=True)
-    validate_bess_planning_feature_policy_result(
-        *inputs, coded, config, persisted
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    with pytest.raises(BessPlanningFeaturePolicyError, match="Duplicate JSON"):
+        module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+
+
+def test_artifact_loader_rejects_parquet_replacement(tmp_path: Path) -> None:
+    _, _, _, result = _compiled_fixture()
+    parquet, manifest_path, _ = _write_artifacts(tmp_path, result)
+    parquet.write_bytes(parquet.read_bytes() + b"changed-after-manifest")
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    with pytest.raises(BessPlanningFeaturePolicyError, match="size|SHA|hash"):
+        module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+
+
+def test_locally_invalid_result_fast_fails_before_source_validation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inputs, coded, config, result = _compiled_fixture()
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    calls = 0
+
+    def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+
+    monkeypatch.setattr(module, "validate_planning_feature_code_result", counted)
+    wrong_table = result.policy_table.drop(columns="confidence")
+    invalid_results = (
+        object(),
+        replace(result, policy_schema_version=2),
+        replace(result, policy_table=wrong_table),
+        replace(result, policy_table_content_sha256="f" * 64),
+        replace(result, complete_result_content_sha256="f" * 64),
     )
+    for invalid in invalid_results:
+        with pytest.raises(
+            BessPlanningFeaturePolicyError, match="type|schema|hash|result"
+        ):
+            module.validate_bess_planning_feature_policy_result(
+                *inputs, coded, config, invalid
+            )
+    assert calls == 0
 
 
 def test_compiler_and_public_validator_invoke_source_complete_coding_validation(
@@ -459,9 +708,7 @@ def test_compiler_and_public_validator_invoke_source_complete_coding_validation(
     config = BessPlanningFeaturePolicyConfig.model_validate(
         _policy_payload(inputs, coded)
     )
-    module = importlib.import_module(
-        "landscout.stages.bess_planning_feature_policy"
-    )
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
     actual = module.validate_planning_feature_code_result
     calls = 0
 
@@ -473,24 +720,22 @@ def test_compiler_and_public_validator_invoke_source_complete_coding_validation(
     monkeypatch.setattr(module, "validate_planning_feature_code_result", counted)
     result = module.compile_bess_planning_feature_policy(*inputs, coded, config)
     assert calls == 1
-    module.validate_bess_planning_feature_policy_result(
-        *inputs, coded, config, result
-    )
+    module.validate_bess_planning_feature_policy_result(*inputs, coded, config, result)
     assert calls == 2
 
 
 def test_public_policy_api_exports_only_stable_symbols() -> None:
     required = {
+        "BessPlanningFeaturePolicyArtifactManifest",
         "BessPlanningFeaturePolicyConfig",
         "BessPlanningFeaturePolicyError",
         "BessPlanningFeaturePolicyResult",
+        "load_bess_planning_feature_policy_artifacts",
         "load_bess_planning_feature_policy_config",
         "compile_bess_planning_feature_policy",
         "validate_bess_planning_feature_policy_result",
     }
-    module = importlib.import_module(
-        "landscout.stages.bess_planning_feature_policy"
-    )
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
     assert set(module.__all__) == required
     assert required.issubset(set(stages.__all__))
     assert all(getattr(stages, name) is getattr(module, name) for name in required)
