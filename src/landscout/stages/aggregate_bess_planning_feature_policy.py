@@ -10,7 +10,7 @@ from datetime import date, datetime
 from hashlib import sha256
 from io import BytesIO
 from numbers import Integral, Real
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Literal
 
 import geopandas as gpd  # type: ignore[import-untyped]
@@ -28,6 +28,13 @@ from pyproj import CRS
 from shapely import get_coordinate_dimension, to_wkb  # type: ignore[import-untyped]
 from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
 
+from landscout.common.bess_application_contract import (
+    ALLOWED_CONFIDENCES,
+    ALLOWED_PRECHECK_STATUSES,
+    NULL_LITERALS,
+    POLICY_SCOPE,
+    validate_bess_application_policy_frame,
+)
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
 from landscout.sources.gpu_fr import GpuPlanningDocument
 from landscout.stages.apply_bess_planning_feature_policy import (
@@ -54,8 +61,8 @@ __all__ = [
 
 RESULT_HASH_SCHEMA_VERSION = 1
 ARTIFACT_MANIFEST_SCHEMA_VERSION = 1
+APPLICATION_RESULT_HASH_SCHEMA_VERSION = 2
 AGGREGATION_SCOPE = "PARCEL_POLICY_AGGREGATION_ONLY"
-POLICY_SCOPE = "OFFICIAL_CNIG_CODE_MEANING_ONLY"
 CONFIDENCE_METHOD = "LOWEST_CONFIDENCE_FOR_SELECTED_STATUS"
 ARTIFACT_KIND = "BESS_PLANNING_FEATURE_PARCEL_AGGREGATION_RESULT"
 
@@ -331,9 +338,10 @@ class BessPlanningFeatureParcelAggregationArtifactManifest(_StrictModel):
                 _sha256_string(value, field)
         if (
             type(self.application_result_hash_schema_version) is not int
-            or self.application_result_hash_schema_version < 1
+            or self.application_result_hash_schema_version
+            != APPLICATION_RESULT_HASH_SCHEMA_VERSION
         ):
-            raise ValueError("application result schema must be positive")
+            raise ValueError("application result schema must be exactly 2")
         roles = tuple(record.artifact_role for record in self.artifacts)
         if roles != ARTIFACT_ROLES:
             raise ValueError("parcel aggregation artifact roles differ")
@@ -430,22 +438,205 @@ def _frame_sha256(frame: pd.DataFrame, domain: str) -> str:
     )
 
 
+def _validate_feature_id(value: object) -> str:
+    if (
+        not isinstance(value, str)
+        or not value
+        or value != value.strip()
+        or value in NULL_LITERALS
+        or PurePosixPath(value).is_absolute()
+        or PureWindowsPath(value).is_absolute()
+    ):
+        raise BessPlanningFeatureParcelAggregationError(
+            "Feature ID is not an exact portable string"
+        )
+    return value
+
+
 def _json_ids(values: list[object]) -> str:
-    ids: set[str] = set()
-    for value in values:
+    ids = sorted({_validate_feature_id(value) for value in values})
+    return json.dumps(ids, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
+
+
+def _validate_json_ids(value: object, label: str) -> None:
+    if not isinstance(value, str):
+        raise BessPlanningFeatureParcelAggregationError(
+            f"{label} must be canonical JSON"
+        )
+    try:
+        parsed = json.loads(value)
+    except (TypeError, ValueError) as error:
+        raise BessPlanningFeatureParcelAggregationError(
+            f"{label} must be canonical JSON"
+        ) from error
+    if not isinstance(parsed, list):
+        raise BessPlanningFeatureParcelAggregationError(f"{label} must be a JSON array")
+    ids = [_validate_feature_id(item) for item in parsed]
+    canonical = json.dumps(
+        sorted(set(ids)),
+        ensure_ascii=False,
+        allow_nan=False,
+        separators=(",", ":"),
+    )
+    if len(ids) != len(set(ids)) or ids != sorted(ids) or value != canonical:
+        raise BessPlanningFeatureParcelAggregationError(f"{label} is not canonical")
+
+
+def _validate_parcel_frame(frame: object, label: str) -> gpd.GeoDataFrame:
+    if not isinstance(frame, gpd.GeoDataFrame):
+        raise BessPlanningFeatureParcelAggregationError(
+            f"{label} must be a GeoDataFrame"
+        )
+    if frame.columns.duplicated().any():
+        raise BessPlanningFeatureParcelAggregationError(
+            f"{label} contains duplicate columns"
+        )
+    if "parcel_id" not in frame.columns:
+        raise BessPlanningFeatureParcelAggregationError(f"{label} lacks parcel_id")
+    try:
+        geometry_name = frame.geometry.name
+        if geometry_name not in frame.columns:
+            raise ValueError("active geometry column is absent")
+        if frame.crs is None:
+            raise ValueError("CRS is absent")
+        CRS.from_user_input(frame.crs)
+    except Exception as error:
+        raise BessPlanningFeatureParcelAggregationError(
+            f"{label} geometry or CRS contract is invalid"
+        ) from error
+    parcel_ids = frame["parcel_id"]
+    if (
+        parcel_ids.isna().any()
+        or parcel_ids.duplicated().any()
+        or any(
+            not isinstance(value, str) or not value or value != value.strip()
+            for value in parcel_ids
+        )
+    ):
+        raise BessPlanningFeatureParcelAggregationError(
+            f"{label} parcel IDs must be unique exact strings"
+        )
+    for geometry in frame.geometry.array:
         if (
-            not isinstance(value, str)
-            or not value
-            or value != value.strip()
-            or Path(value).is_absolute()
+            geometry is None
+            or geometry.is_empty
+            or not geometry.is_valid
+            or geometry.geom_type not in {"Polygon", "MultiPolygon"}
+            or int(get_coordinate_dimension(geometry)) != 2
         ):
             raise BessPlanningFeatureParcelAggregationError(
-                "Feature ID is not an exact portable string"
+                f"{label} requires valid canonical 2D polygon geometry"
             )
-        ids.add(value)
-    return json.dumps(
-        sorted(ids), ensure_ascii=False, allow_nan=False, separators=(",", ":")
-    )
+    return frame
+
+
+def _validate_application_relations(
+    frame: object,
+    application: BessPlanningFeatureApplicationResult | _ApplicationLineage,
+) -> pd.DataFrame:
+    if not isinstance(frame, pd.DataFrame) or isinstance(frame, gpd.GeoDataFrame):
+        raise BessPlanningFeatureParcelAggregationError(
+            "Application relations must be a DataFrame"
+        )
+    try:
+        validate_bess_application_policy_frame(
+            frame,
+            label="application relations",
+            policy_profile=application.policy_profile,
+            policy_sha256=application.policy_sha256,
+            policy_result_sha256=application.policy_complete_result_content_sha256,
+        )
+    except ValueError as error:
+        raise BessPlanningFeatureParcelAggregationError(str(error)) from error
+    return frame
+
+
+def _validate_local_domains(parcels: gpd.GeoDataFrame, relations: pd.DataFrame) -> None:
+    for row in parcels.to_dict("records"):
+        aggregation_status = row["bess_cnig_parcel_aggregation_status"]
+        if aggregation_status not in AGGREGATION_STATUSES:
+            raise BessPlanningFeatureParcelAggregationError(
+                "parcel aggregation status is outside the allowed domain"
+            )
+        status = _null_value(row["bess_cnig_parcel_precheck_status"])
+        confidence = _null_value(row["bess_cnig_parcel_precheck_confidence"])
+        priority = _null_value(row["bess_cnig_parcel_status_priority"])
+        if aggregation_status == "AGGREGATED_EXACT_POLICY":
+            if status not in ALLOWED_PRECHECK_STATUSES:
+                raise BessPlanningFeatureParcelAggregationError(
+                    "parcel precheck status is outside the allowed domain"
+                )
+            if confidence not in ALLOWED_CONFIDENCES:
+                raise BessPlanningFeatureParcelAggregationError(
+                    "parcel confidence is outside the allowed domain"
+                )
+            if (
+                isinstance(priority, bool)
+                or not isinstance(priority, Integral)
+                or int(priority) <= 0
+            ):
+                raise BessPlanningFeatureParcelAggregationError(
+                    "parcel status priority must be a positive integer"
+                )
+        elif any(value is not None for value in (status, confidence, priority)):
+            raise BessPlanningFeatureParcelAggregationError(
+                "non-decision parcel contains an invented decision"
+            )
+        for column in (
+            "bess_cnig_selected_feature_ids_json",
+            "bess_cnig_unresolved_feature_ids_json",
+            "bess_cnig_touch_only_feature_ids_json",
+        ):
+            _validate_json_ids(row[column], column)
+    for row in relations.to_dict("records"):
+        role = row["bess_cnig_parcel_relation_role"]
+        if role not in RELATION_ROLES:
+            raise BessPlanningFeatureParcelAggregationError(
+                "parcel relation role is outside the allowed domain"
+            )
+        selected = row["bess_cnig_selected_for_parcel_status"]
+        if selected is not (role == "SELECTED_CONTROLLING"):
+            raise BessPlanningFeatureParcelAggregationError(
+                "parcel relation selected flag contradicts its role"
+            )
+        aggregation_status = row["bess_cnig_resulting_parcel_aggregation_status"]
+        if aggregation_status not in AGGREGATION_STATUSES:
+            raise BessPlanningFeatureParcelAggregationError(
+                "relation aggregation status is outside the allowed domain"
+            )
+        status = _null_value(row["bess_cnig_resulting_parcel_precheck_status"])
+        confidence = _null_value(row["bess_cnig_resulting_parcel_precheck_confidence"])
+        priority = _null_value(row["bess_cnig_resulting_parcel_status_priority"])
+        if aggregation_status == "AGGREGATED_EXACT_POLICY":
+            if status not in ALLOWED_PRECHECK_STATUSES:
+                raise BessPlanningFeatureParcelAggregationError(
+                    "relation parcel status is outside the allowed domain"
+                )
+            if confidence not in ALLOWED_CONFIDENCES:
+                raise BessPlanningFeatureParcelAggregationError(
+                    "relation parcel confidence is outside the allowed domain"
+                )
+            if (
+                isinstance(priority, bool)
+                or not isinstance(priority, Integral)
+                or int(priority) <= 0
+            ):
+                raise BessPlanningFeatureParcelAggregationError(
+                    "relation parcel priority must be a positive integer"
+                )
+        elif any(value is not None for value in (status, confidence, priority)):
+            raise BessPlanningFeatureParcelAggregationError(
+                "non-decision relation contains an invented parcel decision"
+            )
+
+
+def _relation_priority(row: dict[str, object]) -> int:
+    value = row["bess_cnig_status_priority"]
+    if isinstance(value, bool) or not isinstance(value, Integral) or int(value) <= 0:
+        raise BessPlanningFeatureParcelAggregationError(
+            "Applied relation priority must be a positive integer"
+        )
+    return int(value)
 
 
 def _parcel_summary(
@@ -483,37 +674,42 @@ def _parcel_summary(
     selected_status: str | None = None
     selected_confidence: str | None = None
     selected_priority: int | None = None
+    priorities: list[int] = []
+    priority_statuses: dict[int, set[str]] = {}
+    status_priorities: dict[str, set[int]] = {}
+    for row in exact:
+        priority = row["bess_cnig_status_priority"]
+        status = row["bess_cnig_precheck_status"]
+        if (
+            isinstance(priority, bool)
+            or not isinstance(priority, Integral)
+            or int(priority) <= 0
+            or not isinstance(status, str)
+        ):
+            raise BessPlanningFeatureParcelAggregationError(
+                "Applied relation status and priority are invalid"
+            )
+        normalized_priority = int(priority)
+        priorities.append(normalized_priority)
+        priority_statuses.setdefault(normalized_priority, set()).add(status)
+        status_priorities.setdefault(status, set()).add(normalized_priority)
+    if any(len(statuses) != 1 for statuses in priority_statuses.values()) or any(
+        len(priority_values) != 1 for priority_values in status_priorities.values()
+    ):
+        raise BessPlanningFeatureParcelAggregationError(
+            "Applied relation status and priority mapping is not one-to-one"
+        )
     if unresolved:
         aggregation_status = "UNRESOLVED_CONTROLLING_CODE_PAIR"
     elif controlling:
         aggregation_status = "AGGREGATED_EXACT_POLICY"
-        priorities: list[int] = []
-        for row in exact:
-            priority = row["bess_cnig_status_priority"]
-            if (
-                isinstance(priority, bool)
-                or not isinstance(priority, Integral)
-                or int(priority) <= 0
-            ):
-                raise BessPlanningFeatureParcelAggregationError(
-                    "Applied relation priority must be positive"
-                )
-            priorities.append(int(priority))
         selected_priority = max(priorities)
-        selected_statuses: set[str] = set()
-        for row in exact:
-            priority = row["bess_cnig_status_priority"]
-            if isinstance(priority, Integral) and int(priority) == selected_priority:
-                selected_statuses.add(str(row["bess_cnig_precheck_status"]))
-        if len(selected_statuses) != 1:
-            raise BessPlanningFeatureParcelAggregationError(
-                "One priority does not resolve to exactly one status"
-            )
-        selected_status = next(iter(selected_statuses))
+        selected_status = next(iter(priority_statuses[selected_priority]))
         confidences = [
             str(row["bess_cnig_precheck_confidence"])
             for row in exact
             if row["bess_cnig_precheck_status"] == selected_status
+            and _relation_priority(row) == selected_priority
         ]
         if any(value not in CONFIDENCE_RANK for value in confidences):
             raise BessPlanningFeatureParcelAggregationError(
@@ -539,6 +735,7 @@ def _parcel_summary(
             role = (
                 "SELECTED_CONTROLLING"
                 if row["bess_cnig_precheck_status"] == selected_status
+                and _relation_priority(row) == selected_priority
                 else "LOWER_PRIORITY_CONTROLLING"
             )
         assessed.append(
@@ -633,12 +830,8 @@ def _aggregate_frames(
     source_relations: pd.DataFrame,
     application: BessPlanningFeatureApplicationResult | _ApplicationLineage,
 ) -> tuple[gpd.GeoDataFrame, pd.DataFrame]:
-    if not isinstance(source_parcels, gpd.GeoDataFrame) or not isinstance(
-        source_relations, pd.DataFrame
-    ):
-        raise BessPlanningFeatureParcelAggregationError(
-            "Aggregation inputs have invalid frame types"
-        )
+    _validate_parcel_frame(source_parcels, "source parcels")
+    _validate_application_relations(source_relations, application)
     if any(column in source_parcels.columns for column in PARCEL_COLUMNS) or any(
         column in source_relations.columns for column in RELATION_COLUMNS
     ):
@@ -650,14 +843,6 @@ def _aggregate_frames(
             "Aggregation inputs lack parcel_id"
         )
     parcel_ids = source_parcels["parcel_id"]
-    if (
-        parcel_ids.isna().any()
-        or parcel_ids.duplicated().any()
-        or any(not isinstance(value, str) or not value for value in parcel_ids)
-    ):
-        raise BessPlanningFeatureParcelAggregationError(
-            "Source parcel IDs must be unique exact strings"
-        )
     known = set(parcel_ids.tolist())
     if any(value not in known for value in source_relations["parcel_id"]):
         raise BessPlanningFeatureParcelAggregationError(
@@ -833,10 +1018,11 @@ def _validate_result_envelope(
             raise BessPlanningFeatureParcelAggregationError(str(error)) from error
     if (
         type(result.application_result_hash_schema_version) is not int
-        or result.application_result_hash_schema_version < 1
+        or result.application_result_hash_schema_version
+        != APPLICATION_RESULT_HASH_SCHEMA_VERSION
     ):
         raise BessPlanningFeatureParcelAggregationError(
-            "application result schema is invalid"
+            "application result schema must be exactly 2"
         )
     if any(
         value is not expected
@@ -859,6 +1045,14 @@ def _validate_result_envelope(
     ):
         raise BessPlanningFeatureParcelAggregationError(
             "aggregation output frame types are invalid"
+        )
+    if result.parcels.columns.duplicated().any():
+        raise BessPlanningFeatureParcelAggregationError(
+            "parcel output contains duplicate columns"
+        )
+    if result.relation_assessments.columns.duplicated().any():
+        raise BessPlanningFeatureParcelAggregationError(
+            "relation assessments contain duplicate columns"
         )
     if (
         tuple(result.parcels.columns[-len(PARCEL_COLUMNS) :]) != PARCEL_COLUMNS
@@ -901,13 +1095,8 @@ def _validate_result_envelope(
         raise BessPlanningFeatureParcelAggregationError(
             "relation assessment dtype is invalid"
         )
-    if any(
-        int(get_coordinate_dimension(value)) != 2
-        for value in result.parcels.geometry.array
-    ):
-        raise BessPlanningFeatureParcelAggregationError(
-            "parcel aggregation geometry must be canonical 2D"
-        )
+    _validate_parcel_frame(result.parcels, "parcel output")
+    _validate_local_domains(result.parcels, result.relation_assessments)
     source_parcels = result.parcels.drop(columns=list(PARCEL_COLUMNS))
     source_parcels = gpd.GeoDataFrame(
         source_parcels, geometry=result.parcels.geometry.name, crs=result.parcels.crs
@@ -932,6 +1121,7 @@ def _validate_result_envelope(
         policy_complete_result_content_sha256=result.policy_complete_result_content_sha256,
         complete_result_content_sha256=result.application_complete_result_content_sha256,
     )
+    _validate_application_relations(source_relations, lineage)
     expected_parcels, expected_relations = _aggregate_frames(
         source_parcels, source_relations, lineage
     )

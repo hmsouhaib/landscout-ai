@@ -12,10 +12,11 @@ import pandas as pd
 import pytest
 from geopandas.testing import assert_geodataframe_equal
 from pandas.testing import assert_frame_equal
-from shapely.geometry import Polygon
+from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 from test_apply_bess_planning_feature_policy import _application_fixture
 
 from landscout import stages
+from landscout.common.bess_application_contract import POLICY_SUFFIX_DTYPES
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
 from landscout.stages.aggregate_bess_planning_feature_policy import (
     BessPlanningFeatureParcelAggregationArtifactManifest,
@@ -86,6 +87,7 @@ def _build_from_relations(
     relations: pd.DataFrame,
     *,
     parcel_ids: tuple[str, ...] = ("PARCEL-1", "PARCEL-2"),
+    canonicalize_application_dtypes: bool = True,
 ) -> BessPlanningFeatureParcelAggregationResult:
     module = importlib.import_module(
         "landscout.stages.aggregate_bess_planning_feature_policy"
@@ -100,7 +102,16 @@ def _build_from_relations(
         crs="EPSG:2154",
         index=pd.Index(range(10, 10 + len(parcel_ids)), name="parcel_row"),
     )
-    application = replace(application, relations=relations.reset_index(drop=True))
+    relations = relations.reset_index(drop=True)
+    relations["bess_cnig_policy_profile"] = application.policy_profile
+    relations["bess_cnig_policy_sha256"] = application.policy_sha256
+    relations["bess_cnig_policy_result_sha256"] = (
+        application.policy_complete_result_content_sha256
+    )
+    if canonicalize_application_dtypes:
+        for column, dtype in POLICY_SUFFIX_DTYPES.items():
+            relations[column] = pd.array(relations[column].tolist(), dtype=dtype)
+    application = replace(application, relations=relations)
     application = importlib.import_module(
         "landscout.stages.apply_bess_planning_feature_policy"
     )._result_with_hashes(application)
@@ -124,10 +135,30 @@ def _relation(
         parcel_id=parcel_id,
         planning_feature_id=feature_id,
         relation_type=relation_type,
+        official_code_status=(
+            "UNKNOWN_CODE_PAIR"
+            if application_status == "UNRESOLVED_CODE_PAIR"
+            else "RESOLVED_OFFICIAL"
+        ),
         bess_cnig_policy_application_status=application_status,
         bess_cnig_precheck_status=status,
         bess_cnig_precheck_confidence=confidence,
         bess_cnig_status_priority=priority,
+        bess_cnig_rationale=(
+            None
+            if application_status == "UNRESOLVED_CODE_PAIR"
+            else row["bess_cnig_rationale"]
+        ),
+        bess_cnig_required_human_action=(
+            None
+            if application_status == "UNRESOLVED_CODE_PAIR"
+            else row["bess_cnig_required_human_action"]
+        ),
+        bess_cnig_limitations=(
+            None
+            if application_status == "UNRESOLVED_CODE_PAIR"
+            else row["bess_cnig_limitations"]
+        ),
         intersection_area_m2=area if relation_type == "AREA_OVERLAP" else None,
         intersection_length_m=area if relation_type == "LENGTH_OVERLAP" else None,
     )
@@ -184,6 +215,28 @@ def _write_artifacts(
         encoding="utf-8",
     )
     return manifest_path, paths, manifest
+
+
+def _rehash_coordinated_result(
+    result: BessPlanningFeatureParcelAggregationResult,
+) -> BessPlanningFeatureParcelAggregationResult:
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    source_parcels = result.parcels.drop(columns=list(PARCEL_COLUMNS))
+    source_relations = result.relation_assessments.drop(columns=list(RELATION_COLUMNS))
+    updated = replace(
+        result,
+        source_parcels_content_sha256=module._frame_sha256(
+            source_parcels,
+            "landscout.bess_cnig_parcel_aggregation.source_parcels",
+        ),
+        source_application_relations_content_sha256=module._frame_sha256(
+            source_relations,
+            "landscout.bess_cnig_parcel_aggregation.source_application_relations",
+        ),
+    )
+    return module._result_with_hashes(updated)
 
 
 def test_exact_relations_select_configured_max_priority_and_lowest_confidence() -> None:
@@ -415,9 +468,7 @@ def test_invalid_output_dtype_and_non_2d_parcel_fail_locally() -> None:
     ].astype("object")
     with pytest.raises(BessPlanningFeatureParcelAggregationError, match="dtype"):
         module._validate_result_envelope(
-            module._result_with_hashes(
-                replace(result, relation_assessments=relations)
-            )
+            module._result_with_hashes(replace(result, relation_assessments=relations))
         )
     parcels = result.parcels.copy(deep=True)
     geometry = parcels.geometry.iloc[0]
@@ -426,6 +477,491 @@ def test_invalid_output_dtype_and_non_2d_parcel_fail_locally() -> None:
     )
     with pytest.raises(BessPlanningFeatureParcelAggregationError, match="2D"):
         module._validate_result_envelope(replace(result, parcels=parcels))
+
+
+@pytest.mark.parametrize(
+    "relations",
+    [
+        pd.DataFrame([_relation(status="AUTHORIZED")]),
+        pd.DataFrame([_relation(status="FORBIDDEN")]),
+        pd.DataFrame(
+            [
+                _relation(
+                    feature_id="LOW",
+                    status="PROHIBITED",
+                    priority=10,
+                ),
+                _relation(
+                    feature_id="HIGH",
+                    status="LIKELY_MATERIAL_CONSTRAINT",
+                    priority=50,
+                ),
+            ]
+        ),
+        pd.DataFrame(
+            [
+                _relation(
+                    feature_id="LOW",
+                    confidence="CERTAIN",
+                    priority=10,
+                ),
+                _relation(
+                    feature_id="HIGH",
+                    status="LIKELY_MATERIAL_CONSTRAINT",
+                    priority=50,
+                ),
+            ]
+        ),
+        pd.DataFrame(
+            [
+                _relation(
+                    relation_type="TOUCH_ONLY",
+                    application_status="INVALID_APPLICATION_STATUS",
+                )
+            ]
+        ),
+    ],
+    ids=[
+        "selected-authorized",
+        "selected-forbidden",
+        "lower-prohibited",
+        "lower-certain-confidence",
+        "contextual-invalid-application-status",
+    ],
+)
+def test_every_inherited_application_relation_domain_is_validated_locally(
+    relations: pd.DataFrame,
+) -> None:
+    with pytest.raises(BessPlanningFeatureParcelAggregationError):
+        _build_from_relations(relations)
+
+
+def test_unresolved_relation_cannot_contain_a_decision() -> None:
+    row = _relation(
+        application_status="UNRESOLVED_CODE_PAIR",
+        status="UNKNOWN",
+        confidence="LOW",
+        priority=40,
+    )
+    row["official_code_status"] = "UNKNOWN_CODE_PAIR"
+    with pytest.raises(BessPlanningFeatureParcelAggregationError):
+        _build_from_relations(pd.DataFrame([row]))
+
+
+@pytest.mark.parametrize(
+    ("column", "value"),
+    [
+        ("feature_family", "OTHER"),
+        ("type_code_raw", "7"),
+        ("subtype_code_raw", "AA"),
+        ("bess_cnig_application_scope", "WRONG_SCOPE"),
+        ("bess_cnig_local_feature_text_interpreted", True),
+    ],
+)
+def test_all_application_identity_scope_and_boundary_fields_are_intrinsic(
+    column: str, value: object
+) -> None:
+    row = _relation(relation_type="TOUCH_ONLY")
+    row[column] = value
+    with pytest.raises(BessPlanningFeatureParcelAggregationError):
+        _build_from_relations(pd.DataFrame([row]))
+
+
+def test_application_relation_suffix_dtype_is_validated_locally() -> None:
+    relations = pd.DataFrame([_relation()])
+    relations["bess_cnig_precheck_status"] = relations[
+        "bess_cnig_precheck_status"
+    ].astype("category")
+    with pytest.raises(BessPlanningFeatureParcelAggregationError, match="dtype"):
+        _build_from_relations(relations, canonicalize_application_dtypes=False)
+
+
+@pytest.mark.parametrize(
+    "relations",
+    [
+        pd.DataFrame(
+            [
+                _relation(
+                    feature_id="A",
+                    status="MATERIAL_REVIEW_REQUIRED",
+                    priority=50,
+                ),
+                _relation(
+                    feature_id="B",
+                    status="DESIGN_REVIEW_REQUIRED",
+                    priority=50,
+                ),
+            ]
+        ),
+        pd.DataFrame(
+            [
+                _relation(
+                    feature_id="MAX",
+                    status="LIKELY_MATERIAL_CONSTRAINT",
+                    priority=50,
+                ),
+                _relation(
+                    feature_id="LOW-A",
+                    status="MATERIAL_REVIEW_REQUIRED",
+                    priority=10,
+                ),
+                _relation(
+                    feature_id="LOW-B",
+                    status="DESIGN_REVIEW_REQUIRED",
+                    priority=10,
+                ),
+            ]
+        ),
+        pd.DataFrame(
+            [
+                _relation(
+                    feature_id="A",
+                    status="LIKELY_MATERIAL_CONSTRAINT",
+                    priority=50,
+                ),
+                _relation(
+                    feature_id="B",
+                    status="LIKELY_MATERIAL_CONSTRAINT",
+                    priority=10,
+                ),
+            ]
+        ),
+    ],
+    ids=[
+        "same-maximum-priority-two-statuses",
+        "same-lower-priority-two-statuses",
+        "same-status-two-priorities",
+    ],
+)
+def test_status_and_priority_mapping_is_one_to_one_at_every_level(
+    relations: pd.DataFrame,
+) -> None:
+    with pytest.raises(BessPlanningFeatureParcelAggregationError, match="priority"):
+        _build_from_relations(relations)
+
+
+def test_valid_repeated_status_and_priority_mapping_selects_every_exact_match() -> None:
+    result = _build_from_relations(
+        pd.DataFrame(
+            [
+                _relation(feature_id="A", priority=30),
+                _relation(feature_id="B", priority=30),
+            ]
+        )
+    )
+    assert result.parcels.iloc[0].bess_cnig_selected_relation_count == 2
+    assert result.relation_assessments["bess_cnig_parcel_relation_role"].tolist() == [
+        "SELECTED_CONTROLLING",
+        "SELECTED_CONTROLLING",
+    ]
+
+
+def test_selected_relation_role_requires_selected_status_and_priority() -> None:
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    result = _build_from_relations(
+        pd.DataFrame(
+            [
+                _relation(
+                    feature_id="LOW",
+                    status="CONTEXT_REVIEW_REQUIRED",
+                    priority=10,
+                ),
+                _relation(
+                    feature_id="HIGH",
+                    status="LIKELY_MATERIAL_CONSTRAINT",
+                    priority=50,
+                ),
+            ]
+        )
+    )
+    relations = result.relation_assessments.copy(deep=True)
+    relations.loc[relations.index[0], "bess_cnig_parcel_relation_role"] = (
+        "SELECTED_CONTROLLING"
+    )
+    relations.loc[relations.index[0], "bess_cnig_selected_for_parcel_status"] = True
+    corrupted = module._result_with_hashes(
+        replace(result, relation_assessments=relations)
+    )
+    with pytest.raises(BessPlanningFeatureParcelAggregationError):
+        module._validate_result_envelope(corrupted)
+
+
+def _validate_parcel_geometries(geometries: list[object]) -> None:
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    _, _, _, _, application = _application_fixture()
+    parcels = gpd.GeoDataFrame(
+        {"parcel_id": [f"P-{index}" for index in range(len(geometries))]},
+        geometry=geometries,
+        crs="EPSG:2154",
+    )
+    result = module._build_result(
+        parcels, replace(application, relations=application.relations.iloc[0:0])
+    )
+    module._validate_result_envelope(result)
+
+
+@pytest.mark.parametrize(
+    "geometry",
+    [
+        Point(0, 0),
+        LineString([(0, 0), (1, 1)]),
+        Polygon(),
+        Polygon([(0, 0), (2, 2), (0, 2), (2, 0), (0, 0)]),
+        None,
+    ],
+    ids=["point", "line", "empty", "invalid", "null"],
+)
+def test_malformed_parcel_geometry_is_rejected_intrinsically(geometry: object) -> None:
+    with pytest.raises(BessPlanningFeatureParcelAggregationError):
+        _validate_parcel_geometries([geometry])
+
+
+def test_valid_polygon_and_multipolygon_parcels_are_accepted() -> None:
+    polygon = Polygon([(0, 0), (2, 0), (2, 2), (0, 2)])
+    _validate_parcel_geometries([polygon, MultiPolygon([polygon])])
+
+
+@pytest.mark.parametrize("frame_name", ["parcels", "relation_assessments"])
+def test_duplicate_output_columns_are_rejected_intrinsically(frame_name: str) -> None:
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    _, _, _, _, _, result = _aggregation_fixture()
+    frame = getattr(result, frame_name)
+    duplicate = pd.concat([frame, frame.iloc[:, [0]]], axis=1)
+    if frame_name == "parcels":
+        duplicate = gpd.GeoDataFrame(
+            duplicate, geometry=frame.geometry.name, crs=frame.crs
+        )
+    corrupted = replace(result, **{frame_name: duplicate})
+    with pytest.raises(BessPlanningFeatureParcelAggregationError, match="duplicate"):
+        module._validate_result_envelope(corrupted)
+
+
+@pytest.mark.parametrize("version", [1, 3, 999])
+def test_only_application_result_schema_two_is_accepted(version: int) -> None:
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    _, _, _, _, _, result = _aggregation_fixture()
+    corrupted = module._result_with_hashes(
+        replace(result, application_result_hash_schema_version=version)
+    )
+    with pytest.raises(
+        BessPlanningFeatureParcelAggregationError, match="application.*schema"
+    ):
+        module._validate_result_envelope(corrupted)
+
+
+def test_application_result_schema_two_remains_accepted() -> None:
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    _, _, _, _, _, result = _aggregation_fixture()
+    assert result.application_result_hash_schema_version == 2
+    module._validate_result_envelope(result)
+
+
+@pytest.mark.parametrize(
+    "feature_id",
+    ["None", "nan", "<NA>", "/tmp/feature", r"C:\feature", " GPU:F "],
+)
+def test_noncanonical_feature_ids_are_rejected(feature_id: str) -> None:
+    with pytest.raises(BessPlanningFeatureParcelAggregationError, match="Feature ID"):
+        _build_from_relations(pd.DataFrame([_relation(feature_id=feature_id)]))
+
+
+def test_current_gpu_feature_id_is_canonical() -> None:
+    feature_id = "GPU:DOC:prescription_surface:FEATURE-01"
+    result = _build_from_relations(pd.DataFrame([_relation(feature_id=feature_id)]))
+    assert result.parcels.iloc[0].bess_cnig_selected_feature_ids_json == (
+        f'["{feature_id}"]'
+    )
+
+
+def test_authorized_status_artifact_fails_local_verified_byte_loading(
+    tmp_path: Path,
+) -> None:
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    result = _build_from_relations(pd.DataFrame([_relation()]))
+    parcels = result.parcels.copy(deep=True)
+    parcels.loc[parcels.index[0], "bess_cnig_parcel_precheck_status"] = "AUTHORIZED"
+    assessed = result.relation_assessments.copy(deep=True)
+    assessed.loc[assessed.index[0], "bess_cnig_precheck_status"] = "AUTHORIZED"
+    assessed.loc[assessed.index[0], "bess_cnig_resulting_parcel_precheck_status"] = (
+        "AUTHORIZED"
+    )
+    source = assessed.drop(columns=list(RELATION_COLUMNS))
+    corrupted = replace(
+        result,
+        parcels=parcels,
+        relation_assessments=assessed,
+        source_application_relations_content_sha256=module._frame_sha256(
+            source,
+            "landscout.bess_cnig_parcel_aggregation.source_application_relations",
+        ),
+    )
+    corrupted = module._result_with_hashes(corrupted)
+    manifest, paths, _ = _write_artifacts(tmp_path, corrupted)
+    with pytest.raises(BessPlanningFeatureParcelAggregationError):
+        load_bess_planning_feature_parcel_aggregation_artifacts(
+            manifest, paths["PARCELS"], paths["RELATION_ASSESSMENTS"]
+        )
+
+
+@pytest.mark.parametrize(
+    "status",
+    [
+        "ALLOWED",
+        "AUTHORIZED",
+        "COMPATIBLE",
+        "CLEAR",
+        "FORBIDDEN",
+        "PROHIBITED",
+        "BLOCKED",
+        "BUILDABLE",
+    ],
+)
+def test_parcel_decision_status_domain_rejects_forbidden_vocabulary(
+    status: str,
+) -> None:
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    _, _, _, _, _, result = _aggregation_fixture()
+    parcels = result.parcels.copy(deep=True)
+    decision_index = parcels.index[
+        parcels["bess_cnig_parcel_aggregation_status"] == "AGGREGATED_EXACT_POLICY"
+    ][0]
+    parcels.loc[decision_index, "bess_cnig_parcel_precheck_status"] = status
+    corrupted = module._result_with_hashes(replace(result, parcels=parcels))
+    with pytest.raises(BessPlanningFeatureParcelAggregationError, match="status"):
+        module._validate_result_envelope(corrupted)
+
+
+@pytest.mark.parametrize(
+    "json_value",
+    [
+        '["None"]',
+        '["nan"]',
+        '["<NA>"]',
+        '["/tmp/feature"]',
+        r'["C:\\feature"]',
+        '[" GPU:F "]',
+        '["B","A"]',
+        '["A", "B"]',
+        '["A","A"]',
+    ],
+)
+def test_persisted_feature_id_json_must_be_portable_and_canonical(
+    json_value: str,
+) -> None:
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    _, _, _, _, _, result = _aggregation_fixture()
+    parcels = result.parcels.copy(deep=True)
+    parcels.loc[parcels.index[0], "bess_cnig_selected_feature_ids_json"] = json_value
+    corrupted = module._result_with_hashes(replace(result, parcels=parcels))
+    with pytest.raises(BessPlanningFeatureParcelAggregationError):
+        module._validate_result_envelope(corrupted)
+
+
+def test_representative_intrinsic_failures_all_precede_heavy_validation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inputs, coded, config, policy, application, result = _aggregation_fixture()
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    calls = 0
+
+    def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+
+    monkeypatch.setattr(
+        module, "validate_bess_planning_feature_application_result", counted
+    )
+    invalid_results: list[BessPlanningFeatureParcelAggregationResult] = []
+
+    inherited = result.relation_assessments.copy(deep=True)
+    inherited.loc[inherited.index[0], "bess_cnig_precheck_status"] = "AUTHORIZED"
+    invalid_results.append(
+        _rehash_coordinated_result(replace(result, relation_assessments=inherited))
+    )
+
+    parcel_status = result.parcels.copy(deep=True)
+    parcel_status.loc[parcel_status.index[0], "bess_cnig_parcel_precheck_status"] = (
+        "AUTHORIZED"
+    )
+    invalid_results.append(
+        module._result_with_hashes(replace(result, parcels=parcel_status))
+    )
+
+    ambiguous = _build_from_relations(
+        pd.DataFrame(
+            [
+                _relation(feature_id="A", priority=50),
+                _relation(
+                    feature_id="B",
+                    status="DESIGN_REVIEW_REQUIRED",
+                    priority=10,
+                ),
+            ]
+        )
+    )
+    ambiguous_relations = ambiguous.relation_assessments.copy(deep=True)
+    ambiguous_relations.loc[
+        ambiguous_relations.index[1], "bess_cnig_status_priority"
+    ] = 50
+    invalid_results.append(
+        _rehash_coordinated_result(
+            replace(ambiguous, relation_assessments=ambiguous_relations)
+        )
+    )
+
+    point_parcels = result.parcels.copy(deep=True)
+    point_parcels.at[point_parcels.index[0], point_parcels.geometry.name] = Point(0, 0)
+    invalid_results.append(replace(result, parcels=point_parcels))
+
+    duplicate = pd.concat([result.parcels, result.parcels.iloc[:, [0]]], axis=1)
+    invalid_results.append(
+        replace(
+            result,
+            parcels=gpd.GeoDataFrame(
+                duplicate,
+                geometry=result.parcels.geometry.name,
+                crs=result.parcels.crs,
+            ),
+        )
+    )
+    invalid_results.append(
+        module._result_with_hashes(
+            replace(result, application_result_hash_schema_version=3)
+        )
+    )
+
+    json_parcels = result.parcels.copy(deep=True)
+    json_parcels.loc[json_parcels.index[0], "bess_cnig_selected_feature_ids_json"] = (
+        '["/tmp/feature"]'
+    )
+    invalid_results.append(
+        module._result_with_hashes(replace(result, parcels=json_parcels))
+    )
+
+    for invalid in invalid_results:
+        with pytest.raises(BessPlanningFeatureParcelAggregationError):
+            validate_bess_planning_feature_parcel_aggregation_result(
+                *inputs, coded, config, policy, application, invalid
+            )
+    assert calls == 0
 
 
 def test_one_aggregation_and_one_public_validation_each_call_heavy_once(
@@ -475,6 +1011,9 @@ def test_valid_two_file_verified_byte_artifacts_and_source_readback(
     "mutation",
     [
         lambda value: value.update(schema_version=2),
+        lambda value: value.update(application_result_hash_schema_version=1),
+        lambda value: value.update(application_result_hash_schema_version=3),
+        lambda value: value.update(application_result_hash_schema_version=999),
         lambda value: value["artifacts"].pop(),
         lambda value: value["artifacts"].append(
             {**value["artifacts"][0], "artifact_role": "EXTRA"}

@@ -1723,6 +1723,43 @@ The 3,638-row parcel GeoParquet is 1,609,803 bytes (physical SHA256 `d1e8ec79ce8
 
 Local feature text and regulation content remain uninterpreted. No parcel is rejected. No score is calculated. No ranking is produced. No authorization or prohibition is claimed.
 
+## STEP 7D.5B.2B.1 — Seal intrinsic parcel-aggregation contracts
+
+- Status: Complete
+- Scope: validation-only hardening. Result hash schema and artifact-manifest schema remain version 1; the persisted parcel and relation schemas, decisions, roles, and bytes remain unchanged.
+- Test-first proof: the pre-fix focused run failed 27 new cases. It accepted coordinated `AUTHORIZED`/`FORBIDDEN` parcel artifacts, invalid lower-priority and contextual application rows, non-bijective priority mappings below the selected maximum, Point/LineString/empty/invalid parcel geometries, application schema versions other than 2, and non-portable or textual-null feature IDs.
+- Focused validation: all 173 aggregation/application tests pass.
+- Quality gates: all 1,556 tests pass; repository-wide Ruff and `mypy src` checks pass across 33 source files.
+
+### Intrinsic contracts and fast-fail boundary
+
+One internal application-row contract now serves both STEP 7D.5B.2A.1 and this aggregation stage. After removing only the aggregation suffix, every relation must retain the complete canonical schema-v2 application suffix, exact dtypes, official/application correspondence, two-digit family-scoped CNIG identity, allowed policy status and confidence, positive priority, non-empty decision text, six false application boundary flags, exact scopes, and policy lineage. This applies equally to selected, lower-priority, unresolved, deferred, and contextual relations.
+
+The local aggregation envelope independently restricts parcel decisions to the five approved precheck statuses and `HIGH`/`MEDIUM`/`LOW`, with positive integer priorities only for exact decisions. Every parcel's exact controlling relations must form a one-to-one status/priority mapping in both directions at every priority level; `SELECTED_CONTROLLING` requires both the selected status and selected priority.
+
+Parcel source and output frames require unique columns and exact parcel IDs, a known active CRS/geometry, and non-null, non-empty, valid canonical 2D Polygon/MultiPolygon geometry. Relation assessments reject duplicate columns and enforce the exact aggregation-state and role vocabularies plus the selected-role boolean correspondence. The application-result schema lock is exactly version 2 in the result, manifest, and loader.
+
+All three feature-ID arrays are parsed and proven to be canonical compact UTF-8 JSON with unique lexically sorted exact strings. Textual-null sentinels, edge whitespace, and absolute POSIX or Windows paths are rejected without coercion. Representative inherited-row, parcel-domain, priority-map, geometry, duplicate-column, application-schema, and JSON failures were instrumented to make zero calls to the heavy source-complete application validator; a valid result makes exactly one call.
+
+### Unchanged real Muret result and artifacts
+
+- Parcels / relation assessments: 3,638 / 2,414.
+- `AGGREGATED_EXACT_POLICY` / `NO_PLANNING_FEATURE_RELATION`: 1,854 / 1,784.
+- `UNRESOLVED_CONTROLLING_CODE_PAIR` / `TOUCH_ONLY_RELATIONS_ONLY`: 0 / 0.
+- Multiple exact statuses: 412 parcels.
+- Selected statuses: 600 `LIKELY_MATERIAL_CONSTRAINT`, 365 `MATERIAL_REVIEW_REQUIRED`, 2 `DESIGN_REVIEW_REQUIRED`, 795 `CONTEXT_REVIEW_REQUIRED`, and 92 `UNKNOWN`.
+- Selected confidence: 1,752 `HIGH`, 10 `MEDIUM`, and 92 `LOW`.
+- Relation roles: 1,942 `SELECTED_CONTROLLING` and 472 `LOWER_PRIORITY_CONTROLLING`.
+- Source parcel SHA256: `268754a26b349b240a044411c0af331c914ab0cd326c607d2991d797d2d759d0`.
+- Source application-relation SHA256: `7736dbf186b5f37c202d79b7e394a485adfce772a6e40147b12932071e72bfaf`.
+- Relation-assessment SHA256: `3a45b5a0c61ae2e240964f921e67790a279c1eb449fc5aa85621b7b8fda7a367`.
+- Parcel output SHA256: `0b03f2beaedfafafdd07a5dd619419ea8a284199071e07a5d0ab8eb6cd2c7bf9`.
+- Complete result SHA256: `c7417273d36c92833fcbd941a5e10c2518e30c97c3a758646a49d19cdc0c6cee`.
+
+Both unchanged Parquets were loaded from their exact verified byte payloads. The strengthened local envelope, source locks, independent GPU/CNIG/policy/application validation, and deterministic aggregation rebuild all passed.
+
+No local feature text or regulation content is interpreted. No parcel is rejected. No ranking or score is calculated. No authorization or prohibition is claimed.
+
 ## STEP 7D.5B.2A.1 — Finalize feature-policy application integrity
 
 - Status: Complete

@@ -28,6 +28,15 @@ from pyproj import CRS
 from shapely import get_coordinate_dimension, to_wkb  # type: ignore[import-untyped]
 from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
 
+from landscout.common.bess_application_contract import (
+    APPLICATION_SCOPE,
+    FLAG_COLUMNS,
+    POLICY_COLUMNS,
+    POLICY_SCOPE,
+    STRING_POLICY_COLUMNS,
+    ApplicationStatus,
+    validate_bess_application_policy_frame,
+)
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
 from landscout.sources.gpu_fr import GpuPlanningDocument
 from landscout.stages.bess_planning_feature_policy import (
@@ -51,11 +60,8 @@ __all__ = [
 
 RESULT_HASH_SCHEMA_VERSION = 2
 ARTIFACT_MANIFEST_SCHEMA_VERSION = 2
-APPLICATION_SCOPE = "FEATURE_AND_RELATION_POLICY_PROPAGATION_ONLY"
-POLICY_SCOPE = "OFFICIAL_CNIG_CODE_MEANING_ONLY"
 ARTIFACT_KIND = "BESS_PLANNING_FEATURE_POLICY_APPLICATION_RESULT"
 
-ApplicationStatus = Literal["APPLIED_EXACT_POLICY", "UNRESOLVED_CODE_PAIR"]
 ArtifactRole = Literal[
     "SURFACE_FEATURES",
     "LINE_FEATURES",
@@ -69,56 +75,6 @@ ARTIFACT_ROLES: tuple[ArtifactRole, ...] = (
     "POINT_FEATURES",
     "RELATIONS",
 )
-POLICY_COLUMNS = (
-    "bess_cnig_policy_application_status",
-    "bess_cnig_precheck_status",
-    "bess_cnig_precheck_confidence",
-    "bess_cnig_status_priority",
-    "bess_cnig_rationale",
-    "bess_cnig_required_human_action",
-    "bess_cnig_limitations",
-    "bess_cnig_application_scope",
-    "bess_cnig_policy_scope",
-    "bess_cnig_local_feature_text_interpreted",
-    "bess_cnig_local_regulation_content_interpreted",
-    "bess_cnig_legal_conclusion_produced",
-    "bess_cnig_parcel_status_aggregated",
-    "bess_cnig_parcel_rejection_performed",
-    "bess_cnig_score_calculated",
-    "bess_cnig_policy_profile",
-    "bess_cnig_policy_sha256",
-    "bess_cnig_policy_result_sha256",
-)
-DECISION_COLUMNS = (
-    "bess_cnig_precheck_status",
-    "bess_cnig_precheck_confidence",
-    "bess_cnig_status_priority",
-    "bess_cnig_rationale",
-    "bess_cnig_required_human_action",
-    "bess_cnig_limitations",
-)
-STRING_POLICY_COLUMNS = tuple(
-    column
-    for column in POLICY_COLUMNS
-    if column
-    not in {
-        "bess_cnig_status_priority",
-        "bess_cnig_local_feature_text_interpreted",
-        "bess_cnig_local_regulation_content_interpreted",
-        "bess_cnig_legal_conclusion_produced",
-        "bess_cnig_parcel_status_aggregated",
-        "bess_cnig_parcel_rejection_performed",
-        "bess_cnig_score_calculated",
-    }
-)
-FLAG_COLUMNS = (
-    "bess_cnig_local_feature_text_interpreted",
-    "bess_cnig_local_regulation_content_interpreted",
-    "bess_cnig_legal_conclusion_produced",
-    "bess_cnig_parcel_status_aggregated",
-    "bess_cnig_parcel_rejection_performed",
-    "bess_cnig_score_calculated",
-)
 RELATION_FEATURE_AGREEMENT_COLUMNS = (
     "feature_family",
     "type_code_raw",
@@ -127,22 +83,6 @@ RELATION_FEATURE_AGREEMENT_COLUMNS = (
 )
 SHA_PATTERN = re.compile(r"[0-9a-f]{64}")
 CODE_PATTERN = re.compile(r"[0-9]{2}")
-NULL_LITERALS = frozenset({"None", "nan", "<NA>"})
-ALLOWED_PRECHECK_STATUSES = frozenset(
-    {
-        "LIKELY_MATERIAL_CONSTRAINT",
-        "MATERIAL_REVIEW_REQUIRED",
-        "DESIGN_REVIEW_REQUIRED",
-        "CONTEXT_REVIEW_REQUIRED",
-        "UNKNOWN",
-    }
-)
-ALLOWED_CONFIDENCES = frozenset({"HIGH", "MEDIUM", "LOW"})
-POLICY_SUFFIX_DTYPES = {
-    **{column: "str" for column in STRING_POLICY_COLUMNS},
-    "bess_cnig_status_priority": "Int64",
-    **{column: "bool" for column in FLAG_COLUMNS},
-}
 
 
 class BessPlanningFeatureApplicationError(ValueError):
@@ -797,99 +737,16 @@ def _validate_policy_rows(
     label: str,
     result: BessPlanningFeatureApplicationResult,
 ) -> None:
-    for row in frame.to_dict("records"):
-        status = row["bess_cnig_policy_application_status"]
-        official_status = row["official_code_status"]
-        if status == "APPLIED_EXACT_POLICY":
-            if official_status != "RESOLVED_OFFICIAL":
-                raise BessPlanningFeatureApplicationError(
-                    f"{label} official status contradicts its application status"
-                )
-            if any(_null_value(row[column]) is None for column in DECISION_COLUMNS):
-                raise BessPlanningFeatureApplicationError(
-                    f"{label} applied policy row contains a missing decision"
-                )
-            if row["bess_cnig_precheck_status"] not in ALLOWED_PRECHECK_STATUSES:
-                raise BessPlanningFeatureApplicationError(
-                    f"{label} precheck status is outside the allowed domain"
-                )
-            if row["bess_cnig_precheck_confidence"] not in ALLOWED_CONFIDENCES:
-                raise BessPlanningFeatureApplicationError(
-                    f"{label} confidence is outside the allowed domain"
-                )
-            priority = row["bess_cnig_status_priority"]
-            if (
-                isinstance(priority, bool)
-                or not isinstance(priority, Integral)
-                or int(priority) <= 0
-            ):
-                raise BessPlanningFeatureApplicationError(
-                    f"{label} status priority must be a strict positive integer"
-                )
-            for column, decision_label in (
-                ("bess_cnig_rationale", "rationale"),
-                ("bess_cnig_required_human_action", "required human action"),
-                ("bess_cnig_limitations", "limitations"),
-            ):
-                value = row[column]
-                if not isinstance(value, str) or not value or value != value.strip():
-                    raise BessPlanningFeatureApplicationError(
-                        f"{label} {decision_label} must be exact and non-empty"
-                    )
-        elif status == "UNRESOLVED_CODE_PAIR":
-            if official_status != "UNKNOWN_CODE_PAIR":
-                raise BessPlanningFeatureApplicationError(
-                    f"{label} official status contradicts its application status"
-                )
-            if any(_null_value(row[column]) is not None for column in DECISION_COLUMNS):
-                raise BessPlanningFeatureApplicationError(
-                    f"{label} unresolved policy row contains an invented decision"
-                )
-        else:
-            raise BessPlanningFeatureApplicationError(
-                f"{label} policy application status is invalid"
-            )
-        for column in STRING_POLICY_COLUMNS:
-            value = row[column]
-            if isinstance(value, str) and value in NULL_LITERALS:
-                raise BessPlanningFeatureApplicationError(
-                    f"{label} contains a literal missing-value replacement"
-                )
-        if row["bess_cnig_application_scope"] != APPLICATION_SCOPE:
-            raise BessPlanningFeatureApplicationError(
-                f"{label} application scope is invalid"
-            )
-        if row["bess_cnig_policy_scope"] != POLICY_SCOPE:
-            raise BessPlanningFeatureApplicationError(
-                f"{label} policy scope is invalid"
-            )
-        if any(row[column] is not False for column in FLAG_COLUMNS):
-            raise BessPlanningFeatureApplicationError(
-                f"{label} interpretation flags must be false"
-            )
-        for actual, expected, lineage_label in (
-            (row["bess_cnig_policy_profile"], result.policy_profile, "profile"),
-            (row["bess_cnig_policy_sha256"], result.policy_sha256, "policy SHA256"),
-            (
-                row["bess_cnig_policy_result_sha256"],
-                result.policy_complete_result_content_sha256,
-                "policy result SHA256",
-            ),
-        ):
-            if actual != expected:
-                raise BessPlanningFeatureApplicationError(
-                    f"{label} {lineage_label} lineage is invalid"
-                )
-
-
-def _validate_policy_suffix_schema(frame: pd.DataFrame, label: str) -> None:
-    if tuple(frame.columns[-len(POLICY_COLUMNS) :]) != POLICY_COLUMNS:
-        raise BessPlanningFeatureApplicationError(f"{label} policy schema is invalid")
-    for column, expected_dtype in POLICY_SUFFIX_DTYPES.items():
-        if str(frame[column].dtype) != expected_dtype:
-            raise BessPlanningFeatureApplicationError(
-                f"{label} policy dtype is invalid for {column}"
-            )
+    try:
+        validate_bess_application_policy_frame(
+            frame,
+            label=label,
+            policy_profile=result.policy_profile,
+            policy_sha256=result.policy_sha256,
+            policy_result_sha256=result.policy_complete_result_content_sha256,
+        )
+    except ValueError as error:
+        raise BessPlanningFeatureApplicationError(str(error)) from error
 
 
 def _validate_result_envelope(result: BessPlanningFeatureApplicationResult) -> None:
@@ -950,7 +807,6 @@ def _validate_result_envelope(result: BessPlanningFeatureApplicationResult) -> N
             raise BessPlanningFeatureApplicationError(
                 f"{label} policy schema is invalid"
             )
-        _validate_policy_suffix_schema(frame, label)
         _validate_application_geometry(frame, label)
         deterministic_frame_schema_signature(frame)
         _validate_policy_rows(frame, label, result)
@@ -960,7 +816,6 @@ def _validate_result_envelope(result: BessPlanningFeatureApplicationResult) -> N
         raise BessPlanningFeatureApplicationError("relations must be a DataFrame")
     if result.relations.columns.duplicated().any():
         raise BessPlanningFeatureApplicationError("relations policy schema is invalid")
-    _validate_policy_suffix_schema(result.relations, "relations")
     _validate_policy_rows(result.relations, "relations", result)
     feature_rows = _feature_rows_by_id(
         result.surface_features, result.line_features, result.point_features
