@@ -1673,6 +1673,56 @@ The verified-byte loader parsed each Parquet from the exact bytes whose size and
 
 The result interprets only the general official CNIG code meaning. Local feature text and local regulation content remain uninterpreted. No parcel-level status is calculated. No parcel is rejected. No score is calculated. No authorization or prohibition is claimed.
 
+## STEP 7D.5B.2B — Aggregate BESS CNIG feature evidence to parcels
+
+- Status: Complete
+- Scope: deterministic parcel aggregation of the source-complete schema-v2 application relations only. Zoning, grid, environmental, access, local text, and regulation content remain outside this result.
+- Test-first proof: the focused aggregation suite was written before the module existed and initially failed at the missing-module boundary. Its 40 permanent tests cover exact/configured priority selection, documentary confidence, unresolved override, all five relation roles, all controlling/contextual relation types, tiny positive overlaps, parcel/relation preservation, cross-table reconciliation, fast-fail ordering, corruption, and strict verified-byte artifacts.
+- Quality gates: all 1,498 tests pass; repository-wide Ruff and `mypy src` checks pass.
+
+### Conservative aggregation semantics
+
+Only `AREA_OVERLAP`, `LENGTH_OVERLAP`, and `INSIDE` relations control a parcel status. `TOUCH_ONLY` and `BOUNDARY_TOUCH` are retained as `TOUCH_ONLY_CONTEXT` and never control. No minimum area, length, parcel share, feature share, dominance, buffer, or other business threshold is used: a positive factual overlap controls regardless of magnitude.
+
+For exact controlling relations, the parcel selects the maximum `bess_cnig_status_priority` supplied by the already validated policy application. No policy priority is hardcoded in this stage. One selected priority must resolve to one status. The configured policy status `UNKNOWN` remains an exact selectable status. Confidence is the lowest documentary clarity among relations with the selected status, using `LOW` before `MEDIUM` before `HIGH`.
+
+Any unresolved controlling code pair overrides exact statuses and leaves parcel status, confidence, and priority null. Parcels with contextual relations only and parcels with no relation likewise receive no invented decision. Every parcel has `bess_cnig_formal_review_required = true`; absence of a relation does not mean clear, compatible, or unconstrained.
+
+Every application relation is preserved once and in source order with one explicit role: selected controlling, lower-priority controlling, deferred by unresolved controlling, unresolved controlling, or touch-only context. The local validator independently rebuilds parcel summaries and roles from the retained source prefixes, verifies counts and canonical JSON feature-ID arrays, binds source parcel and application-relation frames, and fails before GPU/source reconstruction on any inconsistency.
+
+### Real Muret aggregation
+
+- Input/output parcels: 3,638 / 3,638; lost / extra IDs: 0 / 0.
+- Input/output relations: 2,414 / 2,414; lost / extra rows: 0 / 0.
+- `AGGREGATED_EXACT_POLICY`: 1,854 parcels.
+- `NO_PLANNING_FEATURE_RELATION`: 1,784 parcels.
+- Unresolved-controlling / touch-only-only parcels: 0 / 0.
+- Parcels with multiple exact statuses: 412.
+
+Selected parcel statuses:
+
+| Status | Parcels |
+| --- | ---: |
+| `LIKELY_MATERIAL_CONSTRAINT` | 600 |
+| `MATERIAL_REVIEW_REQUIRED` | 365 |
+| `DESIGN_REVIEW_REQUIRED` | 2 |
+| `CONTEXT_REVIEW_REQUIRED` | 795 |
+| `UNKNOWN` | 92 |
+
+Selected confidence is `HIGH` for 1,752 parcels, `MEDIUM` for 10, and `LOW` for 92. Relation roles are 1,942 `SELECTED_CONTROLLING` and 472 `LOWER_PRIORITY_CONTROLLING`; the selected relations reference 294 distinct features. The observed data contains no contextual-only or unresolved relation role, but those states are covered by permanent regressions.
+
+### Hashes and artifact read-back
+
+- Source parcel SHA256: `268754a26b349b240a044411c0af331c914ab0cd326c607d2991d797d2d759d0`.
+- Source application-relation SHA256: `7736dbf186b5f37c202d79b7e394a485adfce772a6e40147b12932071e72bfaf`.
+- Relation-assessment SHA256: `3a45b5a0c61ae2e240964f921e67790a279c1eb449fc5aa85621b7b8fda7a367`.
+- Parcel output SHA256: `0b03f2beaedfafafdd07a5dd619419ea8a284199071e07a5d0ab8eb6cd2c7bf9`.
+- Complete result SHA256: `c7417273d36c92833fcbd941a5e10c2518e30c97c3a758646a49d19cdc0c6cee`.
+
+The 3,638-row parcel GeoParquet is 1,609,803 bytes (physical SHA256 `d1e8ec79ce8a8e7c65f7ffa3c5e24190b6a1fb3b9db59184b770b6a711f4d7d2`). The 2,414-row relation-assessment Parquet is 187,542 bytes (physical SHA256 `e4007efe77cd60726c1e2bb59ef385def20509a95ff2e527be4e4f3105beb400`). The strict two-artifact manifest is 21,364 bytes. Both Parquets were parsed from their exact verified byte payloads, locally reconciled, then passed an independent source-complete validation and deterministic rebuild. Offline construction, publication, verified-byte reload, and validation took 55.332 seconds.
+
+Local feature text and regulation content remain uninterpreted. No parcel is rejected. No score is calculated. No ranking is produced. No authorization or prohibition is claimed.
+
 ## STEP 7D.5B.2A.1 — Finalize feature-policy application integrity
 
 - Status: Complete
