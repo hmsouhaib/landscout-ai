@@ -1,3 +1,11 @@
+from landscout.stages.apply_bess_planning_feature_policy import (
+    BessPlanningFeatureApplicationArtifactManifest,
+    BessPlanningFeatureApplicationError,
+    BessPlanningFeatureApplicationResult,
+    apply_bess_planning_feature_policy,
+    load_bess_planning_feature_application_artifacts,
+    validate_bess_planning_feature_application_result,
+)
 from landscout.stages.assess_grid_coverage import (
     BoundaryDistanceProfile,
     CoverageStatusCounts,
@@ -97,6 +105,9 @@ from landscout.stages.structure_planning_regulation import (
 )
 
 __all__ = [
+    "BessPlanningFeatureApplicationArtifactManifest",
+    "BessPlanningFeatureApplicationError",
+    "BessPlanningFeatureApplicationResult",
     "BessPlanningFeaturePolicyArtifactManifest",
     "BessPlanningFeaturePolicyConfig",
     "BessPlanningFeaturePolicyError",
@@ -136,6 +147,7 @@ __all__ = [
     "VoltageCoverageStatusProfile",
     "VoltageLevelCoverage",
     "VoltageLevelDistanceProfile",
+    "apply_bess_planning_feature_policy",
     "assess_grid_coverage",
     "compile_bess_planning_feature_policy",
     "enrich_parcel_grid_proximity",
@@ -146,6 +158,7 @@ __all__ = [
     "interpret_bess_zoning",
     "intersect_parcels_with_gpu_planning_features",
     "intersect_parcels_with_gpu_zoning",
+    "load_bess_planning_feature_application_artifacts",
     "load_bess_planning_feature_policy_artifacts",
     "load_bess_planning_feature_policy_config",
     "load_bess_zoning_policy_config",
@@ -161,6 +174,7 @@ __all__ = [
     "resolve_planning_feature_codes",
     "search_planning_regulation",
     "structure_planning_regulation",
+    "validate_bess_planning_feature_application_result",
     "validate_bess_planning_feature_policy_result",
     "validate_bess_zoning_precheck",
     "validate_normalized_planning_feature_inputs",

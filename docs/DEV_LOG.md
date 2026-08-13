@@ -1619,6 +1619,60 @@ The unchanged artifacts passed the strict local loader and the full public valid
 
 No policy is applied to features, relations, or parcels. No aggregation, rejection, score, authorization, or prohibition is produced.
 
+## STEP 7D.5B.2A — Apply BESS CNIG policy to features and relations
+
+- Status: Complete
+- Scope: exact propagation of the compiled BESS CNIG policy to the three source-complete coded feature catalogs and complete factual relation table. No parcel-level output or aggregation is produced.
+- Test-first proof: the focused suite was created before the application module and initially failed at the missing-module boundary. Its 33 permanent tests cover exact pair lookup, family/subtype separation, leading zeros, unresolved pairs and true null decisions, feature/relation preservation, relation inheritance by `planning_feature_id`, source-lock and coordinated mutations, validation call counts, scope flags, and strict verified-byte multi-artifact loading.
+- Quality gates: all 1,416 tests pass; repository-wide Ruff and `mypy src` checks pass.
+
+### Exact propagation and source locks
+
+The application uses only `(feature_family, type_code_raw, subtype_code_raw)`. It has no TYPE-only, default-subtype, prefix, label, local-text, or fuzzy fallback. Every relation inherits policy fields exclusively from its referenced feature ID. The result is locked to:
+
+- CNIG profile `cnig_plu_2017_muret_observed_pairs_v2`, SHA256 `5611b814eb4bc057578b908c6505094f9df5d2c2bf4ca126629b1362983c47ee`, result schema 5, and complete result `b56b195b32914583e6599fe96b3d29977c52450c9755228d89ce7e192903ab3e`;
+- policy profile `muret_bess_cnig_feature_policy_v1`, policy SHA256 `1cfca0eb3d777e9b6604748e8a81609abe7b728de8d0695711cd569180df6489`, result schema 1, and complete policy result `84a59b418f5a53bc61df73296964b2847cc5d3529c10d0c6912c96222edba09c`;
+- GPU document `33edb4c9f6943c88d8d92518bff20bec`, archive `9d6677cd6634b56b712311042f0cc714d5ca42a38f82a417b27dd473255d7d93`, and all four original coded component hashes.
+
+One application call performs the full policy/CNIG/GPU/relation validation once, then only lightweight local envelope validation. The independent public persisted-result validator fast-fails malformed local results and then performs its own complete source validation and deterministic rebuild.
+
+### Real Muret propagation
+
+- Surface / line / point features: 469 / 5 / 5; total: 479.
+- Factual relations: 2,414.
+- Features: 479 `APPLIED_EXACT_POLICY`, 0 `UNRESOLVED_CODE_PAIR`.
+- Relations: 2,414 `APPLIED_EXACT_POLICY`, 0 `UNRESOLVED_CODE_PAIR`.
+- Lost / extra feature IDs and relation rows: 0 / 0 and 0 / 0.
+- Parcel, coded features, coded relations, geometry, CRS, index, schema, order, and prior-column prefixes remained unchanged.
+
+| Precheck status | Features | Relations |
+| --- | ---: | ---: |
+| `LIKELY_MATERIAL_CONSTRAINT` | 133 | 625 |
+| `MATERIAL_REVIEW_REQUIRED` | 192 | 444 |
+| `DESIGN_REVIEW_REQUIRED` | 5 | 8 |
+| `CONTEXT_REVIEW_REQUIRED` | 8 | 1,210 |
+| `UNKNOWN` | 141 | 127 |
+
+| Confidence | Features | Relations |
+| --- | ---: | ---: |
+| `HIGH` | 328 | 2,271 |
+| `MEDIUM` | 10 | 16 |
+| `LOW` | 141 | 127 |
+
+Feature counts by exact pair are INFORMATION `02/00` 1, `14/00` 3, `27/00` 4, `99/00` 141; PRESCRIPTION `01/00` 127, `05/00` 185, `07/00` 5, `07/04` 1, `15/00` 4, `15/01` 1, `17/00` 1, and `18/00` 6. Relation counts are INFORMATION `02/00` 43, `14/00` 989, `27/00` 178, `99/00` 127; PRESCRIPTION `01/00` 619, `05/00` 321, `07/00` 2, `07/04` 4, `15/00` 8, `15/01` 0, `17/00` 6, and `18/00` 117. Unresolved feature and relation pairs are both zero.
+
+### Result hashes and strict artifacts
+
+- Surface / line / point result SHA256: `e225b7e56527ba64f9328b91727130f609c2248b4b2dcf36bada630a78488d03` / `3927cdffab6873628fb18d61546bb013b06dcabd012db1767425d73db83a0797` / `fb366af6cc7ee6590d661d110eafbb89e9fbb856573ca5e13872495619166e23`.
+- Relation result SHA256: `2daa665a6ddea820fd2b8730e5e9d9c0ba30e152904d5a5e9cf9c0af4f8312aa`.
+- Complete application result SHA256: `495396a1144e2111748931000e716c4cc5fbccc9a65364911fe44a1c5cb1d43a`.
+
+The four ignored Parquets contain 469 / 5 / 5 / 2,414 rows and occupy 369,773 / 50,187 / 46,826 / 178,262 bytes. Their physical SHA256 values are `4fc5ee24882a8f5cfb97e2903084453d8538ba6eaefa2e649a1dba7b00f9677b`, `5e7a0b0ff31059b8c7db760358c60ee1fb801d471234d571cd17448d1e737f76`, `2a714439d9c1319f1ff499a40a9a9e4655f6d3d72f005f68c38ad3c1d719380b`, and `59f9d388e67e999a33c9a13c7bc31544c08622b8931d9acbd38d7aa432a459f9`. The strict 39,485-byte manifest binds each role, filename, row count, byte size, physical hash, frame-schema signature, geospatial flag, and CRS.
+
+The verified-byte loader parsed each Parquet from the exact bytes whose size and SHA256 were checked. The reconstructed result passed the independent source-complete validator against every original input. Offline construction, temporary validation, publication, final reload, and independent validation took 32.710 seconds.
+
+The result interprets only the general official CNIG code meaning. Local feature text and local regulation content remain uninterpreted. No parcel-level status is calculated. No parcel is rejected. No score is calculated. No authorization or prohibition is claimed.
+
 ## STEP 7D.5A.5 — Finalize deterministic relation schemas and GPU validation boundaries
 
 - Status: Complete
