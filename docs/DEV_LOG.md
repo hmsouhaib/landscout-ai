@@ -1281,6 +1281,52 @@ Distance to an IGN electric line or transformation post does not establish grid 
 
 No BESS grid-distance threshold is selected here.
 
+## STEP 7D.5B.2B.2 — Seal relation identity and global policy mapping
+
+- Status: Complete
+- Scope: validation-only hardening. Application schemas remain 2/2 and aggregation schemas remain 1/1; every valid persisted value, schema, decision, role, and content hash is unchanged.
+- Test-first proof: 18 of 19 narrow regressions failed against the previous implementation. It accepted duplicate parcel/feature pairs in selected, lower-priority, contextual, deferred, and different-relation-type rows; textual-null, absolute-path, and edge-whitespace feature IDs outside selected JSON roles; an unknown relation type; and document-wide status/priority conflicts across parcels, including `TOUCH_ONLY` and `BOUNDARY_TOUCH` rows.
+- Focused validation: all 212 application and aggregation tests pass.
+- Quality gates: all 1,595 tests pass; repository-wide Ruff and `mypy src` checks pass across 33 source files.
+
+### Shared relation identity and policy mapping contract
+
+One internal table-level contract now validates both the schema-v2 application relation output and the application prefix reconstructed from aggregation assessments. It first applies the complete shared row-policy contract, then requires exact non-null `parcel_id`, portable exact `planning_feature_id`, and one of `AREA_OVERLAP`, `LENGTH_OVERLAP`, `INSIDE`, `TOUCH_ONLY`, or `BOUNDARY_TOUCH`. Textual-null sentinels, edge whitespace, absolute POSIX/Windows paths, and non-string IDs are rejected without coercion.
+
+Every `(parcel_id, planning_feature_id)` pair must be unique regardless of relation type, row index, aggregation role, status, or priority. This applies equally to selected, lower-priority, contextual, unresolved, and deferred relations. Across every `APPLIED_EXACT_POLICY` relation in the complete document, including contextual relations, each priority maps to exactly one status and each status to exactly one priority. Unresolved rows remain outside this mapping. The existing per-parcel bijection remains as a defensive second check, and selected roles still require both selected status and selected priority.
+
+Physically self-consistent application and aggregation artifacts containing a duplicate pair, invalid lower-priority feature ID, or cross-parcel priority conflict now fail in their lightweight loaders. Instrumented public-validation tests make zero source-complete calls for these defects; valid local envelopes retain the independent heavy source validation.
+
+### Unchanged real Muret artifacts
+
+- Parcels / relations: 3,638 / 2,414.
+- Duplicate parcel/feature pairs: 0.
+- Invalid parcel IDs / planning feature IDs / relation types: 0 / 0 / 0.
+- Document-wide status/priority conflicts: 0.
+- `AGGREGATED_EXACT_POLICY` / `NO_PLANNING_FEATURE_RELATION`: 1,854 / 1,784.
+- Multiple exact statuses: 412 parcels.
+- Relation roles: 1,942 `SELECTED_CONTROLLING` and 472 `LOWER_PRIORITY_CONTROLLING`.
+
+Application schema-v2 hashes remain unchanged:
+
+- Surface: `a907b86387b2ac509b6f746e393bdb05bf9886f0c6a2580fc48e625cbf953465`.
+- Line: `63b02b8370d932b276730efc65c313acfde251aaa38ed243e1fa226b65d685da`.
+- Point: `7f5190cd45350ab23d16d26baeec6af1934ae4315a559dcfffed46e680b6d554`.
+- Relations: `47743afe99163eea98d23f440b6369e5ee8ca11c6ee22baec7ea242d516eefd7`.
+- Complete application: `53b8fcddfcbd3920f223071d946d9066c8cb9cc38f0afc8d917e2b723926527e`.
+
+Aggregation hashes remain unchanged:
+
+- Source parcels: `268754a26b349b240a044411c0af331c914ab0cd326c607d2991d797d2d759d0`.
+- Source application relations: `7736dbf186b5f37c202d79b7e394a485adfce772a6e40147b12932071e72bfaf`.
+- Relation assessments: `3a45b5a0c61ae2e240964f921e67790a279c1eb449fc5aa85621b7b8fda7a367`.
+- Parcel output: `0b03f2beaedfafafdd07a5dd619419ea8a284199071e07a5d0ab8eb6cd2c7bf9`.
+- Complete aggregation: `c7417273d36c92833fcbd941a5e10c2518e30c97c3a758646a49d19cdc0c6cee`.
+
+The unchanged application and aggregation Parquets were parsed through their strict verified-byte loaders. Both reconstructed envelopes then passed independent offline GPU/CNIG/policy/application validation and deterministic rebuild.
+
+No local feature text or regulation content is interpreted. No parcel is rejected. No ranking or score is calculated. No authorization or prohibition is claimed.
+
 ## STEP 7D.5A — Resolve official CNIG meanings for planning-feature codes
 
 - Status: Complete

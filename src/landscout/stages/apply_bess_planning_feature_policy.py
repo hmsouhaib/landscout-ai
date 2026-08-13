@@ -36,6 +36,7 @@ from landscout.common.bess_application_contract import (
     STRING_POLICY_COLUMNS,
     ApplicationStatus,
     validate_bess_application_policy_frame,
+    validate_bess_application_relation_frame,
 )
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
 from landscout.sources.gpu_fr import GpuPlanningDocument
@@ -749,6 +750,23 @@ def _validate_policy_rows(
         raise BessPlanningFeatureApplicationError(str(error)) from error
 
 
+def _validate_relation_rows(
+    frame: pd.DataFrame,
+    label: str,
+    result: BessPlanningFeatureApplicationResult,
+) -> None:
+    try:
+        validate_bess_application_relation_frame(
+            frame,
+            label=label,
+            policy_profile=result.policy_profile,
+            policy_sha256=result.policy_sha256,
+            policy_result_sha256=result.policy_complete_result_content_sha256,
+        )
+    except ValueError as error:
+        raise BessPlanningFeatureApplicationError(str(error)) from error
+
+
 def _validate_result_envelope(result: BessPlanningFeatureApplicationResult) -> None:
     if not isinstance(result, BessPlanningFeatureApplicationResult):
         raise BessPlanningFeatureApplicationError(
@@ -816,7 +834,7 @@ def _validate_result_envelope(result: BessPlanningFeatureApplicationResult) -> N
         raise BessPlanningFeatureApplicationError("relations must be a DataFrame")
     if result.relations.columns.duplicated().any():
         raise BessPlanningFeatureApplicationError("relations policy schema is invalid")
-    _validate_policy_rows(result.relations, "relations", result)
+    _validate_relation_rows(result.relations, "relations", result)
     feature_rows = _feature_rows_by_id(
         result.surface_features, result.line_features, result.point_features
     )

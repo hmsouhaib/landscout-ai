@@ -202,6 +202,28 @@ def _coordinated_policy_mutation(
     return module._result_with_hashes(replace(changed, relations=relation_frame))
 
 
+def _coordinated_feature_id_mutation(
+    result: BessPlanningFeatureApplicationResult,
+    feature_id: object,
+) -> BessPlanningFeatureApplicationResult:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    original = result.relations.iloc[0]["planning_feature_id"]
+    changed = result
+    for frame_name in ("surface_features", "line_features", "point_features"):
+        frame = getattr(changed, frame_name).copy(deep=True)
+        frame.loc[frame["planning_feature_id"].eq(original), "planning_feature_id"] = (
+            feature_id
+        )
+        changed = replace(changed, **{frame_name: frame})
+    relations = changed.relations.copy(deep=True)
+    relations.loc[
+        relations["planning_feature_id"].eq(original), "planning_feature_id"
+    ] = feature_id
+    return module._result_with_hashes(replace(changed, relations=relations))
+
+
 def _z_geometry(kind: str) -> object:
     polygon = Polygon([(0, 0, 7), (2, 0, 7), (2, 2, 7), (0, 2, 7)])
     line = LineString([(0, 0, 7), (2, 0, 7)])
@@ -547,6 +569,58 @@ def test_coordinated_feature_or_relation_policy_mutation_is_rejected() -> None:
         )
 
 
+def test_duplicate_application_relation_pair_is_rejected_locally() -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    relations = pd.concat([result.relations, result.relations.iloc[[0]]])
+    changed = module._result_with_hashes(replace(result, relations=relations))
+    with pytest.raises(BessPlanningFeatureApplicationError, match="duplicate|unique"):
+        module._validate_result_envelope(changed)
+
+
+@pytest.mark.parametrize(
+    "feature_id",
+    [None, "", "None", "/tmp/feature", r"C:\feature", " GPU:F "],
+)
+def test_application_relation_feature_id_is_exact_and_portable(
+    feature_id: object,
+) -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    changed = _coordinated_feature_id_mutation(result, feature_id)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="feature|identity"):
+        module._validate_result_envelope(changed)
+
+
+@pytest.mark.parametrize("parcel_id", [None, "", "None", " PARCEL-1 "])
+def test_application_relation_parcel_id_is_exact(parcel_id: object) -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    relations = result.relations.copy(deep=True)
+    relations.loc[relations.index[0], "parcel_id"] = parcel_id
+    changed = module._result_with_hashes(replace(result, relations=relations))
+    with pytest.raises(BessPlanningFeatureApplicationError, match="parcel|identity"):
+        module._validate_result_envelope(changed)
+
+
+def test_unknown_application_relation_type_is_rejected_locally() -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    relations = result.relations.copy(deep=True)
+    relations.loc[relations.index[0], "relation_type"] = "BUFFERED_NEARBY"
+    changed = module._result_with_hashes(replace(result, relations=relations))
+    with pytest.raises(BessPlanningFeatureApplicationError, match="relation type"):
+        module._validate_result_envelope(changed)
+
+
 @pytest.mark.parametrize(
     ("column", "value", "message"),
     [
@@ -757,6 +831,75 @@ def test_valid_four_file_manifest_and_verified_byte_readback(tmp_path: Path) -> 
     validate_bess_planning_feature_application_result(
         *inputs, coded, config, policy, loaded
     )
+
+
+def test_duplicate_relation_pair_artifact_fails_local_loading(tmp_path: Path) -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    relations = pd.concat([result.relations, result.relations.iloc[[0]]])
+    changed = module._result_with_hashes(replace(result, relations=relations))
+    manifest_path, paths, _ = _write_application_artifacts(tmp_path, changed)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="duplicate|unique"):
+        load_bess_planning_feature_application_artifacts(
+            manifest_path,
+            paths["SURFACE_FEATURES"],
+            paths["LINE_FEATURES"],
+            paths["POINT_FEATURES"],
+            paths["RELATIONS"],
+        )
+
+
+def test_document_wide_mapping_conflict_artifact_fails_local_loading(
+    tmp_path: Path,
+) -> None:
+    _, _, _, _, result = _application_fixture()
+    first = result.relations.iloc[0]
+    different = result.relations[
+        result.relations["bess_cnig_precheck_status"].ne(
+            first["bess_cnig_precheck_status"]
+        )
+    ].iloc[0]
+    changed = _coordinated_policy_mutation(
+        result,
+        "bess_cnig_status_priority",
+        int(different["bess_cnig_status_priority"]),
+    )
+    manifest_path, paths, _ = _write_application_artifacts(tmp_path, changed)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="priority|mapping"):
+        load_bess_planning_feature_application_artifacts(
+            manifest_path,
+            paths["SURFACE_FEATURES"],
+            paths["LINE_FEATURES"],
+            paths["POINT_FEATURES"],
+            paths["RELATIONS"],
+        )
+
+
+def test_duplicate_relation_identity_fast_fails_before_policy_source_validation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inputs, coded, config, policy, result = _application_fixture()
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    relations = pd.concat(
+        [result.relations, result.relations.iloc[[0]]], ignore_index=True
+    )
+    changed = module._result_with_hashes(replace(result, relations=relations))
+    calls = 0
+
+    def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+
+    monkeypatch.setattr(module, "validate_bess_planning_feature_policy_result", counted)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="duplicate|unique"):
+        module.validate_bess_planning_feature_application_result(
+            *inputs, coded, config, policy, changed
+        )
+    assert calls == 0
 
 
 def test_self_consistent_z_geoparquet_artifact_is_rejected(tmp_path: Path) -> None:

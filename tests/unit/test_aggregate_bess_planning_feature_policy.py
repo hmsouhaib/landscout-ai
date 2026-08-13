@@ -239,6 +239,76 @@ def _rehash_coordinated_result(
     return module._result_with_hashes(updated)
 
 
+def _duplicate_selected_pair_result() -> BessPlanningFeatureParcelAggregationResult:
+    result = _build_from_relations(
+        pd.DataFrame(
+            [
+                _relation(feature_id="A"),
+                _relation(feature_id="B"),
+            ]
+        )
+    )
+    relations = result.relation_assessments.copy(deep=True)
+    relations.loc[relations.index[1], "planning_feature_id"] = "A"
+    parcels = result.parcels.copy(deep=True)
+    parcels.loc[parcels.index[0], "bess_cnig_selected_feature_ids_json"] = '["A"]'
+    return _rehash_coordinated_result(
+        replace(result, parcels=parcels, relation_assessments=relations)
+    )
+
+
+def _invalid_lower_feature_id_result() -> BessPlanningFeatureParcelAggregationResult:
+    result = _build_from_relations(
+        pd.DataFrame(
+            [
+                _relation(
+                    feature_id="LOW",
+                    status="CONTEXT_REVIEW_REQUIRED",
+                    priority=10,
+                ),
+                _relation(feature_id="HIGH", priority=30),
+            ]
+        )
+    )
+    relations = result.relation_assessments.copy(deep=True)
+    relations.loc[relations.index[0], "planning_feature_id"] = "/tmp/feature"
+    return _rehash_coordinated_result(replace(result, relation_assessments=relations))
+
+
+def _cross_parcel_priority_conflict_result() -> (
+    BessPlanningFeatureParcelAggregationResult
+):
+    result = _build_from_relations(
+        pd.DataFrame(
+            [
+                _relation(
+                    parcel_id="PARCEL-1",
+                    feature_id="A",
+                    status="LIKELY_MATERIAL_CONSTRAINT",
+                    priority=50,
+                ),
+                _relation(
+                    parcel_id="PARCEL-2",
+                    feature_id="B",
+                    status="MATERIAL_REVIEW_REQUIRED",
+                    priority=30,
+                ),
+            ]
+        )
+    )
+    relations = result.relation_assessments.copy(deep=True)
+    mask = relations["parcel_id"].eq("PARCEL-2")
+    relations.loc[mask, "bess_cnig_status_priority"] = 50
+    relations.loc[mask, "bess_cnig_resulting_parcel_status_priority"] = 50
+    parcels = result.parcels.copy(deep=True)
+    parcels.loc[
+        parcels["parcel_id"].eq("PARCEL-2"), "bess_cnig_parcel_status_priority"
+    ] = 50
+    return _rehash_coordinated_result(
+        replace(result, parcels=parcels, relation_assessments=relations)
+    )
+
+
 def test_exact_relations_select_configured_max_priority_and_lowest_confidence() -> None:
     relations = pd.DataFrame(
         [
@@ -656,6 +726,227 @@ def test_valid_repeated_status_and_priority_mapping_selects_every_exact_match() 
     ]
 
 
+@pytest.mark.parametrize(
+    "relations",
+    [
+        pd.DataFrame([_relation(feature_id="A"), _relation(feature_id="A")]),
+        pd.DataFrame(
+            [
+                _relation(
+                    feature_id="LOW",
+                    status="CONTEXT_REVIEW_REQUIRED",
+                    priority=10,
+                ),
+                _relation(
+                    feature_id="LOW",
+                    status="CONTEXT_REVIEW_REQUIRED",
+                    priority=10,
+                ),
+                _relation(feature_id="HIGH", priority=30),
+            ]
+        ),
+        pd.DataFrame(
+            [
+                _relation(feature_id="TOUCH", relation_type="TOUCH_ONLY"),
+                _relation(feature_id="TOUCH", relation_type="TOUCH_ONLY"),
+            ]
+        ),
+        pd.DataFrame(
+            [
+                _relation(feature_id="DEFERRED"),
+                _relation(feature_id="DEFERRED"),
+                _relation(
+                    feature_id="UNRESOLVED",
+                    application_status="UNRESOLVED_CODE_PAIR",
+                    status=None,
+                    confidence=None,
+                    priority=None,
+                ),
+            ]
+        ),
+        pd.DataFrame(
+            [
+                _relation(feature_id="A", relation_type="AREA_OVERLAP"),
+                _relation(feature_id="A", relation_type="LENGTH_OVERLAP"),
+            ]
+        ),
+    ],
+    ids=[
+        "selected",
+        "lower-priority",
+        "contextual",
+        "deferred",
+        "different-relation-types",
+    ],
+)
+def test_duplicate_parcel_feature_identity_is_rejected_for_every_role(
+    relations: pd.DataFrame,
+) -> None:
+    with pytest.raises(
+        BessPlanningFeatureParcelAggregationError, match="duplicate|unique"
+    ):
+        _build_from_relations(relations)
+
+
+@pytest.mark.parametrize(
+    "feature_id",
+    [None, "", "None", "/tmp/feature"],
+)
+def test_invalid_lower_priority_feature_id_is_rejected_independently_of_json_role(
+    feature_id: object,
+) -> None:
+    relations = pd.DataFrame(
+        [
+            _relation(
+                feature_id=feature_id,
+                status="CONTEXT_REVIEW_REQUIRED",
+                priority=10,
+            ),
+            _relation(feature_id="HIGH", priority=30),
+        ]
+    )
+    with pytest.raises(
+        BessPlanningFeatureParcelAggregationError, match="feature|identity"
+    ):
+        _build_from_relations(relations)
+
+
+@pytest.mark.parametrize("feature_id", [r"C:\feature", " GPU:F "])
+def test_invalid_deferred_feature_id_is_rejected_independently_of_json_role(
+    feature_id: str,
+) -> None:
+    relations = pd.DataFrame(
+        [
+            _relation(feature_id=feature_id),
+            _relation(
+                feature_id="UNRESOLVED",
+                application_status="UNRESOLVED_CODE_PAIR",
+                status=None,
+                confidence=None,
+                priority=None,
+            ),
+        ]
+    )
+    with pytest.raises(
+        BessPlanningFeatureParcelAggregationError, match="feature|identity"
+    ):
+        _build_from_relations(relations)
+
+
+@pytest.mark.parametrize("parcel_id", [None, " PARCEL-1 "])
+def test_invalid_relation_parcel_id_is_rejected(parcel_id: object) -> None:
+    relation = _relation()
+    relation["parcel_id"] = parcel_id
+    with pytest.raises(
+        BessPlanningFeatureParcelAggregationError, match="parcel|identity"
+    ):
+        _build_from_relations(pd.DataFrame([relation]))
+
+
+def test_unknown_relation_type_is_rejected_by_shared_relation_contract() -> None:
+    with pytest.raises(
+        BessPlanningFeatureParcelAggregationError, match="relation type"
+    ):
+        _build_from_relations(pd.DataFrame([_relation(relation_type="NEARBY")]))
+
+
+@pytest.mark.parametrize("context_type", [None, "TOUCH_ONLY", "BOUNDARY_TOUCH"])
+def test_document_wide_same_priority_cannot_map_to_two_statuses(
+    context_type: str | None,
+) -> None:
+    second_type = context_type or "AREA_OVERLAP"
+    relations = pd.DataFrame(
+        [
+            _relation(
+                parcel_id="PARCEL-1",
+                feature_id="A",
+                status="LIKELY_MATERIAL_CONSTRAINT",
+                priority=50,
+            ),
+            _relation(
+                parcel_id="PARCEL-2",
+                feature_id="B",
+                relation_type=second_type,
+                status="MATERIAL_REVIEW_REQUIRED",
+                priority=50,
+            ),
+        ]
+    )
+    with pytest.raises(
+        BessPlanningFeatureParcelAggregationError, match="priority|mapping"
+    ):
+        _build_from_relations(relations)
+
+
+def test_document_wide_same_status_cannot_map_to_two_priorities() -> None:
+    relations = pd.DataFrame(
+        [
+            _relation(
+                parcel_id="PARCEL-1",
+                feature_id="A",
+                status="LIKELY_MATERIAL_CONSTRAINT",
+                priority=50,
+            ),
+            _relation(
+                parcel_id="PARCEL-2",
+                feature_id="B",
+                status="LIKELY_MATERIAL_CONSTRAINT",
+                priority=10,
+            ),
+        ]
+    )
+    with pytest.raises(
+        BessPlanningFeatureParcelAggregationError, match="priority|mapping"
+    ):
+        _build_from_relations(relations)
+
+
+def test_document_wide_repeated_mapping_and_unresolved_rows_are_valid() -> None:
+    relations = pd.DataFrame(
+        [
+            _relation(parcel_id="PARCEL-1", feature_id="A", priority=30),
+            _relation(parcel_id="PARCEL-2", feature_id="B", priority=30),
+            _relation(
+                parcel_id="PARCEL-2",
+                feature_id="U",
+                application_status="UNRESOLVED_CODE_PAIR",
+                status=None,
+                confidence=None,
+                priority=None,
+            ),
+        ]
+    )
+    result = _build_from_relations(relations)
+    assert len(result.relation_assessments) == 3
+
+
+def test_complete_five_status_policy_mapping_is_globally_valid() -> None:
+    mapping = (
+        ("LIKELY_MATERIAL_CONSTRAINT", 50, "HIGH"),
+        ("UNKNOWN", 40, "LOW"),
+        ("MATERIAL_REVIEW_REQUIRED", 30, "HIGH"),
+        ("DESIGN_REVIEW_REQUIRED", 20, "MEDIUM"),
+        ("CONTEXT_REVIEW_REQUIRED", 10, "HIGH"),
+    )
+    relations = pd.DataFrame(
+        [
+            _relation(
+                parcel_id=f"PARCEL-{position}",
+                feature_id=f"FEATURE-{position}",
+                status=status,
+                priority=priority,
+                confidence=confidence,
+            )
+            for position, (status, priority, confidence) in enumerate(mapping, start=1)
+        ]
+    )
+    result = _build_from_relations(
+        relations,
+        parcel_ids=tuple(f"PARCEL-{position}" for position in range(1, 6)),
+    )
+    assert len(result.relation_assessments) == 5
+
+
 def test_selected_relation_role_requires_selected_status_and_priority() -> None:
     module = importlib.import_module(
         "landscout.stages.aggregate_bess_planning_feature_policy"
@@ -813,6 +1104,56 @@ def test_authorized_status_artifact_fails_local_verified_byte_loading(
         load_bess_planning_feature_parcel_aggregation_artifacts(
             manifest, paths["PARCELS"], paths["RELATION_ASSESSMENTS"]
         )
+
+
+@pytest.mark.parametrize(
+    "factory",
+    [
+        _duplicate_selected_pair_result,
+        _invalid_lower_feature_id_result,
+        _cross_parcel_priority_conflict_result,
+    ],
+    ids=["duplicate-pair", "invalid-lower-feature-id", "global-priority-conflict"],
+)
+def test_coordinated_relation_identity_artifact_corruption_fails_locally(
+    tmp_path: Path,
+    factory: object,
+) -> None:
+    assert callable(factory)
+    corrupted = factory()
+    manifest, paths, _ = _write_artifacts(tmp_path, corrupted)
+    with pytest.raises(BessPlanningFeatureParcelAggregationError):
+        load_bess_planning_feature_parcel_aggregation_artifacts(
+            manifest, paths["PARCELS"], paths["RELATION_ASSESSMENTS"]
+        )
+
+
+def test_relation_identity_and_global_mapping_fail_before_heavy_validation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inputs, coded, config, policy, application, _ = _aggregation_fixture()
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    calls = 0
+
+    def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+
+    monkeypatch.setattr(
+        module, "validate_bess_planning_feature_application_result", counted
+    )
+    for corrupted in (
+        _duplicate_selected_pair_result(),
+        _invalid_lower_feature_id_result(),
+        _cross_parcel_priority_conflict_result(),
+    ):
+        with pytest.raises(BessPlanningFeatureParcelAggregationError):
+            validate_bess_planning_feature_parcel_aggregation_result(
+                *inputs, coded, config, policy, application, corrupted
+            )
+    assert calls == 0
 
 
 @pytest.mark.parametrize(

@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import re
 from numbers import Integral
+from pathlib import PurePosixPath, PureWindowsPath
 from typing import Literal
 
 import pandas as pd  # type: ignore[import-untyped]
@@ -71,6 +72,15 @@ ALLOWED_PRECHECK_STATUSES = frozenset(
 )
 ALLOWED_CONFIDENCES = frozenset({"HIGH", "MEDIUM", "LOW"})
 ALLOWED_FEATURE_FAMILIES = frozenset({"PRESCRIPTION", "INFORMATION"})
+ALLOWED_RELATION_TYPES = frozenset(
+    {
+        "AREA_OVERLAP",
+        "LENGTH_OVERLAP",
+        "INSIDE",
+        "TOUCH_ONLY",
+        "BOUNDARY_TOUCH",
+    }
+)
 NULL_LITERALS = frozenset({"None", "nan", "<NA>"})
 CODE_PATTERN = re.compile(r"[0-9]{2}")
 
@@ -182,3 +192,69 @@ def validate_bess_application_policy_frame(
         ):
             if actual != expected:
                 raise ValueError(f"{label} {lineage_label} lineage is invalid")
+
+
+def _relation_identity_string(value: object, label: str) -> str:
+    exact = _exact_string(value, label)
+    if exact in NULL_LITERALS:
+        raise ValueError(f"{label} must not be a textual null sentinel")
+    return exact
+
+
+def validate_bess_application_relation_frame(
+    frame: pd.DataFrame,
+    *,
+    label: str,
+    policy_profile: str,
+    policy_sha256: str,
+    policy_result_sha256: str,
+) -> None:
+    """Validate canonical application rows and the complete relation identity."""
+
+    validate_bess_application_policy_frame(
+        frame,
+        label=label,
+        policy_profile=policy_profile,
+        policy_sha256=policy_sha256,
+        policy_result_sha256=policy_result_sha256,
+    )
+    required = {"parcel_id", "planning_feature_id", "relation_type"}
+    if not required.issubset(frame.columns):
+        raise ValueError(f"{label} relation identity schema is incomplete")
+    for row in frame.to_dict("records"):
+        _relation_identity_string(row["parcel_id"], f"{label} parcel identity")
+        feature_id = _relation_identity_string(
+            row["planning_feature_id"], f"{label} Feature ID identity"
+        )
+        if (
+            PurePosixPath(feature_id).is_absolute()
+            or PureWindowsPath(feature_id).is_absolute()
+        ):
+            raise ValueError(
+                f"{label} Feature ID identity must not be an absolute path"
+            )
+        relation_type = row["relation_type"]
+        if (
+            not isinstance(relation_type, str)
+            or relation_type not in ALLOWED_RELATION_TYPES
+        ):
+            raise ValueError(f"{label} relation type is invalid")
+    if frame.duplicated(["parcel_id", "planning_feature_id"]).any():
+        raise ValueError(f"{label} contains a duplicate parcel/feature relation pair")
+
+    priority_to_status: dict[int, set[str]] = {}
+    status_to_priority: dict[str, set[int]] = {}
+    applied = frame[
+        frame["bess_cnig_policy_application_status"] == "APPLIED_EXACT_POLICY"
+    ]
+    for row in applied.to_dict("records"):
+        priority = int(row["bess_cnig_status_priority"])
+        status = str(row["bess_cnig_precheck_status"])
+        priority_to_status.setdefault(priority, set()).add(status)
+        status_to_priority.setdefault(status, set()).add(priority)
+    if any(len(statuses) != 1 for statuses in priority_to_status.values()) or any(
+        len(priorities) != 1 for priorities in status_to_priority.values()
+    ):
+        raise ValueError(
+            f"{label} document-wide status/priority mapping is not one-to-one"
+        )

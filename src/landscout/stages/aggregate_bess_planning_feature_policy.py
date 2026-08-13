@@ -33,7 +33,7 @@ from landscout.common.bess_application_contract import (
     ALLOWED_PRECHECK_STATUSES,
     NULL_LITERALS,
     POLICY_SCOPE,
-    validate_bess_application_policy_frame,
+    validate_bess_application_relation_frame,
 )
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
 from landscout.sources.gpu_fr import GpuPlanningDocument
@@ -539,7 +539,7 @@ def _validate_application_relations(
             "Application relations must be a DataFrame"
         )
     try:
-        validate_bess_application_policy_frame(
+        validate_bess_application_relation_frame(
             frame,
             label="application relations",
             policy_profile=application.policy_profile,
