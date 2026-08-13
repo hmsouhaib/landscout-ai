@@ -12,7 +12,15 @@ import pandas as pd
 import pytest
 from geopandas.testing import assert_geodataframe_equal
 from pandas.testing import assert_frame_equal
-from shapely.geometry import Point
+from shapely import from_wkt, get_coordinate_dimension, to_wkb
+from shapely.geometry import (
+    LineString,
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Point,
+    Polygon,
+)
 from test_bess_planning_feature_policy import (
     _checked_in_policy_result,
     _compiled_fixture,
@@ -43,9 +51,20 @@ POLICY_COLUMNS = (
     "bess_cnig_local_feature_text_interpreted",
     "bess_cnig_local_regulation_content_interpreted",
     "bess_cnig_legal_conclusion_produced",
+    "bess_cnig_parcel_status_aggregated",
+    "bess_cnig_parcel_rejection_performed",
+    "bess_cnig_score_calculated",
     "bess_cnig_policy_profile",
     "bess_cnig_policy_sha256",
     "bess_cnig_policy_result_sha256",
+)
+BOUNDARY_FLAG_COLUMNS = (
+    "bess_cnig_local_feature_text_interpreted",
+    "bess_cnig_local_regulation_content_interpreted",
+    "bess_cnig_legal_conclusion_produced",
+    "bess_cnig_parcel_status_aggregated",
+    "bess_cnig_parcel_rejection_performed",
+    "bess_cnig_score_calculated",
 )
 ARTIFACT_FILES = {
     "SURFACE_FEATURES": ("surface.parquet", True),
@@ -121,13 +140,13 @@ def _write_application_artifacts(
         not in {"surface_features", "line_features", "point_features", "relations"}
     )
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "artifact_kind": "BESS_PLANNING_FEATURE_POLICY_APPLICATION_RESULT",
         **{name: getattr(result, name) for name in scalar_names},
         "artifacts": records,
     }
     validated = BessPlanningFeatureApplicationArtifactManifest.model_validate(manifest)
-    assert validated.schema_version == 1
+    assert validated.schema_version == 2
     manifest_path = tmp_path / "application.json"
     manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
@@ -137,9 +156,69 @@ def _write_application_artifacts(
     return manifest_path, paths, manifest
 
 
+def _coordinated_policy_mutation(
+    result: BessPlanningFeatureApplicationResult,
+    column: str,
+    value: object,
+    *,
+    dtype: str | None = None,
+) -> BessPlanningFeatureApplicationResult:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    feature_id = str(result.relations.iloc[0]["planning_feature_id"])
+    changed = result
+    for frame_name in ("surface_features", "line_features", "point_features"):
+        frame = getattr(changed, frame_name).copy(deep=True)
+        mask = frame["planning_feature_id"].eq(feature_id)
+        if mask.any():
+            values = frame[column].tolist()
+            for position, selected in enumerate(mask.tolist()):
+                if selected:
+                    values[position] = value
+            if dtype == "category":
+                frame[column] = pd.Series(pd.Categorical(values), index=frame.index)
+            elif dtype is not None:
+                frame[column] = pd.Series(values, index=frame.index, dtype=dtype)
+            else:
+                frame.loc[mask, column] = value
+            changed = replace(changed, **{frame_name: frame})
+    relation_frame = changed.relations.copy(deep=True)
+    relation_mask = relation_frame["planning_feature_id"].eq(feature_id)
+    relation_values = relation_frame[column].tolist()
+    for position, selected in enumerate(relation_mask.tolist()):
+        if selected:
+            relation_values[position] = value
+    if dtype == "category":
+        relation_frame[column] = pd.Series(
+            pd.Categorical(relation_values), index=relation_frame.index
+        )
+    elif dtype is not None:
+        relation_frame[column] = pd.Series(
+            relation_values, index=relation_frame.index, dtype=dtype
+        )
+    else:
+        relation_frame.loc[relation_mask, column] = value
+    return module._result_with_hashes(replace(changed, relations=relation_frame))
+
+
+def _z_geometry(kind: str) -> object:
+    polygon = Polygon([(0, 0, 7), (2, 0, 7), (2, 2, 7), (0, 2, 7)])
+    line = LineString([(0, 0, 7), (2, 0, 7)])
+    point = Point(1, 1, 7)
+    return {
+        "Polygon": polygon,
+        "MultiPolygon": MultiPolygon([polygon]),
+        "LineString": line,
+        "MultiLineString": MultiLineString([line]),
+        "Point": point,
+        "MultiPoint": MultiPoint([point]),
+    }[kind]
+
+
 def test_exact_policy_is_applied_to_every_feature_and_relation() -> None:
     _, coded, policy_config, policy, result = _application_fixture()
-    assert result.result_hash_schema_version == 1
+    assert result.result_hash_schema_version == 2
     assert result.application_scope == APPLICATION_SCOPE
     assert result.policy_profile == policy.policy_profile
     assert result.policy_sha256 == policy.policy_sha256
@@ -178,6 +257,135 @@ def test_exact_policy_is_applied_to_every_feature_and_relation() -> None:
         .all()
     )
     assert policy_config.policy_scope == result.policy_scope
+
+
+def test_every_output_row_has_all_six_false_boundary_flags() -> None:
+    _, _, _, _, result = _application_fixture()
+    for frame in (
+        result.surface_features,
+        result.line_features,
+        result.point_features,
+        result.relations,
+    ):
+        assert all(column in frame.columns for column in BOUNDARY_FLAG_COLUMNS)
+        for column in BOUNDARY_FLAG_COLUMNS:
+            assert str(frame[column].dtype) == "bool"
+            assert frame[column].notna().all()
+            assert frame[column].eq(False).all()
+
+
+def test_policy_suffix_has_one_exact_deterministic_dtype_schema() -> None:
+    _, _, _, _, result = _application_fixture()
+    expected = {
+        column: "str"
+        for column in POLICY_COLUMNS
+        if column
+        not in {
+            "bess_cnig_status_priority",
+            *BOUNDARY_FLAG_COLUMNS,
+        }
+    }
+    expected["bess_cnig_status_priority"] = "Int64"
+    expected.update({column: "bool" for column in BOUNDARY_FLAG_COLUMNS})
+    for frame in (
+        result.surface_features,
+        result.line_features,
+        result.point_features,
+        result.relations,
+    ):
+        assert tuple(frame.columns[-len(POLICY_COLUMNS) :]) == POLICY_COLUMNS
+        assert {column: str(frame[column].dtype) for column in POLICY_COLUMNS} == (
+            expected
+        )
+
+
+def test_schema_v1_dimension_blind_hash_representation_is_rejected_locally() -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    surface = result.surface_features.copy(deep=True)
+    original = surface.geometry.iloc[0]
+    polygon_z = Polygon([(x, y, 7) for x, y in original.exterior.coords])
+    assert get_coordinate_dimension(original) == 2
+    assert get_coordinate_dimension(polygon_z) == 3
+    assert to_wkb(original, hex=True, output_dimension=2) == to_wkb(
+        polygon_z, hex=True, output_dimension=2
+    )
+    surface.at[surface.index[0], surface.geometry.name] = polygon_z
+    blind = replace(result, surface_features=surface)
+    assert blind.surface_features_content_sha256 == (
+        result.surface_features_content_sha256
+    )
+    assert blind.complete_result_content_sha256 == result.complete_result_content_sha256
+    with pytest.raises(BessPlanningFeatureApplicationError, match="2D|dimension"):
+        module._validate_result_envelope(blind)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="2D|dimension"):
+        module._result_with_hashes(blind)
+
+
+@pytest.mark.parametrize(
+    ("frame_name", "geometry_kind"),
+    [
+        ("surface_features", "Polygon"),
+        ("surface_features", "MultiPolygon"),
+        ("line_features", "LineString"),
+        ("line_features", "MultiLineString"),
+        ("point_features", "Point"),
+        ("point_features", "MultiPoint"),
+    ],
+)
+def test_every_non_2d_application_geometry_kind_fast_fails_before_source_validation(
+    monkeypatch: pytest.MonkeyPatch,
+    frame_name: str,
+    geometry_kind: str,
+) -> None:
+    inputs, coded, config, policy, result = _application_fixture()
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    frame = getattr(result, frame_name).copy(deep=True)
+    frame.at[frame.index[0], frame.geometry.name] = _z_geometry(geometry_kind)
+    changed = replace(result, **{frame_name: frame})
+    calls = 0
+
+    def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+
+    monkeypatch.setattr(module, "validate_bess_planning_feature_policy_result", counted)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="2D|dimension"):
+        module.validate_bess_planning_feature_application_result(
+            *inputs, coded, config, policy, changed
+        )
+    assert calls == 0
+
+
+@pytest.mark.parametrize("wkt", ["POINT M (1 1 7)", "POINT ZM (1 1 7 8)"])
+def test_m_and_zm_application_geometries_are_rejected(wkt: str) -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    point = result.point_features.copy(deep=True)
+    point.at[point.index[0], point.geometry.name] = from_wkt(wkt)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="2D|dimension"):
+        module._validate_result_envelope(replace(result, point_features=point))
+
+
+def test_valid_empty_optional_application_catalog_retains_schema_and_crs() -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, coded, _, policy, _ = _application_fixture()
+    empty = coded.point_features.iloc[0:0].copy()
+    applied = module._apply_feature_catalog(empty, policy)
+    assert applied.empty
+    assert tuple(applied.columns[: len(empty.columns)]) == tuple(empty.columns)
+    assert tuple(applied.columns[-len(POLICY_COLUMNS) :]) == POLICY_COLUMNS
+    assert applied.geometry.name == empty.geometry.name
+    assert applied.crs == empty.crs
+    module._validate_application_geometry(applied, "empty point features")
 
 
 def test_exact_pair_identity_keeps_family_subtype_and_leading_zeroes_distinct() -> None:
@@ -339,6 +547,118 @@ def test_coordinated_feature_or_relation_policy_mutation_is_rejected() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    ("column", "value", "message"),
+    [
+        ("bess_cnig_precheck_status", "AUTHORIZED", "status|domain"),
+        ("bess_cnig_precheck_status", "FORBIDDEN", "status|domain"),
+        ("bess_cnig_precheck_status", "PROHIBITED", "status|domain"),
+        ("bess_cnig_precheck_confidence", "CERTAIN", "confidence|domain"),
+        ("bess_cnig_status_priority", 0, "priority|positive"),
+        ("bess_cnig_status_priority", -1, "priority|positive"),
+        ("bess_cnig_rationale", "", "rationale|exact|non-empty"),
+        ("bess_cnig_rationale", " leading", "rationale|exact|whitespace"),
+        ("bess_cnig_required_human_action", "trailing ", "action|exact|whitespace"),
+        ("bess_cnig_limitations", "", "limitations|exact|non-empty"),
+    ],
+)
+def test_coordinated_invalid_policy_domains_fail_local_validation(
+    column: str,
+    value: object,
+    message: str,
+) -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    changed = _coordinated_policy_mutation(result, column, value)
+    with pytest.raises(BessPlanningFeatureApplicationError, match=message):
+        module._validate_result_envelope(changed)
+
+
+@pytest.mark.parametrize("literal", ["None", "nan", "<NA>"])
+def test_literal_null_replacements_are_rejected(literal: str) -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    changed = _coordinated_policy_mutation(result, "bess_cnig_rationale", literal)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="literal|missing"):
+        module._validate_result_envelope(changed)
+
+
+@pytest.mark.parametrize(
+    ("column", "dtype", "value"),
+    [
+        ("bess_cnig_precheck_status", "object", "UNKNOWN"),
+        ("bess_cnig_precheck_confidence", "category", "HIGH"),
+        ("bess_cnig_rationale", "object", "Still a factual policy rationale."),
+        ("bess_cnig_status_priority", "Float64", 1.0),
+        ("bess_cnig_status_priority", "str", "1"),
+        ("bess_cnig_parcel_status_aggregated", "boolean", False),
+    ],
+)
+def test_self_consistent_wrong_policy_suffix_dtype_is_rejected(
+    column: str,
+    dtype: str,
+    value: object,
+) -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    changed = _coordinated_policy_mutation(result, column, value, dtype=dtype)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="dtype|schema"):
+        module._validate_result_envelope(changed)
+
+
+@pytest.mark.parametrize(
+    ("official_status", "application_status"),
+    [
+        ("RESOLVED_OFFICIAL", "UNRESOLVED_CODE_PAIR"),
+        ("UNKNOWN_CODE_PAIR", "APPLIED_EXACT_POLICY"),
+    ],
+)
+def test_official_and_application_statuses_cannot_contradict(
+    official_status: str,
+    application_status: str,
+) -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    changed = _coordinated_policy_mutation(
+        result,
+        "bess_cnig_policy_application_status",
+        application_status,
+    )
+    feature_id = str(changed.relations.iloc[0]["planning_feature_id"])
+    for frame_name in ("surface_features", "line_features", "point_features"):
+        frame = getattr(changed, frame_name).copy(deep=True)
+        mask = frame["planning_feature_id"].eq(feature_id)
+        if mask.any():
+            frame.loc[mask, "official_code_status"] = official_status
+            changed = replace(changed, **{frame_name: frame})
+    relation_frame = changed.relations.copy(deep=True)
+    relation_frame.loc[
+        relation_frame["planning_feature_id"].eq(feature_id), "official_code_status"
+    ] = official_status
+    changed = module._result_with_hashes(replace(changed, relations=relation_frame))
+    with pytest.raises(BessPlanningFeatureApplicationError, match="official|status"):
+        module._validate_result_envelope(changed)
+
+
+@pytest.mark.parametrize("column", BOUNDARY_FLAG_COLUMNS)
+def test_any_true_row_boundary_flag_is_rejected(column: str) -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    changed = _coordinated_policy_mutation(result, column, True)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="flag|false"):
+        module._validate_result_envelope(changed)
+
+
 def test_application_and_public_validator_heavy_validation_counts(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -439,9 +759,48 @@ def test_valid_four_file_manifest_and_verified_byte_readback(tmp_path: Path) -> 
     )
 
 
+def test_self_consistent_z_geoparquet_artifact_is_rejected(tmp_path: Path) -> None:
+    _, _, _, _, result = _application_fixture()
+    surface = result.surface_features.copy(deep=True)
+    original = surface.geometry.iloc[0]
+    surface.at[surface.index[0], surface.geometry.name] = Polygon(
+        [(x, y, 9) for x, y in original.exterior.coords]
+    )
+    changed = replace(result, surface_features=surface)
+    manifest_path, paths, _ = _write_application_artifacts(tmp_path, changed)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="2D|dimension"):
+        load_bess_planning_feature_application_artifacts(
+            manifest_path,
+            paths["SURFACE_FEATURES"],
+            paths["LINE_FEATURES"],
+            paths["POINT_FEATURES"],
+            paths["RELATIONS"],
+        )
+
+
+def test_self_consistent_wrong_dtype_artifact_is_rejected(tmp_path: Path) -> None:
+    _, _, _, _, result = _application_fixture()
+    changed = _coordinated_policy_mutation(
+        result,
+        "bess_cnig_precheck_status",
+        "UNKNOWN",
+        dtype="object",
+    )
+    manifest_path, paths, _ = _write_application_artifacts(tmp_path, changed)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="dtype|schema"):
+        load_bess_planning_feature_application_artifacts(
+            manifest_path,
+            paths["SURFACE_FEATURES"],
+            paths["LINE_FEATURES"],
+            paths["POINT_FEATURES"],
+            paths["RELATIONS"],
+        )
+
+
 @pytest.mark.parametrize(
     ("mutation", "message"),
     [
+        (lambda value: value.update(schema_version=1), "schema"),
         (lambda value: value["artifacts"].pop(), "role|artifact"),
         (
             lambda value: value["artifacts"].append(
@@ -512,7 +871,7 @@ def test_manifest_rejects_duplicate_json_key(tmp_path: Path) -> None:
     _, _, _, _, result = _application_fixture()
     manifest_path, paths, _ = _write_application_artifacts(tmp_path, result)
     manifest_path.write_text(
-        '{"schema_version": 1, "schema_version": 1}\n', encoding="utf-8"
+        '{"schema_version": 2, "schema_version": 2}\n', encoding="utf-8"
     )
     with pytest.raises(BessPlanningFeatureApplicationError, match="Duplicate JSON"):
         load_bess_planning_feature_application_artifacts(

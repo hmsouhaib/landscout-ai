@@ -1673,6 +1673,51 @@ The verified-byte loader parsed each Parquet from the exact bytes whose size and
 
 The result interprets only the general official CNIG code meaning. Local feature text and local regulation content remain uninterpreted. No parcel-level status is calculated. No parcel is rejected. No score is calculated. No authorization or prohibition is claimed.
 
+## STEP 7D.5B.2A.1 — Finalize feature-policy application integrity
+
+- Status: Complete
+- Scope: schema-v2 row-level boundary audit, canonical application geometry, dimension-aware hashing, and strict local-envelope validation. Feature and relation decisions remain unchanged; no parcel output is created.
+- Test-first proof: the schema-v1 implementation failed 55 focused cases. It omitted the three parcel/rejection/score row flags, accepted a Polygon Z while its old 2D-projected component and complete hashes remained unchanged, lacked complete local policy-domain and dtype enforcement, and rejected schema-v2 manifests. The permanent focused suite now contains 75 passing tests.
+- Quality gates: all 1,458 tests pass; repository-wide Ruff and `mypy src` checks pass.
+
+### Row audit and local contracts
+
+Every surface, line, point, and relation row now carries six strict non-null `bool` flags, all false: local feature text interpreted, local regulation content interpreted, legal conclusion produced, parcel status aggregated, parcel rejection performed, and score calculated. Relations inherit the full suffix from their referenced feature through `planning_feature_id`.
+
+The local envelope requires exact status values (`LIKELY_MATERIAL_CONSTRAINT`, `MATERIAL_REVIEW_REQUIRED`, `DESIGN_REVIEW_REQUIRED`, `CONTEXT_REVIEW_REQUIRED`, or `UNKNOWN`), exact confidence values (`HIGH`, `MEDIUM`, or `LOW`), and a strict positive integer priority. Applied rationales, actions, and limitations must be exact non-empty edge-trimmed strings. Unresolved decisions must remain true nulls. `RESOLVED_OFFICIAL` corresponds only to `APPLIED_EXACT_POLICY`, and `UNKNOWN_CODE_PAIR` only to `UNRESOLVED_CODE_PAIR`.
+
+The complete suffix has one deterministic schema: nullable Pandas `str` for string policy fields, nullable `Int64` for priority, and non-null `bool` for all six flags. Object, category, floating/string priority, or nullable tri-state flag substitutions fail locally, including after a physically self-consistent Parquet/manifest rewrite.
+
+### Canonical geometry and dimension-aware integrity
+
+All application feature geometry is validated as coordinate dimension 2 before hashing or source-complete validation. Polygon, MultiPolygon, LineString, MultiLineString, Point, and MultiPoint Z mutations are rejected without calling the heavy source validator; the same rule covers M and ZM through coordinate dimension rather than only `has_z`. Empty optional catalogs retain their deterministic schema, active geometry, and CRS.
+
+Application integrity rows now represent geometry explicitly as `{coordinate_dimension: 2, wkb_hex: <canonical little-endian 2D WKB>}`. A non-2D geometry is never silently projected into the hash. A coordinated non-2D output/hash mutation and a self-consistent Z GeoParquet manifest both fail the local boundary.
+
+### Real Muret schema-v2 regression
+
+- Surface / line / point features: 469 / 5 / 5; total features: 479.
+- Relations: 2,414.
+- Features: 479 `APPLIED_EXACT_POLICY`, 0 unresolved.
+- Relations: 2,414 `APPLIED_EXACT_POLICY`, 0 unresolved.
+- Every non-empty feature geometry is canonical 2D.
+- All six boundary flags are present and false on every feature and relation.
+- After dropping only the three new audit columns, every schema-v1 column, dtype, index, value, geometry, CRS, and row order compares exactly equal.
+
+Status and confidence distributions remain unchanged: features contain 133 / 192 / 5 / 8 / 141 rows for likely-material / material-review / design-review / context-review / unknown and 328 / 10 / 141 high / medium / low confidence; relations contain 625 / 444 / 8 / 1,210 / 127 and 2,271 / 16 / 127 respectively.
+
+Schema-v2 content hashes:
+
+- surface: `a907b86387b2ac509b6f746e393bdb05bf9886f0c6a2580fc48e625cbf953465`;
+- line: `63b02b8370d932b276730efc65c313acfde251aaa38ed243e1fa226b65d685da`;
+- point: `7f5190cd45350ab23d16d26baeec6af1934ae4315a559dcfffed46e680b6d554`;
+- relations: `47743afe99163eea98d23f440b6369e5ee8ca11c6ee22baec7ea242d516eefd7`;
+- complete result: `53b8fcddfcbd3920f223071d946d9066c8cb9cc38f0afc8d917e2b723926527e`.
+
+The schema-v2 Parquets occupy 371,734 / 52,121 / 48,754 / 180,258 bytes; the strict manifest is 40,277 bytes. The loader parsed the exact verified bytes, reconstructed the immutable result, enforced the strengthened local envelope, and the independent public validator reread the GPU sources and rebuilt the complete CNIG/policy application successfully. Offline construction, comparison, temporary validation, publication, final reload, and source-complete validation took 32.422 seconds.
+
+No parcel-level status is calculated. No parcel is rejected. No score is calculated. No local text or regulation is interpreted. No authorization or prohibition is claimed.
+
 ## STEP 7D.5A.5 — Finalize deterministic relation schemas and GPU validation boundaries
 
 - Status: Complete

@@ -25,7 +25,7 @@ from pydantic import (
     model_validator,
 )
 from pyproj import CRS
-from shapely import to_wkb  # type: ignore[import-untyped]
+from shapely import get_coordinate_dimension, to_wkb  # type: ignore[import-untyped]
 from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
 
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
@@ -49,8 +49,8 @@ __all__ = [
     "validate_bess_planning_feature_application_result",
 ]
 
-RESULT_HASH_SCHEMA_VERSION = 1
-ARTIFACT_MANIFEST_SCHEMA_VERSION = 1
+RESULT_HASH_SCHEMA_VERSION = 2
+ARTIFACT_MANIFEST_SCHEMA_VERSION = 2
 APPLICATION_SCOPE = "FEATURE_AND_RELATION_POLICY_PROPAGATION_ONLY"
 POLICY_SCOPE = "OFFICIAL_CNIG_CODE_MEANING_ONLY"
 ARTIFACT_KIND = "BESS_PLANNING_FEATURE_POLICY_APPLICATION_RESULT"
@@ -82,6 +82,9 @@ POLICY_COLUMNS = (
     "bess_cnig_local_feature_text_interpreted",
     "bess_cnig_local_regulation_content_interpreted",
     "bess_cnig_legal_conclusion_produced",
+    "bess_cnig_parcel_status_aggregated",
+    "bess_cnig_parcel_rejection_performed",
+    "bess_cnig_score_calculated",
     "bess_cnig_policy_profile",
     "bess_cnig_policy_sha256",
     "bess_cnig_policy_result_sha256",
@@ -103,12 +106,18 @@ STRING_POLICY_COLUMNS = tuple(
         "bess_cnig_local_feature_text_interpreted",
         "bess_cnig_local_regulation_content_interpreted",
         "bess_cnig_legal_conclusion_produced",
+        "bess_cnig_parcel_status_aggregated",
+        "bess_cnig_parcel_rejection_performed",
+        "bess_cnig_score_calculated",
     }
 )
 FLAG_COLUMNS = (
     "bess_cnig_local_feature_text_interpreted",
     "bess_cnig_local_regulation_content_interpreted",
     "bess_cnig_legal_conclusion_produced",
+    "bess_cnig_parcel_status_aggregated",
+    "bess_cnig_parcel_rejection_performed",
+    "bess_cnig_score_calculated",
 )
 RELATION_FEATURE_AGREEMENT_COLUMNS = (
     "feature_family",
@@ -119,6 +128,21 @@ RELATION_FEATURE_AGREEMENT_COLUMNS = (
 SHA_PATTERN = re.compile(r"[0-9a-f]{64}")
 CODE_PATTERN = re.compile(r"[0-9]{2}")
 NULL_LITERALS = frozenset({"None", "nan", "<NA>"})
+ALLOWED_PRECHECK_STATUSES = frozenset(
+    {
+        "LIKELY_MATERIAL_CONSTRAINT",
+        "MATERIAL_REVIEW_REQUIRED",
+        "DESIGN_REVIEW_REQUIRED",
+        "CONTEXT_REVIEW_REQUIRED",
+        "UNKNOWN",
+    }
+)
+ALLOWED_CONFIDENCES = frozenset({"HIGH", "MEDIUM", "LOW"})
+POLICY_SUFFIX_DTYPES = {
+    **{column: "str" for column in STRING_POLICY_COLUMNS},
+    "bess_cnig_status_priority": "Int64",
+    **{column: "bool" for column in FLAG_COLUMNS},
+}
 
 
 class BessPlanningFeatureApplicationError(ValueError):
@@ -340,7 +364,21 @@ def _canonical_value(value: object) -> object:
     if value is None:
         return None
     if isinstance(value, BaseGeometry):
-        return to_wkb(value, hex=True, output_dimension=2)
+        coordinate_dimension = int(get_coordinate_dimension(value))
+        if coordinate_dimension != 2:
+            raise BessPlanningFeatureApplicationError(
+                "Application geometry coordinate dimension must be exactly 2D"
+            )
+        return {
+            "coordinate_dimension": coordinate_dimension,
+            "wkb_hex": to_wkb(
+                value,
+                hex=True,
+                output_dimension=2,
+                byte_order=1,
+                include_srid=False,
+            ),
+        }
     if isinstance(value, (datetime, date, pd.Timestamp)):
         return value.isoformat()
     if isinstance(value, np.generic):
@@ -372,6 +410,32 @@ def _frame_payload(frame: pd.DataFrame) -> dict[str, object]:
             for row in frame.itertuples(index=False, name=None)
         ],
     }
+
+
+def _validate_application_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
+    """Require supplied application geometry to remain canonical two-dimensional."""
+
+    try:
+        geometry_name = frame.geometry.name
+        if geometry_name not in frame.columns:
+            raise BessPlanningFeatureApplicationError(
+                f"{label} active geometry column is missing"
+            )
+        for position, geometry in enumerate(frame.geometry.array):
+            if not isinstance(geometry, BaseGeometry):
+                raise BessPlanningFeatureApplicationError(
+                    f"{label} geometry at row {position} is missing or invalid"
+                )
+            if int(get_coordinate_dimension(geometry)) != 2:
+                raise BessPlanningFeatureApplicationError(
+                    f"{label} geometry at row {position} must be canonical 2D"
+                )
+    except BessPlanningFeatureApplicationError:
+        raise
+    except Exception as error:
+        raise BessPlanningFeatureApplicationError(
+            f"{label} geometry contract is invalid"
+        ) from error
 
 
 def _canonical_json_sha256(value: object) -> str:
@@ -439,6 +503,9 @@ def _policy_values(
         "bess_cnig_local_feature_text_interpreted": False,
         "bess_cnig_local_regulation_content_interpreted": False,
         "bess_cnig_legal_conclusion_produced": False,
+        "bess_cnig_parcel_status_aggregated": False,
+        "bess_cnig_parcel_rejection_performed": False,
+        "bess_cnig_score_calculated": False,
         "bess_cnig_policy_profile": policy.policy_profile,
         "bess_cnig_policy_sha256": policy.policy_sha256,
         "bess_cnig_policy_result_sha256": policy.complete_result_content_sha256,
@@ -525,7 +592,9 @@ def _apply_feature_catalog(
         policy_rows.append(_policy_values(policy_row, application_status, policy))
     output = catalog.copy(deep=True)
     _assign_policy_columns(output, policy_rows)
-    return gpd.GeoDataFrame(output, geometry=catalog.geometry.name, crs=catalog.crs)
+    applied = gpd.GeoDataFrame(output, geometry=catalog.geometry.name, crs=catalog.crs)
+    _validate_application_geometry(applied, "applied feature catalog")
+    return applied
 
 
 def _feature_rows_by_id(
@@ -730,12 +799,48 @@ def _validate_policy_rows(
 ) -> None:
     for row in frame.to_dict("records"):
         status = row["bess_cnig_policy_application_status"]
+        official_status = row["official_code_status"]
         if status == "APPLIED_EXACT_POLICY":
+            if official_status != "RESOLVED_OFFICIAL":
+                raise BessPlanningFeatureApplicationError(
+                    f"{label} official status contradicts its application status"
+                )
             if any(_null_value(row[column]) is None for column in DECISION_COLUMNS):
                 raise BessPlanningFeatureApplicationError(
                     f"{label} applied policy row contains a missing decision"
                 )
+            if row["bess_cnig_precheck_status"] not in ALLOWED_PRECHECK_STATUSES:
+                raise BessPlanningFeatureApplicationError(
+                    f"{label} precheck status is outside the allowed domain"
+                )
+            if row["bess_cnig_precheck_confidence"] not in ALLOWED_CONFIDENCES:
+                raise BessPlanningFeatureApplicationError(
+                    f"{label} confidence is outside the allowed domain"
+                )
+            priority = row["bess_cnig_status_priority"]
+            if (
+                isinstance(priority, bool)
+                or not isinstance(priority, Integral)
+                or int(priority) <= 0
+            ):
+                raise BessPlanningFeatureApplicationError(
+                    f"{label} status priority must be a strict positive integer"
+                )
+            for column, decision_label in (
+                ("bess_cnig_rationale", "rationale"),
+                ("bess_cnig_required_human_action", "required human action"),
+                ("bess_cnig_limitations", "limitations"),
+            ):
+                value = row[column]
+                if not isinstance(value, str) or not value or value != value.strip():
+                    raise BessPlanningFeatureApplicationError(
+                        f"{label} {decision_label} must be exact and non-empty"
+                    )
         elif status == "UNRESOLVED_CODE_PAIR":
+            if official_status != "UNKNOWN_CODE_PAIR":
+                raise BessPlanningFeatureApplicationError(
+                    f"{label} official status contradicts its application status"
+                )
             if any(_null_value(row[column]) is not None for column in DECISION_COLUMNS):
                 raise BessPlanningFeatureApplicationError(
                     f"{label} unresolved policy row contains an invented decision"
@@ -775,6 +880,16 @@ def _validate_policy_rows(
                 raise BessPlanningFeatureApplicationError(
                     f"{label} {lineage_label} lineage is invalid"
                 )
+
+
+def _validate_policy_suffix_schema(frame: pd.DataFrame, label: str) -> None:
+    if tuple(frame.columns[-len(POLICY_COLUMNS) :]) != POLICY_COLUMNS:
+        raise BessPlanningFeatureApplicationError(f"{label} policy schema is invalid")
+    for column, expected_dtype in POLICY_SUFFIX_DTYPES.items():
+        if str(frame[column].dtype) != expected_dtype:
+            raise BessPlanningFeatureApplicationError(
+                f"{label} policy dtype is invalid for {column}"
+            )
 
 
 def _validate_result_envelope(result: BessPlanningFeatureApplicationResult) -> None:
@@ -831,24 +946,21 @@ def _validate_result_envelope(result: BessPlanningFeatureApplicationResult) -> N
     ):
         if not isinstance(frame, gpd.GeoDataFrame):
             raise BessPlanningFeatureApplicationError(f"{label} must be geospatial")
-        if (
-            frame.columns.duplicated().any()
-            or tuple(frame.columns[-len(POLICY_COLUMNS) :]) != POLICY_COLUMNS
-        ):
+        if frame.columns.duplicated().any():
             raise BessPlanningFeatureApplicationError(
                 f"{label} policy schema is invalid"
             )
+        _validate_policy_suffix_schema(frame, label)
+        _validate_application_geometry(frame, label)
         deterministic_frame_schema_signature(frame)
         _validate_policy_rows(frame, label, result)
     if not isinstance(result.relations, pd.DataFrame) or isinstance(
         result.relations, gpd.GeoDataFrame
     ):
         raise BessPlanningFeatureApplicationError("relations must be a DataFrame")
-    if (
-        result.relations.columns.duplicated().any()
-        or tuple(result.relations.columns[-len(POLICY_COLUMNS) :]) != POLICY_COLUMNS
-    ):
+    if result.relations.columns.duplicated().any():
         raise BessPlanningFeatureApplicationError("relations policy schema is invalid")
+    _validate_policy_suffix_schema(result.relations, "relations")
     _validate_policy_rows(result.relations, "relations", result)
     feature_rows = _feature_rows_by_id(
         result.surface_features, result.line_features, result.point_features
