@@ -1505,6 +1505,51 @@ All five ignored Parquets were rewritten. The new ignored schema-v3 manifest is 
 
 Official CNIG mappings and coded DataFrame facts remain unchanged. No BESS impact or severity is assigned. No parcel is rejected. No score or legal interpretation is produced. No new dataset is downloaded and no parcel/feature spatial intersection is recomputed in this step.
 
+## STEP 7D.5B.1 — Define a strict BESS policy for official CNIG feature codes
+
+- Status: Complete
+- Scope: policy definition and validation only. The normalized policy is not applied to feature catalogs, parcel/feature relations, or parcels; no aggregation, rejection, or score is produced.
+- Test-first proof: the focused policy suite was written before the module and checked-in YAML existed and initially failed at the missing-module boundary. The permanent 37-test suite covers exact decisions, source locks, pair completeness, family/subtype identity, leading zeros, official labels/references, strict enums/priorities/YAML, in-memory revalidation, coordinated table/hash mutations, public source-validation invocation, and persisted read-back.
+- Source validation: compilation and public result validation each invoke the existing source-complete schema-v5 CNIG validator with the original GPU document, 3,638-parcel frame, three factual catalogs, 2,414 factual relations, approved CNIG profile, and reconstructed coded result. Self-reported hashes are not trusted alone.
+
+### Policy identity and boundaries
+
+- Policy profile: `muret_bess_cnig_feature_policy_v1`
+- Policy/result/manifest schemas: 1 / 1 / 1
+- Policy scope: `OFFICIAL_CNIG_CODE_MEANING_ONLY`
+- Canonical policy-entry SHA256: `1d3e63f1123000402065b74402cb1e2295db2ac5655209ce410aaf36bfc2be91`
+- Complete policy SHA256: `1cfca0eb3d777e9b6604748e8a81609abe7b728de8d0695711cd569180df6489`
+- Normalized policy-table SHA256: `225105fe488e21f8aa080751812dde1671340c26620cae1d8372c2e59488ed41`
+- Complete result SHA256: `84a59b418f5a53bc61df73296964b2847cc5d3529c10d0c6912c96222edba09c`
+
+The policy is locked to document `33edb4c9f6943c88d8d92518bff20bec`, archive `9d6677cd6634b56b712311042f0cc714d5ca42a38f82a417b27dd473255d7d93`, CNIG profile `cnig_plu_2017_muret_observed_pairs_v2` schema 2 and SHA256 `5611b814eb4bc057578b908c6505094f9df5d2c2bf4ca126629b1362983c47ee`, and schema-v5 CNIG complete result `b56b195b32914583e6599fe96b3d29977c52450c9755228d89ce7e192903ab3e`.
+
+`local_feature_text_interpreted`, `local_regulation_content_interpreted`, and `legal_conclusion_produced` are all persistently false. The policy uses only the general official family/type/subtype meaning. It does not interpret local `TXT`, `LIBELLE`, `NOMFIC`, linked regulation content, authorization, prohibition, or buildability.
+
+### Exact Muret policy verification
+
+- Validated CNIG pairs / policy pairs: 12 / 12
+- Missing / extra pairs: 0 / 0
+- Official-label / legal-reference / regulation-reference mismatches: 0 / 0 / 0
+- `LIKELY_MATERIAL_CONSTRAINT`: 3
+- `MATERIAL_REVIEW_REQUIRED`: 3
+- `DESIGN_REVIEW_REQUIRED`: 2
+- `CONTEXT_REVIEW_REQUIRED`: 3
+- `UNKNOWN`: 1
+- Confidence `HIGH` / `MEDIUM` / `LOW`: 8 / 3 / 1
+
+The configurable YAML priority is 50 / 40 / 30 / 20 / 10 for `LIKELY_MATERIAL_CONSTRAINT`, `UNKNOWN`, `MATERIAL_REVIEW_REQUIRED`, `DESIGN_REVIEW_REQUIRED`, and `CONTEXT_REVIEW_REQUIRED`. It is stored for the later STEP 7D.5B.2 aggregation and is not used here.
+
+### Outputs and read-back
+
+- `data/processed/planning/muret_bess_cnig_feature_policy.parquet`: 12 rows, 20,526 bytes
+- `data/processed/planning/muret_bess_cnig_feature_policy.json`: 1,859 bytes
+- Offline compile plus independent public validation runtime: 18.041 seconds
+
+The persisted table and manifest were read back, every immutable result scalar was reconstructed from JSON, and the public source-complete policy validator passed against all original factual inputs and the checked-in policy. Generated outputs remain ignored by Git.
+
+These are conservative preliminary review classifications. `LIKELY_MATERIAL_CONSTRAINT` does not mean prohibited. No status is applied to a feature, relation, or parcel in this step. No BESS authorization or prohibition is claimed. No parcel is rejected and no score is created.
+
 ## STEP 7D.5A.5 — Finalize deterministic relation schemas and GPU validation boundaries
 
 - Status: Complete

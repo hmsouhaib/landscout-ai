@@ -1,0 +1,154 @@
+schema_version: 1
+profile: muret_bess_cnig_feature_policy_v1
+policy_scope: OFFICIAL_CNIG_CODE_MEANING_ONLY
+local_feature_text_interpreted: false
+local_regulation_content_interpreted: false
+legal_conclusion_produced: false
+source_lock:
+  document_id: 33edb4c9f6943c88d8d92518bff20bec
+  archive_sha256: 9d6677cd6634b56b712311042f0cc714d5ca42a38f82a417b27dd473255d7d93
+  cnig_profile: cnig_plu_2017_muret_observed_pairs_v2
+  cnig_profile_schema_version: 2
+  cnig_profile_sha256: 5611b814eb4bc057578b908c6505094f9df5d2c2bf4ca126629b1362983c47ee
+  cnig_result_hash_schema_version: 5
+  cnig_complete_result_content_sha256: b56b195b32914583e6599fe96b3d29977c52450c9755228d89ce7e192903ab3e
+status_priority:
+  LIKELY_MATERIAL_CONSTRAINT: 50
+  UNKNOWN: 40
+  MATERIAL_REVIEW_REQUIRED: 30
+  DESIGN_REVIEW_REQUIRED: 20
+  CONTEXT_REVIEW_REQUIRED: 10
+canonical_policy_entries_sha256: 1d3e63f1123000402065b74402cb1e2295db2ac5655209ce410aaf36bfc2be91
+entries:
+  - feature_family: INFORMATION
+    type_code: "02"
+    subtype_code: "00"
+    expected_official_label: Zone d'aménagement concerté
+    expected_legal_reference: L311-1 code de l’urbanisme
+    expected_regulation_reference: R151-52 8°
+    precheck_status: CONTEXT_REVIEW_REQUIRED
+    confidence: HIGH
+    rationale: The official code identifies a concerted-development-zone context that requires planning-document review but does not establish a direct BESS constraint by itself.
+    required_human_action: Review the applicable planning documents and authority context for the identified concerted-development zone.
+    limitations: This classification uses only the official CNIG code meaning and does not interpret any local feature text or regulation.
+  - feature_family: INFORMATION
+    type_code: "14"
+    subtype_code: "00"
+    expected_official_label: Périmètre de voisinage d'infrastructure de transport terrestre (secteur affecté par le bruit)
+    expected_legal_reference: L571-10 code de l’environnement
+    expected_regulation_reference: R151-53 5°
+    precheck_status: CONTEXT_REVIEW_REQUIRED
+    confidence: HIGH
+    rationale: The official code identifies transport-infrastructure noise context that must be checked but does not establish a direct BESS constraint by itself.
+    required_human_action: Review the applicable noise-sector documents and project-specific context with the competent authority.
+    limitations: This classification uses only the official CNIG code meaning and does not interpret local noise rules or project effects.
+  - feature_family: INFORMATION
+    type_code: "27"
+    subtype_code: "00"
+    expected_official_label: Plan d'exposition au bruit des aérodromes
+    expected_legal_reference: L112-6 code de l’urbanisme
+    expected_regulation_reference: R151-52 2°
+    precheck_status: CONTEXT_REVIEW_REQUIRED
+    confidence: HIGH
+    rationale: The official code identifies an aerodrome noise-exposure-plan context that must be checked but does not establish a direct BESS constraint by itself.
+    required_human_action: Review the applicable aerodrome noise-exposure plan and project-specific context with the competent authority.
+    limitations: This classification uses only the official CNIG code meaning and does not interpret the local plan or determine project admissibility.
+  - feature_family: INFORMATION
+    type_code: "99"
+    subtype_code: "00"
+    expected_official_label: Autre périmètre, secteur, plan, document, site, projet, espace.
+    expected_legal_reference: null
+    expected_regulation_reference: null
+    precheck_status: UNKNOWN
+    confidence: LOW
+    rationale: The official code is an unspecified other-information category and is too generic for a more precise BESS precheck.
+    required_human_action: Identify and review the feature-specific local source before drawing any planning inference.
+    limitations: The official code alone does not identify the local subject, rule, effect, authorization, or prohibition.
+  - feature_family: PRESCRIPTION
+    type_code: "01"
+    subtype_code: "00"
+    expected_official_label: Espace boisé classé
+    expected_legal_reference: L113-1
+    expected_regulation_reference: R151-31 1°
+    precheck_status: LIKELY_MATERIAL_CONSTRAINT
+    confidence: HIGH
+    rationale: The official code identifies a classified wooded-area protection family likely to be material for a BESS project without meaning prohibited.
+    required_human_action: Review the exact classified-area geometry, local prescription, applicable planning provisions, and project design with the competent authority.
+    limitations: This preliminary classification does not interpret the local prescription or establish authorization or prohibition.
+  - feature_family: PRESCRIPTION
+    type_code: "05"
+    subtype_code: "00"
+    expected_official_label: Emplacement réservé
+    expected_legal_reference: L151-41 1° à 3°
+    expected_regulation_reference: R151-34 4°, R151-38 1°, R151-43 3°, R151-48 2°, R151-50 1°
+    precheck_status: MATERIAL_REVIEW_REQUIRED
+    confidence: HIGH
+    rationale: The official code identifies a reserved-site planning mechanism that may materially affect a project and requires specific review.
+    required_human_action: Review the beneficiary, purpose, exact reservation, local planning documents, and project interaction with the competent authority.
+    limitations: This classification does not infer the reservation purpose from local text or determine whether a BESS project is authorized or prohibited.
+  - feature_family: PRESCRIPTION
+    type_code: "07"
+    subtype_code: "00"
+    expected_official_label: Patrimoine bâti, paysager ou éléments de paysages à protéger pour des motifs d'ordre culturel, historique, architectural ou écologique
+    expected_legal_reference: L151-19 et L151-23
+    expected_regulation_reference: R151-41 3° Et R151-43
+    precheck_status: LIKELY_MATERIAL_CONSTRAINT
+    confidence: MEDIUM
+    rationale: The official code identifies a broad heritage or landscape protection family likely to be material, while its exact local subject remains unspecified.
+    required_human_action: Review the protected element, local prescription, project siting and design, and competent-authority requirements.
+    limitations: The broad official category does not reveal the feature-specific protected subject or establish authorization or prohibition.
+  - feature_family: PRESCRIPTION
+    type_code: "07"
+    subtype_code: "04"
+    expected_official_label: Éléments de paysage, (sites et secteurs) à préserver pour des motifs d'ordre écologique
+    expected_legal_reference: L151-23
+    expected_regulation_reference: R151-43 5°
+    precheck_status: LIKELY_MATERIAL_CONSTRAINT
+    confidence: HIGH
+    rationale: The official subtype identifies ecological landscape preservation likely to be material for a BESS project without meaning prohibited.
+    required_human_action: Review the exact preserved element, local prescription, ecological context, and project design with the competent authority.
+    limitations: This classification does not interpret the local preservation rule or determine project admissibility.
+  - feature_family: PRESCRIPTION
+    type_code: "15"
+    subtype_code: "00"
+    expected_official_label: Règles d’implantation des constructions
+    expected_legal_reference: L151-17 et L151-18
+    expected_regulation_reference: R151-39 dernier al.
+    precheck_status: DESIGN_REVIEW_REQUIRED
+    confidence: MEDIUM
+    rationale: The official code primarily identifies construction-implantation rules relevant to project siting and design, while the local rule remains unread.
+    required_human_action: Review the exact local implantation rule against the proposed equipment layout and site design.
+    limitations: This classification does not interpret local setbacks, feature text, or project compliance.
+  - feature_family: PRESCRIPTION
+    type_code: "15"
+    subtype_code: "01"
+    expected_official_label: Implantation des constructions par rapport aux voies et aux emprises publiques
+    expected_legal_reference: L151-17 et L151-18
+    expected_regulation_reference: R151-39
+    precheck_status: DESIGN_REVIEW_REQUIRED
+    confidence: HIGH
+    rationale: The official subtype specifically identifies construction siting relative to roads and public rights-of-way, requiring design review.
+    required_human_action: Review the exact local siting or setback rule against the proposed equipment layout and access design.
+    limitations: This classification does not interpret the local setback value or establish project compliance.
+  - feature_family: PRESCRIPTION
+    type_code: "17"
+    subtype_code: "00"
+    expected_official_label: Secteur à programme de logements mixité sociale en zone U et AU
+    expected_legal_reference: L151-15
+    expected_regulation_reference: R151-38 3°
+    precheck_status: MATERIAL_REVIEW_REQUIRED
+    confidence: MEDIUM
+    rationale: The official code identifies a social-housing-program planning mechanism that may materially affect land use and requires specific review.
+    required_human_action: Review the sector program, local planning provisions, land-use interaction, and authority requirements for the proposed project.
+    limitations: This classification does not infer the local program content or determine BESS authorization or prohibition.
+  - feature_family: PRESCRIPTION
+    type_code: "18"
+    subtype_code: "00"
+    expected_official_label: Périmètre comportant des orientations d’aménagement et de programmation (OAP)
+    expected_legal_reference: L151-6 et L151-7
+    expected_regulation_reference: R151-6 à R151-8-1
+    precheck_status: MATERIAL_REVIEW_REQUIRED
+    confidence: HIGH
+    rationale: The official code identifies an area governed by planning and development guidelines that may materially affect a project and requires specific review.
+    required_human_action: Review the applicable OAP text and graphics, project design interaction, and competent-authority requirements.
+    limitations: This classification does not interpret the local OAP or establish authorization, prohibition, or buildability.
