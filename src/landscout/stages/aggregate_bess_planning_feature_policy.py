@@ -36,6 +36,7 @@ from landscout.common.bess_application_contract import (
     validate_bess_application_relation_frame,
 )
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
+from landscout.common.planning_overlay import technical_overlay_tolerance
 from landscout.sources.gpu_fr import GpuPlanningDocument
 from landscout.stages.apply_bess_planning_feature_policy import (
     BessPlanningFeatureApplicationResult,
@@ -179,6 +180,10 @@ class BessPlanningFeatureParcelAggregationError(ValueError):
 
 @dataclass(frozen=True)
 class _ApplicationLineage:
+    source_document_id: str
+    source_archive_sha256: str
+    cnig_profile: str
+    cnig_profile_sha256: str
     policy_profile: str
     policy_sha256: str
     policy_complete_result_content_sha256: str
@@ -548,10 +553,66 @@ def _validate_application_relations(
             policy_profile=application.policy_profile,
             policy_sha256=application.policy_sha256,
             policy_result_sha256=application.policy_complete_result_content_sha256,
+            source_document_id=application.source_document_id,
+            source_archive_sha256=application.source_archive_sha256,
+            cnig_profile=application.cnig_profile,
+            cnig_profile_sha256=application.cnig_profile_sha256,
         )
     except (TypeError, ValueError) as error:
         raise BessPlanningFeatureParcelAggregationError(str(error)) from error
     return frame
+
+
+def _validate_relation_parcel_areas(
+    parcels: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+) -> None:
+    geometry_name = parcels.geometry.name
+    calculation = gpd.GeoDataFrame(
+        {"parcel_id": parcels["parcel_id"].copy(deep=True)},
+        geometry=parcels.geometry.copy(deep=True),
+        crs=parcels.crs,
+        index=parcels.index.copy(deep=True),
+    )
+    try:
+        if not CRS.from_user_input(calculation.crs).equals(CRS.from_epsg(2154)):
+            calculation = calculation.to_crs("EPSG:2154")
+        areas = calculation.geometry.area.to_numpy(dtype="float64")
+    except Exception as error:
+        raise BessPlanningFeatureParcelAggregationError(
+            "parcel metric-area calculation failed"
+        ) from error
+    if not np.isfinite(areas).all() or (areas <= 0).any():
+        raise BessPlanningFeatureParcelAggregationError(
+            "parcel metric areas must be finite and positive"
+        )
+    expected = dict(zip(calculation["parcel_id"].tolist(), areas.tolist(), strict=True))
+    for parcel_id, stored in relations[
+        ["parcel_id", "parcel_metric_area_m2"]
+    ].itertuples(index=False, name=None):
+        measured = expected.get(parcel_id)
+        if measured is None:
+            raise BessPlanningFeatureParcelAggregationError(
+                "relation references an unknown parcel for metric area"
+            )
+        if isinstance(stored, bool) or not isinstance(stored, Real):
+            raise BessPlanningFeatureParcelAggregationError(
+                "relation parcel metric area must be numeric"
+            )
+        actual = float(stored)
+        if not math.isfinite(actual):
+            raise BessPlanningFeatureParcelAggregationError(
+                "relation parcel metric area must be finite"
+            )
+        tolerance = technical_overlay_tolerance(max(abs(actual), measured))
+        if abs(actual - measured) > tolerance:
+            raise BessPlanningFeatureParcelAggregationError(
+                "relation parcel metric area differs from parcel geometry"
+            )
+    if parcels.geometry.name != geometry_name:
+        raise BessPlanningFeatureParcelAggregationError(
+            "parcel active geometry changed during metric validation"
+        )
 
 
 def _validate_local_domains(parcels: gpd.GeoDataFrame, relations: pd.DataFrame) -> None:
@@ -835,6 +896,7 @@ def _aggregate_frames(
 ) -> tuple[gpd.GeoDataFrame, pd.DataFrame]:
     _validate_parcel_frame(source_parcels, "source parcels")
     _validate_application_relations(source_relations, application)
+    _validate_relation_parcel_areas(source_parcels, source_relations)
     if any(column in source_parcels.columns for column in PARCEL_COLUMNS) or any(
         column in source_relations.columns for column in RELATION_COLUMNS
     ):
@@ -1119,6 +1181,10 @@ def _validate_result_envelope(
             "source application relation content SHA256 is invalid"
         )
     lineage = _ApplicationLineage(
+        source_document_id=result.source_document_id,
+        source_archive_sha256=result.source_archive_sha256,
+        cnig_profile=result.cnig_profile,
+        cnig_profile_sha256=result.cnig_profile_sha256,
         policy_profile=result.policy_profile,
         policy_sha256=result.policy_sha256,
         policy_complete_result_content_sha256=result.policy_complete_result_content_sha256,

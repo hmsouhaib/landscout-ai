@@ -1368,6 +1368,53 @@ Aggregation hashes remain unchanged:
 
 No local feature text or regulation content is interpreted. No parcel is rejected. No ranking or score is calculated. No authorization or prohibition is claimed.
 
+## STEP 7D.5B.2B.4 — Seal local source lineage and canonical schemas
+
+- Status: Complete
+- Scope: validation-only hardening. Application schemas remain 2/2, aggregation schemas remain 1/1, policy-result schema remains 1, and CNIG-result schema remains 5. No valid column, order, dtype, index, geometry, value, decision, artifact byte, or content hash changed.
+- Test-first proof: the narrow regressions failed against STEP 7D.5B.2B.3. The prior local envelopes accepted coordinated row/envelope lineage changes, resolved/unknown official-code semantic contradictions, reordered or wrongly typed factual prefixes, and coherent parcel-area/share changes. Both common-contract imports also failed in clean subprocesses because a common module imported `landscout.stages`.
+- Focused validation: 331 planning/CNIG tests, 158 application tests, and 133 aggregation tests pass. Representative malformed local results make zero heavy source-validation calls; valid public results retain one independent source-complete call.
+- Quality gates: all 1,689 tests pass; repository-wide Ruff and `mypy src` checks pass across 36 source files.
+
+### Common dependency and canonical-prefix contracts
+
+The overlay tolerance implementation now lives under `landscout.common`; the existing stage import path is a compatibility re-export. Clean Python subprocesses can import both `planning_feature_contract` and `bess_application_contract` without initializing `landscout.stages`, removing the collection-order and circular-import boundary.
+
+One internal planning-feature schema module is now the source of truth for ordered normalized surface, line, point, and relation schemas, their exact factual dtypes, the official CNIG suffix, and the stage-specific index metadata. Normalized STEP 7D.3.1 facts retain their canonical zero-based `RangeIndex`; coded and application outputs retain their persisted `Index`. Optional raw GPU fields preserve the existing deterministic Pandas/Parquet rule: populated fields are nullable strings and true all-null fields retain the approved object representation. Empty optional catalogs use their fixed kind schema and CRS. Malformed column removal/addition/order, dtype, index, geometry-column, and CRS metadata fail locally without casting.
+
+### Row lineage, official semantics, and parcel-area binding
+
+Every application feature and relation now agrees with the result envelope for source document, archive SHA256, CNIG profile, and profile SHA256. Populated feature catalogs describe one document/archive, keep exact deterministic GPU identities, and retain their existing Lambert-93 source lineage (including the equivalent `IGNF:LAMB93` representation used by the surface source). The unreferenced real `PRESCRIPTION 15/01` feature is therefore covered independently of relation membership.
+
+Resolved official rows require a non-empty label, a valid HTTPS official source URL, exact profile lineage, and null-safe official references. Unknown code pairs retain true nulls for label, references, and URL while preserving the profile lock. Complete factual/CNIG prefixes are validated before relation-to-feature comparison, so coordinated row changes cannot bypass the immutable result envelope.
+
+The aggregation local envelope now measures every source parcel on a calculation-only EPSG:2154 copy and compares each stored relation `parcel_metric_area_m2` with only the shared technical tolerance. Surface, line, and point relations are all covered. Geographic source parcels are accepted through the calculation copy; neither source geometry/CRS nor stored relation metrics are changed. Coordinated `4,000 -> 8,000 m²` and `25 -> 12.5%` artifact mutations fail locally before application source validation.
+
+### Unchanged real Muret artifacts
+
+- Parcels / features / relations: 3,638 / 479 / 2,414.
+- `PRESCRIPTION 15/01`: one feature, zero relations; row/envelope lineage validation passed.
+- Row/envelope lineage conflicts / canonical-prefix schema conflicts / parcel metric-area conflicts / official-code semantic conflicts: 0 / 0 / 0 / 0.
+- Existing byte-sealed policy, application, and aggregation artifacts passed their strict loaders and independent offline GPU/CNIG/policy/application reconstruction in 53.743 seconds.
+
+Application schema-v2 hashes remain unchanged:
+
+- Surface: `a907b86387b2ac509b6f746e393bdb05bf9886f0c6a2580fc48e625cbf953465`.
+- Line: `63b02b8370d932b276730efc65c313acfde251aaa38ed243e1fa226b65d685da`.
+- Point: `7f5190cd45350ab23d16d26baeec6af1934ae4315a559dcfffed46e680b6d554`.
+- Relations: `47743afe99163eea98d23f440b6369e5ee8ca11c6ee22baec7ea242d516eefd7`.
+- Complete application: `53b8fcddfcbd3920f223071d946d9066c8cb9cc38f0afc8d917e2b723926527e`.
+
+Aggregation hashes remain unchanged:
+
+- Source parcels: `268754a26b349b240a044411c0af331c914ab0cd326c607d2991d797d2d759d0`.
+- Source application relations: `7736dbf186b5f37c202d79b7e394a485adfce772a6e40147b12932071e72bfaf`.
+- Relation assessments: `3a45b5a0c61ae2e240964f921e67790a279c1eb449fc5aa85621b7b8fda7a367`.
+- Parcel output: `0b03f2beaedfafafdd07a5dd619419ea8a284199071e07a5d0ab8eb6cd2c7bf9`.
+- Complete aggregation: `c7417273d36c92833fcbd941a5e10c2518e30c97c3a758646a49d19cdc0c6cee`.
+
+No local feature text or regulation content is interpreted. No parcel is rejected. No ranking or score is calculated. No authorization or prohibition is claimed.
+
 ## STEP 7D.5A — Resolve official CNIG meanings for planning-feature codes
 
 - Status: Complete

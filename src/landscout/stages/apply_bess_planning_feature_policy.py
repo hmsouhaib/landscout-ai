@@ -36,17 +36,16 @@ from landscout.common.bess_application_contract import (
     STRING_POLICY_COLUMNS,
     ApplicationStatus,
     validate_bess_application_feature_catalogs,
-    validate_bess_application_policy_frame,
     validate_bess_application_relation_frame,
 )
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
+from landscout.common.planning_overlay import technical_overlay_tolerance
 from landscout.sources.gpu_fr import GpuPlanningDocument
 from landscout.stages.bess_planning_feature_policy import (
     BessPlanningFeaturePolicyConfig,
     BessPlanningFeaturePolicyResult,
     validate_bess_planning_feature_policy_result,
 )
-from landscout.stages.planning_overlay import technical_overlay_tolerance
 from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeResult,
@@ -748,35 +747,22 @@ def _build_result(
     return _result_with_hashes(result)
 
 
-def _validate_policy_rows(
-    frame: pd.DataFrame,
-    label: str,
-    result: BessPlanningFeatureApplicationResult,
-) -> None:
-    try:
-        validate_bess_application_policy_frame(
-            frame,
-            label=label,
-            policy_profile=result.policy_profile,
-            policy_sha256=result.policy_sha256,
-            policy_result_sha256=result.policy_complete_result_content_sha256,
-        )
-    except (TypeError, ValueError) as error:
-        raise BessPlanningFeatureApplicationError(str(error)) from error
-
-
 def _validate_relation_rows(
     frame: pd.DataFrame,
     label: str,
     result: BessPlanningFeatureApplicationResult,
-) -> None:
+) -> tuple[dict[int, str], dict[str, int]]:
     try:
-        validate_bess_application_relation_frame(
+        return validate_bess_application_relation_frame(
             frame,
             label=label,
             policy_profile=result.policy_profile,
             policy_sha256=result.policy_sha256,
             policy_result_sha256=result.policy_complete_result_content_sha256,
+            source_document_id=result.source_document_id,
+            source_archive_sha256=result.source_archive_sha256,
+            cnig_profile=result.cnig_profile,
+            cnig_profile_sha256=result.cnig_profile_sha256,
         )
     except (TypeError, ValueError) as error:
         raise BessPlanningFeatureApplicationError(str(error)) from error
@@ -841,13 +827,17 @@ def _validate_result_envelope(result: BessPlanningFeatureApplicationResult) -> N
             )
         deterministic_frame_schema_signature(frame)
     try:
-        validate_bess_application_feature_catalogs(
+        feature_mapping = validate_bess_application_feature_catalogs(
             result.surface_features,
             result.line_features,
             result.point_features,
             policy_profile=result.policy_profile,
             policy_sha256=result.policy_sha256,
             policy_result_sha256=result.policy_complete_result_content_sha256,
+            source_document_id=result.source_document_id,
+            source_archive_sha256=result.source_archive_sha256,
+            cnig_profile=result.cnig_profile,
+            cnig_profile_sha256=result.cnig_profile_sha256,
         )
     except (TypeError, ValueError) as error:
         raise BessPlanningFeatureApplicationError(str(error)) from error
@@ -857,7 +847,17 @@ def _validate_result_envelope(result: BessPlanningFeatureApplicationResult) -> N
         raise BessPlanningFeatureApplicationError("relations must be a DataFrame")
     if result.relations.columns.duplicated().any():
         raise BessPlanningFeatureApplicationError("relations policy schema is invalid")
-    _validate_relation_rows(result.relations, "relations", result)
+    relation_mapping = _validate_relation_rows(result.relations, "relations", result)
+    if any(
+        feature_mapping[0].get(priority) != status
+        for priority, status in relation_mapping[0].items()
+    ) or any(
+        feature_mapping[1].get(status) != priority
+        for status, priority in relation_mapping[1].items()
+    ):
+        raise BessPlanningFeatureApplicationError(
+            "relation policy mapping differs from the feature mapping"
+        )
     feature_rows = _feature_rows_by_id(
         result.surface_features, result.line_features, result.point_features
     )

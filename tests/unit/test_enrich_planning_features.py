@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import shutil
+import subprocess
+import sys
 import tempfile
 from copy import deepcopy
 from dataclasses import FrozenInstanceError, replace
@@ -1205,7 +1207,9 @@ def test_strict_relation_integer_counts_are_enforced(bad_count: object) -> None:
     relations["point_member_count"] = relations["point_member_count"].astype(object)
     point_index = relations.index[relations["geometry_kind"] == "POINT"][0]
     relations.loc[point_index, "point_member_count"] = bad_count
-    with pytest.raises(PlanningFeaturesError, match="integer count|non-negative"):
+    with pytest.raises(
+        PlanningFeaturesError, match="integer count|non-negative|dtype|schema"
+    ):
         _validate_result(
             source,
             replace(result, relations=relations),
@@ -1544,13 +1548,9 @@ def test_source_complete_contract_rejects_relation_index_dtype_change() -> None:
 
 def test_source_complete_contract_rejects_relation_index_class_change() -> None:
     planning_document, parcels, result = _source_complete_contract()
-    assert isinstance(result.relations.index, pd.RangeIndex)
+    assert type(result.relations.index) is pd.RangeIndex
     relations = result.relations.copy(deep=True)
-    relations.index = pd.Index(
-        relations.index.to_numpy(copy=True),
-        dtype="int64",
-        name=relations.index.name,
-    )
+    relations.index = pd.Index(relations.index.to_numpy(), dtype="int64")
     assert type(relations.index) is pd.Index
     with pytest.raises(PlanningFeaturesError, match="schema|index|relation"):
         validate_normalized_planning_feature_inputs(
@@ -1579,12 +1579,8 @@ def test_expected_relation_hash_binds_dtype_and_index_metadata() -> None:
         np.asarray(int32_index.index, dtype="int32"),
         name=int32_index.index.name,
     )
-    plain_index = result.relations.copy(deep=True)
-    plain_index.index = pd.Index(
-        plain_index.index.to_numpy(copy=True),
-        dtype="int64",
-        name=plain_index.index.name,
-    )
+    index_class = result.relations.copy(deep=True)
+    index_class.index = pd.Index(index_class.index.to_numpy(), dtype="int64")
     assert original != planning_features_module._expected_relations_content_sha256(
         object_dtype
     )
@@ -1595,7 +1591,7 @@ def test_expected_relation_hash_binds_dtype_and_index_metadata() -> None:
         int32_index
     )
     assert original != planning_features_module._expected_relations_content_sha256(
-        plain_index
+        index_class
     )
 
 
@@ -2235,3 +2231,33 @@ def test_batch_gpu_revalidation_rejects_duplicate_logical_name() -> None:
             planning_document,
             (layer, layer),
         )
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        (
+            "from landscout.common.planning_feature_contract import "
+            "validate_intrinsic_planning_feature_relations"
+        ),
+        (
+            "from landscout.common.bess_application_contract import "
+            "validate_bess_application_feature_catalogs"
+        ),
+    ],
+)
+def test_common_planning_contracts_import_without_initializing_stages(
+    statement: str,
+) -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            f"import sys; {statement}; assert 'landscout.stages' not in sys.modules",
+        ],
+        cwd=Path(__file__).resolve().parents[2],
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    assert completed.returncode == 0, completed.stderr

@@ -12,7 +12,7 @@ from datetime import date, datetime
 from hashlib import sha256
 from numbers import Integral, Real
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast
 
 import geopandas as gpd  # type: ignore[import-untyped]
 import numpy as np
@@ -23,6 +23,15 @@ from shapely import to_wkb  # type: ignore[import-untyped]
 from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
 
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
+from landscout.common.planning_feature_schema import (
+    OFFICIAL_CODE_COLUMNS,
+    GeometryKind,
+    feature_columns,
+    feature_dtypes,
+    relation_columns,
+    relation_dtypes,
+    validate_canonical_frame_schema,
+)
 from landscout.sources.gpu_fr import GpuInspectedLayer, GpuPlanningDocument
 from landscout.stages.enrich_planning_features import (
     PlanningFeatureInputValidation,
@@ -54,15 +63,6 @@ INFORMATION_OFFICIAL_SOURCE_URL = (
 FeatureFamily = Literal["PRESCRIPTION", "INFORMATION"]
 OfficialCodeStatus = Literal["RESOLVED_OFFICIAL", "UNKNOWN_CODE_PAIR"]
 
-OFFICIAL_CODE_COLUMNS = (
-    "official_code_status",
-    "official_code_label",
-    "official_legal_reference",
-    "official_regulation_reference",
-    "official_code_source_url",
-    "official_code_profile",
-    "official_code_profile_sha256",
-)
 CODE_DICTIONARY_COLUMNS = (
     "feature_family",
     "type_code",
@@ -427,12 +427,8 @@ def _coded_catalog(
         columns["official_code_profile"].append(profile.profile)
         columns["official_code_profile_sha256"].append(profile_hash)
     for column in OFFICIAL_CODE_COLUMNS:
-        values = np.empty(len(output), dtype=object)
-        values[:] = columns[column]
-        output[column] = values
-    output.index = pd.Index(
-        output.index.to_numpy(copy=True), name=output.index.name
-    )
+        output[column] = pd.array(columns[column], dtype="str")
+    output.index = pd.Index(output.index.to_numpy(copy=True), name=output.index.name)
     return output
 
 
@@ -468,12 +464,8 @@ def _coded_relations(
         for column in OFFICIAL_CODE_COLUMNS:
             appended[column].append(meaning[column])
     for column in OFFICIAL_CODE_COLUMNS:
-        values = np.empty(len(output), dtype=object)
-        values[:] = appended[column]
-        output[column] = values
-    output.index = pd.Index(
-        output.index.to_numpy(copy=True), name=output.index.name
-    )
+        output[column] = pd.array(appended[column], dtype="str")
+    output.index = pd.Index(output.index.to_numpy(copy=True), name=output.index.name)
     return output
 
 
@@ -546,9 +538,7 @@ def _inspected_layer_payload(layer: GpuInspectedLayer) -> dict[str, object]:
             raise PlanningFeatureCodeError("GPU inspected layer data is invalid")
         return {
             "logical_name": logical_name,
-            "source_layer": _strict_string(
-                reference.source_layer, "GPU source layer"
-            ),
+            "source_layer": _strict_string(reference.source_layer, "GPU source layer"),
             "driver": _strict_string(reference.driver, "GPU driver"),
             "summary": asdict(summary),
             "source_data_sha256": _source_frame_sha256(
@@ -656,22 +646,12 @@ def _component_metadata(result: PlanningFeatureCodeResult) -> dict[str, object]:
         "profile_sha256": result.profile_sha256,
         "source_document_id": result.source_document_id,
         "source_archive_sha256": result.source_archive_sha256,
-        "planning_document_context_sha256": (
-            result.planning_document_context_sha256
-        ),
+        "planning_document_context_sha256": (result.planning_document_context_sha256),
         "parcel_identity_input_sha256": result.parcel_identity_input_sha256,
-        "normalized_catalogs_input_sha256": (
-            result.normalized_catalogs_input_sha256
-        ),
-        "normalized_relations_input_sha256": (
-            result.normalized_relations_input_sha256
-        ),
-        "gpu_related_source_files_sha256": (
-            result.gpu_related_source_files_sha256
-        ),
-        "expected_relations_content_sha256": (
-            result.expected_relations_content_sha256
-        ),
+        "normalized_catalogs_input_sha256": (result.normalized_catalogs_input_sha256),
+        "normalized_relations_input_sha256": (result.normalized_relations_input_sha256),
+        "gpu_related_source_files_sha256": (result.gpu_related_source_files_sha256),
+        "expected_relations_content_sha256": (result.expected_relations_content_sha256),
     }
 
 
@@ -788,9 +768,7 @@ def _build_result(
         normalized_catalogs_input_sha256=_normalized_catalogs_input_sha256(
             surface_features, line_features, point_features
         ),
-        normalized_relations_input_sha256=_normalized_relations_input_sha256(
-            relations
-        ),
+        normalized_relations_input_sha256=_normalized_relations_input_sha256(relations),
         gpu_related_source_files_sha256=(
             factual_validation.gpu_related_source_files_sha256
         ),
@@ -831,25 +809,32 @@ def _validate_result_envelope(result: PlanningFeatureCodeResult) -> None:
             raise PlanningFeatureCodeError(f"unsupported {label}: {value!r}")
     if tuple(result.code_dictionary.columns) != CODE_DICTIONARY_COLUMNS:
         raise PlanningFeatureCodeError("code dictionary columns are invalid")
-    for frame, label, geospatial in (
-        (result.surface_features, "surface features", True),
-        (result.line_features, "line features", True),
-        (result.point_features, "point features", True),
-        (result.relations, "coded relations", False),
+    for frame, label, kind in (
+        (result.surface_features, "surface features", "SURFACE"),
+        (result.line_features, "line features", "LINE"),
+        (result.point_features, "point features", "POINT"),
     ):
-        if geospatial and not isinstance(frame, gpd.GeoDataFrame):
-            raise PlanningFeatureCodeError(f"{label} must be a GeoDataFrame")
-        if not geospatial and (
-            not isinstance(frame, pd.DataFrame)
-            or isinstance(frame, gpd.GeoDataFrame)
-        ):
-            raise PlanningFeatureCodeError(f"{label} must be a DataFrame")
-        if tuple(frame.columns[-len(OFFICIAL_CODE_COLUMNS) :]) != OFFICIAL_CODE_COLUMNS:
-            raise PlanningFeatureCodeError(
-                f"{label} official-code columns are invalid"
+        geometry_kind = cast(GeometryKind, kind)
+        try:
+            validate_canonical_frame_schema(
+                frame,
+                columns=feature_columns(geometry_kind),
+                dtypes=feature_dtypes(geometry_kind, frame=frame),
+                label=label,
+                geospatial=True,
             )
-        if frame.columns.duplicated().any():
-            raise PlanningFeatureCodeError(f"{label} contains duplicate columns")
+        except (TypeError, ValueError) as error:
+            raise PlanningFeatureCodeError(str(error)) from error
+    try:
+        validate_canonical_frame_schema(
+            result.relations,
+            columns=relation_columns(),
+            dtypes=relation_dtypes(),
+            label="coded relations",
+            geospatial=False,
+        )
+    except (TypeError, ValueError) as error:
+        raise PlanningFeatureCodeError(str(error)) from error
     rebuilt_hashes = _result_with_hashes(result)
     for field in (
         "code_dictionary_content_sha256",

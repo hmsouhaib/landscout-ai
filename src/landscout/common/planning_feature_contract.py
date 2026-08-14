@@ -8,7 +8,7 @@ from numbers import Integral, Real
 import numpy as np
 import pandas as pd  # type: ignore[import-untyped]
 
-from landscout.stages.planning_overlay import technical_overlay_tolerance
+from landscout.common.planning_overlay import technical_overlay_tolerance
 
 RELATION_FLOAT_COLUMNS = frozenset(
     {

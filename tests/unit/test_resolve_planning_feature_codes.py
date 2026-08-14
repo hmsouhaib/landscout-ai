@@ -23,6 +23,7 @@ from shapely.geometry import (
     Polygon,
 )
 
+from landscout.common.planning_feature_schema import NORMALIZED_RELATION_DTYPES
 from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
@@ -53,6 +54,18 @@ from landscout.stages.resolve_planning_feature_codes import (
 from landscout.stages.resolve_planning_feature_codes import (
     validate_planning_feature_code_result as _public_validate_planning_feature_code_result,
 )
+
+
+def _canonical_relation_schema(frame: pd.DataFrame) -> pd.DataFrame:
+    output = frame.copy(deep=True)
+    for column, dtype in zip(
+        RELATION_COLUMNS, NORMALIZED_RELATION_DTYPES, strict=True
+    ):
+        output[column] = pd.Series(
+            output[column].tolist(), index=output.index, dtype=dtype
+        )
+    output.index = pd.RangeIndex(len(output))
+    return output
 
 P_URL = "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType"
 I_URL = "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType"
@@ -1369,6 +1382,7 @@ def test_relation_identity_must_be_an_exact_non_null_string(
 def test_duplicate_parcel_feature_relation_is_rejected() -> None:
     document, surface, line, point, relations, profile = _inputs()
     relations = pd.concat([relations, relations.iloc[[0]]], ignore_index=True)
+    relations = _canonical_relation_schema(relations)
     with pytest.raises(PlanningFeatureCodeError, match="unique|duplicate"):
         resolve_planning_feature_codes(
             document, surface, line, point, relations, profile
@@ -1451,6 +1465,7 @@ def test_relation_type_must_match_catalog_geometry_kind(
             1 if relation_type == "BOUNDARY_TOUCH" else 0
         )
     candidate = pd.DataFrame([row], columns=relations.columns)
+    candidate = _canonical_relation_schema(candidate)
     with pytest.raises(PlanningFeatureCodeError, match="[Rr]elation type|geometry"):
         resolve_planning_feature_codes(
             document, surface, line, point, candidate, profile

@@ -1171,6 +1171,7 @@ def test_duplicate_relation_identity_fast_fails_before_policy_source_validation(
     relations = pd.concat(
         [result.relations, result.relations.iloc[[0]]], ignore_index=True
     )
+    relations.index = pd.Index(relations.index.to_numpy(), dtype="int64")
     changed = module._result_with_hashes(replace(result, relations=relations))
     calls = 0
 
@@ -1385,3 +1386,325 @@ def test_public_application_api_exports_only_stable_symbols() -> None:
     assert set(module.__all__) == required
     assert required.issubset(set(stages.__all__))
     assert not any(name.startswith("_") for name in module.__all__)
+
+
+def _replace_application_frame(
+    result: BessPlanningFeatureApplicationResult,
+    frame_name: str,
+    frame: pd.DataFrame,
+) -> BessPlanningFeatureApplicationResult:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    return module._result_with_hashes(replace(result, **{frame_name: frame}))
+
+
+def _coordinated_referenced_lineage_mutation(
+    result: BessPlanningFeatureApplicationResult,
+    column: str,
+    value: str,
+    *,
+    rename_id: bool = False,
+) -> BessPlanningFeatureApplicationResult:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    feature_id = str(result.relations.iloc[0]["planning_feature_id"])
+    changed = result
+    replacement_id = feature_id
+    for frame_name in ("surface_features", "line_features", "point_features"):
+        frame = getattr(changed, frame_name).copy(deep=True)
+        mask = frame["planning_feature_id"].eq(feature_id)
+        if mask.any():
+            frame.loc[mask, column] = value
+            if rename_id:
+                row = frame.loc[mask].iloc[0]
+                replacement_id = (
+                    f"GPU:{row['source_document_id']}:"
+                    f"{row['logical_layer']}:{row['source_feature_id']}"
+                )
+                frame.loc[mask, "planning_feature_id"] = replacement_id
+            changed = replace(changed, **{frame_name: frame})
+    relations = changed.relations.copy(deep=True)
+    mask = relations["planning_feature_id"].eq(feature_id)
+    relations.loc[mask, column] = value
+    if rename_id:
+        relations.loc[mask, "planning_feature_id"] = replacement_id
+    return module._result_with_hashes(replace(changed, relations=relations))
+
+
+def test_unreferenced_feature_document_lineage_is_bound_to_envelope_artifact(
+    tmp_path: Path,
+) -> None:
+    _, _, _, _, result = _application_fixture()
+    name, source, index = _zero_relation_feature(result)
+    frame = source.copy(deep=True)
+    frame.loc[index, "source_document_id"] = "MUTATED-DOCUMENT"
+    frame.loc[index, "planning_feature_id"] = (
+        f"GPU:MUTATED-DOCUMENT:{frame.loc[index, 'logical_layer']}:"
+        f"{frame.loc[index, 'source_feature_id']}"
+    )
+    changed = _replace_application_frame(result, name, frame)
+    manifest, paths, _ = _write_application_artifacts(tmp_path, changed)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="document|lineage"):
+        load_bess_planning_feature_application_artifacts(
+            manifest,
+            paths["SURFACE_FEATURES"],
+            paths["LINE_FEATURES"],
+            paths["POINT_FEATURES"],
+            paths["RELATIONS"],
+        )
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    ["archive", "official-profile", "envelope-document"],
+)
+def test_feature_row_lineage_must_match_application_envelope(mutation: str) -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    if mutation == "envelope-document":
+        changed = module._result_with_hashes(
+            replace(result, source_document_id="MUTATED-DOCUMENT")
+        )
+    else:
+        name, source, index = _zero_relation_feature(result)
+        frame = source.copy(deep=True)
+        if mutation == "archive":
+            frame.loc[index, "source_archive_sha256"] = "f" * 64
+        else:
+            frame.loc[index, "official_code_profile"] = "mutated_profile"
+            frame.loc[index, "official_code_profile_sha256"] = "f" * 64
+        changed = _replace_application_frame(result, name, frame)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="lineage|document"):
+        module._validate_result_envelope(changed)
+
+
+@pytest.mark.parametrize(
+    ("column", "value", "rename_id"),
+    [
+        ("source_document_id", "MUTATED-DOCUMENT", True),
+        ("source_archive_sha256", "f" * 64, False),
+    ],
+)
+def test_coordinated_referenced_row_lineage_cannot_bypass_envelope(
+    column: str,
+    value: str,
+    rename_id: bool,
+) -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    changed = _coordinated_referenced_lineage_mutation(
+        result, column, value, rename_id=rename_id
+    )
+    with pytest.raises(BessPlanningFeatureApplicationError, match="lineage|document"):
+        module._validate_result_envelope(changed)
+
+
+def test_resolved_official_row_requires_label_and_envelope_profile() -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    name, source, index = _zero_relation_feature(result)
+    for column, value in (
+        ("official_code_label", pd.NA),
+        ("official_code_profile", "wrong_profile"),
+    ):
+        frame = source.copy(deep=True)
+        frame.loc[index, column] = value
+        changed = _replace_application_frame(result, name, frame)
+        with pytest.raises(
+            BessPlanningFeatureApplicationError, match="official|profile|label"
+        ):
+            module._validate_result_envelope(changed)
+
+
+def test_unknown_official_row_rejects_invented_label_or_url() -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    name, source, index = _zero_relation_feature(result)
+    for invented_column in ("official_code_label", "official_code_source_url"):
+        frame = source.copy(deep=True)
+        frame.loc[index, "official_code_status"] = "UNKNOWN_CODE_PAIR"
+        frame.loc[index, "bess_cnig_policy_application_status"] = "UNRESOLVED_CODE_PAIR"
+        for column in (
+            "official_code_label",
+            "official_legal_reference",
+            "official_regulation_reference",
+            "official_code_source_url",
+            "bess_cnig_precheck_status",
+            "bess_cnig_precheck_confidence",
+            "bess_cnig_rationale",
+            "bess_cnig_required_human_action",
+            "bess_cnig_limitations",
+        ):
+            frame.loc[index, column] = pd.NA
+        frame.loc[index, "bess_cnig_status_priority"] = pd.NA
+        frame.loc[index, invented_column] = (
+            "Invented label"
+            if invented_column == "official_code_label"
+            else "https://example.invalid/invented"
+        )
+        changed = _replace_application_frame(result, name, frame)
+        with pytest.raises(BessPlanningFeatureApplicationError, match="official|null"):
+            module._validate_result_envelope(changed)
+
+
+@pytest.mark.parametrize(
+    ("frame_name", "mutation"),
+    [
+        ("surface_features", "missing-column"),
+        ("surface_features", "unexpected-column"),
+        ("surface_features", "reordered-columns"),
+        ("surface_features", "metric-object"),
+        ("line_features", "metric-object"),
+        ("point_features", "metric-object"),
+        ("surface_features", "official-object"),
+        ("surface_features", "index-name"),
+        ("surface_features", "index-dtype"),
+        ("point_features", "malformed-empty"),
+    ],
+)
+def test_application_feature_prefix_has_exact_canonical_schema(
+    frame_name: str,
+    mutation: str,
+) -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    frame = getattr(result, frame_name).copy(deep=True)
+    if mutation == "missing-column":
+        frame = frame.drop(columns="regulation_url_raw")
+    elif mutation == "unexpected-column":
+        position = frame.columns.get_loc(POLICY_COLUMNS[0])
+        frame.insert(position, "unexpected_factual", pd.array(["x"] * len(frame)))
+    elif mutation == "reordered-columns":
+        columns = list(frame.columns)
+        columns[0], columns[1] = columns[1], columns[0]
+        frame = frame.loc[:, columns]
+    elif mutation == "metric-object":
+        metric = {
+            "surface_features": "feature_area_m2",
+            "line_features": "feature_length_m",
+            "point_features": "point_member_count",
+        }[frame_name]
+        frame[metric] = pd.Series(
+            frame[metric].tolist(), index=frame.index, dtype="object"
+        )
+    elif mutation == "official-object":
+        frame["official_legal_reference"] = pd.Series(
+            frame["official_legal_reference"].tolist(),
+            index=frame.index,
+            dtype="object",
+        )
+    elif mutation == "index-name":
+        frame.index = frame.index.rename("wrong")
+    elif mutation == "index-dtype":
+        frame.index = pd.Index(frame.index.to_numpy(dtype="int32"), dtype="int32")
+    else:
+        frame = frame.iloc[0:0].copy()
+        frame["point_member_count"] = pd.Series(dtype="object")
+    changed = _replace_application_frame(result, frame_name, frame)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="schema|dtype|index"):
+        module._validate_result_envelope(changed)
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "missing-column",
+        "unexpected-column",
+        "reordered-columns",
+        "float-object",
+        "count-object",
+        "official-category",
+        "malformed-empty",
+    ],
+)
+def test_application_relation_prefix_has_exact_canonical_schema(
+    mutation: str,
+) -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    _, _, _, _, result = _application_fixture()
+    frame = result.relations.copy(deep=True)
+    if mutation == "missing-column":
+        frame = frame.drop(columns="label_raw")
+    elif mutation == "unexpected-column":
+        position = frame.columns.get_loc(POLICY_COLUMNS[0])
+        frame.insert(position, "unexpected_factual", pd.array(["x"] * len(frame)))
+    elif mutation == "reordered-columns":
+        columns = list(frame.columns)
+        columns[0], columns[1] = columns[1], columns[0]
+        frame = frame.loc[:, columns]
+    elif mutation == "float-object":
+        frame["intersection_area_m2"] = pd.Series(
+            frame["intersection_area_m2"].tolist(), index=frame.index, dtype="object"
+        )
+    elif mutation == "count-object":
+        frame["point_member_count"] = pd.Series(
+            frame["point_member_count"].tolist(), index=frame.index, dtype="object"
+        )
+    elif mutation == "official-category":
+        frame["official_code_label"] = pd.Series(
+            pd.Categorical(frame["official_code_label"]), index=frame.index
+        )
+    else:
+        frame = frame.iloc[0:0].drop(columns="label_raw")
+    changed = _replace_application_frame(result, "relations", frame)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="schema|dtype"):
+        module._validate_result_envelope(changed)
+
+
+def test_self_consistent_factual_prefix_dtype_artifact_is_rejected(
+    tmp_path: Path,
+) -> None:
+    _, _, _, _, result = _application_fixture()
+    surface = result.surface_features.copy(deep=True)
+    surface["feature_area_m2"] = pd.Series(
+        surface["feature_area_m2"].tolist(), index=surface.index, dtype="object"
+    )
+    changed = _replace_application_frame(result, "surface_features", surface)
+    manifest, paths, _ = _write_application_artifacts(tmp_path, changed)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="schema|dtype"):
+        load_bess_planning_feature_application_artifacts(
+            manifest,
+            paths["SURFACE_FEATURES"],
+            paths["LINE_FEATURES"],
+            paths["POINT_FEATURES"],
+            paths["RELATIONS"],
+        )
+
+
+def test_lineage_defect_fast_fails_before_policy_source_validation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inputs, coded, config, policy, result = _application_fixture()
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    calls = 0
+
+    def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+
+    name, source, index = _zero_relation_feature(result)
+    frame = source.copy(deep=True)
+    frame.loc[index, "source_archive_sha256"] = "f" * 64
+    changed = _replace_application_frame(result, name, frame)
+    monkeypatch.setattr(module, "validate_bess_planning_feature_policy_result", counted)
+    with pytest.raises(BessPlanningFeatureApplicationError):
+        validate_bess_planning_feature_application_result(
+            *inputs, coded, config, policy, changed
+        )
+    assert calls == 0

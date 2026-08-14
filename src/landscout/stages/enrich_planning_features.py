@@ -34,6 +34,18 @@ from landscout.common.frame_integrity import deterministic_frame_schema_signatur
 from landscout.common.planning_feature_contract import (
     validate_intrinsic_planning_feature_relations,
 )
+from landscout.common.planning_feature_schema import (
+    NORMALIZED_FEATURE_COLUMNS,
+    NORMALIZED_FEATURE_DTYPES,
+    NORMALIZED_RELATION_DTYPES,
+    RELATION_COLUMNS,
+    RELATION_COUNT_COLUMNS,
+    RELATION_FLOAT_COLUMNS,
+    RELATION_STRING_COLUMNS,
+    normalized_feature_dtypes,
+    validate_canonical_frame_schema,
+)
+from landscout.common.planning_overlay import technical_overlay_tolerance
 from landscout.sources.gpu_fr import (
     GpuInspectedLayer,
     GpuPlanningDocument,
@@ -41,7 +53,6 @@ from landscout.sources.gpu_fr import (
     GpuValidatedSpatialLayerSource,
     revalidate_gpu_spatial_layer_sources,
 )
-from landscout.stages.planning_overlay import technical_overlay_tolerance
 
 __all__ = [
     "ParcelPlanningFeaturesResult",
@@ -150,42 +161,6 @@ OPTIONAL_SOURCE_FIELDS = frozenset(
     }
 )
 
-COMMON_FEATURE_COLUMNS = (
-    "planning_feature_id",
-    "source_feature_id",
-    "source_identity_kind",
-    "source_identity_field",
-    "logical_layer",
-    "feature_family",
-    "geometry_kind",
-    "type_code_raw",
-    "subtype_code_raw",
-    "label_raw",
-    "text_raw",
-    "regulation_filename_raw",
-    "regulation_url_raw",
-    "source_document_reference_raw",
-    "source_validity_date_raw",
-    "source_provider",
-    "source_portal",
-    "source_commune_code",
-    "source_document_id",
-    "source_document_type",
-    "source_archive_name",
-    "source_archive_sha256",
-    "source_layer",
-    "source_standard_model",
-    "source_crs",
-)
-SURFACE_FEATURE_COLUMNS = (*COMMON_FEATURE_COLUMNS, "geometry", "feature_area_m2")
-LINE_FEATURE_COLUMNS = (*COMMON_FEATURE_COLUMNS, "geometry", "feature_length_m")
-POINT_FEATURE_COLUMNS = (*COMMON_FEATURE_COLUMNS, "geometry", "point_member_count")
-
-_CATALOG_COLUMNS_BY_KIND = {
-    "SURFACE": SURFACE_FEATURE_COLUMNS,
-    "LINE": LINE_FEATURE_COLUMNS,
-    "POINT": POINT_FEATURE_COLUMNS,
-}
 _CATALOG_GEOMETRY_TYPES = {
     "SURFACE": SURFACE_TYPES,
     "LINE": LINE_TYPES,
@@ -219,59 +194,6 @@ _CATALOG_OPTIONAL_EXACT_STRING_COLUMNS = (
     "regulation_url_raw",
     "source_validity_date_raw",
     "source_standard_model",
-)
-
-RELATION_COLUMNS = (
-    "parcel_id",
-    "planning_feature_id",
-    "source_feature_id",
-    "source_identity_kind",
-    "source_identity_field",
-    "logical_layer",
-    "feature_family",
-    "geometry_kind",
-    "type_code_raw",
-    "subtype_code_raw",
-    "label_raw",
-    "text_raw",
-    "relation_type",
-    "parcel_metric_area_m2",
-    "feature_area_m2",
-    "source_line_length_m",
-    "intersection_area_m2",
-    "intersection_length_m",
-    "parcel_share_pct",
-    "feature_share_pct",
-    "point_member_count",
-    "point_members_inside_count",
-    "point_members_boundary_count",
-    "source_document_id",
-    "source_archive_sha256",
-    "source_layer",
-    "source_validity_date_raw",
-    "regulation_filename_raw",
-)
-
-RELATION_FLOAT_COLUMNS = frozenset(
-    {
-        "parcel_metric_area_m2",
-        "feature_area_m2",
-        "source_line_length_m",
-        "intersection_area_m2",
-        "intersection_length_m",
-        "parcel_share_pct",
-        "feature_share_pct",
-    }
-)
-RELATION_COUNT_COLUMNS = frozenset(
-    {
-        "point_member_count",
-        "point_members_inside_count",
-        "point_members_boundary_count",
-    }
-)
-RELATION_STRING_COLUMNS = (
-    frozenset(RELATION_COLUMNS) - RELATION_FLOAT_COLUMNS - (RELATION_COUNT_COLUMNS)
 )
 
 PARCEL_OUTPUT_COLUMNS = frozenset(
@@ -726,16 +648,38 @@ def _normalize_layer(
     return projected
 
 
+def _canonical_catalog_dtypes(
+    catalog: gpd.GeoDataFrame,
+    kind: GeometryKind,
+) -> gpd.GeoDataFrame:
+    for column, dtype in zip(
+        NORMALIZED_FEATURE_COLUMNS[kind],
+        normalized_feature_dtypes(kind, catalog),
+        strict=True,
+    ):
+        if column == "geometry":
+            continue
+        catalog[column] = pd.Series(
+            catalog[column].tolist(), index=catalog.index, dtype=dtype
+        )
+    catalog.index = pd.RangeIndex(len(catalog))
+    return catalog
+
+
 def _empty_catalog(kind: GeometryKind) -> gpd.GeoDataFrame:
-    data = {column: pd.Series(dtype="object") for column in COMMON_FEATURE_COLUMNS}
-    data["geometry"] = gpd.GeoSeries([], crs=CALCULATION_CRS)
-    if kind == "SURFACE":
-        data["feature_area_m2"] = pd.Series(dtype="float64")
-    elif kind == "LINE":
-        data["feature_length_m"] = pd.Series(dtype="float64")
-    else:
-        data["point_member_count"] = pd.Series(dtype="int64")
-    return gpd.GeoDataFrame(data, geometry="geometry", crs=CALCULATION_CRS)
+    data: dict[str, object] = {}
+    for column, dtype in zip(
+        NORMALIZED_FEATURE_COLUMNS[kind],
+        NORMALIZED_FEATURE_DTYPES[kind],
+        strict=True,
+    ):
+        data[column] = (
+            gpd.GeoSeries([], crs=CALCULATION_CRS)
+            if column == "geometry"
+            else pd.Series(dtype=dtype)
+        )
+    output = gpd.GeoDataFrame(data, geometry="geometry", crs=CALCULATION_CRS)
+    return _canonical_catalog_dtypes(output, kind)
 
 
 def _combine_catalogs(
@@ -747,7 +691,7 @@ def _combine_catalogs(
         pd.concat(frames, ignore_index=True), geometry="geometry", crs=CALCULATION_CRS
     )
     _validate_ids(combined["planning_feature_id"], "planning_feature_id")
-    return combined
+    return _canonical_catalog_dtypes(combined, kind)
 
 
 def _normalized_catalogs(
@@ -1019,6 +963,7 @@ def _empty_relations() -> pd.DataFrame:
             for column in RELATION_COLUMNS
         }
     )
+    output.index = pd.RangeIndex(0)
     return output
 
 
@@ -1045,6 +990,7 @@ def _build_relation_tables(
         relations[column] = relations[column].astype("str")
     for column in RELATION_COUNT_COLUMNS:
         relations[column] = pd.array(relations[column], dtype="Int64")
+    relations.index = pd.RangeIndex(len(relations))
     return surface_work, line_work, point_work, relations
 
 
@@ -1429,14 +1375,18 @@ def _validate_catalog_contract(
     label = f"{geometry_kind} feature catalog"
     if not isinstance(catalog, gpd.GeoDataFrame):
         raise PlanningFeaturesError(f"{label} must be a GeoDataFrame")
-    if catalog.columns.duplicated().any():
-        raise PlanningFeaturesError(f"{label} contains duplicate columns")
+    try:
+        validate_canonical_frame_schema(
+            catalog,
+            columns=NORMALIZED_FEATURE_COLUMNS[geometry_kind],
+            dtypes=normalized_feature_dtypes(geometry_kind, catalog),
+            label=label,
+            geospatial=True,
+            index_class="RangeIndex",
+        )
+    except (TypeError, ValueError) as error:
+        raise PlanningFeaturesError(str(error)) from error
     _active_geometry(catalog, label)
-    expected_columns = _CATALOG_COLUMNS_BY_KIND[geometry_kind]
-    if tuple(catalog.columns) != expected_columns:
-        raise PlanningFeaturesError(f"{label} schema is not deterministic")
-    if not _crs(catalog.crs, label).equals(CRS.from_epsg(2154)):
-        raise PlanningFeaturesError(f"{label} must use canonical EPSG:2154")
     _validate_catalog_identity(catalog)
     if not catalog.empty and not catalog["geometry_kind"].eq(geometry_kind).all():
         raise PlanningFeaturesError(f"{label} geometry kind is invalid")
@@ -1749,10 +1699,17 @@ def _validate_normalized_planning_feature_inputs(
         relations, gpd.GeoDataFrame
     ):
         raise PlanningFeaturesError("Planning relations must be a DataFrame")
-    if relations.columns.duplicated().any():
-        raise PlanningFeaturesError("Planning relations contain duplicate columns")
-    if tuple(relations.columns) != RELATION_COLUMNS:
-        raise PlanningFeaturesError("Planning relation schema is not deterministic")
+    try:
+        validate_canonical_frame_schema(
+            relations,
+            columns=RELATION_COLUMNS,
+            dtypes=NORMALIZED_RELATION_DTYPES,
+            label="Planning relations",
+            geospatial=False,
+            index_class="RangeIndex",
+        )
+    except (TypeError, ValueError) as error:
+        raise PlanningFeaturesError(str(error)) from error
     _validate_exact_strings(relations["parcel_id"], "planning relation parcel_id")
     _validate_exact_strings(
         relations["planning_feature_id"], "planning relation planning_feature_id"

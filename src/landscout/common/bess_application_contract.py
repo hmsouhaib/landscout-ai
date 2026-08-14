@@ -6,7 +6,8 @@ import math
 import re
 from numbers import Integral, Real
 from pathlib import PurePosixPath, PureWindowsPath
-from typing import Literal
+from typing import Literal, cast
+from urllib.parse import urlsplit
 
 import geopandas as gpd  # type: ignore[import-untyped]
 import pandas as pd  # type: ignore[import-untyped]
@@ -17,7 +18,15 @@ from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
 from landscout.common.planning_feature_contract import (
     validate_intrinsic_planning_feature_relations,
 )
-from landscout.stages.planning_overlay import technical_overlay_tolerance
+from landscout.common.planning_feature_schema import (
+    GeometryKind,
+    feature_columns,
+    feature_dtypes,
+    relation_columns,
+    relation_dtypes,
+    validate_canonical_frame_schema,
+)
+from landscout.common.planning_overlay import technical_overlay_tolerance
 
 APPLICATION_SCOPE = "FEATURE_AND_RELATION_POLICY_PROPAGATION_ONLY"
 POLICY_SCOPE = "OFFICIAL_CNIG_CODE_MEANING_ONLY"
@@ -83,6 +92,7 @@ ALLOWED_CONFIDENCES = frozenset({"HIGH", "MEDIUM", "LOW"})
 ALLOWED_FEATURE_FAMILIES = frozenset({"PRESCRIPTION", "INFORMATION"})
 NULL_LITERALS = frozenset({"None", "nan", "<NA>"})
 CODE_PATTERN = re.compile(r"[0-9]{2}")
+SHA_PATTERN = re.compile(r"[0-9a-f]{64}")
 _FEATURE_SPECS = {
     "SURFACE": (
         frozenset({"prescription_surface", "information_surface"}),
@@ -116,6 +126,70 @@ def _exact_string(value: object, label: str) -> str:
     return value
 
 
+def _sha256(value: object, label: str) -> str:
+    exact = _exact_string(value, label)
+    if SHA_PATTERN.fullmatch(exact) is None:
+        raise ValueError(f"{label} must be a lowercase SHA256")
+    return exact
+
+
+def _optional_official_string(value: object, label: str) -> str | None:
+    if _null_value(value) is None:
+        return None
+    exact = _exact_string(value, label)
+    if exact in NULL_LITERALS:
+        raise ValueError(f"{label} must not be a textual null sentinel")
+    return exact
+
+
+def _validate_official_row(
+    row: dict[str, object],
+    *,
+    label: str,
+    source_document_id: str,
+    source_archive_sha256: str,
+    cnig_profile: str,
+    cnig_profile_sha256: str,
+) -> None:
+    if row["source_document_id"] != source_document_id:
+        raise ValueError(f"{label} source document lineage differs from envelope")
+    if row["source_archive_sha256"] != source_archive_sha256:
+        raise ValueError(f"{label} source archive lineage differs from envelope")
+    _sha256(row["source_archive_sha256"], f"{label} source archive SHA256")
+    if row["official_code_profile"] != cnig_profile:
+        raise ValueError(f"{label} official profile lineage differs from envelope")
+    if row["official_code_profile_sha256"] != cnig_profile_sha256:
+        raise ValueError(f"{label} official profile SHA256 lineage differs")
+    _sha256(row["official_code_profile_sha256"], f"{label} official profile SHA256")
+    official_status = row["official_code_status"]
+    label_value = _optional_official_string(
+        row["official_code_label"], f"{label} official label"
+    )
+    legal = _optional_official_string(
+        row["official_legal_reference"], f"{label} official legal reference"
+    )
+    regulation = _optional_official_string(
+        row["official_regulation_reference"],
+        f"{label} official regulation reference",
+    )
+    source_url = _optional_official_string(
+        row["official_code_source_url"], f"{label} official source URL"
+    )
+    if official_status == "RESOLVED_OFFICIAL":
+        if label_value is None or source_url is None:
+            raise ValueError(f"{label} resolved official meaning is incomplete")
+        parsed_url = urlsplit(source_url)
+        if parsed_url.scheme != "https" or not parsed_url.netloc:
+            raise ValueError(f"{label} official source URL must be exact HTTPS")
+    elif official_status == "UNKNOWN_CODE_PAIR":
+        if any(
+            value is not None for value in (label_value, legal, regulation, source_url)
+        ):
+            raise ValueError(f"{label} unknown official meaning must remain null")
+    else:
+        raise ValueError(f"{label} official-code status is invalid")
+
+
 def validate_bess_application_policy_frame(
     frame: pd.DataFrame,
     *,
@@ -123,9 +197,17 @@ def validate_bess_application_policy_frame(
     policy_profile: str,
     policy_sha256: str,
     policy_result_sha256: str,
+    source_document_id: str,
+    source_archive_sha256: str,
+    cnig_profile: str,
+    cnig_profile_sha256: str,
 ) -> None:
     """Validate the complete canonical application suffix and every row."""
 
+    _exact_string(source_document_id, f"{label} source document identity")
+    _sha256(source_archive_sha256, f"{label} source archive SHA256")
+    _exact_string(cnig_profile, f"{label} CNIG profile")
+    _sha256(cnig_profile_sha256, f"{label} CNIG profile SHA256")
     if not isinstance(frame, pd.DataFrame):
         raise TypeError(f"{label} must be a DataFrame")
     if frame.columns.duplicated().any():
@@ -140,11 +222,27 @@ def validate_bess_application_policy_frame(
         "type_code_raw",
         "subtype_code_raw",
         "official_code_status",
+        "official_code_label",
+        "official_legal_reference",
+        "official_regulation_reference",
+        "official_code_source_url",
+        "official_code_profile",
+        "official_code_profile_sha256",
+        "source_document_id",
+        "source_archive_sha256",
         *POLICY_COLUMNS,
     }
     if not required.issubset(frame.columns):
         raise ValueError(f"{label} application identity schema is incomplete")
     for row in frame.to_dict("records"):
+        _validate_official_row(
+            row,
+            label=label,
+            source_document_id=source_document_id,
+            source_archive_sha256=source_archive_sha256,
+            cnig_profile=cnig_profile,
+            cnig_profile_sha256=cnig_profile_sha256,
+        )
         if row["feature_family"] not in ALLOWED_FEATURE_FAMILIES:
             raise ValueError(f"{label} feature family is invalid")
         for column in ("type_code_raw", "subtype_code_raw"):
@@ -277,6 +375,10 @@ def validate_bess_application_feature_catalogs(
     policy_profile: str,
     policy_sha256: str,
     policy_result_sha256: str,
+    source_document_id: str,
+    source_archive_sha256: str,
+    cnig_profile: str,
+    cnig_profile_sha256: str,
 ) -> tuple[dict[int, str], dict[str, int]]:
     """Validate all intrinsic feature facts, identities, geometry, and mappings."""
 
@@ -287,14 +389,25 @@ def validate_bess_application_feature_catalogs(
         (line, "LINE", "line features"),
         (point, "POINT", "point features"),
     ):
-        if not isinstance(frame, gpd.GeoDataFrame):
-            raise TypeError(f"{label} must be a GeoDataFrame")
+        geometry_kind = cast(GeometryKind, kind)
+        suffix_dtypes = tuple(POLICY_SUFFIX_DTYPES[column] for column in POLICY_COLUMNS)
+        validate_canonical_frame_schema(
+            frame,
+            columns=feature_columns(geometry_kind, POLICY_COLUMNS),
+            dtypes=feature_dtypes(geometry_kind, suffix_dtypes, frame),
+            label=label,
+            geospatial=True,
+        )
         validate_bess_application_policy_frame(
             frame,
             label=label,
             policy_profile=policy_profile,
             policy_sha256=policy_sha256,
             policy_result_sha256=policy_result_sha256,
+            source_document_id=source_document_id,
+            source_archive_sha256=source_archive_sha256,
+            cnig_profile=cnig_profile,
+            cnig_profile_sha256=cnig_profile_sha256,
         )
         required = {
             "planning_feature_id",
@@ -303,6 +416,7 @@ def validate_bess_application_feature_catalogs(
             "logical_layer",
             "feature_family",
             "geometry_kind",
+            "source_crs",
             "geometry",
             _FEATURE_SPECS[kind][2],
         }
@@ -328,6 +442,17 @@ def validate_bess_application_feature_catalogs(
             document_id = _relation_identity_string(
                 row["source_document_id"], f"{label} source document identity"
             )
+            if document_id != source_document_id:
+                raise ValueError(f"{label} source document lineage differs")
+            source_crs = _exact_string(row["source_crs"], f"{label} source CRS")
+            try:
+                equivalent_source_crs = CRS.from_user_input(source_crs).equals(
+                    CRS.from_epsg(2154), ignore_axis_order=True
+                )
+            except Exception as error:
+                raise ValueError(f"{label} source CRS is invalid") from error
+            if not equivalent_source_crs:
+                raise ValueError(f"{label} source CRS is not canonical Lambert-93")
             logical_layer = row["logical_layer"]
             if logical_layer not in allowed_layers:
                 raise ValueError(f"{label} logical layer is invalid")
@@ -387,15 +512,31 @@ def validate_bess_application_relation_frame(
     policy_profile: str,
     policy_sha256: str,
     policy_result_sha256: str,
-) -> None:
+    source_document_id: str,
+    source_archive_sha256: str,
+    cnig_profile: str,
+    cnig_profile_sha256: str,
+) -> tuple[dict[int, str], dict[str, int]]:
     """Validate canonical application rows and the complete relation identity."""
 
+    suffix_dtypes = tuple(POLICY_SUFFIX_DTYPES[column] for column in POLICY_COLUMNS)
+    validate_canonical_frame_schema(
+        frame,
+        columns=relation_columns(POLICY_COLUMNS),
+        dtypes=relation_dtypes(suffix_dtypes),
+        label=label,
+        geospatial=False,
+    )
     validate_bess_application_policy_frame(
         frame,
         label=label,
         policy_profile=policy_profile,
         policy_sha256=policy_sha256,
         policy_result_sha256=policy_result_sha256,
+        source_document_id=source_document_id,
+        source_archive_sha256=source_archive_sha256,
+        cnig_profile=cnig_profile,
+        cnig_profile_sha256=cnig_profile_sha256,
     )
     required = {"parcel_id", "planning_feature_id", "relation_type"}
     if not required.issubset(frame.columns):
@@ -409,4 +550,4 @@ def validate_bess_application_relation_frame(
     if frame.duplicated(["parcel_id", "planning_feature_id"]).any():
         raise ValueError(f"{label} contains a duplicate parcel/feature relation pair")
     validate_intrinsic_planning_feature_relations(frame)
-    _status_priority_mapping(frame, f"{label} document-wide")
+    return _status_priority_mapping(frame, f"{label} document-wide")
