@@ -58,14 +58,13 @@ from landscout.stages.resolve_planning_feature_codes import (
 
 def _canonical_relation_schema(frame: pd.DataFrame) -> pd.DataFrame:
     output = frame.copy(deep=True)
-    for column, dtype in zip(
-        RELATION_COLUMNS, NORMALIZED_RELATION_DTYPES, strict=True
-    ):
+    for column, dtype in zip(RELATION_COLUMNS, NORMALIZED_RELATION_DTYPES, strict=True):
         output[column] = pd.Series(
             output[column].tolist(), index=output.index, dtype=dtype
         )
     output.index = pd.RangeIndex(len(output))
     return output
+
 
 P_URL = "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/PrescriptionUrbaType"
 I_URL = "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017/codes/InformationUrbaType"
@@ -151,7 +150,9 @@ def _physical_inventory(root: Path) -> tuple[GpuExtractedFile, ...]:
             sha256=sha256(path.read_bytes()).hexdigest(),
             category="SPATIAL_DATA",
         )
-        for path in sorted((item for item in root.rglob("*") if item.is_file()), key=str)
+        for path in sorted(
+            (item for item in root.rglob("*") if item.is_file()), key=str
+        )
         if not (path.parent == root and path.name == EXTRACTION_MANIFEST_NAME)
     )
 
@@ -1512,9 +1513,7 @@ def test_valid_relation_types_are_retained(
         ["07" if logical.startswith("prescription") else "99"],
         ["00"],
     )
-    document = _planning_document(
-        related_layers=(_integration_layer(logical, source),)
-    )
+    document = _planning_document(related_layers=(_integration_layer(logical, source),))
     parcels = _integration_parcels()
     normalized = intersect_parcels_with_gpu_planning_features(parcels, document)
     result = _public_resolve_planning_feature_codes(
@@ -1593,6 +1592,7 @@ def test_stable_public_api_is_exported_from_module_and_stage_package() -> None:
         "load_cnig_feature_code_profile",
         "resolve_planning_feature_codes",
         "validate_planning_feature_code_result",
+        "validate_planning_feature_code_result_envelope",
     }
     low_level = {
         "_canonical_json_sha256",
@@ -1801,9 +1801,7 @@ def test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeat
     coding_module = importlib.import_module(
         "landscout.stages.resolve_planning_feature_codes"
     )
-    enrich_module = importlib.import_module(
-        "landscout.stages.enrich_planning_features"
-    )
+    enrich_module = importlib.import_module("landscout.stages.enrich_planning_features")
     actual_physical = enrich_module.revalidate_gpu_spatial_layer_sources
     actual_relations = enrich_module._build_relation_tables
     calls = {"physical": 0, "relations": 0}
@@ -1890,8 +1888,7 @@ def test_gpu_related_source_hash_is_deterministic_across_cache_roots(
             extraction_root=relocated_root,
         ),
         all_spatial_layers=tuple(
-            reference_map[reference]
-            for reference in first_document.all_spatial_layers
+            reference_map[reference] for reference in first_document.all_spatial_layers
         ),
         zoning=replace(
             first_document.zoning,
@@ -1906,8 +1903,7 @@ def test_gpu_related_source_hash_is_deterministic_across_cache_roots(
     first = _public_resolve_planning_feature_codes(*first_inputs)
     second = _public_resolve_planning_feature_codes(*second_inputs)
     assert (
-        first.gpu_related_source_files_sha256
-        == second.gpu_related_source_files_sha256
+        first.gpu_related_source_files_sha256 == second.gpu_related_source_files_sha256
     )
 
 
@@ -2062,3 +2058,15 @@ def test_schema_v5_public_api_signatures_remain_source_complete() -> None:
         "code_profile",
         "result",
     )
+
+
+def test_step_7d_5b_2b_5_exposes_lightweight_coded_result_validator() -> None:
+    module = importlib.import_module("landscout.stages.resolve_planning_feature_codes")
+    assert hasattr(module, "validate_planning_feature_code_result_envelope")
+    inputs = _inputs()
+    result = resolve_planning_feature_codes(*inputs)
+    module.validate_planning_feature_code_result_envelope(result)
+    with pytest.raises(PlanningFeatureCodeError, match="hash|invalid"):
+        module.validate_planning_feature_code_result_envelope(
+            replace(result, complete_result_content_sha256="0" * 64)
+        )

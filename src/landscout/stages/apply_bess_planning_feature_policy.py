@@ -28,6 +28,7 @@ from pyproj import CRS
 from shapely import get_coordinate_dimension, to_wkb  # type: ignore[import-untyped]
 from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
 
+from landscout.common.artifact_paths import validate_portable_parquet_filename
 from landscout.common.bess_application_contract import (
     APPLICATION_SCOPE,
     FLAG_COLUMNS,
@@ -45,10 +46,12 @@ from landscout.stages.bess_planning_feature_policy import (
     BessPlanningFeaturePolicyConfig,
     BessPlanningFeaturePolicyResult,
     validate_bess_planning_feature_policy_result,
+    validate_bess_planning_feature_policy_result_envelope,
 )
 from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeResult,
+    validate_planning_feature_code_result_envelope,
 )
 
 __all__ = [
@@ -58,6 +61,7 @@ __all__ = [
     "apply_bess_planning_feature_policy",
     "load_bess_planning_feature_application_artifacts",
     "validate_bess_planning_feature_application_result",
+    "validate_bess_planning_feature_application_result_envelope",
 ]
 
 RESULT_HASH_SCHEMA_VERSION = 2
@@ -140,14 +144,7 @@ class BessPlanningFeatureApplicationArtifactRecord(_StrictModel):
 
     @model_validator(mode="after")
     def _validate_record(self) -> BessPlanningFeatureApplicationArtifactRecord:
-        _exact_string(self.filename, "artifact filename")
-        path = Path(self.filename)
-        if (
-            path.is_absolute()
-            or path.name != self.filename
-            or path.suffix.lower() != ".parquet"
-        ):
-            raise ValueError("artifact filename must be one local Parquet filename")
+        validate_portable_parquet_filename(self.filename, "artifact filename")
         if type(self.row_count) is not int or self.row_count < 0:
             raise ValueError("artifact row_count must be a non-negative integer")
         if type(self.size_bytes) is not int or self.size_bytes < 1:
@@ -296,7 +293,7 @@ class BessPlanningFeatureApplicationArtifactManifest(_StrictModel):
             raise ValueError(
                 "application artifact roles are missing, extra, or unordered"
             )
-        filenames = tuple(record.filename for record in self.artifacts)
+        filenames = tuple(record.filename.casefold() for record in self.artifacts)
         if len(filenames) != len(set(filenames)):
             raise ValueError("application artifact filenames contain a duplicate")
         return self
@@ -921,8 +918,17 @@ def _validate_result_envelope(result: BessPlanningFeatureApplicationResult) -> N
             raise BessPlanningFeatureApplicationError(f"{field} is invalid")
 
 
-def _validate_source_locks(
+def validate_bess_planning_feature_application_result_envelope(
     result: BessPlanningFeatureApplicationResult,
+) -> None:
+    """Validate one application envelope without reconstructing source inputs."""
+
+    _validate_result_envelope(result)
+
+
+def _validate_source_locks(
+    result: BessPlanningFeatureApplicationResult
+    | BessPlanningFeatureApplicationArtifactManifest,
     coded: PlanningFeatureCodeResult,
     policy: BessPlanningFeaturePolicyResult,
 ) -> None:
@@ -975,6 +981,36 @@ def _validate_source_locks(
         ),
     )
     for actual, expected, label in comparisons:
+        if actual != expected:
+            raise BessPlanningFeatureApplicationError(
+                f"Application source lock differs for {label}"
+            )
+
+    policy_coded_comparisons = (
+        (policy.source_document_id, coded.source_document_id, "policy document ID"),
+        (
+            policy.source_archive_sha256,
+            coded.source_archive_sha256,
+            "policy archive SHA256",
+        ),
+        (policy.cnig_profile, coded.profile, "policy CNIG profile"),
+        (
+            policy.cnig_profile_sha256,
+            coded.profile_sha256,
+            "policy CNIG profile SHA256",
+        ),
+        (
+            policy.cnig_result_hash_schema_version,
+            coded.result_hash_schema_version,
+            "policy CNIG result hash schema",
+        ),
+        (
+            policy.cnig_complete_result_content_sha256,
+            coded.complete_result_content_sha256,
+            "policy CNIG result SHA256",
+        ),
+    )
+    for actual, expected, label in policy_coded_comparisons:
         if actual != expected:
             raise BessPlanningFeatureApplicationError(
                 f"Application source lock differs for {label}"
@@ -1173,10 +1209,14 @@ def load_bess_planning_feature_application_artifacts(
     line_features_path: str | Path,
     point_features_path: str | Path,
     relations_path: str | Path,
+    coded_result: PlanningFeatureCodeResult,
+    policy_result: BessPlanningFeaturePolicyResult,
 ) -> BessPlanningFeatureApplicationResult:
-    """Load four byte-sealed application outputs and validate their local envelope."""
+    """Load byte-sealed outputs and bind them to exact validated upstream results."""
 
     try:
+        validate_planning_feature_code_result_envelope(coded_result)
+        validate_bess_planning_feature_policy_result_envelope(policy_result)
         payload = json.loads(
             Path(manifest_path).read_text(encoding="utf-8"),
             object_pairs_hook=_unique_json_object,
@@ -1184,6 +1224,7 @@ def load_bess_planning_feature_application_artifacts(
         manifest = BessPlanningFeatureApplicationArtifactManifest.model_validate(
             payload
         )
+        _validate_source_locks(manifest, coded_result, policy_result)
         paths = {
             "SURFACE_FEATURES": Path(surface_features_path),
             "LINE_FEATURES": Path(line_features_path),
@@ -1203,6 +1244,18 @@ def load_bess_planning_feature_application_artifacts(
             relations=loaded["RELATIONS"],
         )
         _validate_result_envelope(result)
+        expected = _build_result(coded_result, policy_result)
+        for field in RESULT_SCALAR_FIELDS:
+            if getattr(result, field) != getattr(expected, field):
+                raise BessPlanningFeatureApplicationError(
+                    f"Application artifact scalar {field} differs from upstream rebuild"
+                )
+        for field in RESULT_FRAME_FIELDS:
+            _compare_frame(
+                getattr(result, field),
+                getattr(expected, field),
+                f"artifact {field}",
+            )
         return result
     except BessPlanningFeatureApplicationError:
         raise

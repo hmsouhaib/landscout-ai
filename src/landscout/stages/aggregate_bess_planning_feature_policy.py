@@ -28,6 +28,7 @@ from pyproj import CRS
 from shapely import get_coordinate_dimension, to_wkb  # type: ignore[import-untyped]
 from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
 
+from landscout.common.artifact_paths import validate_portable_parquet_filename
 from landscout.common.bess_application_contract import (
     ALLOWED_CONFIDENCES,
     ALLOWED_PRECHECK_STATUSES,
@@ -41,6 +42,7 @@ from landscout.sources.gpu_fr import GpuPlanningDocument
 from landscout.stages.apply_bess_planning_feature_policy import (
     BessPlanningFeatureApplicationResult,
     validate_bess_planning_feature_application_result,
+    validate_bess_planning_feature_application_result_envelope,
 )
 from landscout.stages.bess_planning_feature_policy import (
     BessPlanningFeaturePolicyConfig,
@@ -219,14 +221,7 @@ class BessPlanningFeatureParcelAggregationArtifactRecord(_StrictModel):
 
     @model_validator(mode="after")
     def _validate_record(self) -> BessPlanningFeatureParcelAggregationArtifactRecord:
-        _exact_string(self.filename, "artifact filename")
-        path = Path(self.filename)
-        if (
-            path.is_absolute()
-            or path.name != self.filename
-            or path.suffix.lower() != ".parquet"
-        ):
-            raise ValueError("artifact filename must be one local Parquet filename")
+        validate_portable_parquet_filename(self.filename, "artifact filename")
         if type(self.row_count) is not int or self.row_count < 0:
             raise ValueError("artifact row_count must be non-negative")
         if type(self.size_bytes) is not int or self.size_bytes < 1:
@@ -350,7 +345,7 @@ class BessPlanningFeatureParcelAggregationArtifactManifest(_StrictModel):
         roles = tuple(record.artifact_role for record in self.artifacts)
         if roles != ARTIFACT_ROLES:
             raise ValueError("parcel aggregation artifact roles differ")
-        filenames = tuple(record.filename for record in self.artifacts)
+        filenames = tuple(record.filename.casefold() for record in self.artifacts)
         if len(filenames) != len(set(filenames)):
             raise ValueError("parcel aggregation artifact filename is duplicated")
         return self
@@ -1209,7 +1204,8 @@ def _validate_result_envelope(
 
 
 def _validate_source_locks(
-    result: BessPlanningFeatureParcelAggregationResult,
+    result: BessPlanningFeatureParcelAggregationResult
+    | BessPlanningFeatureParcelAggregationArtifactManifest,
     source_parcels: gpd.GeoDataFrame,
     application: BessPlanningFeatureApplicationResult,
 ) -> None:
@@ -1436,9 +1432,13 @@ def load_bess_planning_feature_parcel_aggregation_artifacts(
     manifest_path: str | Path,
     parcels_path: str | Path,
     relation_assessments_path: str | Path,
+    source_parcels: gpd.GeoDataFrame,
+    application_result: BessPlanningFeatureApplicationResult,
 ) -> BessPlanningFeatureParcelAggregationResult:
-    """Load the two byte-verified aggregation artifacts and validate locally."""
+    """Load byte-sealed outputs and bind them to exact lightweight upstreams."""
     try:
+        validate_bess_planning_feature_application_result_envelope(application_result)
+        _validate_parcel_frame(source_parcels, "source parcels")
         payload = json.loads(
             Path(manifest_path).read_text(encoding="utf-8"),
             object_pairs_hook=_unique_json_object,
@@ -1446,6 +1446,7 @@ def load_bess_planning_feature_parcel_aggregation_artifacts(
         manifest = BessPlanningFeatureParcelAggregationArtifactManifest.model_validate(
             payload
         )
+        _validate_source_locks(manifest, source_parcels, application_result)
         records = {record.artifact_role: record for record in manifest.artifacts}
         loaded_parcels = _read_verified_artifact(Path(parcels_path), records["PARCELS"])
         loaded_relations = _read_verified_artifact(
@@ -1461,6 +1462,18 @@ def load_bess_planning_feature_parcel_aggregation_artifacts(
             relation_assessments=loaded_relations,
         )
         _validate_result_envelope(result)
+        expected = _build_result(source_parcels, application_result)
+        for field in RESULT_SCALAR_FIELDS:
+            if getattr(result, field) != getattr(expected, field):
+                raise BessPlanningFeatureParcelAggregationError(
+                    f"Aggregation artifact scalar {field} differs from upstream rebuild"
+                )
+        for field in RESULT_FRAME_FIELDS:
+            _compare_frame(
+                getattr(result, field),
+                getattr(expected, field),
+                f"artifact {field}",
+            )
         return result
     except BessPlanningFeatureParcelAggregationError:
         raise

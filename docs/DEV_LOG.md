@@ -1415,6 +1415,49 @@ Aggregation hashes remain unchanged:
 
 No local feature text or regulation content is interpreted. No parcel is rejected. No ranking or score is calculated. No authorization or prohibition is claimed.
 
+## STEP 7D.5B.2B.5 — Bind artifacts to exact upstream results
+
+- Status: Complete
+- Scope: validation/API hardening only. CNIG schema 5, policy schemas 1/2, application schemas 2/2, and aggregation schemas 1/1 remain unchanged. No valid frame value, schema, index, geometry, scalar, content hash, manifest, or Parquet byte changed.
+- Test-first proof: eight narrow probes failed against STEP 7D.5B.2B.4. The public lightweight envelope validators were absent, both artifact loaders retained weaker overloads without upstream results, a coordinated application rationale change survived the local byte-sealed loader, and application/aggregation manifests accepted case-only duplicate filenames.
+- Focused validation: 225 coded-result/policy tests, 176 application tests, and 150 aggregation tests pass. Coordinated source mutations are locally valid and byte-sealed, but the strengthened loaders reject them against the supplied upstream objects with zero source-complete validation calls.
+- Quality gates: all 1,733 tests pass; repository-wide Ruff and `mypy src` pass across 37 source files.
+
+### Lightweight upstream binding
+
+Three deliberate public envelope validators now validate the immutable CNIG, compiled-policy, and application results without downloading data, rereading GPU files, or rebuilding spatial relations. The application loader requires the exact schema-v5 coded result and compiled policy result; it validates both envelopes, compares cheap source locks before reading artifact bytes, performs verified-byte loading, rebuilds application propagation once from those upstream results, and exact-compares every scalar and frame. The aggregation loader similarly requires the exact source parcel GeoDataFrame and schema-v2 application result, validates both locally, checks locks before artifact reads, rebuilds aggregation once, and exact-compares both output frames and all scalars.
+
+Permanent regressions cover policy-decision swaps between valid pairs, official-label/reference and HTTPS-source changes, rationale/action/limitation changes, source-provider/portal changes, equivalent CRS representations, populated-to-all-null optional raw-column transitions, unreferenced-feature changes, and row reordering. Aggregation regressions cover coordinated parcel geometry/area/share changes, parcel CRS changes, application-relation changes, source parcel reordering, and no-relation parcel geometry changes. Loader instrumentation proves one deterministic lightweight rebuild and zero heavy source validations; independent public validators retain their complete source authority. Deep frame comparisons prove that coded, policy, application, parcel, and loaded artifact inputs are not mutated.
+
+Artifact filenames now use one shared portable basename contract. POSIX absolute paths, Windows drive/UNC paths, parent or child paths under either separator syntax, and non-Parquet names are rejected. Multi-artifact filename uniqueness is case-insensitive for Windows portability.
+
+### Unchanged real Muret artifacts
+
+Existing byte-sealed artifacts loaded successfully through the new upstream-bound loaders and then passed the independent offline GPU/CNIG/policy/application source-complete validators in 59.287 seconds. No output was rewritten.
+
+- Parcels / features / application relations / aggregation relations: 3,638 / 479 / 2,414 / 2,414.
+- Application statuses: 2,414 `APPLIED_EXACT_POLICY`; zero unresolved.
+- Parcel aggregation statuses: 1,854 `AGGREGATED_EXACT_POLICY`; 1,784 `NO_PLANNING_FEATURE_RELATION`.
+- Relation roles: 1,942 `SELECTED_CONTROLLING`; 472 `LOWER_PRIORITY_CONTROLLING`.
+
+Application schema-v2 hashes remain unchanged:
+
+- Surface: `a907b86387b2ac509b6f746e393bdb05bf9886f0c6a2580fc48e625cbf953465`.
+- Line: `63b02b8370d932b276730efc65c313acfde251aaa38ed243e1fa226b65d685da`.
+- Point: `7f5190cd45350ab23d16d26baeec6af1934ae4315a559dcfffed46e680b6d554`.
+- Relations: `47743afe99163eea98d23f440b6369e5ee8ca11c6ee22baec7ea242d516eefd7`.
+- Complete application: `53b8fcddfcbd3920f223071d946d9066c8cb9cc38f0afc8d917e2b723926527e`.
+
+Aggregation hashes remain unchanged:
+
+- Source parcels: `268754a26b349b240a044411c0af331c914ab0cd326c607d2991d797d2d759d0`.
+- Source application relations: `7736dbf186b5f37c202d79b7e394a485adfce772a6e40147b12932071e72bfaf`.
+- Relation assessments: `3a45b5a0c61ae2e240964f921e67790a279c1eb449fc5aa85621b7b8fda7a367`.
+- Parcel output: `0b03f2beaedfafafdd07a5dd619419ea8a284199071e07a5d0ab8eb6cd2c7bf9`.
+- Complete aggregation: `c7417273d36c92833fcbd941a5e10c2518e30c97c3a758646a49d19cdc0c6cee`.
+
+No local text or regulation content is interpreted. No parcel is rejected. No ranking or score is calculated. No authorization or prohibition is claimed.
+
 ## STEP 7D.5A — Resolve official CNIG meanings for planning-feature codes
 
 - Status: Complete

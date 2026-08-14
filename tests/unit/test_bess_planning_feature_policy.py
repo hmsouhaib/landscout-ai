@@ -872,9 +872,44 @@ def test_public_policy_api_exports_only_stable_symbols() -> None:
         "load_bess_planning_feature_policy_config",
         "compile_bess_planning_feature_policy",
         "validate_bess_planning_feature_policy_result",
+        "validate_bess_planning_feature_policy_result_envelope",
     }
     module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
     assert set(module.__all__) == required
     assert required.issubset(set(stages.__all__))
     assert all(getattr(stages, name) is getattr(module, name) for name in required)
     assert not any(name in module.__all__ for name in ("_canonical_sha256", "_lookup"))
+
+
+def test_step_7d_5b_2b_5_exposes_lightweight_policy_result_validator() -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    assert hasattr(module, "validate_bess_planning_feature_policy_result_envelope")
+    _, _, _, result = _compiled_fixture()
+    module.validate_bess_planning_feature_policy_result_envelope(result)
+    with pytest.raises(BessPlanningFeaturePolicyError, match="hash"):
+        module.validate_bess_planning_feature_policy_result_envelope(
+            replace(result, complete_result_content_sha256="0" * 64)
+        )
+
+
+@pytest.mark.parametrize(
+    "filename",
+    [
+        "/tmp/file.parquet",
+        "../file.parquet",
+        "subdir/file.parquet",
+        r"C:\absolute\file.parquet",
+        "C:/absolute/file.parquet",
+        r"\\server\share\file.parquet",
+        r"subdir\file.parquet",
+    ],
+)
+def test_policy_manifest_rejects_nonportable_parquet_filename(
+    tmp_path: Path, filename: str
+) -> None:
+    _, _, _, result = _compiled_fixture()
+    _, _, manifest = _write_artifacts(tmp_path, result)
+    manifest["parquet_filename"] = filename
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    with pytest.raises(ValueError, match="filename|basename|portable"):
+        module.BessPlanningFeaturePolicyArtifactManifest.model_validate(manifest)

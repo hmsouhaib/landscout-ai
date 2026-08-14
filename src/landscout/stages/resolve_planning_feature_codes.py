@@ -45,6 +45,7 @@ __all__ = [
     "load_cnig_feature_code_profile",
     "resolve_planning_feature_codes",
     "validate_planning_feature_code_result",
+    "validate_planning_feature_code_result_envelope",
 ]
 
 PROFILE_SCHEMA_VERSION = 2
@@ -846,6 +847,14 @@ def _validate_result_envelope(result: PlanningFeatureCodeResult) -> None:
     ):
         if getattr(result, field) != getattr(rebuilt_hashes, field):
             raise PlanningFeatureCodeError(f"result hash {field} is invalid")
+
+
+def validate_planning_feature_code_result_envelope(
+    result: PlanningFeatureCodeResult,
+) -> None:
+    """Validate one coded-result envelope without rebuilding factual sources."""
+
+    _validate_result_envelope(result)
 
 
 def _compare_frame(actual: pd.DataFrame, expected: pd.DataFrame, label: str) -> None:

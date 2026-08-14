@@ -27,6 +27,7 @@ from pydantic import (
     model_validator,
 )
 
+from landscout.common.artifact_paths import validate_portable_parquet_filename
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
 from landscout.sources.gpu_fr import GpuPlanningDocument
 from landscout.stages.resolve_planning_feature_codes import (
@@ -44,6 +45,7 @@ __all__ = [
     "load_bess_planning_feature_policy_artifacts",
     "load_bess_planning_feature_policy_config",
     "validate_bess_planning_feature_policy_result",
+    "validate_bess_planning_feature_policy_result_envelope",
 ]
 
 POLICY_SCHEMA_VERSION = 1
@@ -480,14 +482,7 @@ class BessPlanningFeaturePolicyArtifactManifest(_StrictPolicyModel):
             minimum = 0 if allow_zero else 1
             if type(integer_value) is not int or integer_value < minimum:
                 raise ValueError(f"{label} is invalid")
-        _exact_string(self.parquet_filename, "parquet_filename")
-        filename = Path(self.parquet_filename)
-        if (
-            filename.is_absolute()
-            or filename.name != self.parquet_filename
-            or filename.suffix.lower() != ".parquet"
-        ):
-            raise ValueError("parquet_filename must be one local Parquet filename")
+        validate_portable_parquet_filename(self.parquet_filename, "parquet_filename")
         return self
 
 
@@ -849,6 +844,14 @@ def _validate_result_envelope(result: BessPlanningFeaturePolicyResult) -> None:
         raise BessPlanningFeaturePolicyError("policy table hash is invalid")
     if result.complete_result_content_sha256 != rebuilt.complete_result_content_sha256:
         raise BessPlanningFeaturePolicyError("complete result hash is invalid")
+
+
+def validate_bess_planning_feature_policy_result_envelope(
+    result: BessPlanningFeaturePolicyResult,
+) -> None:
+    """Validate one compiled-policy envelope without rebuilding CNIG sources."""
+
+    _validate_result_envelope(result)
 
 
 def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:

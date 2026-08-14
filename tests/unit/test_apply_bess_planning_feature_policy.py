@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import inspect
 import json
 from dataclasses import fields, replace
 from hashlib import sha256
@@ -33,8 +34,10 @@ from landscout.stages.apply_bess_planning_feature_policy import (
     BessPlanningFeatureApplicationError,
     BessPlanningFeatureApplicationResult,
     apply_bess_planning_feature_policy,
-    load_bess_planning_feature_application_artifacts,
     validate_bess_planning_feature_application_result,
+)
+from landscout.stages.apply_bess_planning_feature_policy import (
+    load_bess_planning_feature_application_artifacts as _load_application_artifacts,
 )
 
 APPLICATION_SCOPE = "FEATURE_AND_RELATION_POLICY_PROPAGATION_ONLY"
@@ -72,6 +75,8 @@ ARTIFACT_FILES = {
     "POINT_FEATURES": ("point.parquet", True),
     "RELATIONS": ("relations.parquet", False),
 }
+_LAST_CODED_RESULT: object | None = None
+_LAST_POLICY_RESULT: object | None = None
 
 
 def _application_fixture() -> tuple[
@@ -81,9 +86,39 @@ def _application_fixture() -> tuple[
     object,
     BessPlanningFeatureApplicationResult,
 ]:
+    global _LAST_CODED_RESULT, _LAST_POLICY_RESULT
     inputs, coded, config, policy = _compiled_fixture()
     result = apply_bess_planning_feature_policy(*inputs, coded, config, policy)
+    _LAST_CODED_RESULT = coded
+    _LAST_POLICY_RESULT = policy
     return inputs, coded, config, policy, result
+
+
+def load_bess_planning_feature_application_artifacts(
+    manifest_path: str | Path,
+    surface_features_path: str | Path,
+    line_features_path: str | Path,
+    point_features_path: str | Path,
+    relations_path: str | Path,
+    coded_result: object | None = None,
+    policy_result: object | None = None,
+) -> BessPlanningFeatureApplicationResult:
+    """Test adapter supplying the newly mandatory exact upstream envelopes."""
+
+    if coded_result is None or policy_result is None:
+        coded_result = _LAST_CODED_RESULT
+        policy_result = _LAST_POLICY_RESULT
+    assert coded_result is not None
+    assert policy_result is not None
+    return _load_application_artifacts(
+        manifest_path,
+        surface_features_path,
+        line_features_path,
+        point_features_path,
+        relations_path,
+        coded_result,
+        policy_result,
+    )
 
 
 def _small_catalog(*rows: tuple[str, str, str, str, str]) -> gpd.GeoDataFrame:
@@ -1379,6 +1414,7 @@ def test_public_application_api_exports_only_stable_symbols() -> None:
         "apply_bess_planning_feature_policy",
         "load_bess_planning_feature_application_artifacts",
         "validate_bess_planning_feature_application_result",
+        "validate_bess_planning_feature_application_result_envelope",
     }
     module = importlib.import_module(
         "landscout.stages.apply_bess_planning_feature_policy"
@@ -1708,3 +1744,365 @@ def test_lineage_defect_fast_fails_before_policy_source_validation(
             *inputs, coded, config, policy, changed
         )
     assert calls == 0
+
+
+def test_step_7d_5b_2b_5_application_loader_requires_exact_upstreams() -> None:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    assert tuple(
+        inspect.signature(
+            module.load_bess_planning_feature_application_artifacts
+        ).parameters
+    ) == (
+        "manifest_path",
+        "surface_features_path",
+        "line_features_path",
+        "point_features_path",
+        "relations_path",
+        "coded_result",
+        "policy_result",
+    )
+    assert hasattr(module, "validate_bess_planning_feature_application_result_envelope")
+    _, _, _, _, result = _application_fixture()
+    module.validate_bess_planning_feature_application_result_envelope(result)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="hash|invalid"):
+        module.validate_bess_planning_feature_application_result_envelope(
+            replace(result, complete_result_content_sha256="0" * 64)
+        )
+
+
+def test_source_bound_application_loader_rejects_locally_valid_rationale_change(
+    tmp_path: Path,
+) -> None:
+    _, coded, _, policy, result = _application_fixture()
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    changed = _coordinated_policy_mutation(
+        result,
+        "bess_cnig_rationale",
+        "A different exact non-empty rationale.",
+    )
+    module._validate_result_envelope(changed)
+    manifest, paths, _ = _write_application_artifacts(tmp_path, changed)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="upstream|rebuilt"):
+        module.load_bess_planning_feature_application_artifacts(
+            manifest,
+            paths["SURFACE_FEATURES"],
+            paths["LINE_FEATURES"],
+            paths["POINT_FEATURES"],
+            paths["RELATIONS"],
+            coded,
+            policy,
+        )
+
+
+def test_application_manifest_filenames_are_casefold_unique(tmp_path: Path) -> None:
+    _, _, _, _, result = _application_fixture()
+    _, _, payload = _write_application_artifacts(tmp_path, result)
+    payload["artifacts"][1]["filename"] = str(
+        payload["artifacts"][0]["filename"]
+    ).upper()
+    with pytest.raises(ValueError, match="filename|duplicate"):
+        BessPlanningFeatureApplicationArtifactManifest.model_validate(payload)
+
+
+def _swap_referenced_feature_values(
+    result: BessPlanningFeatureApplicationResult,
+    columns: tuple[str, ...],
+) -> BessPlanningFeatureApplicationResult:
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    referenced = result.relations.loc[
+        result.relations["bess_cnig_policy_application_status"].eq(
+            "APPLIED_EXACT_POLICY"
+        )
+    ]
+    first = referenced.iloc[0]
+    second = referenced.loc[
+        referenced["bess_cnig_precheck_status"].ne(first["bess_cnig_precheck_status"])
+    ].iloc[0]
+    first_id = str(first["planning_feature_id"])
+    second_id = str(second["planning_feature_id"])
+    changed = result
+    for frame_name in ("surface_features", "line_features", "point_features"):
+        frame = getattr(changed, frame_name).copy(deep=True)
+        first_mask = frame["planning_feature_id"].eq(first_id)
+        second_mask = frame["planning_feature_id"].eq(second_id)
+        if first_mask.any() or second_mask.any():
+            for column in columns:
+                first_value = first[column]
+                second_value = second[column]
+                frame.loc[first_mask, column] = second_value
+                frame.loc[second_mask, column] = first_value
+            changed = replace(changed, **{frame_name: frame})
+    relations = changed.relations.copy(deep=True)
+    first_mask = relations["planning_feature_id"].eq(first_id)
+    second_mask = relations["planning_feature_id"].eq(second_id)
+    for column in columns:
+        first_value = first[column]
+        second_value = second[column]
+        relations.loc[first_mask, column] = second_value
+        relations.loc[second_mask, column] = first_value
+    return module._result_with_hashes(replace(changed, relations=relations))
+
+
+@pytest.mark.parametrize(
+    "columns",
+    [
+        (
+            "bess_cnig_precheck_status",
+            "bess_cnig_precheck_confidence",
+            "bess_cnig_status_priority",
+            "bess_cnig_rationale",
+            "bess_cnig_required_human_action",
+            "bess_cnig_limitations",
+        ),
+        (
+            "official_code_label",
+            "official_legal_reference",
+            "official_regulation_reference",
+            "official_code_source_url",
+        ),
+    ],
+)
+def test_source_bound_loader_rejects_valid_domain_cross_pair_swaps(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    columns: tuple[str, ...],
+) -> None:
+    _, coded, _, policy, result = _application_fixture()
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    changed = _swap_referenced_feature_values(result, columns)
+    module._validate_result_envelope(changed)
+    manifest, paths, _ = _write_application_artifacts(tmp_path, changed)
+    heavy_calls = 0
+
+    def forbidden_heavy(*args: object, **kwargs: object) -> None:
+        nonlocal heavy_calls
+        heavy_calls += 1
+
+    monkeypatch.setattr(
+        module, "validate_bess_planning_feature_policy_result", forbidden_heavy
+    )
+    with pytest.raises(BessPlanningFeatureApplicationError, match="upstream"):
+        module.load_bess_planning_feature_application_artifacts(
+            manifest,
+            paths["SURFACE_FEATURES"],
+            paths["LINE_FEATURES"],
+            paths["POINT_FEATURES"],
+            paths["RELATIONS"],
+            coded,
+            policy,
+        )
+    assert heavy_calls == 0
+
+
+@pytest.mark.parametrize("column", ["source_provider", "source_portal"])
+def test_source_bound_loader_rejects_factual_prefix_lineage_change(
+    tmp_path: Path, column: str
+) -> None:
+    _, coded, _, policy, result = _application_fixture()
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    surface = result.surface_features.copy(deep=True)
+    surface.loc[surface.index[0], column] = f"changed-{column}"
+    changed = module._result_with_hashes(replace(result, surface_features=surface))
+    module._validate_result_envelope(changed)
+    manifest, paths, _ = _write_application_artifacts(tmp_path, changed)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="upstream"):
+        module.load_bess_planning_feature_application_artifacts(
+            manifest, *paths.values(), coded, policy
+        )
+
+
+def test_source_bound_loader_rejects_all_null_raw_column_transition(
+    tmp_path: Path,
+) -> None:
+    _, coded, _, policy, _ = _application_fixture()
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    coding_module = importlib.import_module(
+        "landscout.stages.resolve_planning_feature_codes"
+    )
+    policy_module = importlib.import_module(
+        "landscout.stages.bess_planning_feature_policy"
+    )
+    coded_surface = coded.surface_features.copy(deep=True)
+    coded_surface["text_raw"] = pd.Series(
+        ["source text"] * len(coded_surface), index=coded_surface.index, dtype="str"
+    )
+    coded_relations = coded.relations.copy(deep=True)
+    surface_ids = set(coded_surface["planning_feature_id"])
+    coded_relations.loc[
+        coded_relations["planning_feature_id"].isin(surface_ids), "text_raw"
+    ] = "source text"
+    coded_relations["text_raw"] = pd.Series(
+        coded_relations["text_raw"].tolist(),
+        index=coded_relations.index,
+        dtype="str",
+    )
+    coded = coding_module._result_with_hashes(
+        replace(
+            coded,
+            surface_features=coded_surface,
+            relations=coded_relations,
+        )
+    )
+    policy = policy_module._result_with_hashes(
+        replace(
+            policy,
+            cnig_complete_result_content_sha256=coded.complete_result_content_sha256,
+        )
+    )
+    result = module._build_result(coded, policy)
+    surface = result.surface_features.copy(deep=True)
+    surface["text_raw"] = pd.Series(None, index=surface.index, dtype="object")
+    relations = result.relations.copy(deep=True)
+    mask = relations["geometry_kind"].eq("SURFACE")
+    relations.loc[mask, "text_raw"] = pd.NA
+    relations["text_raw"] = pd.Series(
+        relations["text_raw"].tolist(), index=relations.index, dtype="str"
+    )
+    changed = module._result_with_hashes(
+        replace(result, surface_features=surface, relations=relations)
+    )
+    module._validate_result_envelope(changed)
+    manifest, paths, _ = _write_application_artifacts(tmp_path, changed)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="upstream"):
+        module.load_bess_planning_feature_application_artifacts(
+            manifest, *paths.values(), coded, policy
+        )
+
+    reordered = result.surface_features.iloc[::-1].copy(deep=True)
+    changed = module._result_with_hashes(replace(result, surface_features=reordered))
+    module._validate_result_envelope(changed)
+    reordered_dir = tmp_path / "reordered"
+    reordered_dir.mkdir()
+    manifest, paths, _ = _write_application_artifacts(reordered_dir, changed)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="upstream"):
+        module.load_bess_planning_feature_application_artifacts(
+            manifest, *paths.values(), coded, policy
+        )
+
+
+def test_source_bound_loader_rejects_unreferenced_feature_and_row_reordering(
+    tmp_path: Path,
+) -> None:
+    _, coded, _, policy, result = _application_fixture()
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    name, source, index = _zero_relation_feature(result)
+    unreferenced = source.copy(deep=True)
+    unreferenced.loc[index, "label_raw"] = "changed unreferenced label"
+    changed = module._result_with_hashes(replace(result, **{name: unreferenced}))
+    module._validate_result_envelope(changed)
+    unreferenced_dir = tmp_path / "unreferenced"
+    unreferenced_dir.mkdir()
+    manifest, paths, _ = _write_application_artifacts(unreferenced_dir, changed)
+    with pytest.raises(BessPlanningFeatureApplicationError, match="upstream"):
+        module.load_bess_planning_feature_application_artifacts(
+            manifest, *paths.values(), coded, policy
+        )
+
+
+def test_application_loader_validates_upstreams_and_rebuilds_once_lightweight(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, coded, _, policy, result = _application_fixture()
+    manifest, paths, _ = _write_application_artifacts(tmp_path, result)
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    coded_before = coded.surface_features.copy(deep=True)
+    policy_before = policy.policy_table.copy(deep=True)
+    actual_coded_envelope = module.validate_planning_feature_code_result_envelope
+    actual_policy_envelope = (
+        module.validate_bess_planning_feature_policy_result_envelope
+    )
+    actual_build = module._build_result
+    calls = {"coded": 0, "policy": 0, "build": 0, "heavy": 0}
+
+    def coded_envelope(value: object) -> None:
+        calls["coded"] += 1
+        actual_coded_envelope(value)
+
+    def policy_envelope(value: object) -> None:
+        calls["policy"] += 1
+        actual_policy_envelope(value)
+
+    def build(*args: object, **kwargs: object) -> object:
+        calls["build"] += 1
+        return actual_build(*args, **kwargs)
+
+    def heavy(*args: object, **kwargs: object) -> None:
+        calls["heavy"] += 1
+
+    monkeypatch.setattr(
+        module, "validate_planning_feature_code_result_envelope", coded_envelope
+    )
+    monkeypatch.setattr(
+        module,
+        "validate_bess_planning_feature_policy_result_envelope",
+        policy_envelope,
+    )
+    monkeypatch.setattr(module, "_build_result", build)
+    monkeypatch.setattr(module, "validate_bess_planning_feature_policy_result", heavy)
+    loaded = module.load_bess_planning_feature_application_artifacts(
+        manifest, *paths.values(), coded, policy
+    )
+    assert (
+        loaded.complete_result_content_sha256 == result.complete_result_content_sha256
+    )
+    assert calls == {"coded": 1, "policy": 1, "build": 1, "heavy": 0}
+    assert_geodataframe_equal(coded.surface_features, coded_before)
+    assert_frame_equal(policy.policy_table, policy_before)
+
+
+def test_application_loader_rejects_bad_upstream_before_artifact_reads(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, coded, _, policy, result = _application_fixture()
+    manifest, paths, _ = _write_application_artifacts(tmp_path, result)
+    reads = 0
+    original = Path.read_bytes
+
+    def counted(path: Path) -> bytes:
+        nonlocal reads
+        reads += 1
+        return original(path)
+
+    monkeypatch.setattr(Path, "read_bytes", counted)
+    forged = replace(coded, complete_result_content_sha256="0" * 64)
+    with pytest.raises(Exception, match="hash|SHA|invalid"):
+        _load_application_artifacts(manifest, *paths.values(), forged, policy)
+    assert reads == 0
+
+
+@pytest.mark.parametrize(
+    "filename",
+    [
+        "/tmp/file.parquet",
+        "../file.parquet",
+        "subdir/file.parquet",
+        r"C:\absolute\file.parquet",
+        "C:/absolute/file.parquet",
+        r"\\server\share\file.parquet",
+        r"subdir\file.parquet",
+    ],
+)
+def test_application_manifest_rejects_nonportable_filename(
+    tmp_path: Path, filename: str
+) -> None:
+    _, _, _, _, result = _application_fixture()
+    _, _, payload = _write_application_artifacts(tmp_path, result)
+    payload["artifacts"][0]["filename"] = filename
+    with pytest.raises(ValueError, match="filename|basename|portable"):
+        BessPlanningFeatureApplicationArtifactManifest.model_validate(payload)

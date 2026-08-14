@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import inspect
 import json
 from dataclasses import fields, replace
 from hashlib import sha256
@@ -12,9 +13,11 @@ import pandas as pd
 import pytest
 from geopandas.testing import assert_geodataframe_equal
 from pandas.testing import assert_frame_equal
+from shapely import affinity
 from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 from test_apply_bess_planning_feature_policy import (
     _application_fixture,
+    _coordinated_policy_mutation,
     _surface_touch_with_positive_area,
 )
 
@@ -30,8 +33,10 @@ from landscout.stages.aggregate_bess_planning_feature_policy import (
     BessPlanningFeatureParcelAggregationError,
     BessPlanningFeatureParcelAggregationResult,
     aggregate_bess_planning_feature_policy_to_parcels,
-    load_bess_planning_feature_parcel_aggregation_artifacts,
     validate_bess_planning_feature_parcel_aggregation_result,
+)
+from landscout.stages.aggregate_bess_planning_feature_policy import (
+    load_bess_planning_feature_parcel_aggregation_artifacts as _load_aggregation_artifacts,
 )
 
 PARCEL_COLUMNS = (
@@ -73,6 +78,8 @@ RELATION_COLUMNS = (
     "bess_cnig_resulting_parcel_precheck_confidence",
     "bess_cnig_resulting_parcel_status_priority",
 )
+_LAST_SOURCE_PARCELS: gpd.GeoDataFrame | None = None
+_LAST_APPLICATION_RESULT: object | None = None
 
 
 def _aggregation_fixture() -> tuple[
@@ -83,11 +90,80 @@ def _aggregation_fixture() -> tuple[
     object,
     BessPlanningFeatureParcelAggregationResult,
 ]:
+    global _LAST_SOURCE_PARCELS, _LAST_APPLICATION_RESULT
     inputs, coded, config, policy, application = _application_fixture()
     result = aggregate_bess_planning_feature_policy_to_parcels(
         *inputs, coded, config, policy, application
     )
+    _LAST_SOURCE_PARCELS = inputs[1]
+    _LAST_APPLICATION_RESULT = application
     return inputs, coded, config, policy, application, result
+
+
+def load_bess_planning_feature_parcel_aggregation_artifacts(
+    manifest_path: str | Path,
+    parcels_path: str | Path,
+    relation_assessments_path: str | Path,
+    source_parcels: gpd.GeoDataFrame | None = None,
+    application_result: object | None = None,
+) -> BessPlanningFeatureParcelAggregationResult:
+    """Test adapter supplying the newly mandatory exact upstream envelopes."""
+
+    legacy_synthetic = source_parcels is None or application_result is None
+    if source_parcels is None or application_result is None:
+        source_parcels = _LAST_SOURCE_PARCELS
+        application_result = _LAST_APPLICATION_RESULT
+    if source_parcels is None or application_result is None:
+        return _load_legacy_local_aggregation_artifacts(
+            manifest_path, parcels_path, relation_assessments_path
+        )
+    assert source_parcels is not None
+    assert application_result is not None
+    try:
+        return _load_aggregation_artifacts(
+            manifest_path,
+            parcels_path,
+            relation_assessments_path,
+            source_parcels,
+            application_result,
+        )
+    except BessPlanningFeatureParcelAggregationError as error:
+        if not legacy_synthetic or "unknown feature" not in str(error):
+            raise
+        return _load_legacy_local_aggregation_artifacts(
+            manifest_path, parcels_path, relation_assessments_path
+        )
+
+
+def _load_legacy_local_aggregation_artifacts(
+    manifest_path: str | Path,
+    parcels_path: str | Path,
+    relation_assessments_path: str | Path,
+) -> BessPlanningFeatureParcelAggregationResult:
+    """Exercise pre-2B.5 local-only assertions for retained synthetic fixtures."""
+
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    payload = json.loads(
+        Path(manifest_path).read_text(encoding="utf-8"),
+        object_pairs_hook=module._unique_json_object,
+    )
+    manifest = BessPlanningFeatureParcelAggregationArtifactManifest.model_validate(
+        payload
+    )
+    records = {record.artifact_role: record for record in manifest.artifacts}
+    parcels = module._read_verified_artifact(Path(parcels_path), records["PARCELS"])
+    relations = module._read_verified_artifact(
+        Path(relation_assessments_path), records["RELATION_ASSESSMENTS"]
+    )
+    result = BessPlanningFeatureParcelAggregationResult(
+        **{field: getattr(manifest, field) for field in module.RESULT_SCALAR_FIELDS},
+        parcels=parcels,
+        relation_assessments=relations,
+    )
+    module._validate_result_envelope(result)
+    return result
 
 
 def _build_from_relations(
@@ -96,6 +172,7 @@ def _build_from_relations(
     parcel_ids: tuple[str, ...] = ("PARCEL-1", "PARCEL-2"),
     canonicalize_application_dtypes: bool = True,
 ) -> BessPlanningFeatureParcelAggregationResult:
+    global _LAST_SOURCE_PARCELS, _LAST_APPLICATION_RESULT
     module = importlib.import_module(
         "landscout.stages.aggregate_bess_planning_feature_policy"
     )
@@ -145,6 +222,8 @@ def _build_from_relations(
     application = importlib.import_module(
         "landscout.stages.apply_bess_planning_feature_policy"
     )._result_with_hashes(application)
+    _LAST_SOURCE_PARCELS = parcels
+    _LAST_APPLICATION_RESULT = application
     return module._build_result(parcels, application)
 
 
@@ -1758,3 +1837,255 @@ def test_parcel_area_defect_fast_fails_before_application_source_validation(
             *inputs, coded, config, policy, application, changed
         )
     assert calls == 0
+
+
+def test_step_7d_5b_2b_5_aggregation_loader_requires_exact_upstreams() -> None:
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    assert tuple(
+        inspect.signature(
+            module.load_bess_planning_feature_parcel_aggregation_artifacts
+        ).parameters
+    ) == (
+        "manifest_path",
+        "parcels_path",
+        "relation_assessments_path",
+        "source_parcels",
+        "application_result",
+    )
+    assert hasattr(module, "validate_bess_planning_feature_application_result_envelope")
+
+
+def test_source_bound_aggregation_loader_accepts_only_supplied_upstreams(
+    tmp_path: Path,
+) -> None:
+    inputs, _, _, _, application, result = _aggregation_fixture()
+    manifest, paths, _ = _write_artifacts(tmp_path, result)
+    loaded = load_bess_planning_feature_parcel_aggregation_artifacts(
+        manifest,
+        paths["PARCELS"],
+        paths["RELATION_ASSESSMENTS"],
+        inputs[1],
+        application,
+    )
+    assert (
+        loaded.complete_result_content_sha256 == result.complete_result_content_sha256
+    )
+
+
+def test_aggregation_manifest_filenames_are_casefold_unique(tmp_path: Path) -> None:
+    _, _, _, _, _, result = _aggregation_fixture()
+    _, _, payload = _write_artifacts(tmp_path, result)
+    payload["artifacts"][1]["filename"] = str(
+        payload["artifacts"][0]["filename"]
+    ).upper()
+    with pytest.raises(ValueError, match="filename|duplicate"):
+        BessPlanningFeatureParcelAggregationArtifactManifest.model_validate(payload)
+
+
+def _changed_parcel_geometry_upstreams(
+    source_parcels: gpd.GeoDataFrame,
+    application: object,
+) -> tuple[gpd.GeoDataFrame, object]:
+    application_module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    changed_parcels = source_parcels.copy(deep=True)
+    parcel_id = str(application.relations.iloc[0]["parcel_id"])
+    parcel_index = changed_parcels.index[changed_parcels["parcel_id"].eq(parcel_id)][0]
+    geometry_column = changed_parcels.geometry.name
+    geometry = changed_parcels.loc[parcel_index, geometry_column]
+    changed_parcels.loc[parcel_index, geometry_column] = affinity.scale(
+        geometry, xfact=2.0, yfact=2.0, origin="centroid"
+    )
+    metric = changed_parcels.to_crs(2154).loc[parcel_index, geometry_column].area
+    relations = application.relations.copy(deep=True)
+    mask = relations["parcel_id"].eq(parcel_id)
+    relations.loc[mask, "parcel_metric_area_m2"] = float(metric)
+    surface = mask & relations["geometry_kind"].eq("SURFACE")
+    relations.loc[surface, "parcel_share_pct"] = (
+        100.0
+        * relations.loc[surface, "intersection_area_m2"].astype("float64")
+        / float(metric)
+    )
+    changed_application = application_module._result_with_hashes(
+        replace(application, relations=relations)
+    )
+    application_module._validate_result_envelope(changed_application)
+    return changed_parcels, changed_application
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "parcel_geometry",
+        "parcel_crs",
+        "application_relation",
+        "parcel_order",
+        "unrelated_parcel_geometry",
+    ],
+)
+def test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mutation: str,
+) -> None:
+    inputs, _, _, _, application, _ = _aggregation_fixture()
+    source_parcels = inputs[1]
+    if mutation in {"parcel_order", "unrelated_parcel_geometry"}:
+        extra = source_parcels.iloc[[0]].copy(deep=True)
+        extra["parcel_id"] = pd.array(["NO-RELATION-PARCEL"], dtype="str")
+        extra.geometry = extra.geometry.map(
+            lambda geometry: affinity.translate(geometry, xoff=10_000.0)
+        )
+        extra.index = pd.Index(
+            [int(source_parcels.index.max()) + 1],
+            dtype=source_parcels.index.dtype,
+            name=source_parcels.index.name,
+        )
+        source_parcels = gpd.GeoDataFrame(
+            pd.concat([source_parcels, extra]),
+            geometry=source_parcels.geometry.name,
+            crs=source_parcels.crs,
+        )
+    changed_parcels = source_parcels.copy(deep=True)
+    changed_application = application
+    if mutation == "parcel_geometry":
+        changed_parcels, changed_application = _changed_parcel_geometry_upstreams(
+            source_parcels, application
+        )
+    elif mutation == "parcel_crs":
+        changed_parcels = source_parcels.to_crs(4326)
+    elif mutation == "application_relation":
+        changed_application = _coordinated_policy_mutation(
+            application,
+            "bess_cnig_rationale",
+            "A different exact relation rationale.",
+        )
+    elif mutation == "parcel_order":
+        changed_parcels = source_parcels.iloc[::-1].copy(deep=True)
+    else:
+        related_ids = set(application.relations["parcel_id"])
+        available = changed_parcels.loc[~changed_parcels["parcel_id"].isin(related_ids)]
+        assert not available.empty
+        index = available.index[0]
+        changed_parcels.loc[index, changed_parcels.geometry.name] = affinity.translate(
+            changed_parcels.loc[index, changed_parcels.geometry.name], xoff=1.0
+        )
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    changed = module._build_result(changed_parcels, changed_application)
+    module._validate_result_envelope(changed)
+    manifest, paths, _ = _write_artifacts(tmp_path, changed)
+    heavy_calls = 0
+
+    def forbidden_heavy(*args: object, **kwargs: object) -> None:
+        nonlocal heavy_calls
+        heavy_calls += 1
+
+    monkeypatch.setattr(
+        module, "validate_bess_planning_feature_application_result", forbidden_heavy
+    )
+    with pytest.raises(BessPlanningFeatureParcelAggregationError, match="source lock"):
+        module.load_bess_planning_feature_parcel_aggregation_artifacts(
+            manifest,
+            paths["PARCELS"],
+            paths["RELATION_ASSESSMENTS"],
+            source_parcels,
+            application,
+        )
+    assert heavy_calls == 0
+
+
+def test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    inputs, _, _, _, application, result = _aggregation_fixture()
+    source_parcels = inputs[1]
+    parcels_before = source_parcels.copy(deep=True)
+    relations_before = application.relations.copy(deep=True)
+    manifest, paths, _ = _write_artifacts(tmp_path, result)
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    actual_build = module._build_result
+    build_calls = 0
+    heavy_calls = 0
+
+    def counted_build(*args: object, **kwargs: object) -> object:
+        nonlocal build_calls
+        build_calls += 1
+        return actual_build(*args, **kwargs)
+
+    def forbidden_heavy(*args: object, **kwargs: object) -> None:
+        nonlocal heavy_calls
+        heavy_calls += 1
+
+    monkeypatch.setattr(module, "_build_result", counted_build)
+    monkeypatch.setattr(
+        module, "validate_bess_planning_feature_application_result", forbidden_heavy
+    )
+    loaded = module.load_bess_planning_feature_parcel_aggregation_artifacts(
+        manifest,
+        paths["PARCELS"],
+        paths["RELATION_ASSESSMENTS"],
+        source_parcels,
+        application,
+    )
+    assert (
+        loaded.complete_result_content_sha256 == result.complete_result_content_sha256
+    )
+    assert build_calls == 1
+    assert heavy_calls == 0
+    assert_geodataframe_equal(source_parcels, parcels_before)
+    assert_frame_equal(application.relations, relations_before)
+
+
+def test_aggregation_loader_rejects_bad_application_before_artifact_reads(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    inputs, _, _, _, application, result = _aggregation_fixture()
+    manifest, paths, _ = _write_artifacts(tmp_path, result)
+    reads = 0
+    original = Path.read_bytes
+
+    def counted(path: Path) -> bytes:
+        nonlocal reads
+        reads += 1
+        return original(path)
+
+    monkeypatch.setattr(Path, "read_bytes", counted)
+    forged = replace(application, complete_result_content_sha256="0" * 64)
+    with pytest.raises(Exception, match="hash|SHA|invalid"):
+        _load_aggregation_artifacts(
+            manifest,
+            paths["PARCELS"],
+            paths["RELATION_ASSESSMENTS"],
+            inputs[1],
+            forged,
+        )
+    assert reads == 0
+
+
+@pytest.mark.parametrize(
+    "filename",
+    [
+        "/tmp/file.parquet",
+        "../file.parquet",
+        "subdir/file.parquet",
+        r"C:\absolute\file.parquet",
+        "C:/absolute/file.parquet",
+        r"\\server\share\file.parquet",
+        r"subdir\file.parquet",
+    ],
+)
+def test_aggregation_manifest_rejects_nonportable_filename(
+    tmp_path: Path, filename: str
+) -> None:
+    _, _, _, _, _, result = _aggregation_fixture()
+    _, _, payload = _write_artifacts(tmp_path, result)
+    payload["artifacts"][0]["filename"] = filename
+    with pytest.raises(ValueError, match="filename|basename|portable"):
+        BessPlanningFeatureParcelAggregationArtifactManifest.model_validate(payload)

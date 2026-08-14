@@ -13,6 +13,7 @@ from landscout.stages.apply_bess_planning_feature_policy import (
     apply_bess_planning_feature_policy,
     load_bess_planning_feature_application_artifacts,
     validate_bess_planning_feature_application_result,
+    validate_bess_planning_feature_application_result_envelope,
 )
 from landscout.stages.assess_grid_coverage import (
     BoundaryDistanceProfile,
@@ -33,6 +34,7 @@ from landscout.stages.bess_planning_feature_policy import (
     load_bess_planning_feature_policy_artifacts,
     load_bess_planning_feature_policy_config,
     validate_bess_planning_feature_policy_result,
+    validate_bess_planning_feature_policy_result_envelope,
 )
 from landscout.stages.enrich_grid_proximity import (
     DistanceProfile,
@@ -100,6 +102,7 @@ from landscout.stages.resolve_planning_feature_codes import (
     load_cnig_feature_code_profile,
     resolve_planning_feature_codes,
     validate_planning_feature_code_result,
+    validate_planning_feature_code_result_envelope,
 )
 from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
@@ -188,11 +191,14 @@ __all__ = [
     "search_planning_regulation",
     "structure_planning_regulation",
     "validate_bess_planning_feature_application_result",
+    "validate_bess_planning_feature_application_result_envelope",
     "validate_bess_planning_feature_parcel_aggregation_result",
     "validate_bess_planning_feature_policy_result",
+    "validate_bess_planning_feature_policy_result_envelope",
     "validate_bess_zoning_precheck",
     "validate_normalized_planning_feature_inputs",
     "validate_planning_feature_code_result",
+    "validate_planning_feature_code_result_envelope",
     "validate_planning_regulation_index",
     "validate_planning_regulation_search_result",
     "validate_planning_regulation_structure",
