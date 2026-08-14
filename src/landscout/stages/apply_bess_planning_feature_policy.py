@@ -35,6 +35,7 @@ from landscout.common.bess_application_contract import (
     POLICY_SCOPE,
     STRING_POLICY_COLUMNS,
     ApplicationStatus,
+    validate_bess_application_feature_catalogs,
     validate_bess_application_policy_frame,
     validate_bess_application_relation_frame,
 )
@@ -45,6 +46,7 @@ from landscout.stages.bess_planning_feature_policy import (
     BessPlanningFeaturePolicyResult,
     validate_bess_planning_feature_policy_result,
 )
+from landscout.stages.planning_overlay import technical_overlay_tolerance
 from landscout.stages.resolve_planning_feature_codes import (
     CnigFeatureCodeProfile,
     PlanningFeatureCodeResult,
@@ -77,10 +79,28 @@ ARTIFACT_ROLES: tuple[ArtifactRole, ...] = (
     "RELATIONS",
 )
 RELATION_FEATURE_AGREEMENT_COLUMNS = (
+    "source_feature_id",
+    "source_identity_kind",
+    "source_identity_field",
+    "logical_layer",
     "feature_family",
+    "geometry_kind",
     "type_code_raw",
     "subtype_code_raw",
+    "label_raw",
+    "text_raw",
+    "source_document_id",
+    "source_archive_sha256",
+    "source_layer",
+    "source_validity_date_raw",
+    "regulation_filename_raw",
     "official_code_status",
+    "official_code_label",
+    "official_legal_reference",
+    "official_regulation_reference",
+    "official_code_source_url",
+    "official_code_profile",
+    "official_code_profile_sha256",
 )
 SHA_PATTERN = re.compile(r"[0-9a-f]{64}")
 CODE_PATTERN = re.compile(r"[0-9]{2}")
@@ -265,15 +285,10 @@ class BessPlanningFeatureApplicationArtifactManifest(_StrictModel):
             (self.source_document_id, "source_document_id"),
         ):
             _exact_string(exact_value, label)
-        for integer_value, label in (
-            (
-                self.policy_result_hash_schema_version,
-                "policy_result_hash_schema_version",
-            ),
-            (self.cnig_result_hash_schema_version, "cnig_result_hash_schema_version"),
-        ):
-            if type(integer_value) is not int or integer_value < 1:
-                raise ValueError(f"{label} must be a positive integer")
+        if self.policy_result_hash_schema_version != 1:
+            raise ValueError("policy result hash schema must be exactly 1")
+        if self.cnig_result_hash_schema_version != 5:
+            raise ValueError("CNIG result hash schema must be exactly 5")
         for field in RESULT_SCALAR_FIELDS:
             if field.endswith("sha256"):
                 _sha256_string(getattr(self, field), field)
@@ -746,7 +761,7 @@ def _validate_policy_rows(
             policy_sha256=result.policy_sha256,
             policy_result_sha256=result.policy_complete_result_content_sha256,
         )
-    except ValueError as error:
+    except (TypeError, ValueError) as error:
         raise BessPlanningFeatureApplicationError(str(error)) from error
 
 
@@ -763,7 +778,7 @@ def _validate_relation_rows(
             policy_sha256=result.policy_sha256,
             policy_result_sha256=result.policy_complete_result_content_sha256,
         )
-    except ValueError as error:
+    except (TypeError, ValueError) as error:
         raise BessPlanningFeatureApplicationError(str(error)) from error
 
 
@@ -791,15 +806,14 @@ def _validate_result_envelope(result: BessPlanningFeatureApplicationResult) -> N
             _exact_string(exact_value, label)
         except ValueError as error:
             raise BessPlanningFeatureApplicationError(str(error)) from error
-    for integer_value, label in (
-        (
-            result.policy_result_hash_schema_version,
-            "policy_result_hash_schema_version",
-        ),
-        (result.cnig_result_hash_schema_version, "cnig_result_hash_schema_version"),
-    ):
-        if type(integer_value) is not int or integer_value < 1:
-            raise BessPlanningFeatureApplicationError(f"{label} is invalid")
+    if result.policy_result_hash_schema_version != 1:
+        raise BessPlanningFeatureApplicationError(
+            "policy result hash schema must be exactly 1"
+        )
+    if result.cnig_result_hash_schema_version != 5:
+        raise BessPlanningFeatureApplicationError(
+            "CNIG result hash schema must be exactly 5"
+        )
     if any(
         value is not False
         for value in (
@@ -825,9 +839,18 @@ def _validate_result_envelope(result: BessPlanningFeatureApplicationResult) -> N
             raise BessPlanningFeatureApplicationError(
                 f"{label} policy schema is invalid"
             )
-        _validate_application_geometry(frame, label)
         deterministic_frame_schema_signature(frame)
-        _validate_policy_rows(frame, label, result)
+    try:
+        validate_bess_application_feature_catalogs(
+            result.surface_features,
+            result.line_features,
+            result.point_features,
+            policy_profile=result.policy_profile,
+            policy_sha256=result.policy_sha256,
+            policy_result_sha256=result.policy_complete_result_content_sha256,
+        )
+    except (TypeError, ValueError) as error:
+        raise BessPlanningFeatureApplicationError(str(error)) from error
     if not isinstance(result.relations, pd.DataFrame) or isinstance(
         result.relations, gpd.GeoDataFrame
     ):
@@ -849,6 +872,37 @@ def _validate_result_envelope(result: BessPlanningFeatureApplicationResult) -> N
                 raise BessPlanningFeatureApplicationError(
                     f"Application relation {column} differs from its feature"
                 )
+        kind = relation["geometry_kind"]
+        relation_metric, feature_metric = {
+            "SURFACE": ("feature_area_m2", "feature_area_m2"),
+            "LINE": ("source_line_length_m", "feature_length_m"),
+            "POINT": ("point_member_count", "point_member_count"),
+        }[kind]
+        if kind == "POINT":
+            metric_equal = _null_safe_equal(
+                relation[relation_metric], feature[feature_metric]
+            )
+        else:
+            actual_value = relation[relation_metric]
+            expected_value = feature[feature_metric]
+            if (
+                isinstance(actual_value, bool)
+                or not isinstance(actual_value, Real)
+                or isinstance(expected_value, bool)
+                or not isinstance(expected_value, Real)
+            ):
+                raise BessPlanningFeatureApplicationError(
+                    "Application relation feature metric is not numeric"
+                )
+            actual = float(actual_value)
+            expected = float(expected_value)
+            metric_equal = abs(actual - expected) <= technical_overlay_tolerance(
+                max(abs(actual), abs(expected))
+            )
+        if not metric_equal:
+            raise BessPlanningFeatureApplicationError(
+                "Application relation feature metric differs from its feature"
+            )
     for field in RESULT_SCALAR_FIELDS:
         if field.endswith("sha256"):
             try:

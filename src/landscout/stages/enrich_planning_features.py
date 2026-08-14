@@ -31,6 +31,9 @@ from shapely import (
 )
 
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
+from landscout.common.planning_feature_contract import (
+    validate_intrinsic_planning_feature_relations,
+)
 from landscout.sources.gpu_fr import (
     GpuInspectedLayer,
     GpuPlanningDocument,
@@ -55,9 +58,7 @@ FeatureFamily = Literal["PRESCRIPTION", "INFORMATION"]
 GeometryKind = Literal["SURFACE", "LINE", "POINT"]
 SourceIdentityKind = Literal["CNIG_ATTRIBUTE", "ARCHIVE_SCOPED_OGR_FID"]
 
-SOURCE_IDENTITY_KINDS = frozenset(
-    {"CNIG_ATTRIBUTE", "ARCHIVE_SCOPED_OGR_FID"}
-)
+SOURCE_IDENTITY_KINDS = frozenset({"CNIG_ATTRIBUTE", "ARCHIVE_SCOPED_OGR_FID"})
 
 SURFACE_TYPES = frozenset({"Polygon", "MultiPolygon"})
 LINE_TYPES = frozenset({"LineString", "MultiLineString"})
@@ -269,8 +270,8 @@ RELATION_COUNT_COLUMNS = frozenset(
         "point_members_boundary_count",
     }
 )
-RELATION_STRING_COLUMNS = frozenset(RELATION_COLUMNS) - RELATION_FLOAT_COLUMNS - (
-    RELATION_COUNT_COLUMNS
+RELATION_STRING_COLUMNS = (
+    frozenset(RELATION_COLUMNS) - RELATION_FLOAT_COLUMNS - (RELATION_COUNT_COLUMNS)
 )
 
 PARCEL_OUTPUT_COLUMNS = frozenset(
@@ -555,8 +556,7 @@ def _validate_layer_summary(
         or summary.geometry_types != _summary_geometry_types(frame)
         or summary.null_geometry_count != int((~non_null).sum())
         or summary.empty_geometry_count != int((non_null & geometry.is_empty).sum())
-        or summary.invalid_geometry_count
-        != int((non_empty & ~geometry.is_valid).sum())
+        or summary.invalid_geometry_count != int((non_empty & ~geometry.is_valid).sum())
     ):
         raise PlanningFeaturesError(
             f"{layer.logical_name} source summary is inconsistent with loaded data"
@@ -567,7 +567,11 @@ def _project_geometry(frame: gpd.GeoDataFrame, label: str) -> gpd.GeoSeries:
     source = _crs(frame.crs, label)
     target = CRS.from_epsg(2154)
     try:
-        projected = frame.geometry.copy() if source.equals(target) else frame.to_crs(target).geometry
+        projected = (
+            frame.geometry.copy()
+            if source.equals(target)
+            else frame.to_crs(target).geometry
+        )
         return gpd.GeoSeries(force_2d(projected.array), crs=target)
     except Exception as error:
         raise PlanningFeaturesError(
@@ -632,7 +636,9 @@ def _normalize_layer(
     # Raw classification codes may repeat; validate hygiene without uniqueness.
     for field in (spec.type_field, spec.subtype_field, "IDURBA"):
         if frame[field].isna().any():
-            raise PlanningFeaturesError(f"{spec.logical_layer} {field} must not be null")
+            raise PlanningFeaturesError(
+                f"{spec.logical_layer} {field} must not be null"
+            )
         for value in frame[field].tolist():
             _strict_string(value, f"{spec.logical_layer} {field}")
     _validate_geometries(frame, spec.allowed_geometry_types, spec.logical_layer)
@@ -651,9 +657,7 @@ def _normalize_layer(
         layer, spec, validated_source
     )
     planning_ids = source_ids.map(
-        lambda value: (
-            f"GPU:{context.document_id}:{spec.logical_layer}:{value}"
-        )
+        lambda value: f"GPU:{context.document_id}:{spec.logical_layer}:{value}"
     )
     geometry = _project_geometry(frame, spec.logical_layer)
     projected = gpd.GeoDataFrame(
@@ -706,7 +710,9 @@ def _normalize_layer(
                 f"{spec.logical_layer} length calculation failed"
             ) from error
         if not np.isfinite(values).all() or (values <= 0).any():
-            raise PlanningFeaturesError(f"{spec.logical_layer} lengths must be positive")
+            raise PlanningFeaturesError(
+                f"{spec.logical_layer} lengths must be positive"
+            )
         projected["feature_length_m"] = values
     else:
         try:
@@ -885,12 +891,12 @@ def _relation_base(
                 copy=True
             ),
             "source_layer": selected["source_layer"].to_numpy(copy=True),
-            "source_validity_date_raw": selected[
-                "source_validity_date_raw"
-            ].to_numpy(copy=True),
-            "regulation_filename_raw": selected[
-                "regulation_filename_raw"
-            ].to_numpy(copy=True),
+            "source_validity_date_raw": selected["source_validity_date_raw"].to_numpy(
+                copy=True
+            ),
+            "regulation_filename_raw": selected["regulation_filename_raw"].to_numpy(
+                copy=True
+            ),
         }
     )
     return base, parcel_positions, feature_positions
@@ -910,7 +916,9 @@ def _surface_relations(
         )
         areas = np.asarray(shapely_area(geometries), dtype="float64")
     except Exception as error:
-        raise PlanningFeaturesError("Surface intersection calculation failed") from error
+        raise PlanningFeaturesError(
+            "Surface intersection calculation failed"
+        ) from error
     feature_areas = catalog["feature_area_m2"].to_numpy(dtype="float64")[
         feature_positions
     ]
@@ -987,9 +995,7 @@ def _point_relations(
     boundary_counts = covered_counts - inside_counts
     if ((inside_counts + boundary_counts) <= 0).any():
         raise PlanningFeaturesError("Point candidate has no covered source member")
-    base["relation_type"] = np.where(
-        inside_counts > 0, "INSIDE", "BOUNDARY_TOUCH"
-    )
+    base["relation_type"] = np.where(inside_counts > 0, "INSIDE", "BOUNDARY_TOUCH")
     for column in RELATION_FLOAT_COLUMNS - {"parcel_metric_area_m2"}:
         base[column] = np.nan
     base["point_member_count"] = pd.array(member_counts, dtype="Int64")
@@ -1026,9 +1032,7 @@ def _build_relation_tables(
     line_work = _line_relations(metric, lines)
     point_work = _point_relations(metric, points)
     work_frames = [
-        frame
-        for frame in (surface_work, line_work, point_work)
-        if not frame.empty
+        frame for frame in (surface_work, line_work, point_work) if not frame.empty
     ]
     if not work_frames:
         return surface_work, line_work, point_work, _empty_relations()
@@ -1170,7 +1174,9 @@ def _surface_union_summary(
         area = float(parcel_areas[position])
         if value > area:
             if value - area > _technical_tolerance(area):
-                raise PlanningFeaturesError("Surface covered-union area exceeds parcel area")
+                raise PlanningFeaturesError(
+                    "Surface covered-union area exceeds parcel area"
+                )
             value = area
         output[position] = value
     return output
@@ -1188,12 +1194,16 @@ def _attach_parcel_summaries(
     areas = metric["_parcel_area_m2"].to_numpy(dtype="float64")
     output = parcels.copy(deep=True)
 
-    def relation_counts(frame: pd.DataFrame, mask: pd.Series | None = None) -> np.ndarray:
+    def relation_counts(
+        frame: pd.DataFrame, mask: pd.Series | None = None
+    ) -> np.ndarray:
         result = np.zeros(count, dtype="int64")
         selected = frame if mask is None else frame.loc[mask]
         if not selected.empty:
             counts = selected.groupby("_parcel_position", sort=False).size()
-            result[counts.index.to_numpy(dtype="int64")] = counts.to_numpy(dtype="int64")
+            result[counts.index.to_numpy(dtype="int64")] = counts.to_numpy(
+                dtype="int64"
+            )
         return result
 
     surface_positive = (
@@ -1205,11 +1215,15 @@ def _attach_parcel_summaries(
     output["planning_surface_relation_count"] = relation_counts(surface_work)
     output["planning_surface_area_overlap_count"] = relation_counts(
         surface_work,
-        surface_work["relation_type"].eq("AREA_OVERLAP") if not surface_work.empty else None,
+        surface_work["relation_type"].eq("AREA_OVERLAP")
+        if not surface_work.empty
+        else None,
     )
     output["planning_surface_touch_count"] = relation_counts(
         surface_work,
-        surface_work["relation_type"].eq("TOUCH_ONLY") if not surface_work.empty else None,
+        surface_work["relation_type"].eq("TOUCH_ONLY")
+        if not surface_work.empty
+        else None,
     )
     raw_sum = np.zeros(count, dtype="float64")
     if not surface_positive.empty:
@@ -1247,7 +1261,9 @@ def _attach_parcel_summaries(
     output["planning_line_relation_count"] = relation_counts(line_work)
     output["planning_line_length_overlap_count"] = relation_counts(
         line_work,
-        line_work["relation_type"].eq("LENGTH_OVERLAP") if not line_work.empty else None,
+        line_work["relation_type"].eq("LENGTH_OVERLAP")
+        if not line_work.empty
+        else None,
     )
     output["planning_line_touch_count"] = relation_counts(
         line_work,
@@ -1258,7 +1274,9 @@ def _attach_parcel_summaries(
         values = line_work.groupby("_parcel_position", sort=False)[
             "intersection_length_m"
         ].sum()
-        line_sum[values.index.to_numpy(dtype="int64")] = values.to_numpy(dtype="float64")
+        line_sum[values.index.to_numpy(dtype="int64")] = values.to_numpy(
+            dtype="float64"
+        )
     output["planning_line_intersection_length_sum_m"] = line_sum
 
     output["planning_point_relation_count"] = relation_counts(point_work)
@@ -1269,7 +1287,9 @@ def _attach_parcel_summaries(
         values = np.zeros(count, dtype="int64")
         if not point_work.empty:
             grouped = point_work.groupby("_parcel_position", sort=False)[source].sum()
-            values[grouped.index.to_numpy(dtype="int64")] = grouped.to_numpy(dtype="int64")
+            values[grouped.index.to_numpy(dtype="int64")] = grouped.to_numpy(
+                dtype="int64"
+            )
         output[target] = values
     output["planning_feature_document_id"] = context.document_id
     output["planning_feature_archive_sha256"] = context.archive_sha256
@@ -1294,7 +1314,9 @@ def _numeric_values(
             try:
                 number = float(value)
             except (TypeError, ValueError, OverflowError) as error:
-                raise PlanningFeaturesError(f"{label} {column} must be finite") from error
+                raise PlanningFeaturesError(
+                    f"{label} {column} must be finite"
+                ) from error
             if not isfinite(number) or number < 0:
                 raise PlanningFeaturesError(
                     f"{label} {column} must be finite and non-negative"
@@ -1362,9 +1384,7 @@ def _validate_catalog_identity(catalog: gpd.GeoDataFrame) -> None:
         )
     _validate_ids(catalog["planning_feature_id"], "planning_feature_id")
     for logical_layer, group in catalog.groupby("logical_layer", sort=False):
-        _validate_ids(
-            group["source_feature_id"], f"{logical_layer} source_feature_id"
-        )
+        _validate_ids(group["source_feature_id"], f"{logical_layer} source_feature_id")
     for _, row in catalog.iterrows():
         logical = _strict_string(row["logical_layer"], "logical_layer")
         if logical not in LAYER_SPECS:
@@ -1377,8 +1397,7 @@ def _validate_catalog_identity(catalog: gpd.GeoDataFrame) -> None:
                 "Feature catalog logical layer and geometry kind are inconsistent"
             )
         expected_planning_id = (
-            f"GPU:{row['source_document_id']}:{logical}:"
-            f"{row['source_feature_id']}"
+            f"GPU:{row['source_document_id']}:{logical}:{row['source_feature_id']}"
         )
         if row["planning_feature_id"] != expected_planning_id:
             raise PlanningFeaturesError(
@@ -1491,7 +1510,9 @@ def _compare_normalized_catalog(
     if deterministic_frame_schema_signature(
         supplied
     ) != deterministic_frame_schema_signature(expected):
-        raise PlanningFeaturesError(f"{label} schema differs from normalized GPU source")
+        raise PlanningFeaturesError(
+            f"{label} schema differs from normalized GPU source"
+        )
     try:
         supplied_crs = _crs(supplied.crs, label)
         expected_crs = _crs(expected.crs, f"expected {label}")
@@ -1550,7 +1571,9 @@ def _validate_relation_catalog_consistency(
     for _, relation in relations.iterrows():
         identifier = relation["planning_feature_id"]
         if identifier not in indexed.index:
-            raise PlanningFeaturesError("Planning relation references an unknown feature")
+            raise PlanningFeaturesError(
+                "Planning relation references an unknown feature"
+            )
         feature = indexed.loc[identifier]
         for column in _RELATION_CATALOG_FIELDS:
             if not _null_safe_equal(relation[column], feature[column]):
@@ -1571,9 +1594,7 @@ def _validate_relation_catalog_consistency(
         if (
             metric_column is None
             or catalog_column is None
-            or not _null_safe_equal(
-                relation[metric_column], feature[catalog_column]
-            )
+            or not _null_safe_equal(relation[metric_column], feature[catalog_column])
         ):
             raise PlanningFeaturesError(
                 "Relation feature metric is inconsistent with feature catalog"
@@ -1581,123 +1602,10 @@ def _validate_relation_catalog_consistency(
 
 
 def _validate_relation_semantics(relations: pd.DataFrame) -> None:
-    _numeric_values(relations, RELATION_FLOAT_COLUMNS, "Relation", allow_null=True)
-    _integer_values(relations, RELATION_COUNT_COLUMNS, "Relation", allow_null=True)
-    for _, row in relations.iterrows():
-        kind = row["geometry_kind"]
-        relation_type = row["relation_type"]
-        allowed_relation_types = {
-            "SURFACE": frozenset({"AREA_OVERLAP", "TOUCH_ONLY"}),
-            "LINE": frozenset({"LENGTH_OVERLAP", "TOUCH_ONLY"}),
-            "POINT": frozenset({"INSIDE", "BOUNDARY_TOUCH"}),
-        }.get(kind)
-        if allowed_relation_types is None:
-            raise PlanningFeaturesError("Planning relation geometry kind is invalid")
-        if relation_type not in allowed_relation_types:
-            raise PlanningFeaturesError(
-                f"{kind} relation type is incompatible with its geometry kind"
-            )
-        if pd.isna(row["parcel_metric_area_m2"]) or float(
-            row["parcel_metric_area_m2"]
-        ) <= 0:
-            raise PlanningFeaturesError("Relation parcel metric area must be positive")
-        required: tuple[str, ...]
-        null_only: tuple[str, ...]
-        if kind == "SURFACE":
-            required = (
-                "feature_area_m2",
-                "intersection_area_m2",
-                "parcel_share_pct",
-                "feature_share_pct",
-            )
-            if any(pd.isna(row[column]) for column in required):
-                raise PlanningFeaturesError(
-                    "SURFACE relation has a missing required metric"
-                )
-            area = float(row["intersection_area_m2"])
-            expected_relation = "AREA_OVERLAP" if area > 0 else "TOUCH_ONLY"
-            if relation_type != expected_relation:
-                raise PlanningFeaturesError("Surface relation type is inconsistent")
-            null_only = (
-                "source_line_length_m",
-                "intersection_length_m",
-                *RELATION_COUNT_COLUMNS,
-            )
-            parcel_area = float(row["parcel_metric_area_m2"])
-            feature_area = float(row["feature_area_m2"])
-            if parcel_area <= 0 or feature_area <= 0:
-                raise PlanningFeaturesError("Surface reference areas must be positive")
-            if area - parcel_area > technical_overlay_tolerance(parcel_area):
-                raise PlanningFeaturesError("Surface parcel share exceeds 100 percent")
-            if area - feature_area > technical_overlay_tolerance(feature_area):
-                raise PlanningFeaturesError("Surface feature share exceeds 100 percent")
-            expected_parcel_pct = 100.0 * area / parcel_area
-            expected_feature_pct = 100.0 * area / feature_area
-            percentage_tolerance = max(
-                100.0 * technical_overlay_tolerance(parcel_area) / parcel_area,
-                100.0 * technical_overlay_tolerance(feature_area) / feature_area,
-            )
-            if (
-                abs(float(row["parcel_share_pct"]) - expected_parcel_pct)
-                > percentage_tolerance
-                or abs(float(row["feature_share_pct"]) - expected_feature_pct)
-                > percentage_tolerance
-            ):
-                raise PlanningFeaturesError("Surface percentages are inconsistent")
-        elif kind == "LINE":
-            required = ("source_line_length_m", "intersection_length_m")
-            if any(pd.isna(row[column]) for column in required):
-                raise PlanningFeaturesError(
-                    "LINE relation has a missing required metric"
-                )
-            length = float(row["intersection_length_m"])
-            expected_relation = "LENGTH_OVERLAP" if length > 0 else "TOUCH_ONLY"
-            if relation_type != expected_relation:
-                raise PlanningFeaturesError("Line relation type is inconsistent")
-            null_only = (
-                "feature_area_m2",
-                "intersection_area_m2",
-                "parcel_share_pct",
-                "feature_share_pct",
-                *RELATION_COUNT_COLUMNS,
-            )
-            source_length = float(row["source_line_length_m"])
-            if source_length <= 0:
-                raise PlanningFeaturesError("Source line length must be positive")
-            if length - source_length > technical_overlay_tolerance(source_length):
-                raise PlanningFeaturesError(
-                    "Line intersection exceeds source line length"
-                )
-        elif kind == "POINT":
-            required = tuple(RELATION_COUNT_COLUMNS)
-            if any(pd.isna(row[column]) for column in required):
-                raise PlanningFeaturesError(
-                    "POINT relation has a missing required metric"
-                )
-            null_only = (
-                "feature_area_m2",
-                "source_line_length_m",
-                "intersection_area_m2",
-                "intersection_length_m",
-                "parcel_share_pct",
-                "feature_share_pct",
-            )
-            member_count = row["point_member_count"]
-            inside = row["point_members_inside_count"]
-            boundary_count = row["point_members_boundary_count"]
-            if member_count < 1 or inside + boundary_count < 1:
-                raise PlanningFeaturesError("Point relation member counts are invalid")
-            if inside + boundary_count > member_count:
-                raise PlanningFeaturesError("Point covered members exceed source members")
-            expected_relation = "INSIDE" if inside > 0 else "BOUNDARY_TOUCH"
-            if relation_type != expected_relation or (
-                relation_type == "BOUNDARY_TOUCH" and boundary_count <= 0
-            ):
-                raise PlanningFeaturesError("Point relation type is inconsistent")
-        else:
-            raise PlanningFeaturesError("Planning relation geometry kind is invalid")
-        if any(not pd.isna(row[column]) for column in null_only):
-            raise PlanningFeaturesError(f"{kind} relation populated an unrelated metric")
+    try:
+        validate_intrinsic_planning_feature_relations(relations)
+    except (TypeError, ValueError) as error:
+        raise PlanningFeaturesError(str(error)) from error
 
 
 def _compare_rebuilt_relations(
@@ -1812,9 +1720,7 @@ def _validate_normalized_planning_feature_inputs(
     )
     _validate_parcels(source_parcels)
     metric_parcels = _metric_parcels(source_parcels)
-    surfaces, lines, points, validated_sources = _normalized_catalogs(
-        planning_document
-    )
+    surfaces, lines, points, validated_sources = _normalized_catalogs(planning_document)
     expected_catalogs = (surfaces, lines, points)
 
     catalogs = (
@@ -1899,17 +1805,17 @@ def _validate_normalized_planning_feature_inputs(
             raise PlanningFeaturesError(
                 "Parcel planning-feature document lineage differs"
             )
-        if not parcels["planning_feature_archive_sha256"].eq(
-            context.archive_sha256
-        ).all():
+        if (
+            not parcels["planning_feature_archive_sha256"]
+            .eq(context.archive_sha256)
+            .all()
+        ):
             raise PlanningFeaturesError(
                 "Parcel planning-feature archive lineage differs"
             )
 
     unique_files = {
-        item.relative_path
-        for source in validated_sources
-        for item in source.files
+        item.relative_path for source in validated_sources for item in source.files
     }
     return PlanningFeatureInputValidation(
         gpu_related_source_files_sha256=_gpu_related_source_files_sha256(
@@ -1959,7 +1865,11 @@ def _validate_parcel_summaries(
 ) -> None:
     metric = _metric_parcels(source)
     metric_areas = dict(
-        zip(metric["parcel_id"].tolist(), metric["_parcel_area_m2"].tolist(), strict=True)
+        zip(
+            metric["parcel_id"].tolist(),
+            metric["_parcel_area_m2"].tolist(),
+            strict=True,
+        )
     )
     _integer_values(output, PARCEL_COUNT_COLUMNS, "Parcel summary", allow_null=False)
     float_columns = tuple(
@@ -1973,9 +1883,7 @@ def _validate_parcel_summaries(
         parcel_id = parcel["parcel_id"]
         rows = relations.loc[relations["parcel_id"] == parcel_id]
         surfaces = rows.loc[rows["geometry_kind"] == "SURFACE"]
-        positive_surfaces = surfaces.loc[
-            surfaces["relation_type"] == "AREA_OVERLAP"
-        ]
+        positive_surfaces = surfaces.loc[surfaces["relation_type"] == "AREA_OVERLAP"]
         lines = rows.loc[rows["geometry_kind"] == "LINE"]
         points = rows.loc[rows["geometry_kind"] == "POINT"]
         exact_counts = {
@@ -2033,8 +1941,12 @@ def _validate_parcel_summaries(
             pct = float(parcel[f"{prefix}_surface_covered_pct"])
             if union - planning_union > technical_overlay_tolerance(planning_union):
                 raise PlanningFeaturesError("Family surface union exceeds total union")
-            expected_pct = 100.0 if union == parcel_area else 100.0 * union / parcel_area
-            pct_tolerance = 100.0 * technical_overlay_tolerance(parcel_area) / parcel_area
+            expected_pct = (
+                100.0 if union == parcel_area else 100.0 * union / parcel_area
+            )
+            pct_tolerance = (
+                100.0 * technical_overlay_tolerance(parcel_area) / parcel_area
+            )
             if abs(pct - expected_pct) > pct_tolerance:
                 raise PlanningFeaturesError(
                     f"{prefix} surface percentage is inconsistent"
@@ -2060,9 +1972,7 @@ def _validate_parcel_summaries(
                     if not positive.empty
                     else positive
                 )
-                expected_union = _surface_union_summary(
-                    family_rows, areas, len(output)
-                )
+                expected_union = _surface_union_summary(family_rows, areas, len(output))
             for actual, value in zip(
                 output[column].tolist(), expected_union, strict=True
             ):
@@ -2146,8 +2056,7 @@ def _validate_result(
             len(expected_document_ids) != 1
             or len(expected_archive_hashes) != 1
             or set(output["planning_feature_document_id"]) != expected_document_ids
-            or set(output["planning_feature_archive_sha256"])
-            != expected_archive_hashes
+            or set(output["planning_feature_archive_sha256"]) != expected_archive_hashes
         ):
             raise PlanningFeaturesError(
                 "Parcel planning-feature lineage is inconsistent with catalogs"

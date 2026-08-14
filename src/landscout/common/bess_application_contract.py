@@ -4,11 +4,20 @@ from __future__ import annotations
 
 import math
 import re
-from numbers import Integral
+from numbers import Integral, Real
 from pathlib import PurePosixPath, PureWindowsPath
 from typing import Literal
 
+import geopandas as gpd  # type: ignore[import-untyped]
 import pandas as pd  # type: ignore[import-untyped]
+from pyproj import CRS
+from shapely import get_coordinate_dimension, get_parts  # type: ignore[import-untyped]
+from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
+
+from landscout.common.planning_feature_contract import (
+    validate_intrinsic_planning_feature_relations,
+)
+from landscout.stages.planning_overlay import technical_overlay_tolerance
 
 APPLICATION_SCOPE = "FEATURE_AND_RELATION_POLICY_PROPAGATION_ONLY"
 POLICY_SCOPE = "OFFICIAL_CNIG_CODE_MEANING_ONLY"
@@ -72,17 +81,25 @@ ALLOWED_PRECHECK_STATUSES = frozenset(
 )
 ALLOWED_CONFIDENCES = frozenset({"HIGH", "MEDIUM", "LOW"})
 ALLOWED_FEATURE_FAMILIES = frozenset({"PRESCRIPTION", "INFORMATION"})
-ALLOWED_RELATION_TYPES = frozenset(
-    {
-        "AREA_OVERLAP",
-        "LENGTH_OVERLAP",
-        "INSIDE",
-        "TOUCH_ONLY",
-        "BOUNDARY_TOUCH",
-    }
-)
 NULL_LITERALS = frozenset({"None", "nan", "<NA>"})
 CODE_PATTERN = re.compile(r"[0-9]{2}")
+_FEATURE_SPECS = {
+    "SURFACE": (
+        frozenset({"prescription_surface", "information_surface"}),
+        frozenset({"Polygon", "MultiPolygon"}),
+        "feature_area_m2",
+    ),
+    "LINE": (
+        frozenset({"prescription_line", "information_line"}),
+        frozenset({"LineString", "MultiLineString"}),
+        "feature_length_m",
+    ),
+    "POINT": (
+        frozenset({"prescription_point", "information_point"}),
+        frozenset({"Point", "MultiPoint"}),
+        "point_member_count",
+    ),
+}
 
 
 def _null_value(value: object) -> object:
@@ -201,6 +218,168 @@ def _relation_identity_string(value: object, label: str) -> str:
     return exact
 
 
+def _portable_feature_id(value: object, label: str) -> str:
+    feature_id = _relation_identity_string(value, label)
+    if (
+        PurePosixPath(feature_id).is_absolute()
+        or PureWindowsPath(feature_id).is_absolute()
+    ):
+        raise ValueError(f"{label} must not be an absolute path")
+    return feature_id
+
+
+def _status_priority_mapping(
+    frame: pd.DataFrame, label: str
+) -> tuple[dict[int, str], dict[str, int]]:
+    priority_to_statuses: dict[int, set[str]] = {}
+    status_to_priorities: dict[str, set[int]] = {}
+    applied = frame[
+        frame["bess_cnig_policy_application_status"] == "APPLIED_EXACT_POLICY"
+    ]
+    for row in applied.to_dict("records"):
+        priority = int(row["bess_cnig_status_priority"])
+        status = str(row["bess_cnig_precheck_status"])
+        priority_to_statuses.setdefault(priority, set()).add(status)
+        status_to_priorities.setdefault(status, set()).add(priority)
+    if any(len(statuses) != 1 for statuses in priority_to_statuses.values()) or any(
+        len(priorities) != 1 for priorities in status_to_priorities.values()
+    ):
+        raise ValueError(f"{label} status/priority mapping is not one-to-one")
+    return (
+        {
+            priority: next(iter(statuses))
+            for priority, statuses in priority_to_statuses.items()
+        },
+        {
+            status: next(iter(priorities))
+            for status, priorities in status_to_priorities.items()
+        },
+    )
+
+
+def _feature_metric(value: object, expected: float, label: str) -> None:
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise TypeError(f"{label} must be numeric")
+    number = float(value)
+    if not math.isfinite(number) or number <= 0:
+        raise ValueError(f"{label} must be finite and positive")
+    if abs(number - expected) > technical_overlay_tolerance(
+        max(abs(number), abs(expected))
+    ):
+        raise ValueError(f"{label} is inconsistent with feature geometry")
+
+
+def validate_bess_application_feature_catalogs(
+    surface: gpd.GeoDataFrame,
+    line: gpd.GeoDataFrame,
+    point: gpd.GeoDataFrame,
+    *,
+    policy_profile: str,
+    policy_sha256: str,
+    policy_result_sha256: str,
+) -> tuple[dict[int, str], dict[str, int]]:
+    """Validate all intrinsic feature facts, identities, geometry, and mappings."""
+
+    feature_ids: list[str] = []
+    applied_frames: list[pd.DataFrame] = []
+    for frame, kind, label in (
+        (surface, "SURFACE", "surface features"),
+        (line, "LINE", "line features"),
+        (point, "POINT", "point features"),
+    ):
+        if not isinstance(frame, gpd.GeoDataFrame):
+            raise TypeError(f"{label} must be a GeoDataFrame")
+        validate_bess_application_policy_frame(
+            frame,
+            label=label,
+            policy_profile=policy_profile,
+            policy_sha256=policy_sha256,
+            policy_result_sha256=policy_result_sha256,
+        )
+        required = {
+            "planning_feature_id",
+            "source_feature_id",
+            "source_document_id",
+            "logical_layer",
+            "feature_family",
+            "geometry_kind",
+            "geometry",
+            _FEATURE_SPECS[kind][2],
+        }
+        if not required.issubset(frame.columns):
+            raise ValueError(f"{label} factual schema is incomplete")
+        try:
+            if frame.geometry.name != "geometry" or frame.crs is None:
+                raise ValueError("active geometry or CRS is missing")
+            if not CRS.from_user_input(frame.crs).equals(CRS.from_epsg(2154)):
+                raise ValueError("CRS is not EPSG:2154")
+        except Exception as error:
+            raise ValueError(
+                f"{label} must use active geometry and EPSG:2154"
+            ) from error
+        allowed_layers, geometry_types, metric_column = _FEATURE_SPECS[kind]
+        for row in frame.to_dict("records"):
+            feature_id = _portable_feature_id(
+                row["planning_feature_id"], f"{label} planning feature identity"
+            )
+            source_id = _relation_identity_string(
+                row["source_feature_id"], f"{label} source feature identity"
+            )
+            document_id = _relation_identity_string(
+                row["source_document_id"], f"{label} source document identity"
+            )
+            logical_layer = row["logical_layer"]
+            if logical_layer not in allowed_layers:
+                raise ValueError(f"{label} logical layer is invalid")
+            expected_family = (
+                "PRESCRIPTION"
+                if str(logical_layer).startswith("prescription_")
+                else "INFORMATION"
+            )
+            if row["feature_family"] != expected_family:
+                raise ValueError(f"{label} family and logical layer are inconsistent")
+            if row["geometry_kind"] != kind:
+                raise ValueError(f"{label} geometry kind is invalid")
+            expected_id = f"GPU:{document_id}:{logical_layer}:{source_id}"
+            if feature_id != expected_id:
+                raise ValueError(
+                    f"{label} planning feature identity differs from GPU namespace"
+                )
+            geometry = row["geometry"]
+            if (
+                not isinstance(geometry, BaseGeometry)
+                or geometry.is_empty
+                or not geometry.is_valid
+                or geometry.geom_type not in geometry_types
+            ):
+                raise ValueError(f"{label} geometry is invalid for {kind}")
+            if int(get_coordinate_dimension(geometry)) != 2:
+                raise ValueError(f"{label} geometry must be canonical 2D")
+            if kind == "SURFACE":
+                _feature_metric(row[metric_column], float(geometry.area), metric_column)
+            elif kind == "LINE":
+                _feature_metric(
+                    row[metric_column], float(geometry.length), metric_column
+                )
+            else:
+                count = row[metric_column]
+                if (
+                    isinstance(count, bool)
+                    or not isinstance(count, Integral)
+                    or int(count) <= 0
+                    or int(count) != len(get_parts(geometry))
+                ):
+                    raise ValueError(
+                        "point member count is inconsistent with feature geometry"
+                    )
+            feature_ids.append(feature_id)
+        applied_frames.append(frame)
+    if len(feature_ids) != len(set(feature_ids)):
+        raise ValueError("planning feature identity must be globally unique")
+    combined = pd.concat(applied_frames, ignore_index=True)
+    return _status_priority_mapping(combined, "feature document-wide")
+
+
 def validate_bess_application_relation_frame(
     frame: pd.DataFrame,
     *,
@@ -223,38 +402,11 @@ def validate_bess_application_relation_frame(
         raise ValueError(f"{label} relation identity schema is incomplete")
     for row in frame.to_dict("records"):
         _relation_identity_string(row["parcel_id"], f"{label} parcel identity")
-        feature_id = _relation_identity_string(
+        feature_id = _portable_feature_id(
             row["planning_feature_id"], f"{label} Feature ID identity"
         )
-        if (
-            PurePosixPath(feature_id).is_absolute()
-            or PureWindowsPath(feature_id).is_absolute()
-        ):
-            raise ValueError(
-                f"{label} Feature ID identity must not be an absolute path"
-            )
-        relation_type = row["relation_type"]
-        if (
-            not isinstance(relation_type, str)
-            or relation_type not in ALLOWED_RELATION_TYPES
-        ):
-            raise ValueError(f"{label} relation type is invalid")
+        assert feature_id
     if frame.duplicated(["parcel_id", "planning_feature_id"]).any():
         raise ValueError(f"{label} contains a duplicate parcel/feature relation pair")
-
-    priority_to_status: dict[int, set[str]] = {}
-    status_to_priority: dict[str, set[int]] = {}
-    applied = frame[
-        frame["bess_cnig_policy_application_status"] == "APPLIED_EXACT_POLICY"
-    ]
-    for row in applied.to_dict("records"):
-        priority = int(row["bess_cnig_status_priority"])
-        status = str(row["bess_cnig_precheck_status"])
-        priority_to_status.setdefault(priority, set()).add(status)
-        status_to_priority.setdefault(status, set()).add(priority)
-    if any(len(statuses) != 1 for statuses in priority_to_status.values()) or any(
-        len(priorities) != 1 for priorities in status_to_priority.values()
-    ):
-        raise ValueError(
-            f"{label} document-wide status/priority mapping is not one-to-one"
-        )
+    validate_intrinsic_planning_feature_relations(frame)
+    _status_priority_mapping(frame, f"{label} document-wide")

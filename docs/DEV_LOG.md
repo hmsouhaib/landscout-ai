@@ -1327,6 +1327,47 @@ The unchanged application and aggregation Parquets were parsed through their str
 
 No local feature text or regulation content is interpreted. No parcel is rejected. No ranking or score is calculated. No authorization or prohibition is claimed.
 
+## STEP 7D.5B.2B.3 — Seal feature catalogs and factual relation semantics
+
+- Status: Complete
+- Scope: validation-only hardening. Application schemas remain 2/2, aggregation schemas remain 1/1, policy-result schema remains 1, and CNIG-result schema remains 5. No valid output value, schema, role, decision, artifact byte, or content hash changed.
+- Test-first proof: 14 genuine narrow regressions failed against the previous implementation. It accepted a positive surface overlap relabeled as `TOUCH_ONLY`, a role-invalid but two-dimensional feature geometry, corrupted portable IDs and status/priority mappings on a zero-relation feature, and unsupported policy/CNIG source schema locks.
+- Focused validation: all 439 enrich, application, and aggregation tests pass.
+- Quality gates: all 1,654 tests pass; repository-wide Ruff and `mypy src` checks pass across 34 source files.
+
+### Shared factual and feature contracts
+
+One internal factual-relation contract is now used by the normalized STEP 7D.3.1 validator, the application relation validator, and the aggregation relation-prefix validator. It enforces exact geometry-kind/relation-type compatibility, finite stored metrics and counts, positive-overlap versus boundary-only semantics, technical upper bounds and percentage identities, point-member rules, and exact null patterns without recomputing intersections or introducing a business threshold.
+
+The application envelope now validates every surface, line, and point catalog locally, including empty optional catalogs. Catalogs must be GeoDataFrames in `EPSG:2154`, use the active canonical two-dimensional geometry, contain valid role-specific geometry and metrics, preserve portable deterministic `GPU:{source_document_id}:{logical_layer}:{source_feature_id}` identities, and remain globally unique. The status/priority mapping is one-to-one over all applied features, including the real unreferenced `PRESCRIPTION 15/01` feature. The relation mapping must be an exact subset of that feature mapping.
+
+Every relation is checked against its referenced feature for complete source identity, layer/family/kind, raw code and text facts, document/archive lineage, official-code fields, complete BESS policy suffix, and the geometry-kind-specific source metric. Source and output parcel IDs are also validated across every parcel, so no-relation parcels cannot hide empty, duplicated, edge-whitespace, or textual-null identities. Application artifacts accept only policy-result schema 1 and CNIG-result schema 5. All locally provable defects fail before source-complete GPU/CNIG/policy validation.
+
+### Unchanged real Muret artifacts
+
+- Parcels / features / factual and application relations: 3,638 / 479 / 2,414.
+- `PRESCRIPTION 15/01`: one feature, zero relations, intrinsic validation passed.
+- Factual relation semantic conflicts / feature geometry or identity conflicts / textual-null no-relation parcel IDs / global feature mapping conflicts / relation-to-feature conflicts: 0 / 0 / 0 / 0 / 0.
+- Existing application and aggregation artifacts were loaded from their exact verified bytes, then passed their independent offline source-complete validators and deterministic rebuilds in 36.8 seconds.
+
+Application schema-v2 hashes remain unchanged:
+
+- Surface: `a907b86387b2ac509b6f746e393bdb05bf9886f0c6a2580fc48e625cbf953465`.
+- Line: `63b02b8370d932b276730efc65c313acfde251aaa38ed243e1fa226b65d685da`.
+- Point: `7f5190cd45350ab23d16d26baeec6af1934ae4315a559dcfffed46e680b6d554`.
+- Relations: `47743afe99163eea98d23f440b6369e5ee8ca11c6ee22baec7ea242d516eefd7`.
+- Complete application: `53b8fcddfcbd3920f223071d946d9066c8cb9cc38f0afc8d917e2b723926527e`.
+
+Aggregation hashes remain unchanged:
+
+- Source parcels: `268754a26b349b240a044411c0af331c914ab0cd326c607d2991d797d2d759d0`.
+- Source application relations: `7736dbf186b5f37c202d79b7e394a485adfce772a6e40147b12932071e72bfaf`.
+- Relation assessments: `3a45b5a0c61ae2e240964f921e67790a279c1eb449fc5aa85621b7b8fda7a367`.
+- Parcel output: `0b03f2beaedfafafdd07a5dd619419ea8a284199071e07a5d0ab8eb6cd2c7bf9`.
+- Complete aggregation: `c7417273d36c92833fcbd941a5e10c2518e30c97c3a758646a49d19cdc0c6cee`.
+
+No local feature text or regulation content is interpreted. No parcel is rejected. No ranking or score is calculated. No authorization or prohibition is claimed.
+
 ## STEP 7D.5A — Resolve official CNIG meanings for planning-feature codes
 
 - Status: Complete

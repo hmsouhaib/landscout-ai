@@ -13,7 +13,10 @@ import pytest
 from geopandas.testing import assert_geodataframe_equal
 from pandas.testing import assert_frame_equal
 from shapely.geometry import LineString, MultiPolygon, Point, Polygon
-from test_apply_bess_planning_feature_policy import _application_fixture
+from test_apply_bess_planning_feature_policy import (
+    _application_fixture,
+    _surface_touch_with_positive_area,
+)
 
 from landscout import stages
 from landscout.common.bess_application_contract import POLICY_SUFFIX_DTYPES
@@ -111,6 +114,12 @@ def _build_from_relations(
     if canonicalize_application_dtypes:
         for column, dtype in POLICY_SUFFIX_DTYPES.items():
             relations[column] = pd.array(relations[column].tolist(), dtype=dtype)
+        for column in (
+            "point_member_count",
+            "point_members_inside_count",
+            "point_members_boundary_count",
+        ):
+            relations[column] = pd.array(relations[column].tolist(), dtype="Int64")
     application = replace(application, relations=relations)
     application = importlib.import_module(
         "landscout.stages.apply_bess_planning_feature_policy"
@@ -130,7 +139,20 @@ def _relation(
     area: float = 0.000001,
 ) -> dict[str, object]:
     _, _, _, _, application = _application_fixture()
-    row = application.relations.iloc[0].to_dict()
+    if relation_type == "LENGTH_OVERLAP":
+        row = (
+            application.relations.loc[application.relations["geometry_kind"].eq("LINE")]
+            .iloc[0]
+            .to_dict()
+        )
+    else:
+        row = (
+            application.relations.loc[
+                application.relations["geometry_kind"].eq("SURFACE")
+            ]
+            .iloc[0]
+            .to_dict()
+        )
     row.update(
         parcel_id=parcel_id,
         planning_feature_id=feature_id,
@@ -159,9 +181,37 @@ def _relation(
             if application_status == "UNRESOLVED_CODE_PAIR"
             else row["bess_cnig_limitations"]
         ),
-        intersection_area_m2=area if relation_type == "AREA_OVERLAP" else None,
-        intersection_length_m=area if relation_type == "LENGTH_OVERLAP" else None,
     )
+    if relation_type == "AREA_OVERLAP":
+        row["parcel_metric_area_m2"] = max(float(row["parcel_metric_area_m2"]), area)
+        row["feature_area_m2"] = max(float(row["feature_area_m2"]), area)
+        row.update(
+            intersection_area_m2=area,
+            parcel_share_pct=100.0 * area / float(row["parcel_metric_area_m2"]),
+            feature_share_pct=100.0 * area / float(row["feature_area_m2"]),
+        )
+    elif relation_type == "LENGTH_OVERLAP":
+        row["source_line_length_m"] = max(float(row["source_line_length_m"]), area)
+        row["intersection_length_m"] = area
+    elif relation_type == "TOUCH_ONLY":
+        row.update(
+            intersection_area_m2=0.0,
+            parcel_share_pct=0.0,
+            feature_share_pct=0.0,
+        )
+    elif relation_type in {"INSIDE", "BOUNDARY_TOUCH"}:
+        row.update(
+            geometry_kind="POINT",
+            feature_area_m2=None,
+            source_line_length_m=None,
+            intersection_area_m2=None,
+            intersection_length_m=None,
+            parcel_share_pct=None,
+            feature_share_pct=None,
+            point_member_count=1,
+            point_members_inside_count=1 if relation_type == "INSIDE" else 0,
+            point_members_boundary_count=(0 if relation_type == "INSIDE" else 1),
+        )
     return row
 
 
@@ -307,6 +357,26 @@ def _cross_parcel_priority_conflict_result() -> (
     return _rehash_coordinated_result(
         replace(result, parcels=parcels, relation_assessments=relations)
     )
+
+
+def _surface_touch_semantic_corruption_result() -> (
+    BessPlanningFeatureParcelAggregationResult
+):
+    inputs, _, _, _, application = _application_fixture()
+    changed_application = _surface_touch_with_positive_area(application)
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    original = module.validate_bess_application_relation_frame
+
+    def bypass(*args: object, **kwargs: object) -> None:
+        return None
+
+    module.validate_bess_application_relation_frame = bypass
+    try:
+        return module._build_result(inputs[1], changed_application)
+    finally:
+        module.validate_bess_application_relation_frame = original
 
 
 def test_exact_relations_select_configured_max_priority_and_lowest_confidence() -> None:
@@ -493,7 +563,7 @@ def test_local_corruption_fast_fails_before_heavy_validation(
         ("parcels", "bess_cnig_selected_relation_count", 999),
         ("parcels", "bess_cnig_parcel_precheck_status", "UNKNOWN"),
         ("parcels", "bess_cnig_parcel_status_priority", 999),
-        ("parcels", "bess_cnig_parcel_precheck_confidence", "HIGH"),
+        ("parcels", "bess_cnig_parcel_precheck_confidence", "LOW"),
         ("parcels", "bess_cnig_selected_feature_ids_json", "[]"),
         (
             "relation_assessments",
@@ -511,7 +581,7 @@ def test_coordinated_local_cross_table_corruption_is_rejected(
     module = importlib.import_module(
         "landscout.stages.aggregate_bess_planning_feature_policy"
     )
-    _, _, _, _, _, result = _aggregation_fixture()
+    result = _build_from_relations(pd.DataFrame([_relation(parcel_id="PARCEL-1")]))
     frame = getattr(result, frame_name).copy(deep=True)
     frame.loc[frame.index[0], column] = value
     corrupted = module._result_with_hashes(replace(result, **{frame_name: frame}))
@@ -523,7 +593,7 @@ def test_invalid_output_dtype_and_non_2d_parcel_fail_locally() -> None:
     module = importlib.import_module(
         "landscout.stages.aggregate_bess_planning_feature_policy"
     )
-    _, _, _, _, _, result = _aggregation_fixture()
+    result = _build_from_relations(pd.DataFrame([_relation(parcel_id="PARCEL-1")]))
     parcels = result.parcels.copy(deep=True)
     parcels["bess_cnig_selected_relation_count"] = parcels[
         "bess_cnig_selected_relation_count"
@@ -1128,6 +1198,60 @@ def test_coordinated_relation_identity_artifact_corruption_fails_locally(
         )
 
 
+def test_controlling_relation_cannot_be_relabelled_contextual_in_artifact(
+    tmp_path: Path,
+) -> None:
+    corrupted = _surface_touch_semantic_corruption_result()
+    manifest, paths, _ = _write_artifacts(tmp_path, corrupted)
+    with pytest.raises(
+        BessPlanningFeatureParcelAggregationError, match="surface|metric|type"
+    ):
+        load_bess_planning_feature_parcel_aggregation_artifacts(
+            manifest, paths["PARCELS"], paths["RELATION_ASSESSMENTS"]
+        )
+
+
+@pytest.mark.parametrize("parcel_id", ["None", "nan", "<NA>"])
+def test_no_relation_parcel_rejects_textual_null_identity(
+    tmp_path: Path, parcel_id: str
+) -> None:
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    result = _build_from_relations(pd.DataFrame([_relation(parcel_id="PARCEL-1")]))
+    parcels = result.parcels.copy(deep=True)
+    no_relation = parcels["bess_cnig_parcel_aggregation_status"].eq(
+        "NO_PLANNING_FEATURE_RELATION"
+    )
+    assert no_relation.any()
+    parcel_id_dtype = parcels["parcel_id"].dtype
+    parcels.loc[parcels.index[no_relation][0], "parcel_id"] = parcel_id
+    parcels["parcel_id"] = pd.array(
+        parcels["parcel_id"].tolist(), dtype=parcel_id_dtype
+    )
+    corrupted = module._result_with_hashes(replace(result, parcels=parcels))
+    manifest, paths, payload = _write_artifacts(tmp_path, corrupted)
+    persisted_parcels = gpd.read_parquet(paths["PARCELS"])
+    persisted_relations = pd.read_parquet(paths["RELATION_ASSESSMENTS"])
+    for record in payload["artifacts"]:
+        if record["artifact_role"] == "PARCELS":
+            record["frame_schema_signature"] = deterministic_frame_schema_signature(
+                persisted_parcels
+            )
+        else:
+            record["frame_schema_signature"] = deterministic_frame_schema_signature(
+                persisted_relations
+            )
+    manifest.write_text(
+        json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(BessPlanningFeatureParcelAggregationError, match="parcel ID"):
+        load_bess_planning_feature_parcel_aggregation_artifacts(
+            manifest, paths["PARCELS"], paths["RELATION_ASSESSMENTS"]
+        )
+
+
 def test_relation_identity_and_global_mapping_fail_before_heavy_validation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1153,6 +1277,34 @@ def test_relation_identity_and_global_mapping_fail_before_heavy_validation(
             validate_bess_planning_feature_parcel_aggregation_result(
                 *inputs, coded, config, policy, application, corrupted
             )
+    assert calls == 0
+
+
+def test_relation_semantic_failure_fast_fails_before_heavy_validation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inputs, coded, config, policy, application, _ = _aggregation_fixture()
+    module = importlib.import_module(
+        "landscout.stages.aggregate_bess_planning_feature_policy"
+    )
+    calls = 0
+
+    def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+
+    monkeypatch.setattr(
+        module, "validate_bess_planning_feature_application_result", counted
+    )
+    with pytest.raises(BessPlanningFeatureParcelAggregationError):
+        validate_bess_planning_feature_parcel_aggregation_result(
+            *inputs,
+            coded,
+            config,
+            policy,
+            application,
+            _surface_touch_semantic_corruption_result(),
+        )
     assert calls == 0
 
 

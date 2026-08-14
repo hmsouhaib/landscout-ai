@@ -24,6 +24,9 @@ from shapely.geometry import (
 )
 
 from landscout import stages
+from landscout.common.planning_feature_contract import (
+    validate_intrinsic_planning_feature_relations,
+)
 from landscout.sources import gpu_fr as gpu_source_module
 from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
@@ -641,9 +644,9 @@ def test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent(
 
 
 def test_geopackage_prescription_surface_uses_sealed_ogr_fid_fallback() -> None:
-    frame = _source_frame(
-        "prescription_surface", [_rectangle(0, 0, 10, 10)]
-    ).drop(columns="LIB_IDPSC")
+    frame = _source_frame("prescription_surface", [_rectangle(0, 0, 10, 10)]).drop(
+        columns="LIB_IDPSC"
+    )
     result = _run([_inspected("prescription_surface", frame)])
     feature = result.surface_features.iloc[0]
     assert feature["source_feature_id"] == "OGR_FID:1"
@@ -1273,6 +1276,67 @@ def test_point_member_relation_semantics_are_exact() -> None:
 
 
 @pytest.mark.parametrize(
+    "case",
+    [
+        "surface-inside",
+        "line-area",
+        "point-touch",
+        "area-zero",
+        "surface-touch-positive",
+        "length-zero",
+        "line-touch-positive",
+        "inside-zero",
+        "boundary-with-inside",
+        "area-exceeds-feature",
+        "share-inconsistent",
+        "non-finite",
+        "negative",
+    ],
+)
+def test_shared_intrinsic_relation_semantics_reject_every_invalid_case(
+    case: str,
+) -> None:
+    _, _, result = _contract_result()
+    relations = result.relations.copy(deep=True)
+    surface = relations.index[relations["geometry_kind"].eq("SURFACE")][0]
+    line = relations.index[relations["geometry_kind"].eq("LINE")][0]
+    point = relations.index[relations["geometry_kind"].eq("POINT")][0]
+    if case == "surface-inside":
+        relations.loc[surface, "relation_type"] = "INSIDE"
+    elif case == "line-area":
+        relations.loc[line, "relation_type"] = "AREA_OVERLAP"
+    elif case == "point-touch":
+        relations.loc[point, "relation_type"] = "TOUCH_ONLY"
+    elif case == "area-zero":
+        relations.loc[
+            surface, ["intersection_area_m2", "parcel_share_pct", "feature_share_pct"]
+        ] = 0.0
+    elif case == "surface-touch-positive":
+        relations.loc[surface, "relation_type"] = "TOUCH_ONLY"
+    elif case == "length-zero":
+        relations.loc[line, "intersection_length_m"] = 0.0
+    elif case == "line-touch-positive":
+        relations.loc[line, "relation_type"] = "TOUCH_ONLY"
+    elif case == "inside-zero":
+        relations.loc[point, "point_members_inside_count"] = 0
+    elif case == "boundary-with-inside":
+        relations.loc[point, "relation_type"] = "BOUNDARY_TOUCH"
+        relations.loc[point, "point_members_boundary_count"] = 1
+    elif case == "area-exceeds-feature":
+        relations.loc[surface, "intersection_area_m2"] = (
+            float(relations.loc[surface, "feature_area_m2"]) + 1.0
+        )
+    elif case == "share-inconsistent":
+        relations.loc[surface, "parcel_share_pct"] = 42.0
+    elif case == "non-finite":
+        relations.loc[surface, "feature_share_pct"] = float("inf")
+    else:
+        relations.loc[surface, "intersection_area_m2"] = -1.0
+    with pytest.raises((TypeError, ValueError)):
+        validate_intrinsic_planning_feature_relations(relations)
+
+
+@pytest.mark.parametrize(
     ("column", "value"),
     [
         ("source_identity_kind", "NOT_A_KIND"),
@@ -1505,9 +1569,9 @@ def test_expected_relation_hash_binds_dtype_and_index_metadata() -> None:
         result.relations
     )
     object_dtype = result.relations.copy(deep=True)
-    object_dtype["intersection_area_m2"] = object_dtype[
-        "intersection_area_m2"
-    ].astype("object")
+    object_dtype["intersection_area_m2"] = object_dtype["intersection_area_m2"].astype(
+        "object"
+    )
     named_index = result.relations.copy(deep=True)
     named_index.index = named_index.index.rename("relation_row")
     int32_index = result.relations.copy(deep=True)
@@ -1638,12 +1702,12 @@ def test_source_document_reference_allows_one_archive_zip_suffix() -> None:
         ),
     )
     result = intersect_parcels_with_gpu_planning_features(parcels, suffixed)
-    assert result.surface_features["source_archive_name"].eq(
-        f"{ARCHIVE_NAME}.zip"
-    ).all()
-    assert result.surface_features["source_document_reference_raw"].eq(
-        ARCHIVE_NAME
-    ).all()
+    assert (
+        result.surface_features["source_archive_name"].eq(f"{ARCHIVE_NAME}.zip").all()
+    )
+    assert (
+        result.surface_features["source_document_reference_raw"].eq(ARCHIVE_NAME).all()
+    )
     _validate_source_complete(suffixed, parcels, result)
 
 
@@ -1976,9 +2040,7 @@ def test_source_complete_contract_rejects_dataset_outside_extraction_root(
     outside = tmp_path / "outside.gpkg"
     shutil.copyfile(layer.reference.dataset_path, outside)
     reference = replace(layer.reference, dataset_path=outside)
-    changed = _replace_layer_reference(
-        planning_document, layer.logical_name, reference
-    )
+    changed = _replace_layer_reference(planning_document, layer.logical_name, reference)
     with pytest.raises(PlanningFeaturesError, match="source|root|outside|contain"):
         _validate_source_complete(changed, parcels, result)
 
@@ -2141,8 +2203,7 @@ def test_shapefile_family_excludes_dotted_sibling_dataset(tmp_path: Path) -> Non
     after = _validate_source_complete(refreshed, parcels, result)
     assert after.related_source_file_count == before.related_source_file_count
     assert (
-        after.gpu_related_source_files_sha256
-        == before.gpu_related_source_files_sha256
+        after.gpu_related_source_files_sha256 == before.gpu_related_source_files_sha256
     )
 
 

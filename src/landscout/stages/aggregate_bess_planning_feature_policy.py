@@ -509,7 +509,10 @@ def _validate_parcel_frame(frame: object, label: str) -> gpd.GeoDataFrame:
         parcel_ids.isna().any()
         or parcel_ids.duplicated().any()
         or any(
-            not isinstance(value, str) or not value or value != value.strip()
+            not isinstance(value, str)
+            or not value
+            or value != value.strip()
+            or value in NULL_LITERALS
             for value in parcel_ids
         )
     ):
@@ -546,7 +549,7 @@ def _validate_application_relations(
             policy_sha256=application.policy_sha256,
             policy_result_sha256=application.policy_complete_result_content_sha256,
         )
-    except ValueError as error:
+    except (TypeError, ValueError) as error:
         raise BessPlanningFeatureParcelAggregationError(str(error)) from error
     return frame
 
