@@ -926,6 +926,70 @@ def validate_bess_planning_feature_application_result_envelope(
     _validate_result_envelope(result)
 
 
+def _validate_coded_policy_compatibility(
+    coded: PlanningFeatureCodeResult,
+    policy: BessPlanningFeaturePolicyResult,
+) -> None:
+    comparisons = (
+        (policy.source_document_id, coded.source_document_id, "document ID"),
+        (policy.source_archive_sha256, coded.source_archive_sha256, "archive SHA256"),
+        (policy.cnig_profile, coded.profile, "CNIG profile"),
+        (
+            policy.cnig_profile_schema_version,
+            coded.profile_schema_version,
+            "CNIG profile schema",
+        ),
+        (policy.cnig_profile_sha256, coded.profile_sha256, "CNIG profile SHA256"),
+        (
+            policy.cnig_result_hash_schema_version,
+            coded.result_hash_schema_version,
+            "CNIG result hash schema",
+        ),
+        (
+            policy.cnig_complete_result_content_sha256,
+            coded.complete_result_content_sha256,
+            "CNIG complete result SHA256",
+        ),
+    )
+    for actual, expected, label in comparisons:
+        if actual != expected:
+            raise BessPlanningFeatureApplicationError(
+                f"Policy and coded result differ for {label}"
+            )
+    coded_rows = {
+        (row["feature_family"], row["type_code"], row["subtype_code"]): row
+        for row in coded.code_dictionary.to_dict("records")
+    }
+    policy_rows = {
+        (row["feature_family"], row["type_code"], row["subtype_code"]): row
+        for row in policy.policy_table.to_dict("records")
+    }
+    if set(policy_rows) != set(coded_rows):
+        raise BessPlanningFeatureApplicationError(
+            "Policy and code dictionary pair sets differ"
+        )
+    for key, coded_row in coded_rows.items():
+        policy_row = policy_rows[key]
+        meaning_comparisons = (
+            (policy_row["official_label"], coded_row["official_label"]),
+            (
+                policy_row["official_legal_reference"],
+                coded_row["legal_reference"],
+            ),
+            (
+                policy_row["official_regulation_reference"],
+                coded_row["regulation_or_annex_reference"],
+            ),
+        )
+        if any(
+            not _null_safe_equal(actual, expected)
+            for actual, expected in meaning_comparisons
+        ):
+            raise BessPlanningFeatureApplicationError(
+                f"Policy official meaning differs from code dictionary for pair {key}"
+            )
+
+
 def _validate_source_locks(
     result: BessPlanningFeatureApplicationResult
     | BessPlanningFeatureApplicationArtifactManifest,
@@ -994,6 +1058,11 @@ def _validate_source_locks(
             "policy archive SHA256",
         ),
         (policy.cnig_profile, coded.profile, "policy CNIG profile"),
+        (
+            policy.cnig_profile_schema_version,
+            coded.profile_schema_version,
+            "policy CNIG profile schema",
+        ),
         (
             policy.cnig_profile_sha256,
             coded.profile_sha256,
@@ -1217,6 +1286,7 @@ def load_bess_planning_feature_application_artifacts(
     try:
         validate_planning_feature_code_result_envelope(coded_result)
         validate_bess_planning_feature_policy_result_envelope(policy_result)
+        _validate_coded_policy_compatibility(coded_result, policy_result)
         payload = json.loads(
             Path(manifest_path).read_text(encoding="utf-8"),
             object_pairs_hook=_unique_json_object,

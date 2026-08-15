@@ -1458,6 +1458,35 @@ Aggregation hashes remain unchanged:
 
 No local text or regulation content is interpreted. No parcel is rejected. No ranking or score is calculated. No authorization or prohibition is claimed.
 
+## STEP 7D.5B.2B.5.1 — Finalize upstream envelopes and portable filenames
+
+- Status: Complete
+- Scope: intrinsic/API hardening only. CNIG result/profile schemas remain 5/2; policy result/artifact schemas remain 1/2; application result/artifact schemas remain 2/2; aggregation result/artifact schemas remain 1/1. No valid output value, schema, hash, manifest, or Parquet byte changed.
+- Test-first proof: the envelope, compatibility, and portable-name regressions were added before production changes. The prior CNIG envelope inferred its dictionary contract from the supplied frame and did not validate dictionary rows or relation/feature meanings; the prior policy envelope did not lock CNIG schema versions or policy-row domains/lineage; the application loader did not compare policy/dictionary pairs before reading its manifest; and the shared basename check accepted Windows devices, forbidden characters, controls, and NTFS alternate-data-stream syntax.
+- Focused validation: 295 coded-result/policy tests and 379 application/aggregation tests pass. Instrumented incompatibility tests prove zero manifest reads, zero Parquet reads, zero application rebuilds, and zero source-complete validations for malformed or mutually incompatible upstream envelopes. A valid upstream pair retains one coded-envelope validation, one policy-envelope validation, one lightweight application rebuild, and zero heavy loader validations.
+- Quality gates: all 1,856 tests pass with two pre-existing GIS warnings; repository-wide Ruff passes; `mypy src` passes across 37 source files.
+
+### Intrinsic upstream envelopes
+
+The public schema-v5 coded-result envelope validator now requires the exact frozen result type; exact schema/profile/standard scalars; lowercase SHA256 lineage; one explicit non-geospatial code-dictionary schema; canonical unique ordered pairs; exact family, code, official URL, profile, and standard fields; resolved/unknown official-meaning null contracts; and complete relation-to-feature official agreement. Malformed public inputs are converted to `PlanningFeatureCodeError` without rereading GPU files or rebuilding intersections.
+
+The public schema-v1 compiled-policy envelope validator now requires the exact frozen result type; exact policy, CNIG-profile, and CNIG-result schema versions; canonical table schema/order/pairs; allowed status/confidence domains; strict positive integer priorities; a document-wide status/priority bijection; non-empty reviewed text; exact false interpretation/legal flags; row-to-envelope policy/CNIG lineage; true-null official references; and every component/complete hash. Malformed inputs are converted to `BessPlanningFeaturePolicyError` without source reconstruction.
+
+Before any manifest or artifact read, the application loader validates both upstream envelopes and proves their document, archive, CNIG profile/schema/hash, complete result, pair set, label, legal-reference, and regulation-reference compatibility. The check uses only the supplied immutable coded and policy results; it does not load YAML, reread GPU files, or rebuild spatial relations.
+
+The shared artifact basename contract now rejects POSIX and Windows paths, parent/child paths under either separator, control characters including NUL/newline/DEL, Windows-forbidden characters, NTFS alternate-data-stream colons, trailing dots/spaces, and reserved device stems (`CON`, `PRN`, `AUX`, `NUL`, `CLOCK$`, `COM1`–`COM9`, and `LPT1`–`LPT9`) case-insensitively. Policy, application, and aggregation manifests all retain their existing valid local `.parquet` basenames and case-insensitive duplicate protection.
+
+### Unchanged real Muret artifacts
+
+The existing policy, application, and aggregation artifacts loaded through their strengthened verified-byte/source-bound loaders without rewrite and then passed the independent offline GPU/CNIG/policy/application source-complete validators in 50.894 seconds.
+
+- Parcels / features / application relations / aggregation relations: 3,638 / 479 / 2,414 / 2,414.
+- Application statuses and parcel/relation-role distributions remain unchanged.
+- Application surface / line / point / relation / complete hashes: `a907b86387b2ac509b6f746e393bdb05bf9886f0c6a2580fc48e625cbf953465`, `63b02b8370d932b276730efc65c313acfde251aaa38ed243e1fa226b65d685da`, `7f5190cd45350ab23d16d26baeec6af1934ae4315a559dcfffed46e680b6d554`, `47743afe99163eea98d23f440b6369e5ee8ca11c6ee22baec7ea242d516eefd7`, and `53b8fcddfcbd3920f223071d946d9066c8cb9cc38f0afc8d917e2b723926527e`.
+- Aggregation source-parcel / source-relation / relation-assessment / parcel / complete hashes: `268754a26b349b240a044411c0af331c914ab0cd326c607d2991d797d2d759d0`, `7736dbf186b5f37c202d79b7e394a485adfce772a6e40147b12932071e72bfaf`, `3a45b5a0c61ae2e240964f921e67790a279c1eb449fc5aa85621b7b8fda7a367`, `0b03f2beaedfafafdd07a5dd619419ea8a284199071e07a5d0ab8eb6cd2c7bf9`, and `c7417273d36c92833fcbd941a5e10c2518e30c97c3a758646a49d19cdc0c6cee`.
+
+No local text or regulation content is interpreted. No parcel is rejected. No ranking or score is calculated. No authorization or prohibition is claimed.
+
 ## STEP 7D.5A — Resolve official CNIG meanings for planning-feature codes
 
 - Status: Complete

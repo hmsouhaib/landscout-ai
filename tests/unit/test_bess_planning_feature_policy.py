@@ -97,13 +97,19 @@ def _canonical_sha256(value: object) -> str:
 def _policy_entry(row: object, position: int) -> dict[str, object]:
     statuses = tuple(STATUS_PRIORITIES)
     status = statuses[position % len(statuses)]
+    legal_reference = row.legal_reference
+    regulation_reference = row.regulation_or_annex_reference
     return {
         "feature_family": row.feature_family,
         "type_code": row.type_code,
         "subtype_code": row.subtype_code,
         "expected_official_label": row.official_label,
-        "expected_legal_reference": row.legal_reference,
-        "expected_regulation_reference": row.regulation_or_annex_reference,
+        "expected_legal_reference": (
+            None if pd.isna(legal_reference) else legal_reference
+        ),
+        "expected_regulation_reference": (
+            None if pd.isna(regulation_reference) else regulation_reference
+        ),
         "precheck_status": status,
         "confidence": ("HIGH", "MEDIUM", "LOW")[position % 3],
         "rationale": f"Official pair {row.feature_family} {row.type_code}/{row.subtype_code} requires conservative review.",
@@ -902,6 +908,27 @@ def test_step_7d_5b_2b_5_exposes_lightweight_policy_result_validator() -> None:
         "C:/absolute/file.parquet",
         r"\\server\share\file.parquet",
         r"subdir\file.parquet",
+        "CON.parquet",
+        "con.PARQUET",
+        "NUL.parquet",
+        "PRN.parquet",
+        "AUX.parquet",
+        "CLOCK$.parquet",
+        "COM1.parquet",
+        "COM9.parquet",
+        "LPT1.parquet",
+        "LPT9.parquet",
+        "file:name.parquet",
+        "base.parquet:stream.parquet",
+        "file?.parquet",
+        "file*.parquet",
+        "file<.parquet",
+        "file>.parquet",
+        "file|.parquet",
+        'file".parquet',
+        "nul\x00.parquet",
+        "line\nbreak.parquet",
+        "del\x7f.parquet",
     ],
 )
 def test_policy_manifest_rejects_nonportable_parquet_filename(
@@ -913,3 +940,131 @@ def test_policy_manifest_rejects_nonportable_parquet_filename(
     module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
     with pytest.raises(ValueError, match="filename|basename|portable"):
         module.BessPlanningFeaturePolicyArtifactManifest.model_validate(manifest)
+
+
+def _rehash_policy_table(
+    result: BessPlanningFeaturePolicyResult, table: pd.DataFrame
+) -> BessPlanningFeaturePolicyResult:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    return module._result_with_hashes(replace(result, policy_table=table))
+
+
+@pytest.mark.parametrize("version", [0, 1, 3, 999])
+def test_policy_envelope_requires_cnig_profile_schema_two(version: int) -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    _, _, _, result = _compiled_fixture()
+    changed = module._result_with_hashes(
+        replace(result, cnig_profile_schema_version=version)
+    )
+    with pytest.raises(BessPlanningFeaturePolicyError, match="profile schema|schema"):
+        module.validate_bess_planning_feature_policy_result_envelope(changed)
+
+
+@pytest.mark.parametrize("version", [0, 1, 2, 4, 6, 999])
+def test_policy_envelope_requires_cnig_result_schema_five(version: int) -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    _, _, _, result = _compiled_fixture()
+    changed = module._result_with_hashes(
+        replace(result, cnig_result_hash_schema_version=version)
+    )
+    with pytest.raises(BessPlanningFeaturePolicyError, match="CNIG result|schema"):
+        module.validate_bess_planning_feature_policy_result_envelope(changed)
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "duplicate-pair",
+        "reordered-pairs",
+        "malformed-code",
+        "invalid-status",
+        "invalid-confidence",
+        "zero-priority",
+        "negative-priority",
+        "bool-priority",
+        "status-two-priorities",
+        "priority-two-statuses",
+        "row-scope",
+        "row-flag",
+        "row-policy-sha",
+        "row-cnig-profile",
+        "row-cnig-sha",
+        "row-cnig-result-sha",
+        "literal-null-reference",
+    ],
+)
+def test_policy_envelope_validates_every_intrinsic_row_contract(
+    mutation: str,
+) -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    _, _, _, result = _compiled_fixture()
+    table = result.policy_table.copy(deep=True)
+    first, second = table.index[:2]
+    if mutation == "duplicate-pair":
+        table.loc[second, ["feature_family", "type_code", "subtype_code"]] = table.loc[
+            first, ["feature_family", "type_code", "subtype_code"]
+        ].tolist()
+    elif mutation == "reordered-pairs":
+        table = table.iloc[::-1].copy(deep=True)
+    elif mutation == "malformed-code":
+        table.loc[first, "type_code"] = "1"
+    elif mutation == "invalid-status":
+        table.loc[first, "precheck_status"] = "AUTHORIZED"
+    elif mutation == "invalid-confidence":
+        table.loc[first, "confidence"] = "CERTAIN"
+    elif mutation == "zero-priority":
+        table.loc[first, "status_priority"] = 0
+    elif mutation == "negative-priority":
+        table.loc[first, "status_priority"] = -1
+    elif mutation == "bool-priority":
+        values = table["status_priority"].astype("object")
+        values.loc[first] = True
+        table["status_priority"] = values
+    elif mutation == "status-two-priorities":
+        table.loc[second, "precheck_status"] = table.loc[first, "precheck_status"]
+        table.loc[second, "status_priority"] = table.loc[first, "status_priority"] + 1
+    elif mutation == "priority-two-statuses":
+        different = table.index[
+            table["precheck_status"] != table.loc[first, "precheck_status"]
+        ][0]
+        table.loc[different, "status_priority"] = table.loc[first, "status_priority"]
+    elif mutation == "row-scope":
+        table.loc[first, "policy_scope"] = "OTHER_SCOPE"
+    elif mutation == "row-flag":
+        table.loc[first, "local_feature_text_interpreted"] = True
+    elif mutation == "row-policy-sha":
+        table.loc[first, "policy_sha256"] = "a" * 64
+    elif mutation == "row-cnig-profile":
+        table.loc[first, "cnig_profile"] = "other-cnig-profile"
+    elif mutation == "row-cnig-sha":
+        table.loc[first, "cnig_profile_sha256"] = "a" * 64
+    elif mutation == "row-cnig-result-sha":
+        table.loc[first, "cnig_complete_result_content_sha256"] = "a" * 64
+    else:
+        table.loc[first, "official_legal_reference"] = "None"
+    changed = _rehash_policy_table(result, table)
+    with pytest.raises(
+        BessPlanningFeaturePolicyError,
+        match="policy|pair|order|code|status|confidence|priority|scope|flag|CNIG|null|schema",
+    ):
+        module.validate_bess_planning_feature_policy_result_envelope(changed)
+
+
+def test_policy_envelope_requires_exact_type_and_accepts_valid_schema_v1() -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    _, _, _, result = _compiled_fixture()
+
+    class DerivedPolicyResult(BessPlanningFeaturePolicyResult):
+        pass
+
+    derived = DerivedPolicyResult(**result.__dict__)
+    with pytest.raises(BessPlanningFeaturePolicyError, match="type|result"):
+        module.validate_bess_planning_feature_policy_result_envelope(derived)
+    module.validate_bess_planning_feature_policy_result_envelope(result)
+
+
+@pytest.mark.parametrize("malformed", [None, object()])
+def test_policy_envelope_controls_malformed_result_type(malformed: object) -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    with pytest.raises(BessPlanningFeaturePolicyError):
+        module.validate_bess_planning_feature_policy_result_envelope(malformed)

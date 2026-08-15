@@ -73,6 +73,7 @@ ALLOWED_STATUSES = frozenset(
         "UNKNOWN",
     }
 )
+ALLOWED_CONFIDENCES = frozenset({"HIGH", "MEDIUM", "LOW"})
 CODE_PATTERN = re.compile(r"[0-9]{2}")
 SHA_PATTERN = re.compile(r"[0-9a-f]{64}")
 
@@ -756,6 +757,108 @@ def _result_with_hashes(
     )
 
 
+def _validate_policy_table_rows(result: BessPlanningFeaturePolicyResult) -> None:
+    records: dict[tuple[str, str, str], dict[str, object]] = {}
+    ordered_keys: list[tuple[str, str, str]] = []
+    priority_to_status: dict[int, str] = {}
+    status_to_priority: dict[str, int] = {}
+    for position, row in enumerate(result.policy_table.to_dict("records")):
+        family = row["feature_family"]
+        type_code = row["type_code"]
+        subtype_code = row["subtype_code"]
+        if family not in {"PRESCRIPTION", "INFORMATION"}:
+            raise BessPlanningFeaturePolicyError(
+                f"policy table row {position} feature family is invalid"
+            )
+        for value, label in (
+            (type_code, "type code"),
+            (subtype_code, "subtype code"),
+        ):
+            if not isinstance(value, str) or CODE_PATTERN.fullmatch(value) is None:
+                raise BessPlanningFeaturePolicyError(
+                    f"policy table row {position} {label} is invalid"
+                )
+        key = (family, type_code, subtype_code)
+        if key in records:
+            raise BessPlanningFeaturePolicyError(
+                "policy table contains a duplicate code pair"
+            )
+        for field, label in (
+            ("official_label", "official label"),
+            ("rationale", "rationale"),
+            ("required_human_action", "required human action"),
+            ("limitations", "limitations"),
+        ):
+            try:
+                _exact_string(row[field], f"policy row {position} {label}")
+            except ValueError as error:
+                raise BessPlanningFeaturePolicyError(str(error)) from error
+        for field in (
+            "official_legal_reference",
+            "official_regulation_reference",
+        ):
+            value = row[field]
+            if _null_value(value) is None:
+                continue
+            if isinstance(value, str) and value in NULL_REFERENCE_LITERALS:
+                raise BessPlanningFeaturePolicyError(
+                    f"{field} contains a literal null replacement"
+                )
+            try:
+                _exact_string(value, f"policy row {position} {field}")
+            except ValueError as error:
+                raise BessPlanningFeaturePolicyError(str(error)) from error
+        status = row["precheck_status"]
+        confidence = row["confidence"]
+        priority = row["status_priority"]
+        if status not in ALLOWED_STATUSES:
+            raise BessPlanningFeaturePolicyError(
+                f"policy table row {position} status is invalid"
+            )
+        if confidence not in ALLOWED_CONFIDENCES:
+            raise BessPlanningFeaturePolicyError(
+                f"policy table row {position} confidence is invalid"
+            )
+        if type(priority) is not int or priority <= 0:
+            raise BessPlanningFeaturePolicyError(
+                f"policy table row {position} priority is invalid"
+            )
+        previous_status = priority_to_status.setdefault(priority, status)
+        previous_priority = status_to_priority.setdefault(status, priority)
+        if previous_status != status or previous_priority != priority:
+            raise BessPlanningFeaturePolicyError(
+                "policy table status and priority mapping is not one-to-one"
+            )
+        if row["policy_scope"] != result.policy_scope:
+            raise BessPlanningFeaturePolicyError(
+                f"policy table row {position} scope differs from result"
+            )
+        for field in (
+            "local_feature_text_interpreted",
+            "local_regulation_content_interpreted",
+            "legal_conclusion_produced",
+        ):
+            if row[field] is not False:
+                raise BessPlanningFeaturePolicyError(
+                    f"policy table row {position} {field} must be false"
+                )
+        if (
+            row["policy_profile"] != result.policy_profile
+            or row["policy_sha256"] != result.policy_sha256
+            or row["cnig_profile"] != result.cnig_profile
+            or row["cnig_profile_sha256"] != result.cnig_profile_sha256
+            or row["cnig_complete_result_content_sha256"]
+            != result.cnig_complete_result_content_sha256
+        ):
+            raise BessPlanningFeaturePolicyError(
+                f"policy table row {position} result lineage differs"
+            )
+        records[key] = row
+        ordered_keys.append(key)
+    if ordered_keys != sorted(ordered_keys):
+        raise BessPlanningFeaturePolicyError("policy table pair order is not canonical")
+
+
 def _build_result(
     config: BessPlanningFeaturePolicyConfig,
     coded_result: PlanningFeatureCodeResult,
@@ -785,22 +888,33 @@ def _build_result(
 
 
 def _validate_result_envelope(result: BessPlanningFeaturePolicyResult) -> None:
-    if not isinstance(result, BessPlanningFeaturePolicyResult):
+    if type(result) is not BessPlanningFeaturePolicyResult:
         raise BessPlanningFeaturePolicyError(
             "result must be a BessPlanningFeaturePolicyResult"
         )
-    if (
-        type(result.policy_schema_version) is not int
-        or result.policy_schema_version != POLICY_SCHEMA_VERSION
+    for version, expected, label in (
+        (result.policy_schema_version, POLICY_SCHEMA_VERSION, "policy schema"),
+        (
+            result.result_hash_schema_version,
+            RESULT_HASH_SCHEMA_VERSION,
+            "result hash schema",
+        ),
+        (result.cnig_profile_schema_version, 2, "CNIG profile schema"),
+        (result.cnig_result_hash_schema_version, 5, "CNIG result hash schema"),
     ):
-        raise BessPlanningFeaturePolicyError("unsupported policy schema version")
-    if (
-        type(result.result_hash_schema_version) is not int
-        or result.result_hash_schema_version != RESULT_HASH_SCHEMA_VERSION
-    ):
-        raise BessPlanningFeaturePolicyError("unsupported result hash schema version")
+        if type(version) is not int or version != expected:
+            raise BessPlanningFeaturePolicyError(f"unsupported {label} version")
     if result.policy_scope != POLICY_SCOPE:
         raise BessPlanningFeaturePolicyError("result policy scope is invalid")
+    for value, label in (
+        (result.policy_profile, "policy profile"),
+        (result.source_document_id, "source document ID"),
+        (result.cnig_profile, "CNIG profile"),
+    ):
+        try:
+            _exact_string(value, label)
+        except ValueError as error:
+            raise BessPlanningFeaturePolicyError(str(error)) from error
     if not isinstance(result.policy_table, pd.DataFrame) or isinstance(
         result.policy_table, gpd.GeoDataFrame
     ):
@@ -815,30 +929,14 @@ def _validate_result_envelope(result: BessPlanningFeaturePolicyResult) -> None:
         != POLICY_TABLE_SCHEMA_SIGNATURE
     ):
         raise BessPlanningFeaturePolicyError("policy table schema is invalid")
-    for column in (
-        "official_legal_reference",
-        "official_regulation_reference",
-    ):
-        for value in result.policy_table[column].tolist():
-            if isinstance(value, str) and value in NULL_REFERENCE_LITERALS:
-                raise BessPlanningFeaturePolicyError(
-                    f"{column} contains a literal null replacement"
-                )
-    for value, label in (
-        (result.policy_sha256, "policy_sha256"),
-        (result.source_archive_sha256, "source_archive_sha256"),
-        (result.cnig_profile_sha256, "cnig_profile_sha256"),
-        (
-            result.cnig_complete_result_content_sha256,
-            "cnig_complete_result_content_sha256",
-        ),
-        (result.policy_table_content_sha256, "policy_table_content_sha256"),
-        (result.complete_result_content_sha256, "complete_result_content_sha256"),
-    ):
+    for field in POLICY_RESULT_SCALAR_FIELDS:
+        if not field.endswith("_sha256"):
+            continue
         try:
-            _sha256_string(value, label)
+            _sha256_string(getattr(result, field), field)
         except ValueError as error:
             raise BessPlanningFeaturePolicyError(str(error)) from error
+    _validate_policy_table_rows(result)
     rebuilt = _result_with_hashes(result)
     if result.policy_table_content_sha256 != rebuilt.policy_table_content_sha256:
         raise BessPlanningFeaturePolicyError("policy table hash is invalid")
@@ -851,7 +949,14 @@ def validate_bess_planning_feature_policy_result_envelope(
 ) -> None:
     """Validate one compiled-policy envelope without rebuilding CNIG sources."""
 
-    _validate_result_envelope(result)
+    try:
+        _validate_result_envelope(result)
+    except BessPlanningFeaturePolicyError:
+        raise
+    except Exception as error:
+        raise BessPlanningFeaturePolicyError(
+            "BESS planning-feature policy result envelope is invalid"
+        ) from error
 
 
 def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:

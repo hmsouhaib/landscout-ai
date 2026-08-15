@@ -1534,7 +1534,7 @@ def test_coordinated_output_hash_mutation_is_rejected() -> None:
     surface = result.surface_features.copy(deep=True)
     surface.loc[surface.index[0], "official_code_label"] = "Mutated"
     mutated = _result_with_hashes(replace(result, surface_features=surface))
-    with pytest.raises(PlanningFeatureCodeError, match="rebuilt"):
+    with pytest.raises(PlanningFeatureCodeError, match="rebuilt|meaning|dictionary"):
         validate_planning_feature_code_result(*inputs, mutated)
 
 
@@ -2070,3 +2070,150 @@ def test_step_7d_5b_2b_5_exposes_lightweight_coded_result_validator() -> None:
         module.validate_planning_feature_code_result_envelope(
             replace(result, complete_result_content_sha256="0" * 64)
         )
+
+
+def _schema_v5_envelope_result() -> PlanningFeatureCodeResult:
+    return resolve_planning_feature_codes(*_inputs())
+
+
+@pytest.mark.parametrize("dictionary", [None, "not-a-frame"])
+def test_schema_v5_envelope_controls_malformed_dictionary_type(
+    dictionary: object,
+) -> None:
+    module = importlib.import_module("landscout.stages.resolve_planning_feature_codes")
+    result = _schema_v5_envelope_result()
+    with pytest.raises(PlanningFeatureCodeError):
+        module.validate_planning_feature_code_result_envelope(
+            replace(result, code_dictionary=dictionary)
+        )
+
+
+def test_schema_v5_envelope_rejects_geospatial_code_dictionary() -> None:
+    module = importlib.import_module("landscout.stages.resolve_planning_feature_codes")
+    result = _schema_v5_envelope_result()
+    dictionary = gpd.GeoDataFrame(result.code_dictionary.copy(deep=True))
+    with pytest.raises(PlanningFeatureCodeError, match="dictionary|DataFrame"):
+        module.validate_planning_feature_code_result_envelope(
+            replace(result, code_dictionary=dictionary)
+        )
+
+
+@pytest.mark.parametrize(
+    "mutation", ["dtype", "range-index", "index-name", "index-dtype"]
+)
+def test_schema_v5_dictionary_schema_is_explicit(mutation: str) -> None:
+    module = importlib.import_module("landscout.stages.resolve_planning_feature_codes")
+    result = _schema_v5_envelope_result()
+    dictionary = result.code_dictionary.copy(deep=True)
+    if mutation == "dtype":
+        dictionary["official_label"] = dictionary["official_label"].astype("category")
+    elif mutation == "range-index":
+        dictionary.index = pd.RangeIndex(len(dictionary))
+    elif mutation == "index-name":
+        dictionary.index = dictionary.index.rename("changed")
+    else:
+        dictionary.index = pd.Index(dictionary.index.to_numpy(), dtype="uint64")
+    changed = _result_with_hashes(replace(result, code_dictionary=dictionary))
+    with pytest.raises(PlanningFeatureCodeError, match="dictionary|schema|dtype|index"):
+        module.validate_planning_feature_code_result_envelope(changed)
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "duplicate-pair",
+        "unsorted-pairs",
+        "malformed-type",
+        "malformed-subtype",
+        "wrong-family",
+        "wrong-url",
+        "wrong-profile",
+        "wrong-profile-sha",
+        "literal-null-reference",
+    ],
+)
+def test_schema_v5_dictionary_rows_are_intrinsically_validated(mutation: str) -> None:
+    module = importlib.import_module("landscout.stages.resolve_planning_feature_codes")
+    result = _schema_v5_envelope_result()
+    dictionary = result.code_dictionary.copy(deep=True)
+    if mutation == "duplicate-pair":
+        dictionary.loc[
+            dictionary.index[1], ["feature_family", "type_code", "subtype_code"]
+        ] = dictionary.loc[
+            dictionary.index[0], ["feature_family", "type_code", "subtype_code"]
+        ].tolist()
+    elif mutation == "unsorted-pairs":
+        dictionary = dictionary.iloc[::-1].copy(deep=True)
+    elif mutation == "malformed-type":
+        dictionary.loc[dictionary.index[0], "type_code"] = "1"
+    elif mutation == "malformed-subtype":
+        dictionary.loc[dictionary.index[0], "subtype_code"] = "000"
+    elif mutation == "wrong-family":
+        dictionary.loc[dictionary.index[0], "feature_family"] = "ZONING"
+    elif mutation == "wrong-url":
+        dictionary.loc[dictionary.index[0], "official_source_url"] = (
+            "https://example.com/codes"
+        )
+    elif mutation == "wrong-profile":
+        dictionary.loc[dictionary.index[0], "profile"] = "other-profile"
+    elif mutation == "wrong-profile-sha":
+        dictionary.loc[dictionary.index[0], "profile_sha256"] = "a" * 64
+    else:
+        dictionary.loc[dictionary.index[0], "legal_reference"] = "None"
+    changed = _result_with_hashes(replace(result, code_dictionary=dictionary))
+    with pytest.raises(
+        PlanningFeatureCodeError, match="dictionary|pair|code|family|URL|profile|order"
+    ):
+        module.validate_planning_feature_code_result_envelope(changed)
+
+
+def test_schema_v5_scalar_lineage_contracts_are_intrinsic() -> None:
+    module = importlib.import_module("landscout.stages.resolve_planning_feature_codes")
+    result = _schema_v5_envelope_result()
+    changed_standard = _result_with_hashes(
+        replace(result, standard_model="CNIG PLU v2099")
+    )
+    malformed_sha = _result_with_hashes(
+        replace(result, planning_document_context_sha256="not-a-sha")
+    )
+    for changed in (changed_standard, malformed_sha):
+        with pytest.raises(PlanningFeatureCodeError, match="standard|SHA|sha|lineage"):
+            module.validate_planning_feature_code_result_envelope(changed)
+
+
+def test_schema_v5_official_rows_and_relation_feature_agreement_are_intrinsic() -> None:
+    module = importlib.import_module("landscout.stages.resolve_planning_feature_codes")
+    result = _schema_v5_envelope_result()
+    surface = result.surface_features.copy(deep=True)
+    surface.loc[surface.index[0], "official_code_label"] = pd.NA
+    missing_meaning = _result_with_hashes(replace(result, surface_features=surface))
+
+    surface = result.surface_features.copy(deep=True)
+    surface.loc[surface.index[0], "official_code_status"] = "UNKNOWN_CODE_PAIR"
+    invented_unknown = _result_with_hashes(replace(result, surface_features=surface))
+
+    relations = result.relations.copy(deep=True)
+    relations.loc[relations.index[0], "official_code_label"] = "Other official meaning"
+    mismatched_relation = _result_with_hashes(replace(result, relations=relations))
+
+    for changed in (missing_meaning, invented_unknown, mismatched_relation):
+        with pytest.raises(
+            PlanningFeatureCodeError,
+            match="official|meaning|UNKNOWN|relation|feature",
+        ):
+            module.validate_planning_feature_code_result_envelope(changed)
+
+
+def test_schema_v5_envelope_requires_exact_result_type_and_accepts_valid_result() -> (
+    None
+):
+    module = importlib.import_module("landscout.stages.resolve_planning_feature_codes")
+    result = _schema_v5_envelope_result()
+
+    class DerivedPlanningFeatureCodeResult(PlanningFeatureCodeResult):
+        pass
+
+    derived = DerivedPlanningFeatureCodeResult(**result.__dict__)
+    with pytest.raises(PlanningFeatureCodeError, match="type|result"):
+        module.validate_planning_feature_code_result_envelope(derived)
+    module.validate_planning_feature_code_result_envelope(result)

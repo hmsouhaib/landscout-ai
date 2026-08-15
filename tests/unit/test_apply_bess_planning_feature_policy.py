@@ -1955,10 +1955,15 @@ def test_source_bound_loader_rejects_all_null_raw_column_transition(
             relations=coded_relations,
         )
     )
+    policy_table = policy.policy_table.copy(deep=True)
+    policy_table["cnig_complete_result_content_sha256"] = pd.array(
+        [coded.complete_result_content_sha256] * len(policy_table), dtype="str"
+    )
     policy = policy_module._result_with_hashes(
         replace(
             policy,
             cnig_complete_result_content_sha256=coded.complete_result_content_sha256,
+            policy_table=policy_table,
         )
     )
     result = module._build_result(coded, policy)
@@ -2096,6 +2101,27 @@ def test_application_loader_rejects_bad_upstream_before_artifact_reads(
         "C:/absolute/file.parquet",
         r"\\server\share\file.parquet",
         r"subdir\file.parquet",
+        "CON.parquet",
+        "con.PARQUET",
+        "NUL.parquet",
+        "PRN.parquet",
+        "AUX.parquet",
+        "CLOCK$.parquet",
+        "COM1.parquet",
+        "COM9.parquet",
+        "LPT1.parquet",
+        "LPT9.parquet",
+        "file:name.parquet",
+        "base.parquet:stream.parquet",
+        "file?.parquet",
+        "file*.parquet",
+        "file<.parquet",
+        "file>.parquet",
+        "file|.parquet",
+        'file".parquet',
+        "nul\x00.parquet",
+        "line\nbreak.parquet",
+        "del\x7f.parquet",
     ],
 )
 def test_application_manifest_rejects_nonportable_filename(
@@ -2106,3 +2132,106 @@ def test_application_manifest_rejects_nonportable_filename(
     payload["artifacts"][0]["filename"] = filename
     with pytest.raises(ValueError, match="filename|basename|portable"):
         BessPlanningFeatureApplicationArtifactManifest.model_validate(payload)
+
+
+def _compatible_policy_mutation(policy: object, mutation: str) -> object:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    table = policy.policy_table.copy(deep=True)
+    scalar_changes: dict[str, object] = {}
+    if mutation == "profile-schema":
+        scalar_changes["cnig_profile_schema_version"] = 3
+    elif mutation == "extra-pair":
+        extra = table.iloc[[0]].copy(deep=True)
+        extra["type_code"] = pd.array(["98"], dtype="str")
+        table = pd.concat([table, extra], ignore_index=True).sort_values(
+            ["feature_family", "type_code", "subtype_code"], kind="stable"
+        )
+        table.index = pd.Index(table.index.to_numpy(), dtype="int64")
+    elif mutation == "missing-pair":
+        table = table.iloc[:-1].copy(deep=True)
+        table.index = pd.Index(range(len(table)), dtype="int64")
+    elif mutation == "official-label":
+        table.loc[table.index[0], "official_label"] = "Another exact official label"
+    elif mutation == "legal-reference":
+        table.loc[table.index[0], "official_legal_reference"] = "Changed legal ref"
+    elif mutation == "regulation-reference":
+        table.loc[table.index[0], "official_regulation_reference"] = (
+            "Changed regulation ref"
+        )
+    elif mutation == "document":
+        scalar_changes["source_document_id"] = "OTHER-DOCUMENT"
+    elif mutation == "archive":
+        scalar_changes["source_archive_sha256"] = "b" * 64
+    elif mutation == "profile":
+        scalar_changes["cnig_profile"] = "other-cnig-profile"
+        table["cnig_profile"] = pd.array(
+            ["other-cnig-profile"] * len(table), dtype="str"
+        )
+    elif mutation == "profile-sha":
+        scalar_changes["cnig_profile_sha256"] = "a" * 64
+        table["cnig_profile_sha256"] = pd.array(["a" * 64] * len(table), dtype="str")
+    else:
+        scalar_changes["cnig_complete_result_content_sha256"] = "a" * 64
+        table["cnig_complete_result_content_sha256"] = pd.array(
+            ["a" * 64] * len(table), dtype="str"
+        )
+    changed = replace(policy, policy_table=table, **scalar_changes)
+    return module._result_with_hashes(changed)
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "profile-schema",
+        "extra-pair",
+        "missing-pair",
+        "official-label",
+        "legal-reference",
+        "regulation-reference",
+        "document",
+        "archive",
+        "profile",
+        "profile-sha",
+        "complete-result-sha",
+    ],
+)
+def test_application_loader_rejects_incompatible_upstreams_before_io_or_rebuild(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mutation: str,
+) -> None:
+    _, coded, _, policy, result = _application_fixture()
+    manifest, paths, _ = _write_application_artifacts(tmp_path, result)
+    changed_policy = _compatible_policy_mutation(policy, mutation)
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    calls = {"manifest": 0, "read": 0, "build": 0, "heavy": 0}
+
+    def manifest_read(*args: object, **kwargs: object) -> str:
+        calls["manifest"] += 1
+        raise AssertionError("manifest read must not run")
+
+    def read(*args: object, **kwargs: object) -> object:
+        calls["read"] += 1
+        raise AssertionError("artifact read must not run")
+
+    def build(*args: object, **kwargs: object) -> object:
+        calls["build"] += 1
+        raise AssertionError("application rebuild must not run")
+
+    def heavy(*args: object, **kwargs: object) -> None:
+        calls["heavy"] += 1
+
+    monkeypatch.setattr(module, "_read_verified_artifact", read)
+    monkeypatch.setattr(module, "_build_result", build)
+    monkeypatch.setattr(module, "validate_bess_planning_feature_policy_result", heavy)
+    monkeypatch.setattr(Path, "read_text", manifest_read)
+    with pytest.raises(
+        BessPlanningFeatureApplicationError,
+        match="Policy|policy|CNIG|pair|source|schema|official|reference",
+    ):
+        module.load_bess_planning_feature_application_artifacts(
+            manifest, *paths.values(), coded, changed_policy
+        )
+    assert calls == {"manifest": 0, "read": 0, "build": 0, "heavy": 0}

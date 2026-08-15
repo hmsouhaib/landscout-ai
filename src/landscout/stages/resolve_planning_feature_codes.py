@@ -76,9 +76,18 @@ CODE_DICTIONARY_COLUMNS = (
     "profile_sha256",
     "standard_model",
 )
+CODE_DICTIONARY_DTYPES = tuple("str" for _ in CODE_DICTIONARY_COLUMNS)
+CODE_DICTIONARY_SCHEMA_SIGNATURE: dict[str, object] = {
+    "columns": list(CODE_DICTIONARY_COLUMNS),
+    "dtypes": list(CODE_DICTIONARY_DTYPES),
+    "index_class": "pandas.Index",
+    "index_names": [None],
+    "index_level_dtypes": ["int64"],
+}
 
 _CODE_PATTERN = re.compile(r"[0-9]{2}")
 _SHA_PATTERN = re.compile(r"[0-9a-f]{64}")
+_NULL_REFERENCE_LITERALS = frozenset({"None", "nan", "<NA>"})
 
 
 class PlanningFeatureCodeError(ValueError):
@@ -354,6 +363,192 @@ def _validated_code_series(series: pd.Series, label: str) -> None:
             )
 
 
+def _is_true_null(value: object) -> bool:
+    if value is None or value is pd.NA:
+        return True
+    try:
+        missing = pd.isna(value)
+    except (TypeError, ValueError):
+        return False
+    return isinstance(missing, (bool, np.bool_)) and bool(missing)
+
+
+def _null_safe_equal(left: object, right: object) -> bool:
+    left_null = _is_true_null(left)
+    right_null = _is_true_null(right)
+    if left_null or right_null:
+        return left_null and right_null
+    return type(left) is type(right) and left == right
+
+
+def _validate_nullable_official_value(value: object, label: str) -> None:
+    if _is_true_null(value):
+        return
+    if isinstance(value, str) and value in _NULL_REFERENCE_LITERALS:
+        raise PlanningFeatureCodeError(f"{label} contains a literal null replacement")
+    try:
+        _validate_official_text(value, label)
+    except ValueError as error:
+        raise PlanningFeatureCodeError(str(error)) from error
+
+
+def _validate_code_dictionary(
+    result: PlanningFeatureCodeResult,
+) -> dict[tuple[str, str, str], dict[str, object]]:
+    frame = result.code_dictionary
+    if type(frame) is not pd.DataFrame:
+        raise PlanningFeatureCodeError(
+            "code dictionary must be a non-geospatial DataFrame"
+        )
+    if frame.columns.duplicated().any() or (
+        deterministic_frame_schema_signature(frame) != CODE_DICTIONARY_SCHEMA_SIGNATURE
+    ):
+        raise PlanningFeatureCodeError("code dictionary canonical schema is invalid")
+    records: dict[tuple[str, str, str], dict[str, object]] = {}
+    ordered_keys: list[tuple[str, str, str]] = []
+    for position, row in enumerate(frame.to_dict("records")):
+        family = row["feature_family"]
+        if family not in {"PRESCRIPTION", "INFORMATION"}:
+            raise PlanningFeatureCodeError(
+                f"code dictionary row {position} feature family is invalid"
+            )
+        for field in ("type_code", "subtype_code"):
+            value = row[field]
+            if not isinstance(value, str) or _CODE_PATTERN.fullmatch(value) is None:
+                raise PlanningFeatureCodeError(
+                    f"code dictionary row {position} {field} is invalid"
+                )
+        key = (family, row["type_code"], row["subtype_code"])
+        if key in records:
+            raise PlanningFeatureCodeError("code dictionary contains duplicate pairs")
+        try:
+            _validate_official_text(
+                row["official_label"],
+                f"code dictionary row {position} official label",
+            )
+        except ValueError as error:
+            raise PlanningFeatureCodeError(str(error)) from error
+        _validate_nullable_official_value(
+            row["legal_reference"],
+            f"code dictionary row {position} legal reference",
+        )
+        _validate_nullable_official_value(
+            row["regulation_or_annex_reference"],
+            f"code dictionary row {position} regulation reference",
+        )
+        expected_url = (
+            PRESCRIPTION_OFFICIAL_SOURCE_URL
+            if family == "PRESCRIPTION"
+            else INFORMATION_OFFICIAL_SOURCE_URL
+        )
+        if row["official_source_url"] != expected_url:
+            raise PlanningFeatureCodeError(
+                f"code dictionary row {position} official URL is invalid"
+            )
+        if (
+            row["profile"] != result.profile
+            or row["profile_sha256"] != result.profile_sha256
+            or row["standard_model"] != result.standard_model
+        ):
+            raise PlanningFeatureCodeError(
+                f"code dictionary row {position} result lineage differs"
+            )
+        records[key] = row
+        ordered_keys.append(key)
+    if ordered_keys != sorted(ordered_keys):
+        raise PlanningFeatureCodeError("code dictionary pair order is not canonical")
+    return records
+
+
+def _validate_coded_meaning_rows(
+    result: PlanningFeatureCodeResult,
+    dictionary: Mapping[tuple[str, str, str], Mapping[str, object]],
+) -> None:
+    catalogs = (
+        result.surface_features,
+        result.line_features,
+        result.point_features,
+    )
+    features: dict[str, dict[str, object]] = {}
+    for frame in catalogs:
+        for position, row in enumerate(frame.to_dict("records")):
+            family = row["feature_family"]
+            type_code = row["type_code_raw"]
+            subtype_code = row["subtype_code_raw"]
+            if family not in {"PRESCRIPTION", "INFORMATION"}:
+                raise PlanningFeatureCodeError("coded feature family is invalid")
+            for value, label in (
+                (type_code, "type code"),
+                (subtype_code, "subtype code"),
+            ):
+                if not isinstance(value, str) or _CODE_PATTERN.fullmatch(value) is None:
+                    raise PlanningFeatureCodeError(f"coded feature {label} is invalid")
+            if (
+                row["official_code_profile"] != result.profile
+                or row["official_code_profile_sha256"] != result.profile_sha256
+            ):
+                raise PlanningFeatureCodeError("coded feature profile lineage differs")
+            key = (family, type_code, subtype_code)
+            record = dictionary.get(key)
+            status = row["official_code_status"]
+            meaning_fields = (
+                ("official_code_label", "official_label"),
+                ("official_legal_reference", "legal_reference"),
+                (
+                    "official_regulation_reference",
+                    "regulation_or_annex_reference",
+                ),
+                ("official_code_source_url", "official_source_url"),
+            )
+            if status == "RESOLVED_OFFICIAL":
+                if record is None or any(
+                    not _null_safe_equal(row[field], record[dictionary_field])
+                    for field, dictionary_field in meaning_fields
+                ):
+                    raise PlanningFeatureCodeError(
+                        "resolved coded feature meaning differs from code dictionary"
+                    )
+            elif status == "UNKNOWN_CODE_PAIR":
+                if record is not None or any(
+                    not _is_true_null(row[field]) for field, _ in meaning_fields
+                ):
+                    raise PlanningFeatureCodeError(
+                        "unknown coded feature contains an official meaning"
+                    )
+            else:
+                raise PlanningFeatureCodeError(
+                    f"coded feature official status is invalid at row {position}"
+                )
+            identifier = row["planning_feature_id"]
+            if not isinstance(identifier, str) or not identifier:
+                raise PlanningFeatureCodeError("coded feature ID is invalid")
+            if identifier in features:
+                raise PlanningFeatureCodeError(
+                    "coded feature IDs are not globally unique"
+                )
+            features[identifier] = row
+    compared_fields = (
+        "feature_family",
+        "type_code_raw",
+        "subtype_code_raw",
+        *OFFICIAL_CODE_COLUMNS,
+    )
+    for row in result.relations.to_dict("records"):
+        identifier = row["planning_feature_id"]
+        feature = features.get(identifier)
+        if feature is None:
+            raise PlanningFeatureCodeError(
+                "coded relation references an unknown feature ID"
+            )
+        if any(
+            not _null_safe_equal(row[field], feature[field])
+            for field in compared_fields
+        ):
+            raise PlanningFeatureCodeError(
+                "coded relation official meaning differs from its feature"
+            )
+
+
 def _validate_catalog_document_lineage(
     frame: gpd.GeoDataFrame,
     label: str,
@@ -386,6 +581,8 @@ def _dictionary(
         for record in profile.records
     ]
     output = pd.DataFrame(rows, columns=CODE_DICTIONARY_COLUMNS)
+    for column in CODE_DICTIONARY_COLUMNS:
+        output[column] = pd.array(output[column].tolist(), dtype="str")
     output.index = pd.Index(np.arange(len(output), dtype="int64"))
     return output
 
@@ -792,9 +989,9 @@ def _build_result(
 
 
 def _validate_result_envelope(result: PlanningFeatureCodeResult) -> None:
-    if not isinstance(result, PlanningFeatureCodeResult):
+    if type(result) is not PlanningFeatureCodeResult:
         raise PlanningFeatureCodeError("result must be a PlanningFeatureCodeResult")
-    for value, expected_version, label in (
+    for version, expected_version, label in (
         (
             result.result_hash_schema_version,
             RESULT_HASH_SCHEMA_VERSION,
@@ -806,10 +1003,22 @@ def _validate_result_envelope(result: PlanningFeatureCodeResult) -> None:
             "profile schema version",
         ),
     ):
-        if type(value) is not int or value != expected_version:
-            raise PlanningFeatureCodeError(f"unsupported {label}: {value!r}")
-    if tuple(result.code_dictionary.columns) != CODE_DICTIONARY_COLUMNS:
-        raise PlanningFeatureCodeError("code dictionary columns are invalid")
+        if type(version) is not int or version != expected_version:
+            raise PlanningFeatureCodeError(f"unsupported {label}: {version!r}")
+    if result.standard_model != STANDARD_MODEL:
+        raise PlanningFeatureCodeError("result standard model is invalid")
+    for value, label in (
+        (result.profile, "result profile"),
+        (result.source_document_id, "result source document ID"),
+    ):
+        _strict_string(value, label)
+    for field in PlanningFeatureCodeResult.__dataclass_fields__:
+        if not field.endswith("_sha256"):
+            continue
+        value = getattr(result, field)
+        if not isinstance(value, str) or _SHA_PATTERN.fullmatch(value) is None:
+            raise PlanningFeatureCodeError(f"{field} must be a lowercase SHA256")
+    dictionary = _validate_code_dictionary(result)
     for frame, label, kind in (
         (result.surface_features, "surface features", "SURFACE"),
         (result.line_features, "line features", "LINE"),
@@ -836,6 +1045,7 @@ def _validate_result_envelope(result: PlanningFeatureCodeResult) -> None:
         )
     except (TypeError, ValueError) as error:
         raise PlanningFeatureCodeError(str(error)) from error
+    _validate_coded_meaning_rows(result, dictionary)
     rebuilt_hashes = _result_with_hashes(result)
     for field in (
         "code_dictionary_content_sha256",
@@ -854,7 +1064,14 @@ def validate_planning_feature_code_result_envelope(
 ) -> None:
     """Validate one coded-result envelope without rebuilding factual sources."""
 
-    _validate_result_envelope(result)
+    try:
+        _validate_result_envelope(result)
+    except PlanningFeatureCodeError:
+        raise
+    except Exception as error:
+        raise PlanningFeatureCodeError(
+            "Planning feature code result envelope is invalid"
+        ) from error
 
 
 def _compare_frame(actual: pd.DataFrame, expected: pd.DataFrame, label: str) -> None:
