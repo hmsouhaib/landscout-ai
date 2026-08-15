@@ -15,6 +15,7 @@ from pydantic import ValidationError
 from test_resolve_planning_feature_codes import _integration_inputs
 
 from landscout import stages
+from landscout.common.artifact_paths import validate_portable_parquet_filename
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
 from landscout.stages.bess_planning_feature_policy import (
     BessPlanningFeaturePolicyConfig,
@@ -652,6 +653,8 @@ def test_artifact_manifest_model_is_strict_and_frozen(tmp_path: Path) -> None:
     )
     assert validated.schema_version == 2
     assert validated.artifact_kind == ARTIFACT_KIND
+    assert validated.cnig_profile_schema_version == 2
+    assert validated.cnig_result_hash_schema_version == 5
     assert validated.parquet_filename == parquet.name
     with pytest.raises(ValidationError):
         validated.parquet_row_count = 0
@@ -918,6 +921,12 @@ def test_step_7d_5b_2b_5_exposes_lightweight_policy_result_validator() -> None:
         "COM9.parquet",
         "LPT1.parquet",
         "LPT9.parquet",
+        "COM¹.parquet",
+        "COM².parquet",
+        "COM³.parquet",
+        "LPT¹.parquet",
+        "LPT².parquet",
+        "LPT³.parquet",
         "file:name.parquet",
         "base.parquet:stream.parquet",
         "file?.parquet",
@@ -942,11 +951,137 @@ def test_policy_manifest_rejects_nonportable_parquet_filename(
         module.BessPlanningFeaturePolicyArtifactManifest.model_validate(manifest)
 
 
+@pytest.mark.parametrize(
+    "filename",
+    [
+        "com¹.parquet",
+        "CoM².parquet",
+        "cOm³.parquet",
+        "lpt¹.parquet",
+        "LpT².parquet",
+        "lPt³.parquet",
+    ],
+)
+def test_shared_filename_contract_rejects_superscript_windows_devices(
+    filename: str,
+) -> None:
+    with pytest.raises(ValueError, match="reserved|basename|portable"):
+        validate_portable_parquet_filename(filename, "artifact filename")
+
+
+@pytest.mark.parametrize(
+    ("field", "version"),
+    [
+        ("cnig_profile_schema_version", 0),
+        ("cnig_profile_schema_version", 1),
+        ("cnig_profile_schema_version", 3),
+        ("cnig_profile_schema_version", 999),
+        ("cnig_result_hash_schema_version", 0),
+        ("cnig_result_hash_schema_version", 1),
+        ("cnig_result_hash_schema_version", 4),
+        ("cnig_result_hash_schema_version", 6),
+        ("cnig_result_hash_schema_version", 999),
+    ],
+)
+def test_policy_manifest_rejects_unsupported_cnig_source_schema(
+    tmp_path: Path,
+    field: str,
+    version: int,
+) -> None:
+    _, _, _, result = _compiled_fixture()
+    _, _, manifest = _write_artifacts(tmp_path, result)
+    manifest[field] = version
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    with pytest.raises(ValidationError, match="CNIG|cnig|schema|version"):
+        module.BessPlanningFeaturePolicyArtifactManifest.model_validate(manifest)
+
+
+@pytest.mark.parametrize(
+    ("field", "version"),
+    [
+        ("cnig_profile_schema_version", 0),
+        ("cnig_profile_schema_version", 1),
+        ("cnig_profile_schema_version", 3),
+        ("cnig_profile_schema_version", 999),
+        ("cnig_result_hash_schema_version", 0),
+        ("cnig_result_hash_schema_version", 1),
+        ("cnig_result_hash_schema_version", 4),
+        ("cnig_result_hash_schema_version", 6),
+        ("cnig_result_hash_schema_version", 999),
+    ],
+)
+def test_policy_artifact_loader_rejects_source_schema_before_parquet_read(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+    version: int,
+) -> None:
+    _, _, _, result = _compiled_fixture()
+    parquet, manifest_path, manifest = _write_artifacts(tmp_path, result)
+    manifest[field] = version
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    calls = {"bytes": 0, "parse": 0}
+
+    def byte_read(*args: object, **kwargs: object) -> bytes:
+        calls["bytes"] += 1
+        raise AssertionError("Parquet bytes must not be read")
+
+    def parse(*args: object, **kwargs: object) -> pd.DataFrame:
+        calls["parse"] += 1
+        raise AssertionError("Parquet must not be parsed")
+
+    monkeypatch.setattr(Path, "read_bytes", byte_read)
+    monkeypatch.setattr(pd, "read_parquet", parse)
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    with pytest.raises(
+        BessPlanningFeaturePolicyError, match="CNIG|cnig|schema|version"
+    ):
+        module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+    assert calls == {"bytes": 0, "parse": 0}
+
+
 def _rehash_policy_table(
     result: BessPlanningFeaturePolicyResult, table: pd.DataFrame
 ) -> BessPlanningFeaturePolicyResult:
     module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
     return module._result_with_hashes(replace(result, policy_table=table))
+
+
+def _canonical_empty_policy_result(
+    result: BessPlanningFeaturePolicyResult,
+) -> BessPlanningFeaturePolicyResult:
+    table = result.policy_table.iloc[0:0].copy(deep=True)
+    table.index = pd.Index([], dtype="int64")
+    return _rehash_policy_table(result, table)
+
+
+def test_policy_envelope_rejects_canonical_empty_policy_table() -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    _, _, _, result = _compiled_fixture()
+    empty = _canonical_empty_policy_result(result)
+    with pytest.raises(
+        BessPlanningFeaturePolicyError, match="policy|table|empty|entry"
+    ):
+        module.validate_bess_planning_feature_policy_result_envelope(empty)
+
+
+def test_policy_envelope_accepts_one_exact_policy_row() -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    _, _, _, result = _compiled_fixture()
+    table = result.policy_table.iloc[[0]].copy(deep=True)
+    table.index = pd.Index([0], dtype="int64")
+    one_row = _rehash_policy_table(result, table)
+    module.validate_bess_planning_feature_policy_result_envelope(one_row)
+
+
+def test_policy_envelope_accepts_current_twelve_row_snapshot() -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    result = _checked_in_policy_result()
+    assert len(result.policy_table) == 12
+    module.validate_bess_planning_feature_policy_result_envelope(result)
 
 
 @pytest.mark.parametrize("version", [0, 1, 3, 999])

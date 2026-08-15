@@ -964,6 +964,10 @@ def _validate_coded_policy_compatibility(
         (row["feature_family"], row["type_code"], row["subtype_code"]): row
         for row in policy.policy_table.to_dict("records")
     }
+    if not coded_rows or not policy_rows:
+        raise BessPlanningFeatureApplicationError(
+            "Policy and code dictionary pair sets must be non-empty"
+        )
     if set(policy_rows) != set(coded_rows):
         raise BessPlanningFeatureApplicationError(
             "Policy and code dictionary pair sets differ"

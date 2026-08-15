@@ -451,6 +451,16 @@ class BessPlanningFeaturePolicyArtifactManifest(_StrictPolicyModel):
             or self.result_hash_schema_version != RESULT_HASH_SCHEMA_VERSION
         ):
             raise ValueError("artifact result hash schema version is unsupported")
+        if (
+            type(self.cnig_profile_schema_version) is not int
+            or self.cnig_profile_schema_version != 2
+        ):
+            raise ValueError("artifact CNIG profile schema version is unsupported")
+        if (
+            type(self.cnig_result_hash_schema_version) is not int
+            or self.cnig_result_hash_schema_version != 5
+        ):
+            raise ValueError("artifact CNIG result hash schema version is unsupported")
         for exact_value, label in (
             (self.policy_profile, "policy_profile"),
             (self.source_document_id, "source_document_id"),
@@ -471,12 +481,6 @@ class BessPlanningFeaturePolicyArtifactManifest(_StrictPolicyModel):
         ):
             _sha256_string(hash_value, label)
         for integer_value, label, allow_zero in (
-            (self.cnig_profile_schema_version, "cnig_profile_schema_version", False),
-            (
-                self.cnig_result_hash_schema_version,
-                "cnig_result_hash_schema_version",
-                False,
-            ),
             (self.parquet_row_count, "parquet_row_count", True),
             (self.parquet_size_bytes, "parquet_size_bytes", False),
         ):
@@ -929,6 +933,10 @@ def _validate_result_envelope(result: BessPlanningFeaturePolicyResult) -> None:
         != POLICY_TABLE_SCHEMA_SIGNATURE
     ):
         raise BessPlanningFeaturePolicyError("policy table schema is invalid")
+    if result.policy_table.empty:
+        raise BessPlanningFeaturePolicyError(
+            "policy table must contain at least one policy entry"
+        )
     for field in POLICY_RESULT_SCALAR_FIELDS:
         if not field.endswith("_sha256"):
             continue

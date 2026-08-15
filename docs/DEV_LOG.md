@@ -1487,6 +1487,38 @@ The existing policy, application, and aggregation artifacts loaded through their
 
 No local text or regulation content is interpreted. No parcel is rejected. No ranking or score is calculated. No authorization or prohibition is claimed.
 
+## STEP 7D.5B.2B.5.2 — Close empty envelopes and Windows device names
+
+- Status: Complete
+- Scope: validation-only hardening. CNIG profile/result schemas remain 2/5; policy result/artifact schemas remain 1/2; application schemas remain 2/2; aggregation schemas remain 1/1. No valid frame, result hash, manifest, or Parquet byte changed.
+- Test-first proof: the focused regressions ran before production changes and produced 24 failures with 8 passes. A canonical empty schema-v5 code dictionary and canonical empty schema-v1 policy table were accepted; positive but unsupported CNIG source-schema versions reached policy Parquet I/O; and all six superscript Windows device names were accepted. The coordinated both-empty coded/policy pair also reached the application manifest read. After the correction, all 32 focused regressions pass.
+- Retained validation: all 724 coded-result, policy, application, and aggregation tests pass.
+- Quality gates: all 1,906 tests pass with the same two pre-existing GIS warnings; repository-wide Ruff passes; `mypy src` passes across 37 source files.
+
+### Closed intrinsic gaps
+
+The schema-v5 coded-result envelope now requires at least one official code-dictionary row, matching the non-empty schema-v2 CNIG profile contract without hardcoding Muret's 12 pairs. Feature catalogs and relations may still be canonically empty. Malformed public inputs continue to raise `PlanningFeatureCodeError`.
+
+The schema-v1 compiled-policy envelope now requires at least one policy-table row without hardcoding the current pair count. The application compatibility check also defensively requires the exactly matched coded/policy pair set to be non-empty. Empty coded, empty policy, and coordinated both-empty upstream results fail before manifest reads, Parquet reads, application rebuilds, or source-complete validation. Malformed policy inputs continue to raise `BessPlanningFeaturePolicyError`.
+
+The strict policy artifact manifest now accepts exactly CNIG profile schema 2 and CNIG result schema 5. Unsupported versions fail during Pydantic manifest validation before any Parquet byte read or parse. Existing policy/result/manifest versions remain unchanged.
+
+The shared portable basename contract now also rejects the documented Windows device stems `COM¹`, `COM²`, `COM³`, `LPT¹`, `LPT²`, and `LPT³`, case-insensitively and when followed by `.parquet`. Policy, application, and aggregation manifests retain their existing ordinary basenames.
+
+### Unchanged real Muret artifacts
+
+The existing artifacts were not rewritten. Their strict verified-byte/source-bound loaders and the independent offline GPU/CNIG/policy/application/aggregation validators all passed in 51.328 seconds.
+
+- CNIG dictionary / compiled policy pairs: 12 / 12.
+- Parcels / features / relations: 3,638 / 479 / 2,414.
+- Application complete SHA256: `53b8fcddfcbd3920f223071d946d9066c8cb9cc38f0afc8d917e2b723926527e`.
+- Aggregation complete SHA256: `c7417273d36c92833fcbd941a5e10c2518e30c97c3a758646a49d19cdc0c6cee`.
+- Policy artifact Parquet / manifest byte SHA256: `2a2e4f105f23053fec6fd68505fc1b41ffa5813a890c1242b157ec970f03fd31` / `7398a87c8640a32e698420b60ac28f84b6144c107051642c2aac17bc76d71d68`.
+- Application manifest byte SHA256: `4b30bba1f149babdd80203446ce496de613da35def1792058ff2be0c6a6fb9d6`.
+- Aggregation manifest byte SHA256: `92ccd39025b4a5a49100820804756d64ea5246ebb4003b469ed4cdd5e4a62fbb`.
+
+No local text or regulation content is interpreted. No parcel is rejected. No ranking or score is calculated. No authorization or prohibition is claimed.
+
 ## STEP 7D.5A — Resolve official CNIG meanings for planning-feature codes
 
 - Status: Complete

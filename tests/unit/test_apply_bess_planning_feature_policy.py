@@ -23,9 +23,11 @@ from shapely.geometry import (
     Polygon,
 )
 from test_bess_planning_feature_policy import (
+    _canonical_empty_policy_result,
     _checked_in_policy_result,
     _compiled_fixture,
 )
+from test_resolve_planning_feature_codes import _canonical_empty_coded_result
 
 from landscout import stages
 from landscout.common.frame_integrity import deterministic_frame_schema_signature
@@ -2111,6 +2113,12 @@ def test_application_loader_rejects_bad_upstream_before_artifact_reads(
         "COM9.parquet",
         "LPT1.parquet",
         "LPT9.parquet",
+        "COM¹.parquet",
+        "COM².parquet",
+        "COM³.parquet",
+        "LPT¹.parquet",
+        "LPT².parquet",
+        "LPT³.parquet",
         "file:name.parquet",
         "base.parquet:stream.parquet",
         "file?.parquet",
@@ -2233,5 +2241,63 @@ def test_application_loader_rejects_incompatible_upstreams_before_io_or_rebuild(
     ):
         module.load_bess_planning_feature_application_artifacts(
             manifest, *paths.values(), coded, changed_policy
+        )
+    assert calls == {"manifest": 0, "read": 0, "build": 0, "heavy": 0}
+
+
+@pytest.mark.parametrize("empty_upstream", ["coded", "policy", "both"])
+def test_application_loader_rejects_empty_upstreams_before_any_io_or_rebuild(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    empty_upstream: str,
+) -> None:
+    _, coded, _, policy, result = _application_fixture()
+    manifest, paths, _ = _write_application_artifacts(tmp_path, result)
+    if empty_upstream in {"coded", "both"}:
+        coded = _canonical_empty_coded_result(coded, empty_dictionary=True)
+    if empty_upstream in {"policy", "both"}:
+        policy = _canonical_empty_policy_result(policy)
+    if empty_upstream == "both":
+        policy_module = importlib.import_module(
+            "landscout.stages.bess_planning_feature_policy"
+        )
+        policy = policy_module._result_with_hashes(
+            replace(
+                policy,
+                cnig_complete_result_content_sha256=(
+                    coded.complete_result_content_sha256
+                ),
+            )
+        )
+    module = importlib.import_module(
+        "landscout.stages.apply_bess_planning_feature_policy"
+    )
+    calls = {"manifest": 0, "read": 0, "build": 0, "heavy": 0}
+
+    def manifest_read(*args: object, **kwargs: object) -> str:
+        calls["manifest"] += 1
+        raise AssertionError("manifest read must not run")
+
+    def artifact_read(*args: object, **kwargs: object) -> object:
+        calls["read"] += 1
+        raise AssertionError("Parquet read must not run")
+
+    def build(*args: object, **kwargs: object) -> object:
+        calls["build"] += 1
+        raise AssertionError("application rebuild must not run")
+
+    def heavy(*args: object, **kwargs: object) -> None:
+        calls["heavy"] += 1
+
+    monkeypatch.setattr(Path, "read_text", manifest_read)
+    monkeypatch.setattr(module, "_read_verified_artifact", artifact_read)
+    monkeypatch.setattr(module, "_build_result", build)
+    monkeypatch.setattr(module, "validate_bess_planning_feature_policy_result", heavy)
+    with pytest.raises(
+        BessPlanningFeatureApplicationError,
+        match="dictionary|policy|table|pair|empty|record|entry",
+    ):
+        module.load_bess_planning_feature_application_artifacts(
+            manifest, *paths.values(), coded, policy
         )
     assert calls == {"manifest": 0, "read": 0, "build": 0, "heavy": 0}

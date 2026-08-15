@@ -404,6 +404,10 @@ def _validate_code_dictionary(
         deterministic_frame_schema_signature(frame) != CODE_DICTIONARY_SCHEMA_SIGNATURE
     ):
         raise PlanningFeatureCodeError("code dictionary canonical schema is invalid")
+    if frame.empty:
+        raise PlanningFeatureCodeError(
+            "code dictionary must contain at least one official code record"
+        )
     records: dict[tuple[str, str, str], dict[str, object]] = {}
     ordered_keys: list[tuple[str, str, str]] = []
     for position, row in enumerate(frame.to_dict("records")):

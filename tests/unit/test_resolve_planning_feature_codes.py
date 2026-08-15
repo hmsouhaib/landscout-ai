@@ -23,7 +23,11 @@ from shapely.geometry import (
     Polygon,
 )
 
-from landscout.common.planning_feature_schema import NORMALIZED_RELATION_DTYPES
+from landscout.common.planning_feature_schema import (
+    NORMALIZED_RELATION_DTYPES,
+    feature_dtypes,
+    relation_dtypes,
+)
 from landscout.sources.gpu_fr import (
     EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
@@ -2074,6 +2078,71 @@ def test_step_7d_5b_2b_5_exposes_lightweight_coded_result_validator() -> None:
 
 def _schema_v5_envelope_result() -> PlanningFeatureCodeResult:
     return resolve_planning_feature_codes(*_inputs())
+
+
+def _canonical_empty_coded_result(
+    result: PlanningFeatureCodeResult,
+    *,
+    empty_dictionary: bool,
+) -> PlanningFeatureCodeResult:
+    catalogs: dict[str, gpd.GeoDataFrame] = {}
+    for field, kind in (
+        ("surface_features", "SURFACE"),
+        ("line_features", "LINE"),
+        ("point_features", "POINT"),
+    ):
+        output = getattr(result, field).iloc[0:0].copy(deep=True)
+        for column, dtype in zip(output.columns, feature_dtypes(kind), strict=True):
+            if dtype != "geometry":
+                output[column] = pd.Series(index=output.index, dtype=dtype)
+        output.index = pd.Index([], dtype="int64")
+        catalogs[field] = output
+    relations = result.relations.iloc[0:0].copy(deep=True)
+    for column, dtype in zip(relations.columns, relation_dtypes(), strict=True):
+        relations[column] = pd.Series(index=relations.index, dtype=dtype)
+    relations.index = pd.Index([], dtype="int64")
+    dictionary = result.code_dictionary.copy(deep=True)
+    if empty_dictionary:
+        dictionary = dictionary.iloc[0:0].copy(deep=True)
+        dictionary.index = pd.Index([], dtype="int64")
+    return _result_with_hashes(
+        replace(
+            result,
+            code_dictionary=dictionary,
+            relations=relations,
+            **catalogs,
+        )
+    )
+
+
+def test_schema_v5_envelope_rejects_canonical_empty_code_dictionary() -> None:
+    module = importlib.import_module("landscout.stages.resolve_planning_feature_codes")
+    result = _canonical_empty_coded_result(
+        _schema_v5_envelope_result(), empty_dictionary=True
+    )
+    with pytest.raises(PlanningFeatureCodeError, match="dictionary|empty|record"):
+        module.validate_planning_feature_code_result_envelope(result)
+
+
+def test_schema_v5_envelope_accepts_nonempty_dictionary_with_empty_outputs() -> None:
+    module = importlib.import_module("landscout.stages.resolve_planning_feature_codes")
+    result = _canonical_empty_coded_result(
+        _schema_v5_envelope_result(), empty_dictionary=False
+    )
+    assert len(result.code_dictionary) >= 1
+    assert (
+        sum(
+            len(frame)
+            for frame in (
+                result.surface_features,
+                result.line_features,
+                result.point_features,
+                result.relations,
+            )
+        )
+        == 0
+    )
+    module.validate_planning_feature_code_result_envelope(result)
 
 
 @pytest.mark.parametrize("dictionary", [None, "not-a-frame"])
