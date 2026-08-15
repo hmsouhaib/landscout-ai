@@ -26,6 +26,13 @@ logical_layers:
       - "poste"
       - "transformation"
 
+access:
+  road_segments:
+    class_label: "Tronçon de route"
+    match_tokens:
+      - "tronçon"
+      - "route"
+
 coverage:
   department_layer:
     class_label: "Département"

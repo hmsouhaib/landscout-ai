@@ -1,8 +1,8 @@
-"""Official IGN BD TOPO archive ingestion for electricity spatial screening.
+"""Official IGN BD TOPO archive ingestion for spatial screening sources.
 
 This adapter deliberately stops at source acquisition, archive/layer discovery,
-and source-layer loading.  IGN geometries are screening proxies and are not
-claimed to be exact, current RTE network or connection-point geometries.
+and source-layer loading. IGN geometries are screening proxies and are not
+claimed to prove exact current grid assets, connection points, or legal access.
 """
 
 from __future__ import annotations
@@ -45,7 +45,11 @@ COVERAGE_SPATIAL_ROLE = "SOURCE_COVERAGE_BOUNDARY"
 
 SpatialRole = Literal["PROXY_GEOMETRY"]
 CoverageSpatialRole = Literal["SOURCE_COVERAGE_BOUNDARY"]
-LogicalLayerName = Literal["electric_lines", "transformation_posts"]
+LogicalLayerName = Literal[
+    "electric_lines",
+    "transformation_posts",
+    "road_segments",
+]
 Projection = Literal["EPSG:2154"]
 PackageFormat = Literal["GPKG"]
 ArchiveFormat = Literal["7z"]
@@ -114,6 +118,14 @@ class IgnBdTopoDepartmentLayerConfig(IgnBdTopoLogicalLayerConfig):
     department_code_field: NonEmptyString
 
 
+class IgnBdTopoAccessConfig(BaseModel):
+    """Configured factual transport layers loaded outside extraction metadata."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    road_segments: IgnBdTopoLogicalLayerConfig
+
+
 class IgnBdTopoCoverageConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -140,6 +152,7 @@ class IgnBdTopoSourceConfig(BaseModel):
     expected_archive_size_bytes: int | None = Field(default=None, gt=0)
     cache_max_age_hours: float = Field(ge=0, allow_inf_nan=False)
     logical_layers: IgnBdTopoLogicalLayersConfig
+    access: IgnBdTopoAccessConfig
     coverage: IgnBdTopoCoverageConfig
 
     @field_validator("edition")
@@ -278,6 +291,15 @@ class IgnBdTopoElectricityData:
     electric_lines_summary: IgnBdTopoLayerSummary
     transformation_posts_summary: IgnBdTopoLayerSummary
     spatial_role: SpatialRole = "PROXY_GEOMETRY"
+
+
+@dataclass(frozen=True)
+class IgnBdTopoRoadData:
+    """Unfiltered factual road geometry from one verified IGN extraction."""
+
+    extraction: IgnBdTopoExtraction
+    road_segments: gpd.GeoDataFrame
+    road_segments_summary: IgnBdTopoLayerSummary
 
 
 @dataclass(frozen=True)
@@ -833,6 +855,20 @@ def _discover_department_coverage_layer(
     return matches[0]
 
 
+def _discover_road_layer(
+    layer_names: tuple[str, ...],
+    config: IgnBdTopoSourceConfig,
+) -> str:
+    matches = _matching_layers(layer_names, config.access.road_segments)
+    if len(matches) != 1:
+        raise IgnBdTopoLayerError(
+            "Expected one unambiguous road-segment layer for "
+            f"'{config.access.road_segments.class_label}', found "
+            f"{len(matches)}: {matches}"
+        )
+    return matches[0]
+
+
 def _safe_relative_path(path: Path, root: Path) -> str:
     try:
         return path.resolve().relative_to(root.resolve()).as_posix()
@@ -1125,6 +1161,34 @@ def load_ign_bdtopo_electricity(
         transformation_posts=transformation_posts.data,
         electric_lines_summary=electric_lines.summary,
         transformation_posts_summary=transformation_posts.summary,
+    )
+
+
+def load_ign_bdtopo_roads(
+    extraction: IgnBdTopoExtraction,
+    config: IgnBdTopoSourceConfig,
+) -> IgnBdTopoRoadData:
+    """Load the configured factual road layer without filtering or repair."""
+
+    if config.department_code != extraction.archive.department_code:
+        raise IgnBdTopoLayerError(
+            "IGN road config department does not match archive lineage"
+        )
+    actual_layers = list_ign_bdtopo_layers(extraction.geopackage_path)
+    if actual_layers != extraction.all_layer_names:
+        raise IgnBdTopoLayerError(
+            "IGN extraction layer inventory changed before road loading"
+        )
+    layer_name = _discover_road_layer(actual_layers, config)
+    loaded = load_ign_bdtopo_layer(
+        extraction.geopackage_path,
+        layer_name,
+        "road_segments",
+    )
+    return IgnBdTopoRoadData(
+        extraction=extraction,
+        road_segments=loaded.data,
+        road_segments_summary=loaded.summary,
     )
 
 

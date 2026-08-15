@@ -1519,6 +1519,33 @@ The existing artifacts were not rewritten. Their strict verified-byte/source-bou
 
 No local text or regulation content is interpreted. No parcel is rejected. No ranking or score is calculated. No authorization or prohibition is claimed.
 
+## STEP 7E.1A — Add factual IGN BD TOPO road-layer loading
+
+- Status: Complete
+- Scope: source loading only. No parcel-road distance, road-access classification, parcel score, legal-access inference, processed road artifact, or electricity behavior change was introduced.
+- Test-first proof: the focused IGN suite ran before production changes and produced 9 expected failures with 40 passes for the absent road config, loader/result type, and public exports. The existing electricity-loading regression already passed with a road layer present.
+- Focused validation: all 50 IGN BD TOPO source tests pass. Targeted Ruff and mypy pass.
+
+### Configuration and loading contract
+
+The existing pinned D031 GeoPackage inventory was inspected once without downloading. Its 57 physical layers contain exactly one configured match, `troncon_de_route`, for the normalized tokens `tronçon` and `route`. The physical layer name remains discovered from `IgnBdTopoExtraction.all_layer_names`; it is not hardcoded in Python.
+
+`load_ign_bdtopo_roads()` validates archive/config department identity, requires the current GeoPackage inventory to equal the extraction inventory, resolves exactly one road layer through the existing normalized-token matcher, and delegates factual reading and EPSG:2154/schema/geometry summarization to `load_ign_bdtopo_layer()`. Missing and ambiguous road layers, changed inventories, department mismatches, and non-Lambert-93 CRS values fail with `IgnBdTopoLayerError`.
+
+`IgnBdTopoRoadData` contains only the verified extraction, the unfiltered road GeoDataFrame, and its existing factual layer summary. Source rows, attributes, geometry, ordering, and invalid/null/empty facts are preserved without filtering or geometry repair. The extraction metadata schema remains version 1 and still stores only the two electricity layer selections; road discovery happens only at load time. The stable public additions are `IgnBdTopoRoadData` and `load_ign_bdtopo_roads`; the internal discovery helper is not exported.
+
+### Cached D031 factual result
+
+- Physical layer: `troncon_de_route`
+- Features: 385,107
+- CRS: `EPSG:2154`
+- Geometry types: `LineString`
+- Null / empty / invalid geometries: 0 / 0 / 0
+- Spatial role: `PROXY_GEOMETRY`
+- Observed columns: `cleabs`, `nature`, `nom_collaboratif_gauche`, `nom_collaboratif_droite`, `importance`, `fictif`, `position_par_rapport_au_sol`, `etat_de_l_objet`, `date_creation`, `date_modification`, `date_d_apparition`, `date_de_confirmation`, `sources`, `identifiants_sources`, `methode_d_acquisition_planimetrique`, `precision_planimetrique`, `methode_d_acquisition_altimetrique`, `precision_altimetrique`, `nombre_de_voies`, `largeur_de_chaussee`, `itineraire_vert`, `prive`, `sens_de_circulation`, `reserve_aux_bus`, `urbain`, `vitesse_moyenne_vl`, `acces_vehicule_leger`, `acces_pieton`, `periode_de_fermeture`, `nature_de_la_restriction`, `restriction_de_hauteur`, `restriction_de_poids_total`, `restriction_de_poids_par_essieu`, `restriction_de_largeur`, `restriction_de_longueur`, `matieres_dangereuses_interdites`, `borne_debut_gauche`, `borne_debut_droite`, `borne_fin_gauche`, `borne_fin_droite`, `insee_commune_gauche`, `insee_commune_droite`, `alias_gauche`, `alias_droit`, `date_de_mise_en_service`, `liens_vers_route_nommee`, `liens_vers_itineraire_autre`, `cpx_numero`, `cpx_numero_route_europeenne`, `cpx_classement_administratif`, `cpx_gestionnaire`, `cpx_toponyme_route_nommee`, `cpx_toponyme_itineraire_cyclable`, `cpx_toponyme_voie_verte`, `cpx_nature_itineraire_autre`, `cpx_toponyme_itineraire_autre`, `delestage`, `source_voie_ban_gauche`, `source_voie_ban_droite`, `nom_voie_ban_gauche`, `nom_voie_ban_droite`, `lieux_dits_ban_gauche`, `lieux_dits_ban_droite`, `identifiant_voie_ban_gauche`, `identifiant_voie_ban_droite`, `sens_amenagement_cyclable_gauche`, `sens_amenagement_cyclable_droit`, `amenagement_cyclable_gauche`, `amenagement_cyclable_droit`, `aire_de_retournement_dfci`, `gabarit_dfci`, `impasse_dfci`, `nature_detaillee_dfci`, `ouvrage_d_art_limitant_dfci`, `pente_maximale_dfci`, `piste_dfci`, `piste_dfci_debroussaillee`, `piste_dfci_fosses`, `sens_de_circulation_dfci`, `tout_terrain_dfci`, `vitesse_moyenne_dfci`, `zone_de_croisement_dfci`, `categorie_dfci`, `vitesse_collaborative`, `id_ban_odonyme_droite`, `id_ban_odonyme_gauche`, `geometry`.
+
+IGN road geometry is a screening proxy. Proximity to a mapped road does not prove legal access or a physically usable parcel entrance.
+
 ## STEP 7D.5A — Resolve official CNIG meanings for planning-feature codes
 
 - Status: Complete

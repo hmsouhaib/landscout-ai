@@ -11,9 +11,11 @@ import py7zr
 import pyogrio
 import pytest
 import yaml
+from geopandas.testing import assert_geodataframe_equal
 from pydantic import ValidationError
-from shapely.geometry import LineString, MultiPolygon, Polygon
+from shapely.geometry import LineString, MultiLineString, MultiPolygon, Polygon
 
+from landscout import sources
 from landscout.sources import ign_bdtopo_fr
 from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
@@ -38,6 +40,7 @@ SYNTHETIC_SOURCE_URL = "https://example.test/BDTOPO_TEST_D031.7z"
 LINE_LAYER = "LIGNE_ELECTRIQUE"
 POST_LAYER = "POSTE_DE_TRANSFORMATION"
 DEPARTMENT_LAYER = "DEPARTEMENT"
+ROAD_LAYER = "TRONCON_DE_ROUTE"
 
 
 def _config_data() -> dict:
@@ -78,6 +81,10 @@ def _write_gpkg(
     department_layer: str = DEPARTMENT_LAYER,
     department_codes: list[str] | None = None,
     department_geometries: list[object] | None = None,
+    include_roads: bool = False,
+    road_layer: str = ROAD_LAYER,
+    road_crs: str | None = None,
+    road_geometry_kind: str = "mixed",
 ) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     layer_written = False
@@ -120,6 +127,48 @@ def _write_gpkg(
             posts,
             path,
             layer=post_layer,
+            driver="GPKG",
+            append=layer_written,
+        )
+        layer_written = True
+    if include_roads:
+        if road_geometry_kind == "line":
+            road_geometries = [
+                LineString([(0, 0), (100, 100)]),
+                LineString([(200, 200), (300, 260)]),
+            ]
+        elif road_geometry_kind == "multiline":
+            road_geometries = [
+                MultiLineString([[(0, 0), (100, 100)]]),
+                MultiLineString(
+                    [
+                        [(200, 200), (250, 250)],
+                        [(250, 250), (300, 260)],
+                    ]
+                ),
+            ]
+        else:
+            road_geometries = [
+                LineString([(0, 0), (100, 100)]),
+                MultiLineString(
+                    [
+                        [(200, 200), (250, 250)],
+                        [(250, 250), (300, 260)],
+                    ]
+                ),
+            ]
+        roads = gpd.GeoDataFrame(
+            {
+                "object_id": ["R_LINE", "R_MULTI"],
+                "nature": ["Route à 1 chaussée", "Bretelle"],
+            },
+            geometry=road_geometries,
+            crs=road_crs or crs,
+        )
+        pyogrio.write_dataframe(
+            roads,
+            path,
+            layer=road_layer,
             driver="GPKG",
             append=layer_written,
         )
@@ -179,6 +228,9 @@ def _synthetic_archive_bytes(
     include_posts: bool = True,
     invalid_post: bool = False,
     include_department: bool = False,
+    include_roads: bool = False,
+    road_crs: str | None = None,
+    road_geometry_kind: str = "mixed",
 ) -> bytes:
     gpkg_path = root / "fixture" / "BDTOPO_TEST.gpkg"
     _write_gpkg(
@@ -187,6 +239,9 @@ def _synthetic_archive_bytes(
         include_posts=include_posts,
         invalid_post=invalid_post,
         include_department=include_department,
+        include_roads=include_roads,
+        road_crs=road_crs,
+        road_geometry_kind=road_geometry_kind,
     )
     return _pack_7z(
         root / "fixture.7z",
@@ -222,6 +277,8 @@ def test_valid_source_config_loads(source_config: IgnBdTopoSourceConfig) -> None
     assert source_config.projection == "EPSG:2154"
     assert source_config.format == "GPKG"
     assert source_config.edition == "2026-06-15"
+    assert source_config.access.road_segments.class_label == "Tronçon de route"
+    assert source_config.access.road_segments.match_tokens == ("tronçon", "route")
     assert source_config.coverage.department_layer.match_tokens == ("departement",)
     assert (
         source_config.coverage.department_layer.department_code_field
@@ -725,6 +782,233 @@ def test_electricity_loader_retains_both_layer_counts(
     assert electricity.electric_lines.crs.to_epsg() == 2154
     assert electricity.transformation_posts.crs.to_epsg() == 2154
     assert electricity.transformation_posts_summary.invalid_geometry_count == 1
+
+
+def test_road_layer_discovery_loads_selected_physical_layer(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    archive_content = _synthetic_archive_bytes(tmp_path / "source", include_roads=True)
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+    extraction = extract_ign_bdtopo_archive(
+        download, config, extraction_dir=tmp_path / "extracted"
+    )
+
+    loaded = ign_bdtopo_fr.load_ign_bdtopo_roads(extraction, config)
+
+    assert loaded.extraction is extraction
+    assert loaded.road_segments_summary.source_layer_name == ROAD_LAYER
+    assert loaded.road_segments_summary.logical_name == "road_segments"
+    assert loaded.road_segments["object_id"].tolist() == ["R_LINE", "R_MULTI"]
+    assert loaded.road_segments_summary.spatial_role == "PROXY_GEOMETRY"
+
+
+def test_missing_road_layer_fails_safely(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    archive_content = _synthetic_archive_bytes(tmp_path / "source")
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+    extraction = extract_ign_bdtopo_archive(
+        download, config, extraction_dir=tmp_path / "extracted"
+    )
+
+    with pytest.raises(IgnBdTopoLayerError, match="road|route|found 0"):
+        ign_bdtopo_fr.load_ign_bdtopo_roads(extraction, config)
+
+
+def test_ambiguous_road_layer_fails_safely(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    gpkg_path = tmp_path / "source" / "ambiguous-roads.gpkg"
+    _write_gpkg(gpkg_path, include_roads=True)
+    secondary = gpd.GeoDataFrame(
+        {"object_id": ["R_SECONDARY"]},
+        geometry=[LineString([(0, 0), (10, 10)])],
+        crs="EPSG:2154",
+    )
+    pyogrio.write_dataframe(
+        secondary,
+        gpkg_path,
+        layer="TRONCON_DE_ROUTE_SECONDAIRE",
+        driver="GPKG",
+        append=True,
+    )
+    archive_content = _pack_7z(
+        tmp_path / "ambiguous-roads.7z",
+        [(gpkg_path, "PACKAGE/ambiguous-roads.gpkg")],
+    )
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+    extraction = extract_ign_bdtopo_archive(
+        download, config, extraction_dir=tmp_path / "extracted"
+    )
+
+    with pytest.raises(IgnBdTopoLayerError, match="road|route|found 2"):
+        ign_bdtopo_fr.load_ign_bdtopo_roads(extraction, config)
+
+
+def test_road_loader_rejects_wrong_archive_config_department(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    archive_content = _synthetic_archive_bytes(tmp_path / "source", include_roads=True)
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+    extraction = extract_ign_bdtopo_archive(
+        download, config, extraction_dir=tmp_path / "extracted"
+    )
+    other_department = IgnBdTopoSourceConfig.model_validate(
+        {**config.model_dump(mode="json"), "department_code": "32"}
+    )
+
+    with pytest.raises(IgnBdTopoLayerError, match="department|archive|lineage"):
+        ign_bdtopo_fr.load_ign_bdtopo_roads(extraction, other_department)
+
+
+def test_road_loader_rejects_changed_layer_inventory(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    archive_content = _synthetic_archive_bytes(tmp_path / "source", include_roads=True)
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+    extraction = extract_ign_bdtopo_archive(
+        download, config, extraction_dir=tmp_path / "extracted"
+    )
+    added = gpd.GeoDataFrame(
+        {"object_id": ["ADDED"]},
+        geometry=[LineString([(0, 0), (1, 1)])],
+        crs="EPSG:2154",
+    )
+    pyogrio.write_dataframe(
+        added,
+        extraction.geopackage_path,
+        layer="ADDED_AFTER_EXTRACTION",
+        driver="GPKG",
+        append=True,
+    )
+
+    with pytest.raises(IgnBdTopoLayerError, match="inventory|changed"):
+        ign_bdtopo_fr.load_ign_bdtopo_roads(extraction, config)
+
+
+def test_road_loader_rejects_geographic_crs(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    archive_content = _synthetic_archive_bytes(
+        tmp_path / "source", include_roads=True, road_crs="EPSG:4326"
+    )
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+    extraction = extract_ign_bdtopo_archive(
+        download, config, extraction_dir=tmp_path / "extracted"
+    )
+
+    with pytest.raises(IgnBdTopoLayerError, match="2154|Lambert|projected|CRS"):
+        ign_bdtopo_fr.load_ign_bdtopo_roads(extraction, config)
+
+
+@pytest.mark.parametrize(
+    ("road_geometry_kind", "expected_geometry_type"),
+    [("line", "LineString"), ("multiline", "MultiLineString")],
+)
+def test_road_loader_preserves_lambert93_lines_unchanged(
+    tmp_path: Path,
+    source_config: IgnBdTopoSourceConfig,
+    road_geometry_kind: str,
+    expected_geometry_type: str,
+) -> None:
+    archive_content = _synthetic_archive_bytes(
+        tmp_path / "source",
+        include_roads=True,
+        road_geometry_kind=road_geometry_kind,
+    )
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+    extraction = extract_ign_bdtopo_archive(
+        download, config, extraction_dir=tmp_path / "extracted"
+    )
+    expected = gpd.read_file(
+        extraction.geopackage_path, layer=ROAD_LAYER, engine="pyogrio"
+    )
+
+    loaded = ign_bdtopo_fr.load_ign_bdtopo_roads(extraction, config)
+
+    assert_geodataframe_equal(loaded.road_segments, expected, check_crs=True)
+    assert loaded.road_segments.crs.to_epsg() == 2154
+    assert loaded.road_segments_summary.geometry_types == (expected_geometry_type,)
+
+
+def test_road_layer_does_not_change_electricity_loading_or_cache_shape(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    archive_content = _synthetic_archive_bytes(tmp_path / "source", include_roads=True)
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+    extraction = extract_ign_bdtopo_archive(
+        download, config, extraction_dir=tmp_path / "extracted"
+    )
+
+    electricity = load_ign_bdtopo_electricity(extraction)
+    metadata = json.loads(
+        (extraction.extraction_path / ".landscout-extraction.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert len(electricity.electric_lines) == 2
+    assert len(electricity.transformation_posts) == 2
+    assert electricity.electric_lines_summary.source_layer_name == LINE_LAYER
+    assert electricity.transformation_posts_summary.source_layer_name == POST_LAYER
+    assert "road_segments_layer" not in metadata
+    assert set(metadata) == {
+        "schema_version",
+        "archive_sha256",
+        "geopackage_relative_path",
+        "all_layer_names",
+        "electric_lines_layer",
+        "transformation_posts_layer",
+        "spatial_role",
+    }
+
+
+def test_public_sources_export_only_stable_road_api() -> None:
+    assert sources.IgnBdTopoRoadData is ign_bdtopo_fr.IgnBdTopoRoadData
+    assert sources.load_ign_bdtopo_roads is ign_bdtopo_fr.load_ign_bdtopo_roads
+    assert "IgnBdTopoRoadData" in sources.__all__
+    assert "load_ign_bdtopo_roads" in sources.__all__
+    assert not hasattr(sources, "_discover_road_layer")
 
 
 def test_department_coverage_loader_selects_configured_identity(
