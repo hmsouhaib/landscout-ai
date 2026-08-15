@@ -1546,6 +1546,61 @@ The existing pinned D031 GeoPackage inventory was inspected once without downloa
 
 IGN road geometry is a screening proxy. Proximity to a mapped road does not prove legal access or a physically usable parcel entrance.
 
+## STEP 7E.1B — Normalize factual IGN road access attributes
+
+- Status: Complete
+- Scope: factual normalization only. No parcel-road distance, road filtering, BESS access classification, threshold, score, parcel decision, or legal-access inference was introduced.
+- Test-first proof: the focused test file was run before production implementation and failed during collection because `landscout.stages.normalize_access_ign` did not yet exist.
+- Important files: `src/landscout/stages/normalize_access_ign.py`, `src/landscout/stages/__init__.py`, `tests/unit/test_normalize_access_ign.py`.
+- Targeted validation: 46 focused normalization tests pass; the ticket-scoped Ruff check and mypy check pass. No full or planning test suite was run.
+
+### Normalization contract
+
+`normalize_ign_roads()` accepts only an already loaded `IgnBdTopoRoadData`. It validates the IGN / BD TOPO / EPSG:2154 archive identity, the `PROXY_GEOMETRY` archive/extraction/layer-summary lineage, the discovered physical layer against the extraction inventory, and the factual layer summary against the loaded frame. Package department, edition, product version, download timestamp, archive SHA256, source URL, and physical layer are copied to every normalized row.
+
+Every exact source `cleabs` becomes `IGN_BDTOPO:ROAD_SEGMENT:{cleabs}`. Source identifiers must be non-null, non-empty exact strings without edge whitespace, colons, control characters, or duplicates. Input row order is retained under a deterministic `RangeIndex`; no row is added or removed.
+
+The stage copies the ticketed source attributes into deterministic `*_raw` columns without vocabulary mapping, Boolean inference, unit interpretation, thresholding, or null filling. Dates, numeric representations, strings, and nulls retain their source values. `private_raw`, `importance_raw`, `light_vehicle_access_raw`, and every restriction field remain source facts.
+
+Source geometries and coordinate dimensions are copied exactly. `VALID`, `NULL`, `EMPTY`, and `INVALID` are explicit quality facts; only valid `LineString` and `MultiLineString` geometries are accepted as road segments. Null, empty, and invalid geometries remain present and are never repaired or dropped. The active geometry and output CRS remain `geometry` and `EPSG:2154`.
+
+### Cached D031 normalization
+
+The existing verified cache was used with network access explicitly blocked. No archive was downloaded and no processed artifact was created.
+
+- Physical layer: `troncon_de_route`
+- Source / normalized rows: 385,107 / 385,107
+- Unique `road_feature_id`: 385,107
+- CRS: `EPSG:2154`
+- Geometry status: `VALID` 385,107; `NULL` 0; `EMPTY` 0; `INVALID` 0
+- Normalization wall-clock duration: 1.788 seconds
+
+Observed enum-like raw values:
+
+| Source field | Distinct non-null | Nulls | Exact observed values |
+| --- | ---: | ---: | --- |
+| `nature` | 10 | 0 | `Route à 1 chaussée`; `Chemin`; `Route empierrée`; `Sentier`; `Rond-point`; `Route à 2 chaussées`; `Type autoroutier`; `Bretelle`; `Escalier`; `Bac ou liaison maritime` |
+| `importance` | 6 | 0 | `1`; `2`; `3`; `4`; `5`; `6` |
+| `fictif` | 2 | 0 | `false`; `true` |
+| `etat_de_l_objet` | 3 | 0 | `En service`; `En projet`; `En construction` |
+| `prive` | 2 | 1,474 | `0.0`; `1.0`; null |
+| `urbain` | 2 | 0 | `false`; `true` |
+| `acces_vehicule_leger` | 4 | 0 | `Libre`; `Physiquement impossible`; `Restreint aux ayants droit`; `A péage` |
+
+Observed numeric-field presence:
+
+| Source field | Non-null | Null |
+| --- | ---: | ---: |
+| `nombre_de_voies` | 271,044 | 114,063 |
+| `largeur_de_chaussee` | 271,089 | 114,018 |
+| `restriction_de_hauteur` | 1,077 | 384,030 |
+| `restriction_de_poids_total` | 228 | 384,879 |
+| `restriction_de_poids_par_essieu` | 12,010 | 373,097 |
+| `restriction_de_largeur` | 0 | 385,107 |
+| `restriction_de_longueur` | 13 | 385,094 |
+
+These distributions are factual evidence for a later road-policy step. They are not interpreted as suitable, unsuitable, allowed, blocked, good, bad, or BESS-accessible here.
+
 ## STEP 7D.5A — Resolve official CNIG meanings for planning-feature codes
 
 - Status: Complete

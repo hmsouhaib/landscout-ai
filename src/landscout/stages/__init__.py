@@ -79,6 +79,11 @@ from landscout.stages.interpret_bess_zoning import (
     load_bess_zoning_policy_config,
     validate_bess_zoning_precheck,
 )
+from landscout.stages.normalize_access_ign import (
+    IgnRoadNormalizationError,
+    NormalizedIgnRoadData,
+    normalize_ign_roads,
+)
 from landscout.stages.normalize_cadastre import (
     CadastreNormalizationError,
     normalize_cadastre_parcels,
@@ -141,8 +146,10 @@ __all__ = [
     "GridProximityProfile",
     "GridProximityResult",
     "IgnGridNormalizationError",
+    "IgnRoadNormalizationError",
     "IgnVoltageNormalization",
     "NormalizedIgnElectricityData",
+    "NormalizedIgnRoadData",
     "ParcelFilterError",
     "ParcelPlanningFeaturesResult",
     "PlanningFeatureCodeError",
@@ -182,6 +189,7 @@ __all__ = [
     "load_planning_regulation_structure_config",
     "normalize_cadastre_parcels",
     "normalize_ign_electricity",
+    "normalize_ign_roads",
     "parse_ign_voltage",
     "planning_regulation_section_page_fragments",
     "profile_grid_coverage",
