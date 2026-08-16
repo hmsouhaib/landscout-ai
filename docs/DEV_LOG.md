@@ -2,11 +2,27 @@
 
 ## Current project state
 
-- Current phase: Access / roads — IGN road vehicle proxy policy
-- Latest completed step: STEP 7E.2B
+- Current phase: Access / roads — parcel proximity evidence
+- Latest completed step: STEP 7E.3A
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: parcel-road proximity evidence design
+- Next step waiting for review: IGN source-package boundary diagnosis
+
+## STEP 7E.3A — Compute parcel-to-road proximity by proxy class
+
+- Status: Complete. The source-complete STEP 7E.2B application is invoked exactly once and the same policy bytes are independently compiled; row policy lineage must match policy `ign_bdtopo_general_vehicle_proxy_v2`, schema `2`, SHA256 `2092bc620063ec1176b2abebaefafcc108a42793992dd18f869d44fdb07ca166`.
+- Inputs and preservation: 3,638 shape-screened Muret parcels in storage CRS `EPSG:4326` and 385,107 verified D031 road rows produced an unchanged parcel copy and 18,190 parcel/class evidence rows. Full Polygon/MultiPolygon geometry is reprojected only on a calculation copy to `EPSG:2154`; parcel order, index, columns, dtypes, CRS, and exact geometry WKB are preserved.
+- Class coverage in approved policy order: `GENERAL_VEHICLE_PROXY` 264,189 (eligible), `LIMITED_VEHICLE_PROXY` 82,273 (eligible), `RESTRICTED_REVIEW` 6,275 (eligible), `NOT_GENERAL_VEHICLE_PROXY` 31,016 (eligible), `NOT_DISTANCE_PROXY` 329 (ineligible), and `UNKNOWN_REVIEW` 1,025 (eligible). Coverage sums to 385,107. `NOT_DISTANCE_PROXY` is counted but never indexed and has zero proximity rows.
+- `GENERAL_VEHICLE_PROXY`: roads 264,189; matched/missing parcels 3,638/0; distance metres min/p01/p05/p10/p25/p50/p75/p90/p95/p99/max = 0 / 0 / 0 / 0 / 3.416330 / 7.032058 / 94.917615 / 205.456572 / 276.140687 / 413.558431 / 509.293303; zero-distance parcels 439; parcels with tie count greater than one 289.
+- `LIMITED_VEHICLE_PROXY`: roads 82,273; matched/missing parcels 3,638/0; distance metres min/p01/p05/p10/p25/p50/p75/p90/p95/p99/max = 0 / 0 / 0 / 0 / 3.174688 / 40.086260 / 110.424206 / 186.525109 / 236.369792 / 368.419591 / 573.072134; zero-distance parcels 539; parcels with tie count greater than one 110.
+- `RESTRICTED_REVIEW`: roads 6,275; matched/missing parcels 3,638/0; distance metres min/p01/p05/p10/p25/p50/p75/p90/p95/p99/max = 0 / 1.266485 / 86.997647 / 175.359197 / 384.500422 / 790.341125 / 1,374.914908 / 1,798.054398 / 2,131.778795 / 2,574.355368 / 2,881.896502; zero-distance parcels 34; parcels with tie count greater than one 25.
+- `NOT_GENERAL_VEHICLE_PROXY`: roads 31,016; matched/missing parcels 3,638/0; distance metres min/p01/p05/p10/p25/p50/p75/p90/p95/p99/max = 0 / 0 / 4.760522 / 37.003167 / 158.759988 / 390.938216 / 678.919181 / 987.170362 / 1,220.952431 / 1,844.758269 / 2,240.962021; zero-distance parcels 107; parcels with tie count greater than one 112.
+- `UNKNOWN_REVIEW`: roads 1,025; matched/missing parcels 3,638/0; distance metres min/p01/p05/p10/p25/p50/p75/p90/p95/p99/max = 0 / 55.566861 / 198.601978 / 343.456936 / 684.076771 / 1,295.938075 / 2,111.907709 / 2,568.816208 / 2,802.761666 / 3,113.867572 / 3,372.698820; zero-distance parcels 6; parcels with tie count greater than one 38.
+- Determinism: one `STRtree` is built per eligible class; `query_nearest(..., all_matches=True)` retains exact tie counts, and representative ties use stable parcel/distance/lexical-road-ID ordering independent of source row order. Empty future classes retain one null evidence row per parcel.
+- Scope and boundary: every result row states `WITHIN_VERIFIED_SOURCE_PACKAGE`. These distances have not yet been diagnosed against the D031 source-package boundary and are not claimed to be globally nearest roads.
+- Runtime and validation: the complete cached, source-bound application and five-class proximity calculation took 25.198 seconds. Test-first collection initially failed because the module did not exist; the final ticket-scoped suite passed 155 tests. Ticket-scoped Ruff, mypy, and `git diff --check` passed.
+- Boundary: NO parcel decision, score, legal-access conclusion, heavy-vehicle accessibility conclusion, global-nearest claim, or parcel-road distance threshold is produced.
+- Known issues: None.
 
 ## STEP 7E.2B — Apply IGN road vehicle proxy policy
 

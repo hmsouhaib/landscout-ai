@@ -62,6 +62,12 @@ from landscout.stages.enrich_planning_zoning import (
     intersect_parcels_with_gpu_zoning,
     validate_normalized_planning_zoning_inputs,
 )
+from landscout.stages.enrich_road_proximity import (
+    ParcelRoadProximityResult,
+    RoadProximityError,
+    RoadProxyClassCoverage,
+    enrich_parcel_road_proximity,
+)
 from landscout.stages.enrich_shape import ShapeEnrichmentError, enrich_parcel_shapes
 from landscout.stages.filter_parcels import (
     ParcelFilterError,
@@ -167,6 +173,7 @@ __all__ = [
     "NormalizedIgnRoadData",
     "ParcelFilterError",
     "ParcelPlanningFeaturesResult",
+    "ParcelRoadProximityResult",
     "PlanningFeatureCodeError",
     "PlanningFeatureCodeResult",
     "PlanningFeatureInputValidation",
@@ -177,6 +184,8 @@ __all__ = [
     "PlanningRegulationStructureConfig",
     "PlanningRegulationStructureError",
     "PlanningRegulationStructureResult",
+    "RoadProximityError",
+    "RoadProxyClassCoverage",
     "ShapeDistributionProfile",
     "ShapeEnrichmentError",
     "ShapeProfileError",
@@ -189,6 +198,7 @@ __all__ = [
     "assess_grid_coverage",
     "compile_bess_planning_feature_policy",
     "enrich_parcel_grid_proximity",
+    "enrich_parcel_road_proximity",
     "enrich_parcel_shapes",
     "filter_parcels_by_area",
     "filter_parcels_by_shape",
