@@ -733,6 +733,8 @@ def test_schema_v2_extraction_metadata_binds_physical_geopackage(
     assert metadata["geopackage_sha256"] == sha256(
         extraction.geopackage_path.read_bytes()
     ).hexdigest()
+    assert extraction.geopackage_size_bytes == metadata["geopackage_size_bytes"]
+    assert extraction.geopackage_sha256 == metadata["geopackage_sha256"]
 
     cached = extract_ign_bdtopo_archive(
         download,
@@ -740,6 +742,8 @@ def test_schema_v2_extraction_metadata_binds_physical_geopackage(
         extraction_dir=extraction.extraction_path,
     )
     assert cached.cache_hit is True
+    assert cached.geopackage_size_bytes == metadata["geopackage_size_bytes"]
+    assert cached.geopackage_sha256 == metadata["geopackage_sha256"]
 
 
 def test_same_size_geopackage_tamper_invalidates_extraction_cache(
@@ -1340,3 +1344,83 @@ def test_department_coverage_layer_discovery_must_be_unambiguous(
 
     with pytest.raises(IgnBdTopoLayerError, match="unambiguous|found 2"):
         load_ign_bdtopo_department_coverage(extraction, config)
+
+
+@pytest.mark.parametrize(
+    ("consumer", "layer", "old_bytes", "new_bytes"),
+    [
+        ("electricity", LINE_LAYER, b"HT", b"HX"),
+        ("roads", ROAD_LAYER, b"Bretelle", b"BretellX"),
+        ("coverage", DEPARTMENT_LAYER, b"Department 31", b"Department 3X"),
+    ],
+)
+def test_direct_consumers_reject_same_inventory_content_tampering(
+    tmp_path: Path,
+    source_config: IgnBdTopoSourceConfig,
+    consumer: str,
+    layer: str,
+    old_bytes: bytes,
+    new_bytes: bytes,
+) -> None:
+    config, _, extraction = _extracted_fixture(
+        tmp_path,
+        source_config,
+        include_roads=True,
+    )
+    if consumer == "coverage":
+        # Rebuild once with the configured department layer present.
+        archive_content = _synthetic_archive_bytes(
+            tmp_path / "coverage-source",
+            include_roads=True,
+            include_department=True,
+        )
+        with patch(
+            "landscout.sources.ign_bdtopo_fr.urlopen",
+            return_value=_response(archive_content),
+        ):
+            download = download_ign_bdtopo_archive(config, tmp_path / "coverage-cache")
+        extraction = extract_ign_bdtopo_archive(
+            download,
+            config,
+            extraction_dir=tmp_path / "coverage-extracted",
+        )
+
+    size_before = extraction.geopackage_path.stat().st_size
+    content = extraction.geopackage_path.read_bytes()
+    assert old_bytes in content
+    extraction.geopackage_path.write_bytes(content.replace(old_bytes, new_bytes, 1))
+    assert extraction.geopackage_path.stat().st_size == size_before
+
+    with pytest.raises(IgnBdTopoLayerError, match="integrity|SHA|physical|changed"):
+        if consumer == "electricity":
+            load_ign_bdtopo_electricity(extraction)
+        elif consumer == "roads":
+            ign_bdtopo_fr.load_ign_bdtopo_roads(extraction, config)
+        else:
+            load_ign_bdtopo_department_coverage(extraction, config)
+
+
+def test_road_loader_rejects_source_change_after_physical_read(
+    tmp_path: Path,
+    source_config: IgnBdTopoSourceConfig,
+) -> None:
+    config, _, extraction = _extracted_fixture(
+        tmp_path,
+        source_config,
+        include_roads=True,
+    )
+    original_read = ign_bdtopo_fr.gpd.read_file
+
+    def mutate_after_read(*args: object, **kwargs: object) -> gpd.GeoDataFrame:
+        frame = original_read(*args, **kwargs)
+        content = extraction.geopackage_path.read_bytes()
+        extraction.geopackage_path.write_bytes(
+            content.replace(b"Bretelle", b"BretellX", 1)
+        )
+        return frame
+
+    with (
+        patch.object(ign_bdtopo_fr.gpd, "read_file", side_effect=mutate_after_read),
+        pytest.raises(IgnBdTopoLayerError, match="changed|integrity|SHA"),
+    ):
+        ign_bdtopo_fr.load_ign_bdtopo_roads(extraction, config)

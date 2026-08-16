@@ -21,6 +21,7 @@ from urllib.parse import unquote, urlparse
 from urllib.request import Request, urlopen
 
 import geopandas as gpd  # type: ignore[import-untyped]
+import pandas as pd  # type: ignore[import-untyped]
 import py7zr
 import pyogrio  # type: ignore[import-untyped]
 import yaml  # type: ignore[import-untyped]
@@ -260,6 +261,8 @@ class IgnBdTopoExtraction:
     extraction_path: Path
     geopackage_path: Path
     geopackage_filename: str
+    geopackage_size_bytes: int
+    geopackage_sha256: str
     all_layer_names: tuple[str, ...]
     electric_lines_layer: str
     transformation_posts_layer: str
@@ -330,6 +333,7 @@ class IgnBdTopoCoverageLayerSummary:
 class IgnBdTopoDepartmentCoverage:
     """Selected department coverage with package lineage and source schema."""
 
+    extraction: IgnBdTopoExtraction
     coverage: gpd.GeoDataFrame
     summary: IgnBdTopoCoverageLayerSummary
     source_provider: str
@@ -929,6 +933,292 @@ def _geopackage_integrity(path: Path) -> tuple[int, str]:
     return size_bytes, digest.hexdigest()
 
 
+@dataclass(frozen=True)
+class _VerifiedIgnExtraction:
+    extraction: IgnBdTopoExtraction
+    metadata: _ExtractionMetadata
+    geopackage_path: Path
+
+
+def _valid_layer_inventory(value: object) -> bool:
+    return (
+        type(value) is tuple
+        and bool(value)
+        and all(
+            isinstance(name, str) and bool(name) and name == name.strip()
+            for name in value
+        )
+        and len(set(value)) == len(value)
+    )
+
+
+def _validate_extraction_envelope(
+    extraction: object,
+) -> _VerifiedIgnExtraction:
+    """Bind one extraction envelope to its schema-v2 marker and current GPKG."""
+
+    try:
+        if type(extraction) is not IgnBdTopoExtraction:
+            raise TypeError("IGN extraction must be an exact IgnBdTopoExtraction")
+        if type(extraction.archive) is not IgnBdTopoDownload:
+            raise TypeError("IGN extraction archive type is invalid")
+        if extraction.spatial_role != SPATIAL_ROLE or (
+            extraction.archive.spatial_role != SPATIAL_ROLE
+        ):
+            raise ValueError("IGN extraction lineage must be PROXY_GEOMETRY")
+        if (
+            not isinstance(extraction.archive.sha256, str)
+            or re.fullmatch(r"[0-9a-f]{64}", extraction.archive.sha256) is None
+        ):
+            raise ValueError("IGN archive SHA256 lineage is invalid")
+        if (
+            type(extraction.geopackage_size_bytes) is not int
+            or extraction.geopackage_size_bytes <= 0
+        ):
+            raise ValueError("IGN extraction GeoPackage size is invalid")
+        if (
+            not isinstance(extraction.geopackage_sha256, str)
+            or re.fullmatch(r"[0-9a-f]{64}", extraction.geopackage_sha256) is None
+        ):
+            raise ValueError("IGN extraction GeoPackage SHA256 is invalid")
+        if not isinstance(extraction.extraction_path, Path) or not isinstance(
+            extraction.geopackage_path, Path
+        ):
+            raise TypeError("IGN extraction paths are invalid")
+        marker_path = extraction.extraction_path / ".landscout-extraction.json"
+        if not marker_path.is_file():
+            raise ValueError("IGN schema-v2 extraction metadata is missing")
+        metadata = _ExtractionMetadata.model_validate_json(
+            marker_path.read_text(encoding="utf-8")
+        )
+        expected_path = _resolve_relative_path(
+            extraction.extraction_path,
+            metadata.geopackage_relative_path,
+        )
+        discovered_path = discover_ign_bdtopo_geopackage(extraction.extraction_path)
+        if (
+            expected_path.resolve() != discovered_path.resolve()
+            or extraction.geopackage_path.resolve() != discovered_path.resolve()
+            or extraction.geopackage_filename != discovered_path.name
+        ):
+            raise ValueError("IGN extraction GeoPackage path is inconsistent")
+        if metadata.archive_sha256 != extraction.archive.sha256:
+            raise ValueError("IGN extraction archive lineage differs from metadata")
+        if metadata.spatial_role != extraction.spatial_role:
+            raise ValueError("IGN extraction spatial role differs from metadata")
+        if not _valid_layer_inventory(extraction.all_layer_names):
+            raise ValueError("IGN extraction layer inventory is invalid")
+        if metadata.all_layer_names != extraction.all_layer_names:
+            raise ValueError("IGN extraction layer inventory differs from metadata")
+        selected_roles = (
+            extraction.electric_lines_layer,
+            extraction.transformation_posts_layer,
+        )
+        if selected_roles != (
+            metadata.electric_lines_layer,
+            metadata.transformation_posts_layer,
+        ):
+            raise ValueError("IGN extraction electricity roles differ from metadata")
+        if selected_roles[0] == selected_roles[1] or any(
+            role not in extraction.all_layer_names for role in selected_roles
+        ):
+            raise ValueError("IGN extraction electricity roles are invalid")
+        if (
+            metadata.geopackage_size_bytes != extraction.geopackage_size_bytes
+            or metadata.geopackage_sha256 != extraction.geopackage_sha256
+        ):
+            raise ValueError("IGN extraction GeoPackage integrity differs from metadata")
+        current_size, current_sha = _geopackage_integrity(discovered_path)
+        if (
+            current_size != extraction.geopackage_size_bytes
+            or current_sha != extraction.geopackage_sha256
+        ):
+            raise ValueError("IGN physical GeoPackage integrity changed")
+        current_layers = list_ign_bdtopo_layers(discovered_path)
+        if current_layers != extraction.all_layer_names:
+            raise ValueError("IGN physical GeoPackage layer inventory changed")
+        return _VerifiedIgnExtraction(
+            extraction=extraction,
+            metadata=metadata,
+            geopackage_path=discovered_path,
+        )
+    except IgnBdTopoLayerError:
+        raise
+    except Exception as error:
+        raise IgnBdTopoLayerError(
+            "IGN extraction physical integrity changed or is invalid"
+        ) from error
+
+
+def _verify_unchanged_extraction(context: _VerifiedIgnExtraction) -> None:
+    size, digest = _geopackage_integrity(context.geopackage_path)
+    if (
+        size != context.extraction.geopackage_size_bytes
+        or digest != context.extraction.geopackage_sha256
+        or list_ign_bdtopo_layers(context.geopackage_path)
+        != context.extraction.all_layer_names
+    ):
+        raise IgnBdTopoLayerError(
+            "IGN physical GeoPackage changed during source layer loading"
+        )
+
+
+def _read_layer_frame(geopackage_path: Path, layer_name: str) -> gpd.GeoDataFrame:
+    if not isinstance(layer_name, str) or not layer_name or layer_name != layer_name.strip():
+        raise IgnBdTopoLayerError("IGN source layer name must be an exact string")
+    try:
+        frame = gpd.read_file(
+            geopackage_path,
+            layer=layer_name,
+            engine="pyogrio",
+        )
+    except Exception as error:
+        raise IgnBdTopoLayerError(
+            f"Cannot load IGN GeoPackage layer: {layer_name}"
+        ) from error
+    if not isinstance(frame, gpd.GeoDataFrame):
+        raise IgnBdTopoLayerError(f"IGN layer is not spatial: {layer_name}")
+    return frame
+
+
+def _read_verified_layer_frames(
+    context: _VerifiedIgnExtraction,
+    layer_names: tuple[str, ...],
+) -> tuple[gpd.GeoDataFrame, ...]:
+    if type(layer_names) is not tuple or not layer_names:
+        raise IgnBdTopoLayerError("IGN verified layer batch must be a non-empty tuple")
+    if len(set(layer_names)) != len(layer_names) or any(
+        layer not in context.extraction.all_layer_names for layer in layer_names
+    ):
+        raise IgnBdTopoLayerError("IGN verified layer batch is invalid")
+    frames = tuple(
+        _read_layer_frame(context.geopackage_path, layer_name)
+        for layer_name in layer_names
+    )
+    _verify_unchanged_extraction(context)
+    return frames
+
+
+def _validate_layer_summary_contract(summary: object) -> IgnBdTopoLayerSummary:
+    if type(summary) is not IgnBdTopoLayerSummary:
+        raise IgnBdTopoLayerError("IGN layer summary type is invalid")
+    for name in (
+        "feature_count",
+        "null_geometry_count",
+        "empty_geometry_count",
+        "invalid_geometry_count",
+    ):
+        value = getattr(summary, name)
+        if type(value) is not int or value < 0:
+            raise IgnBdTopoLayerError(
+                f"IGN layer summary {name} must be a strict non-negative integer"
+            )
+    if (
+        type(summary.columns) is not tuple
+        or not summary.columns
+        or any(
+            not isinstance(column, str)
+            or not column
+            or column != column.strip()
+            for column in summary.columns
+        )
+        or len(set(summary.columns)) != len(summary.columns)
+    ):
+        raise IgnBdTopoLayerError("IGN layer summary columns are invalid")
+    if (
+        type(summary.dtypes) is not tuple
+        or len(summary.dtypes) != len(summary.columns)
+        or any(
+            type(item) is not tuple
+            or len(item) != 2
+            or any(not isinstance(value, str) or not value for value in item)
+            for item in summary.dtypes
+        )
+        or tuple(column for column, _ in summary.dtypes) != summary.columns
+    ):
+        raise IgnBdTopoLayerError("IGN layer summary dtypes are invalid")
+    if (
+        type(summary.geometry_types) is not tuple
+        or any(
+            not isinstance(value, str) or not value or value != value.strip()
+            for value in summary.geometry_types
+        )
+        or summary.geometry_types != tuple(sorted(set(summary.geometry_types)))
+    ):
+        raise IgnBdTopoLayerError("IGN layer summary geometry types are invalid")
+    if summary.spatial_role != SPATIAL_ROLE:
+        raise IgnBdTopoLayerError("IGN layer summary spatial role is invalid")
+    if any(
+        getattr(summary, name) > summary.feature_count
+        for name in (
+            "null_geometry_count",
+            "empty_geometry_count",
+            "invalid_geometry_count",
+        )
+    ):
+        raise IgnBdTopoLayerError("IGN layer summary geometry count is impossible")
+    return summary
+
+
+def _compare_layer_summary(
+    supplied: object,
+    expected: IgnBdTopoLayerSummary,
+) -> None:
+    validated = _validate_layer_summary_contract(supplied)
+    if validated != expected:
+        raise IgnBdTopoLayerError("IGN supplied layer summary differs from physical source")
+
+
+def _compare_loaded_frame(
+    supplied: object,
+    expected: gpd.GeoDataFrame,
+    label: str,
+) -> None:
+    try:
+        if not isinstance(supplied, gpd.GeoDataFrame):
+            raise TypeError("supplied layer is not a GeoDataFrame")
+        if tuple(supplied.columns) != tuple(expected.columns):
+            raise AssertionError("columns differ")
+        if tuple(str(dtype) for dtype in supplied.dtypes) != tuple(
+            str(dtype) for dtype in expected.dtypes
+        ):
+            raise AssertionError("dtypes differ")
+        if type(supplied.index) is not type(expected.index):
+            raise AssertionError("index type differs")
+        if supplied.index.names != expected.index.names or not supplied.index.equals(
+            expected.index
+        ):
+            raise AssertionError("index differs")
+        if supplied.active_geometry_name != expected.active_geometry_name:
+            raise AssertionError("active geometry differs")
+        supplied_crs = _validate_lambert93(supplied.crs, label)
+        expected_crs = _validate_lambert93(expected.crs, label)
+        if not supplied_crs.equals(expected_crs):
+            raise AssertionError("CRS differs")
+        geometry_name = expected.active_geometry_name
+        if geometry_name is None:
+            raise AssertionError("geometry is missing")
+        pd.testing.assert_frame_equal(
+            pd.DataFrame(supplied.drop(columns=geometry_name)),
+            pd.DataFrame(expected.drop(columns=geometry_name)),
+            check_dtype=True,
+            check_index_type=True,
+            check_column_type=True,
+            check_names=True,
+            check_exact=True,
+        )
+        if supplied.geometry.to_wkb(hex=True).tolist() != expected.geometry.to_wkb(
+            hex=True
+        ).tolist():
+            raise AssertionError("geometry WKB differs")
+        if supplied.attrs != expected.attrs:
+            raise AssertionError("frame attributes differ")
+    except Exception as error:
+        raise IgnBdTopoLayerError(
+            f"IGN supplied {label} differs from freshly read physical source"
+        ) from error
+
+
 def _load_cached_extraction(
     extraction_path: Path,
     download: IgnBdTopoDownload,
@@ -973,6 +1263,8 @@ def _load_cached_extraction(
             extraction_path=extraction_path,
             geopackage_path=geopackage_path,
             geopackage_filename=geopackage_path.name,
+            geopackage_size_bytes=metadata.geopackage_size_bytes,
+            geopackage_sha256=metadata.geopackage_sha256,
             all_layer_names=selection.all_layer_names,
             electric_lines_layer=selection.electric_lines_layer,
             transformation_posts_layer=selection.transformation_posts_layer,
@@ -1081,6 +1373,8 @@ def extract_ign_bdtopo_archive(
             extraction_path=extraction_path,
             geopackage_path=published_geopackage,
             geopackage_filename=published_geopackage.name,
+            geopackage_size_bytes=metadata.geopackage_size_bytes,
+            geopackage_sha256=metadata.geopackage_sha256,
             all_layer_names=selection.all_layer_names,
             electric_lines_layer=selection.electric_lines_layer,
             transformation_posts_layer=selection.transformation_posts_layer,
@@ -1116,30 +1410,11 @@ def _validate_lambert93(crs_value: Any, layer_name: str) -> CRS:
     return crs
 
 
-def load_ign_bdtopo_layer(
-    geopackage_path: Path,
+def _loaded_layer_from_frame(
+    frame: gpd.GeoDataFrame,
     layer_name: str,
     logical_name: LogicalLayerName,
 ) -> IgnBdTopoLoadedLayer:
-    """Load and validate one selected IGN layer without repairing geometry."""
-
-    if not geopackage_path.is_file():
-        raise IgnBdTopoLayerError(f"GeoPackage does not exist: {geopackage_path}")
-    if not layer_name.strip():
-        raise IgnBdTopoLayerError("IGN source layer name must not be empty")
-    try:
-        frame = gpd.read_file(
-            geopackage_path,
-            layer=layer_name,
-            engine="pyogrio",
-        )
-    except Exception as error:
-        raise IgnBdTopoLayerError(
-            f"Cannot load IGN GeoPackage layer: {layer_name}"
-        ) from error
-
-    if not isinstance(frame, gpd.GeoDataFrame):
-        raise IgnBdTopoLayerError(f"IGN layer is not spatial: {layer_name}")
     try:
         geometry_name = frame.geometry.name
     except (AttributeError, ValueError) as error:
@@ -1169,16 +1444,29 @@ def load_ign_bdtopo_layer(
         crs=crs.to_string(),
         feature_count=len(frame),
         columns=tuple(str(column) for column in frame.columns),
-        dtypes=tuple(
-            (str(column), str(dtype))
-            for column, dtype in frame.dtypes.items()
-        ),
+        dtypes=tuple((str(column), str(dtype)) for column, dtype in frame.dtypes.items()),
         null_geometry_count=int(null_mask.sum()),
         empty_geometry_count=int(empty_mask.sum()),
         invalid_geometry_count=int(invalid_mask.sum()),
         geometry_types=geometry_types,
     )
+    _validate_layer_summary_contract(summary)
     return IgnBdTopoLoadedLayer(data=frame, summary=summary)
+
+
+def load_ign_bdtopo_layer(
+    geopackage_path: Path,
+    layer_name: str,
+    logical_name: LogicalLayerName,
+) -> IgnBdTopoLoadedLayer:
+    """Load and validate one selected IGN layer without repairing geometry."""
+
+    if not geopackage_path.is_file():
+        raise IgnBdTopoLayerError(f"GeoPackage does not exist: {geopackage_path}")
+    if not layer_name.strip():
+        raise IgnBdTopoLayerError("IGN source layer name must not be empty")
+    frame = _read_layer_frame(geopackage_path, layer_name)
+    return _loaded_layer_from_frame(frame, layer_name, logical_name)
 
 
 def load_ign_bdtopo_electricity(
@@ -1186,13 +1474,16 @@ def load_ign_bdtopo_electricity(
 ) -> IgnBdTopoElectricityData:
     """Load only the two electricity layers selected during extraction."""
 
-    electric_lines = load_ign_bdtopo_layer(
-        extraction.geopackage_path,
-        extraction.electric_lines_layer,
-        "electric_lines",
+    context = _validate_extraction_envelope(extraction)
+    line_frame, post_frame = _read_verified_layer_frames(
+        context,
+        (extraction.electric_lines_layer, extraction.transformation_posts_layer),
     )
-    transformation_posts = load_ign_bdtopo_layer(
-        extraction.geopackage_path,
+    electric_lines = _loaded_layer_from_frame(
+        line_frame, extraction.electric_lines_layer, "electric_lines"
+    )
+    transformation_posts = _loaded_layer_from_frame(
+        post_frame,
         extraction.transformation_posts_layer,
         "transformation_posts",
     )
@@ -1211,16 +1502,12 @@ def load_ign_bdtopo_roads(
 ) -> IgnBdTopoRoadData:
     """Load the configured factual road layer without filtering or repair."""
 
+    context = _validate_extraction_envelope(extraction)
     if config.department_code != extraction.archive.department_code:
         raise IgnBdTopoLayerError(
             "IGN road config department does not match archive lineage"
         )
-    actual_layers = list_ign_bdtopo_layers(extraction.geopackage_path)
-    if actual_layers != extraction.all_layer_names:
-        raise IgnBdTopoLayerError(
-            "IGN extraction layer inventory changed before road loading"
-        )
-    layer_name = _discover_road_layer(actual_layers, config)
+    layer_name = _discover_road_layer(extraction.all_layer_names, config)
     if layer_name in {
         extraction.electric_lines_layer,
         extraction.transformation_posts_layer,
@@ -1228,8 +1515,9 @@ def load_ign_bdtopo_roads(
         raise IgnBdTopoLayerError(
             "Road, electric-line, and transformation-post roles must use distinct layers"
         )
-    loaded = load_ign_bdtopo_layer(
-        extraction.geopackage_path,
+    (road_frame,) = _read_verified_layer_frames(context, (layer_name,))
+    loaded = _loaded_layer_from_frame(
+        road_frame,
         layer_name,
         "road_segments",
     )
@@ -1240,37 +1528,13 @@ def load_ign_bdtopo_roads(
     )
 
 
-def load_ign_bdtopo_department_coverage(
+def _department_coverage_from_frame(
     extraction: IgnBdTopoExtraction,
-    config: IgnBdTopoSourceConfig,
+    frame: gpd.GeoDataFrame,
+    layer_name: str,
+    department_field: str,
 ) -> IgnBdTopoDepartmentCoverage:
-    """Load the one authoritative configured department coverage feature."""
-
     archive = extraction.archive
-    if config.department_code != archive.department_code:
-        raise IgnBdTopoLayerError(
-            "IGN coverage config department does not match archive lineage"
-        )
-    actual_layers = list_ign_bdtopo_layers(extraction.geopackage_path)
-    if actual_layers != extraction.all_layer_names:
-        raise IgnBdTopoLayerError(
-            "IGN extraction layer inventory changed before coverage loading"
-        )
-    layer_name = _discover_department_coverage_layer(actual_layers, config)
-    try:
-        frame = gpd.read_file(
-            extraction.geopackage_path,
-            layer=layer_name,
-            engine="pyogrio",
-        )
-    except Exception as error:
-        raise IgnBdTopoLayerError(
-            f"Cannot load IGN department coverage layer: {layer_name}"
-        ) from error
-    if not isinstance(frame, gpd.GeoDataFrame):
-        raise IgnBdTopoLayerError(
-            f"IGN department coverage layer is not spatial: {layer_name}"
-        )
     try:
         geometry_name = frame.geometry.name
     except (AttributeError, ValueError) as error:
@@ -1300,7 +1564,6 @@ def load_ign_bdtopo_department_coverage(
         )
     )
 
-    department_field = config.coverage.department_layer.department_code_field
     if department_field not in frame.columns:
         raise IgnBdTopoLayerError(
             "Configured department identity field is missing from IGN coverage "
@@ -1364,6 +1627,7 @@ def load_ign_bdtopo_department_coverage(
         selected_department_code=archive.department_code,
     )
     return IgnBdTopoDepartmentCoverage(
+        extraction=extraction,
         coverage=selected,
         summary=summary,
         source_provider=archive.provider,
@@ -1374,3 +1638,186 @@ def load_ign_bdtopo_department_coverage(
         source_archive_sha256=archive.sha256,
         source_layer=layer_name,
     )
+
+
+def load_ign_bdtopo_department_coverage(
+    extraction: IgnBdTopoExtraction,
+    config: IgnBdTopoSourceConfig,
+) -> IgnBdTopoDepartmentCoverage:
+    """Load the one authoritative configured department coverage feature."""
+
+    context = _validate_extraction_envelope(extraction)
+    archive = extraction.archive
+    if config.department_code != archive.department_code:
+        raise IgnBdTopoLayerError(
+            "IGN coverage config department does not match archive lineage"
+        )
+    layer_name = _discover_department_coverage_layer(
+        extraction.all_layer_names, config
+    )
+    (frame,) = _read_verified_layer_frames(context, (layer_name,))
+    return _department_coverage_from_frame(
+        extraction,
+        frame,
+        layer_name,
+        config.coverage.department_layer.department_code_field,
+    )
+
+
+def _revalidate_ign_bdtopo_electricity_data(
+    source: object,
+) -> IgnBdTopoElectricityData:
+    """Fresh-read and exact-compare one supplied electricity source bundle."""
+
+    try:
+        if type(source) is not IgnBdTopoElectricityData:
+            raise TypeError("IGN electricity source type is invalid")
+        fresh = load_ign_bdtopo_electricity(source.extraction)
+        _compare_loaded_frame(source.electric_lines, fresh.electric_lines, "electric lines")
+        _compare_loaded_frame(
+            source.transformation_posts,
+            fresh.transformation_posts,
+            "transformation posts",
+        )
+        _compare_layer_summary(
+            source.electric_lines_summary, fresh.electric_lines_summary
+        )
+        _compare_layer_summary(
+            source.transformation_posts_summary,
+            fresh.transformation_posts_summary,
+        )
+        if source.spatial_role != SPATIAL_ROLE:
+            raise ValueError("IGN electricity source spatial role is invalid")
+        return fresh
+    except IgnBdTopoLayerError:
+        raise
+    except Exception as error:
+        raise IgnBdTopoLayerError(
+            "IGN electricity source-complete revalidation failed"
+        ) from error
+
+
+def _revalidate_ign_bdtopo_road_data(source: object) -> IgnBdTopoRoadData:
+    """Fresh-read and exact-compare one supplied road source bundle."""
+
+    try:
+        if type(source) is not IgnBdTopoRoadData:
+            raise TypeError("IGN road source type is invalid")
+        context = _validate_extraction_envelope(source.extraction)
+        summary = _validate_layer_summary_contract(source.road_segments_summary)
+        layer_name = summary.source_layer_name
+        if layer_name in {
+            source.extraction.electric_lines_layer,
+            source.extraction.transformation_posts_layer,
+        }:
+            raise ValueError("IGN road and electricity layer roles overlap")
+        (frame,) = _read_verified_layer_frames(context, (layer_name,))
+        fresh_layer = _loaded_layer_from_frame(frame, layer_name, "road_segments")
+        _compare_loaded_frame(source.road_segments, frame, "road segments")
+        _compare_layer_summary(summary, fresh_layer.summary)
+        return IgnBdTopoRoadData(
+            extraction=source.extraction,
+            road_segments=frame,
+            road_segments_summary=fresh_layer.summary,
+        )
+    except IgnBdTopoLayerError:
+        raise
+    except Exception as error:
+        raise IgnBdTopoLayerError(
+            "IGN road source-complete revalidation failed"
+        ) from error
+
+
+def _validate_coverage_summary_contract(
+    summary: object,
+) -> IgnBdTopoCoverageLayerSummary:
+    if type(summary) is not IgnBdTopoCoverageLayerSummary:
+        raise IgnBdTopoLayerError("IGN coverage summary type is invalid")
+    for name in (
+        "source_feature_count",
+        "selected_feature_count",
+        "null_geometry_count",
+        "empty_geometry_count",
+        "invalid_geometry_count",
+    ):
+        value = getattr(summary, name)
+        if type(value) is not int or value < 0:
+            raise IgnBdTopoLayerError(
+                f"IGN coverage summary {name} must be a strict non-negative integer"
+            )
+    if summary.selected_feature_count > summary.source_feature_count:
+        raise IgnBdTopoLayerError("IGN coverage summary counts are inconsistent")
+    if (
+        type(summary.columns) is not tuple
+        or not summary.columns
+        or any(
+            not isinstance(value, str) or not value or value != value.strip()
+            for value in summary.columns
+        )
+        or len(set(summary.columns)) != len(summary.columns)
+    ):
+        raise IgnBdTopoLayerError("IGN coverage summary columns are invalid")
+    if (
+        type(summary.dtypes) is not tuple
+        or len(summary.dtypes) != len(summary.columns)
+        or any(
+            type(item) is not tuple
+            or len(item) != 2
+            or any(not isinstance(value, str) or not value for value in item)
+            for item in summary.dtypes
+        )
+        or tuple(name for name, _ in summary.dtypes) != summary.columns
+    ):
+        raise IgnBdTopoLayerError("IGN coverage summary dtypes are invalid")
+    if (
+        type(summary.geometry_types) is not tuple
+        or summary.geometry_types != tuple(sorted(set(summary.geometry_types)))
+        or any(not isinstance(value, str) or not value for value in summary.geometry_types)
+    ):
+        raise IgnBdTopoLayerError("IGN coverage summary geometry types are invalid")
+    if summary.spatial_role != COVERAGE_SPATIAL_ROLE:
+        raise IgnBdTopoLayerError("IGN coverage summary spatial role is invalid")
+    return summary
+
+
+def _revalidate_ign_bdtopo_department_coverage(
+    source: object,
+) -> IgnBdTopoDepartmentCoverage:
+    """Fresh-read and exact-compare selected coverage with its physical layer."""
+
+    try:
+        if type(source) is not IgnBdTopoDepartmentCoverage:
+            raise TypeError("IGN department coverage type is invalid")
+        summary = _validate_coverage_summary_contract(source.summary)
+        context = _validate_extraction_envelope(source.extraction)
+        (frame,) = _read_verified_layer_frames(
+            context, (summary.source_layer_name,)
+        )
+        fresh = _department_coverage_from_frame(
+            source.extraction,
+            frame,
+            summary.source_layer_name,
+            summary.department_code_field,
+        )
+        _compare_loaded_frame(source.coverage, fresh.coverage, "department coverage")
+        if summary != fresh.summary:
+            raise ValueError("IGN coverage summary differs from physical source")
+        scalar_names = (
+            "source_provider",
+            "source_product",
+            "source_department_code",
+            "source_edition",
+            "source_product_version",
+            "source_archive_sha256",
+            "source_layer",
+            "spatial_role",
+        )
+        if any(getattr(source, name) != getattr(fresh, name) for name in scalar_names):
+            raise ValueError("IGN coverage lineage differs from physical source")
+        return fresh
+    except IgnBdTopoLayerError:
+        raise
+    except Exception as error:
+        raise IgnBdTopoLayerError(
+            "IGN coverage source-complete revalidation failed"
+        ) from error

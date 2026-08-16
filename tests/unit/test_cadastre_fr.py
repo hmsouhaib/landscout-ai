@@ -9,6 +9,7 @@ from urllib.error import HTTPError
 
 import pytest
 
+from landscout.sources import cadastre_fr
 from landscout.sources.cadastre_fr import (
     CadastreDownloadError,
     _is_valid_gzip,
@@ -356,3 +357,47 @@ def test_first_metadata_publication_failure_leaves_no_half_pair(
     assert not metadata_path.exists()
     assert not list(tmp_path.glob("*.part"))
     assert not list(tmp_path.glob("*.bak"))
+
+
+@pytest.mark.parametrize("rollback_target", ["archive", "metadata"])
+def test_publication_and_rollback_failure_preserves_recovery_backup(
+    tmp_path: Path,
+    rollback_target: str,
+) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.urlopen",
+        return_value=io.BytesIO(ARCHIVE_CONTENT),
+    ):
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+    metadata_path = tmp_path / f"{first.filename}.metadata.json"
+    _set_cache_age(metadata_path, timedelta(hours=169))
+    archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
+    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    original_replace = cadastre_fr._replace_file
+
+    def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("publication failure")
+        if rollback_target == "archive" and source == archive_backup:
+            raise OSError("archive rollback failure")
+        if rollback_target == "metadata" and source == metadata_backup:
+            raise OSError("metadata rollback failure")
+        original_replace(source, target)
+
+    with (
+        patch(
+            "landscout.sources.cadastre_fr.urlopen",
+            return_value=io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ),
+        patch.object(
+            cadastre_fr,
+            "_replace_file",
+            side_effect=fail_publication_and_rollback,
+        ),
+        pytest.raises(CadastreDownloadError, match="rollback"),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    useful_backups = [path for path in (archive_backup, metadata_backup) if path.exists()]
+    assert useful_backups

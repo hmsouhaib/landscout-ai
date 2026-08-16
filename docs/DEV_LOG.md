@@ -8,6 +8,21 @@
 - Python version: `3.12.13`
 - Next step waiting for review: evidence-based planning-rule interpretation design
 
+## GLOBAL HARDENING REVIEW CORRECTION - Source-boundary and adversarial contracts
+
+- Status: Complete
+- Scope: Validation hardening only. No scoring, access policy, road suitability, parcel ranking, owner enrichment, local planning interpretation, or legal conclusion was added.
+- IGN source boundary: `IgnBdTopoExtraction` now retains the schema-v2 GeoPackage byte size and lowercase SHA256. Electricity, road, and department-coverage consumers verify the extraction marker, sole safe GeoPackage path, layer inventory and roles, then hash before and after each batched physical read. The grid and road normalizers and coverage assessment fresh-read and exact-compare supplied frames, geometry WKB, attributes, schemas, CRS, order, and summaries against that verified physical source.
+- IGN contracts: Summary count fields are strict non-negative `int` values; structural tuples and canonical lowercase lineage SHA values are enforced. Coordinated in-memory frame/summary forgeries, same-size disk tampering, and read-time mutation are permanent regressions.
+- Cadastre boundary: `load_cadastre_parcels()` now consumes an exact `CadastreDownload`, verifies URL/name/size/lowercase SHA/gzip before parsing, and re-verifies size and SHA after parsing. Cache publication rollback preserves recovery backups if restoration itself fails. All five cadastral identity columns require exact non-empty strings, and commune identity uses the canonical French INSEE form including `2A`/`2B`.
+- Parcel and RTE contracts: `VALID` shape rows require complete finite positive width and finite ratio >= 1 even when screening is disabled. Both parcel filters require a valid spatial GeoDataFrame envelope. RTE GeoJSON coordinate arrays, finite numeric positions, nested structures, and GeometryCollection members are validated recursively without adding topology repair.
+- Focused tests: IGN 313 passed; cadastre 110 passed; shape/filter 130 passed; RTE 59 passed.
+- Real cached D031 check: network access was blocked; archive and extraction were cache hits. The verified 2,955,161,600-byte GeoPackage retained SHA256 `703ff236ec8f879f0863c985a39a8b6b071dab671eac4eca33eff976ff982ec6`. Road normalization produced 385,107 rows, 385,107 unique road IDs, CRS `EPSG:2154`, and geometry status `VALID` for all 385,107 rows.
+- Real Muret invariants: shape-screened parcels 3,638; planning features 479; factual relations 2,414; CNIG pairs 12; policy pairs 12.
+- Pinned results: application complete hash `53b8fcddfcbd3920f223071d946d9066c8cb9cc38f0afc8d917e2b723926527e`; aggregation complete hash `c7417273d36c92833fcbd941a5e10c2518e30c97c3a758646a49d19cdc0c6cee`. Existing generated planning artifacts were not rewritten.
+- Final quality gates: targeted suites, `uv sync --frozen`, `uv lock --check`, `uv pip check`, Ruff, and mypy passed. The one durable full-suite run completed with 2,290 passed, 5 warnings, and exit code 0 in 638.49 seconds.
+- Known issues: None.
+
 ## STEP 0 — Environment check
 
 - Status: Complete

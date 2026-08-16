@@ -1,7 +1,13 @@
+import json
+import tempfile
 from copy import deepcopy
 from dataclasses import replace
+from hashlib import sha256
+from pathlib import Path
+from uuid import uuid4
 
 import geopandas as gpd
+import pyogrio
 import pytest
 from geopandas.testing import assert_geodataframe_equal
 from pandas.testing import assert_frame_equal
@@ -16,6 +22,8 @@ from landscout import stages
 from landscout.sources import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
+    IgnBdTopoDownload,
+    IgnBdTopoExtraction,
 )
 from landscout.stages import (
     GridCoverageAssessmentError,
@@ -26,6 +34,7 @@ from landscout.stages import (
 
 ARCHIVE_SHA256 = "a" * 64
 EDITION = "2026-06-15"
+_FIXTURE_ROOT = Path(tempfile.mkdtemp(prefix="landscout-coverage-ign-"))
 
 
 def _coverage(
@@ -36,7 +45,7 @@ def _coverage(
     crs: str | None = "EPSG:2154",
     spatial_role: str = "SOURCE_COVERAGE_BOUNDARY",
 ) -> IgnBdTopoDepartmentCoverage:
-    frame = gpd.GeoDataFrame(
+    raw_frame = gpd.GeoDataFrame(
         {
             "code_insee": ["31"],
             "nom_officiel": ["Haute-Garonne"],
@@ -44,6 +53,85 @@ def _coverage(
         geometry=[geometry],
         crs=crs,
     )
+    extraction_path = _FIXTURE_ROOT / uuid4().hex
+    extraction_path.mkdir(parents=True)
+    geopackage_path = extraction_path / "data.gpkg"
+    dummy = gpd.GeoDataFrame(
+        {"id": ["dummy"]},
+        geometry=[LineString([(0, 0), (1, 1)])],
+        crs=crs or "EPSG:2154",
+    )
+    pyogrio.write_dataframe(
+        dummy, geopackage_path, layer="ligne_electrique", driver="GPKG"
+    )
+    pyogrio.write_dataframe(
+        dummy,
+        geopackage_path,
+        layer="poste_de_transformation",
+        driver="GPKG",
+        append=True,
+    )
+    pyogrio.write_dataframe(
+        raw_frame,
+        geopackage_path,
+        layer="departement",
+        driver="GPKG",
+        append=True,
+    )
+    raw_frame = gpd.read_file(geopackage_path, layer="departement", engine="pyogrio")
+    payload = geopackage_path.read_bytes()
+    digest = sha256(payload).hexdigest()
+    layer_names = tuple(str(row[0]) for row in pyogrio.list_layers(geopackage_path))
+    (extraction_path / ".landscout-extraction.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 2,
+                "archive_sha256": ARCHIVE_SHA256,
+                "geopackage_relative_path": "data.gpkg",
+                "geopackage_size_bytes": len(payload),
+                "geopackage_sha256": digest,
+                "all_layer_names": list(layer_names),
+                "electric_lines_layer": "ligne_electrique",
+                "transformation_posts_layer": "poste_de_transformation",
+                "spatial_role": "PROXY_GEOMETRY",
+            }
+        ),
+        encoding="utf-8",
+    )
+    archive = IgnBdTopoDownload(
+        provider="IGN",
+        product="BD TOPO",
+        department_code="31",
+        edition=EDITION,
+        product_version="3.5",
+        projection="EPSG:2154",
+        package_format="GPKG",
+        archive_format="7z",
+        source_url="https://example.test/BDTOPO.7z",
+        checksum_url=None,
+        download_timestamp="2026-08-11T15:32:03+00:00",
+        filename="BDTOPO.7z",
+        file_size=1,
+        sha256=ARCHIVE_SHA256,
+        official_checksum_algorithm=None,
+        official_checksum=None,
+        official_checksum_validated=False,
+        path=extraction_path / "BDTOPO.7z",
+        cache_hit=True,
+    )
+    extraction = IgnBdTopoExtraction(
+        archive=archive,
+        extraction_path=extraction_path,
+        geopackage_path=geopackage_path,
+        geopackage_filename="data.gpkg",
+        geopackage_size_bytes=len(payload),
+        geopackage_sha256=digest,
+        all_layer_names=layer_names,
+        electric_lines_layer="ligne_electrique",
+        transformation_posts_layer="poste_de_transformation",
+        cache_hit=True,
+    )
+    frame = raw_frame.copy()
     for column, value in {
         "source_provider": "IGN",
         "source_product": "BD TOPO",
@@ -55,7 +143,9 @@ def _coverage(
         "spatial_role": spatial_role,
     }.items():
         frame[column] = value
-    geometry_type = () if geometry is None else (geometry.geom_type,)
+    geometry_type = tuple(
+        sorted(str(value) for value in raw_frame.geometry.dropna().geom_type.unique())
+    )
     non_null_geometry = ~frame.geometry.isna()
     non_empty_geometry = non_null_geometry & ~frame.geometry.is_empty
     summary = IgnBdTopoCoverageLayerSummary(
@@ -64,22 +154,20 @@ def _coverage(
         source_feature_count=1,
         selected_feature_count=1,
         columns=("code_insee", "nom_officiel", "geometry"),
-        dtypes=tuple(
-            (str(column), str(frame[column].dtype))
-            for column in ("code_insee", "nom_officiel", "geometry")
-        ),
-        null_geometry_count=int(frame.geometry.isna().sum()),
+        dtypes=tuple((str(column), str(dtype)) for column, dtype in raw_frame.dtypes.items()),
+        null_geometry_count=int(raw_frame.geometry.isna().sum()),
         empty_geometry_count=int(
-            (non_null_geometry & frame.geometry.is_empty).sum()
+            (non_null_geometry & raw_frame.geometry.is_empty).sum()
         ),
         invalid_geometry_count=int(
-            (non_empty_geometry & ~frame.geometry.is_valid).sum()
+            (non_empty_geometry & ~raw_frame.geometry.is_valid).sum()
         ),
         geometry_types=geometry_type,
         department_code_field="code_insee",
         selected_department_code="31",
     )
     return IgnBdTopoDepartmentCoverage(
+        extraction=extraction,
         coverage=frame,
         summary=summary,
         source_provider="IGN",
@@ -512,3 +600,12 @@ def test_coverage_source_layer_lineage_must_match_summary_and_frame() -> None:
 
     with pytest.raises(GridCoverageAssessmentError, match="layer|lineage"):
         assess_grid_coverage(_proximity(), replace(coverage, summary=summary))
+
+
+def test_assessment_rejects_forged_selected_coverage_row() -> None:
+    coverage = _coverage()
+    forged = coverage.coverage.copy()
+    forged.loc[0, "nom_officiel"] = "Invented department"
+
+    with pytest.raises(GridCoverageAssessmentError, match="physical|source"):
+        assess_grid_coverage(_proximity(), replace(coverage, coverage=forged))

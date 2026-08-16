@@ -141,18 +141,33 @@ def _publish_cache_pair(
             copy2(archive_path, archive_backup)
         if metadata_existed:
             copy2(metadata_path, metadata_backup)
+    except OSError:
+        archive_backup.unlink(missing_ok=True)
+        metadata_backup.unlink(missing_ok=True)
+        raise
+
+    try:
         _replace_file(temporary_archive, archive_path)
+        _replace_file(temporary_metadata, metadata_path)
+    except OSError:
         try:
-            _replace_file(temporary_metadata, metadata_path)
-        except OSError:
             if archive_existed:
                 _replace_file(archive_backup, archive_path)
             else:
                 archive_path.unlink(missing_ok=True)
-            if metadata_existed and not metadata_path.is_file():
+            if metadata_existed:
                 _replace_file(metadata_backup, metadata_path)
-            raise
-    finally:
+            else:
+                metadata_path.unlink(missing_ok=True)
+        except OSError as rollback_error:
+            # Do not remove remaining backups: they are recovery material.
+            raise CadastreDownloadError(
+                "Cadastre cache publication and rollback both failed"
+            ) from rollback_error
+        archive_backup.unlink(missing_ok=True)
+        metadata_backup.unlink(missing_ok=True)
+        raise
+    else:
         archive_backup.unlink(missing_ok=True)
         metadata_backup.unlink(missing_ok=True)
 

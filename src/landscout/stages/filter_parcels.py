@@ -2,10 +2,13 @@ from math import isfinite
 from numbers import Real
 
 import geopandas as gpd  # type: ignore[import-untyped]
+from pyproj import CRS
 
 from landscout.config import ParcelConfig, ShapeScreeningConfig
 
-AREA_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry_status", "area_m2"})
+AREA_REQUIRED_COLUMNS = frozenset(
+    {"parcel_id", "geometry_status", "area_m2", "geometry"}
+)
 SHAPE_REQUIRED_COLUMNS = frozenset(
     {"parcel_id", "shape_status", "width_m", "length_width_ratio", "geometry"}
 )
@@ -14,6 +17,37 @@ ALLOWED_SHAPE_STATUSES = frozenset({"VALID", "ERROR"})
 
 class ParcelFilterError(ValueError):
     """Raised when normalized parcels cannot be partitioned safely."""
+
+
+def _validate_spatial_frame(parcels: object, label: str) -> gpd.GeoDataFrame:
+    if not isinstance(parcels, gpd.GeoDataFrame):
+        raise ParcelFilterError(f"{label} input must be a GeoDataFrame")
+    if parcels.columns.duplicated().any():
+        raise ParcelFilterError(f"{label} input columns must be unique")
+    try:
+        geometry_name = parcels.active_geometry_name
+    except (AttributeError, ValueError) as error:
+        raise ParcelFilterError(f"{label} input geometry is invalid") from error
+    if geometry_name is None or geometry_name not in parcels.columns:
+        raise ParcelFilterError(f"{label} input requires an active geometry column")
+    if parcels.crs is None:
+        raise ParcelFilterError(f"{label} input must have a known CRS")
+    try:
+        CRS.from_user_input(parcels.crs)
+    except Exception as error:
+        raise ParcelFilterError(f"{label} input CRS must be readable") from error
+    return parcels
+
+
+def _missing_columns(
+    parcels: object,
+    required: frozenset[str],
+    label: str,
+) -> frozenset[str]:
+    try:
+        return required - set(parcels.columns)  # type: ignore[attr-defined]
+    except Exception as error:
+        raise ParcelFilterError(f"{label} input must be a GeoDataFrame") from error
 
 
 def _validate_exact_parcel_ids(parcels: gpd.GeoDataFrame) -> None:
@@ -42,10 +76,11 @@ def _is_strict_finite_number(value: object) -> bool:
 def filter_parcels_by_area(
     parcels: gpd.GeoDataFrame, area_config: ParcelConfig
 ) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
-    missing_columns = AREA_REQUIRED_COLUMNS - set(parcels.columns)
+    missing_columns = _missing_columns(parcels, AREA_REQUIRED_COLUMNS, "Area-filter")
     if missing_columns:
         formatted = ", ".join(sorted(missing_columns))
         raise ParcelFilterError(f"Missing required normalized columns: {formatted}")
+    parcels = _validate_spatial_frame(parcels, "Area-filter")
     _validate_exact_parcel_ids(parcels)
 
     valid_geometry = parcels["geometry_status"] == "VALID"
@@ -101,12 +136,11 @@ def filter_parcels_by_area(
 
 
 def _validate_shape_filter_input(parcels: gpd.GeoDataFrame) -> None:
-    missing_columns = SHAPE_REQUIRED_COLUMNS - set(parcels.columns)
+    missing_columns = _missing_columns(parcels, SHAPE_REQUIRED_COLUMNS, "Shape-filter")
     if missing_columns:
         formatted = ", ".join(sorted(missing_columns))
         raise ParcelFilterError(f"Missing required shape columns: {formatted}")
-    if parcels.crs is None:
-        raise ParcelFilterError("Shape-filter input must have a known CRS")
+    parcels = _validate_spatial_frame(parcels, "Shape-filter")
     _validate_exact_parcel_ids(parcels)
 
     statuses = parcels["shape_status"]
@@ -117,22 +151,25 @@ def _validate_shape_filter_input(parcels: gpd.GeoDataFrame) -> None:
         raise ParcelFilterError(f"Unexpected shape_status value(s): {detail}")
 
     valid_rows = statuses == "VALID"
+    if parcels.loc[valid_rows, ["width_m", "length_width_ratio"]].isna().any().any():
+        raise ParcelFilterError(
+            "VALID shape rows must have complete width_m and length_width_ratio metrics"
+        )
     for column in ("width_m", "length_width_ratio"):
-        known_values = parcels.loc[valid_rows, column].dropna()
         if any(
             not _is_strict_finite_number(value)
-            for value in known_values
+            for value in parcels.loc[valid_rows, column]
         ):
             raise ParcelFilterError(
                 f"{column} must be numeric and finite when shape_status is VALID"
             )
-    known_width = parcels.loc[valid_rows, "width_m"].dropna()
-    if any(float(value) <= 0 for value in known_width):
+    valid_width = parcels.loc[valid_rows, "width_m"]
+    if any(float(value) <= 0 for value in valid_width):
         raise ParcelFilterError(
             "width_m must be greater than zero when shape_status is VALID"
         )
-    known_ratio = parcels.loc[valid_rows, "length_width_ratio"].dropna()
-    if any(float(value) < 1 for value in known_ratio):
+    valid_ratio = parcels.loc[valid_rows, "length_width_ratio"]
+    if any(float(value) < 1 for value in valid_ratio):
         raise ParcelFilterError(
             "length_width_ratio must be at least one when shape_status is VALID"
         )
@@ -196,24 +233,11 @@ def filter_parcels_by_shape(
     rejected["shape_rejection_reason"] = "RATIO_ABOVE_MAX"
     rejected_valid = rejected["shape_status"] == "VALID"
     rejected_width = rejected["width_m"].where(rejected_valid)
-    rejected_ratio = rejected["length_width_ratio"].where(rejected_valid)
-    rejected_known_width = rejected_width.notna()
-    rejected_known_ratio = rejected_ratio.notna()
     rejected.loc[
         rejected_valid
-        & rejected_known_width
-        & rejected_known_ratio
         & (rejected_width < min_width_m),
         "shape_rejection_reason",
     ] = "WIDTH_BELOW_MIN"
-    rejected.loc[
-        rejected_valid & rejected_known_width & ~rejected_known_ratio,
-        "shape_rejection_reason",
-    ] = "RATIO_UNKNOWN"
-    rejected.loc[
-        rejected_valid & ~rejected_known_width,
-        "shape_rejection_reason",
-    ] = "WIDTH_UNKNOWN"
     rejected.loc[~rejected_valid, "shape_rejection_reason"] = "SHAPE_ERROR"
 
     for output in (retained, rejected):

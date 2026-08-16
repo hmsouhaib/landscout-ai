@@ -186,3 +186,46 @@ def test_normalization_does_not_mutate_input(valid_polygon: Polygon) -> None:
     normalize_cadastre_parcels(source)
 
     assert_geodataframe_equal(source, before)
+
+
+@pytest.mark.parametrize("column", ["id", "commune", "prefixe", "section", "numero"])
+@pytest.mark.parametrize(
+    "value",
+    [None, 123, True, "", " leading", "trailing "],
+)
+def test_every_cadastral_identity_field_requires_an_exact_nonempty_string(
+    valid_polygon: Polygon,
+    column: str,
+    value: object,
+) -> None:
+    source = _source_parcels([valid_polygon])
+    source[column] = source[column].astype(object)
+    source.loc[0, column] = value
+
+    with pytest.raises(CadastreNormalizationError, match=column):
+        normalize_cadastre_parcels(source)
+
+
+@pytest.mark.parametrize("commune", ["3139", "2a004", "ABCDE", "971000"])
+def test_commune_requires_canonical_french_insee_identity(
+    valid_polygon: Polygon,
+    commune: str,
+) -> None:
+    source = _source_parcels([valid_polygon])
+    source.loc[0, "commune"] = commune
+
+    with pytest.raises(CadastreNormalizationError, match="commune"):
+        normalize_cadastre_parcels(source)
+
+
+@pytest.mark.parametrize("commune", ["31395", "2A004", "2B033"])
+def test_commune_accepts_canonical_french_insee_identity(
+    valid_polygon: Polygon,
+    commune: str,
+) -> None:
+    source = _source_parcels([valid_polygon])
+    source.loc[0, "commune"] = commune
+
+    result = normalize_cadastre_parcels(source)
+
+    assert result.loc[0, "commune_code"] == commune

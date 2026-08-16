@@ -1,4 +1,5 @@
 import geopandas as gpd
+import pandas as pd
 import pytest
 from geopandas.testing import assert_geodataframe_equal
 from shapely.geometry import Polygon
@@ -62,10 +63,10 @@ def parcels() -> gpd.GeoDataFrame:
                 "VALID",
                 "VALID",
                 "ERROR",
-                "VALID",
-                "VALID",
-                "VALID",
-                "VALID",
+                "ERROR",
+                "ERROR",
+                "ERROR",
+                "ERROR",
                 "VALID",
             ],
             "width_m": [15.0, 20.0, 14.9, 16.0, None, None, 20.0, None, 14.0, 14.0],
@@ -102,8 +103,8 @@ def test_exact_width_and_ratio_boundaries_are_retained(
         ("width-below", "WIDTH_BELOW_MIN"),
         ("ratio-above", "RATIO_ABOVE_MAX"),
         ("shape-error", "SHAPE_ERROR"),
-        ("width-unknown", "WIDTH_UNKNOWN"),
-        ("ratio-unknown", "RATIO_UNKNOWN"),
+        ("width-unknown", "SHAPE_ERROR"),
+        ("ratio-unknown", "SHAPE_ERROR"),
     ],
 )
 def test_rejected_parcel_has_expected_primary_reason(
@@ -122,8 +123,8 @@ def test_rejected_parcel_has_expected_primary_reason(
     ("parcel_id", "expected_reason"),
     [
         ("shape-error", "SHAPE_ERROR"),
-        ("both-unknown", "WIDTH_UNKNOWN"),
-        ("ratio-unknown-width-below", "RATIO_UNKNOWN"),
+        ("both-unknown", "SHAPE_ERROR"),
+        ("ratio-unknown-width-below", "SHAPE_ERROR"),
         ("both-thresholds-fail", "WIDTH_BELOW_MIN"),
     ],
 )
@@ -357,3 +358,72 @@ def test_different_configs_change_results_for_same_parcels(
         "both-thresholds-fail",
     }
     assert set(restrictive_retained["parcel_id"]) == {"passing"}
+
+
+@pytest.mark.parametrize("column", ["width_m", "length_width_ratio"])
+def test_valid_shape_requires_complete_metrics_even_when_screening_disabled(
+    parcels: gpd.GeoDataFrame,
+    column: str,
+) -> None:
+    invalid = parcels.copy()
+    invalid.loc[0, column] = None
+
+    with pytest.raises(ParcelFilterError, match="complete|must not be null"):
+        filter_parcels_by_shape(invalid, ShapeScreeningConfig(enabled=False))
+
+
+@pytest.mark.parametrize(
+    ("width", "ratio"),
+    [
+        (None, 5.0),
+        (20.0, None),
+        (None, None),
+        (float("nan"), 5.0),
+        (20.0, float("nan")),
+    ],
+)
+def test_valid_shape_rejects_every_incomplete_metric_form(
+    parcels: gpd.GeoDataFrame,
+    shape_config: ShapeScreeningConfig,
+    width: float | None,
+    ratio: float | None,
+) -> None:
+    invalid = parcels.copy()
+    invalid.loc[0, "width_m"] = width
+    invalid.loc[0, "length_width_ratio"] = ratio
+
+    with pytest.raises(ParcelFilterError, match="complete"):
+        filter_parcels_by_shape(invalid, shape_config)
+
+
+def test_shape_filter_rejects_plain_dataframe(
+    parcels: gpd.GeoDataFrame, shape_config: ShapeScreeningConfig
+) -> None:
+    with pytest.raises(ParcelFilterError, match="GeoDataFrame"):
+        filter_parcels_by_shape(
+            pd.DataFrame(parcels),  # type: ignore[arg-type]
+            shape_config,
+        )
+
+
+def test_shape_filter_rejects_duplicate_columns(
+    parcels: gpd.GeoDataFrame, shape_config: ShapeScreeningConfig
+) -> None:
+    duplicate = gpd.GeoDataFrame(
+        pd.concat([parcels, parcels[["parcel_id"]]], axis=1),
+        geometry="geometry",
+        crs=parcels.crs,
+    )
+
+    with pytest.raises(ParcelFilterError, match="columns.*unique"):
+        filter_parcels_by_shape(duplicate, shape_config)
+
+
+def test_shape_filter_rejects_unreadable_crs(
+    parcels: gpd.GeoDataFrame, shape_config: ShapeScreeningConfig
+) -> None:
+    invalid = parcels.copy()
+    invalid.geometry.array._crs = "not-a-crs"
+
+    with pytest.raises(ParcelFilterError, match="CRS"):
+        filter_parcels_by_shape(invalid, shape_config)

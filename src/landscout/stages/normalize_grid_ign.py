@@ -23,6 +23,8 @@ from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoElectricityData,
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
+    _revalidate_ign_bdtopo_electricity_data,
+    _validate_layer_summary_contract,
 )
 
 SOURCE_PROVIDER = "IGN"
@@ -146,7 +148,7 @@ _DEENERGIZED_VOLTAGE_TERMS = frozenset({"hors tension"})
 _DEPARTMENT_CODE_VALIDATOR = TypeAdapter(DepartmentCode)
 _EDITION_VALIDATOR = TypeAdapter(EditionString)
 _HTTP_URL_VALIDATOR = TypeAdapter(HttpUrl)
-_SHA256_PATTERN = re.compile(r"^[0-9a-fA-F]{64}$")
+_SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 _IGN_PROVIDER_IDENTITIES = frozenset(
     {
         "ign",
@@ -600,6 +602,12 @@ def _validate_layer_summary(
     expected_layer: str,
     expected_logical_name: str,
 ) -> None:
+    try:
+        _validate_layer_summary_contract(summary)
+    except Exception as error:
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} summary schema contract is invalid"
+        ) from error
     if summary.source_layer_name != expected_layer:
         raise IgnGridNormalizationError(
             f"IGN {expected_logical_name} summary layer does not match extraction"
@@ -767,6 +775,7 @@ def normalize_ign_electricity(
 
     try:
         _validate_source_bundle(source)
+        _revalidate_ign_bdtopo_electricity_data(source)
         line_context = _source_context(
             source, source.extraction.electric_lines_layer
         )

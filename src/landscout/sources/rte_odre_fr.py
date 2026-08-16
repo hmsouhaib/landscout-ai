@@ -2,6 +2,8 @@ import json
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from hashlib import sha256
+from math import isfinite
+from numbers import Real
 from pathlib import Path
 from shutil import copy2, copyfileobj
 from typing import Annotated, Any, Literal
@@ -308,19 +310,7 @@ def _validate_geojson(path: Path) -> RteOdreExportSummary:
             raise RteOdreDownloadError(
                 "GeoJSON feature geometry must be an object or null"
             )
-        geometry_type = geometry.get("type")
-        if geometry_type not in GEOJSON_GEOMETRY_TYPES:
-            raise RteOdreDownloadError("GeoJSON feature has an unsupported geometry type")
-        if geometry_type in COORDINATE_GEOMETRY_TYPES and "coordinates" not in geometry:
-            raise RteOdreDownloadError(
-                f"GeoJSON {geometry_type} geometry must contain coordinates"
-            )
-        if geometry_type == "GeometryCollection" and not isinstance(
-            geometry.get("geometries"), list
-        ):
-            raise RteOdreDownloadError(
-                "GeoJSON GeometryCollection must contain a geometries list"
-            )
+        geometry_type = _validate_geojson_geometry(geometry)
         geometry_types.add(geometry_type)
     return RteOdreExportSummary(
         feature_count=len(features),
@@ -328,6 +318,79 @@ def _validate_geojson(path: Path) -> RteOdreExportSummary:
         non_null_geometry_count=len(features) - null_geometry_count,
         geometry_types=tuple(sorted(geometry_types)),
     )
+
+
+def _validate_position(value: object, geometry_type: str) -> None:
+    if not isinstance(value, list) or len(value) < 2:
+        raise RteOdreDownloadError(
+            f"GeoJSON {geometry_type} coordinates must contain an X/Y position"
+        )
+    if any(
+        isinstance(coordinate, bool)
+        or not isinstance(coordinate, Real)
+        or not isfinite(float(coordinate))
+        for coordinate in value
+    ):
+        raise RteOdreDownloadError(
+            f"GeoJSON {geometry_type} coordinates must be finite numeric values"
+        )
+
+
+def _validate_nested_coordinates(
+    value: object,
+    *,
+    depth: int,
+    geometry_type: str,
+) -> None:
+    if not isinstance(value, list):
+        raise RteOdreDownloadError(
+            f"GeoJSON {geometry_type} coordinate structure must use JSON arrays"
+        )
+    if depth == 0:
+        _validate_position(value, geometry_type)
+        return
+    for member in value:
+        _validate_nested_coordinates(
+            member,
+            depth=depth - 1,
+            geometry_type=geometry_type,
+        )
+
+
+def _validate_geojson_geometry(geometry: object) -> str:
+    if not isinstance(geometry, dict):
+        raise RteOdreDownloadError("GeoJSON geometry member must be an object")
+    geometry_type = geometry.get("type")
+    if geometry_type not in GEOJSON_GEOMETRY_TYPES:
+        raise RteOdreDownloadError("GeoJSON feature has an unsupported geometry type")
+    if geometry_type == "GeometryCollection":
+        members = geometry.get("geometries")
+        if not isinstance(members, list):
+            raise RteOdreDownloadError(
+                "GeoJSON GeometryCollection must contain a geometries list"
+            )
+        for member in members:
+            _validate_geojson_geometry(member)
+        return geometry_type
+
+    if "coordinates" not in geometry:
+        raise RteOdreDownloadError(
+            f"GeoJSON {geometry_type} geometry must contain coordinates"
+        )
+    depth_by_type = {
+        "Point": 0,
+        "MultiPoint": 1,
+        "LineString": 1,
+        "MultiLineString": 2,
+        "Polygon": 2,
+        "MultiPolygon": 3,
+    }
+    _validate_nested_coordinates(
+        geometry["coordinates"],
+        depth=depth_by_type[geometry_type],
+        geometry_type=geometry_type,
+    )
+    return geometry_type
 
 
 def _metadata_from_dict(payload: Any) -> RteOdreDatasetMetadata:

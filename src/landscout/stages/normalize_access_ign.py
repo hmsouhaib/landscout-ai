@@ -19,6 +19,8 @@ from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
     IgnBdTopoRoadData,
+    _revalidate_ign_bdtopo_road_data,
+    _validate_layer_summary_contract,
 )
 
 __all__ = [
@@ -117,7 +119,7 @@ _ROAD_GEOMETRY_TYPES = frozenset({"LineString", "MultiLineString"})
 _DEPARTMENT_CODE_VALIDATOR = TypeAdapter(DepartmentCode)
 _EDITION_VALIDATOR = TypeAdapter(EditionString)
 _HTTP_URL_VALIDATOR = TypeAdapter(HttpUrl)
-_SHA256_PATTERN = re.compile(r"^[0-9a-fA-F]{64}$")
+_SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 _IGN_PROVIDER_IDENTITIES = frozenset(
     {
         "ign",
@@ -270,6 +272,12 @@ def _validate_layer_summary(
     summary: IgnBdTopoLayerSummary,
     all_layer_names: tuple[str, ...],
 ) -> None:
+    try:
+        _validate_layer_summary_contract(summary)
+    except Exception as error:
+        raise IgnRoadNormalizationError(
+            "IGN road summary schema contract is invalid"
+        ) from error
     if summary.logical_name != "road_segments":
         raise IgnRoadNormalizationError(
             "IGN road summary has the wrong logical name"
@@ -511,6 +519,7 @@ def _normalize_road_frame(
 
 def _normalize_ign_roads(source: IgnBdTopoRoadData) -> NormalizedIgnRoadData:
     context = _validate_source_bundle(source)
+    _revalidate_ign_bdtopo_road_data(source)
     return NormalizedIgnRoadData(
         road_segments=_normalize_road_frame(source.road_segments, context)
     )

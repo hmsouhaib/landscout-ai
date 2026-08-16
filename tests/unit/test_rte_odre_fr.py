@@ -593,6 +593,98 @@ def test_standard_geojson_geometry_types_are_summarized(tmp_path: Path) -> None:
     assert summary.geometry_types == tuple(sorted((*coordinate_types, "GeometryCollection")))
 
 
+@pytest.mark.parametrize(
+    "coordinates",
+    [None, "x", {}, [True, 2], [1, float("nan")], [1, float("inf")], [1]],
+)
+def test_point_requires_a_finite_numeric_position(
+    tmp_path: Path,
+    coordinates: object,
+) -> None:
+    path = tmp_path / "bad-point.geojson"
+    path.write_text(
+        json.dumps(
+            {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {"type": "Point", "coordinates": coordinates},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RteOdreDownloadError, match="coordinate|Point|finite"):
+        rte_odre_fr._validate_geojson(path)
+
+
+@pytest.mark.parametrize(
+    ("geometry_type", "coordinates"),
+    [
+        ("MultiPoint", None),
+        ("LineString", "x"),
+        ("MultiLineString", {}),
+        ("Polygon", [1, 2]),
+        ("MultiPolygon", [[[1, float("inf")]]]),
+    ],
+)
+def test_nested_coordinate_geometries_reject_obvious_invalid_structure(
+    tmp_path: Path,
+    geometry_type: str,
+    coordinates: object,
+) -> None:
+    path = tmp_path / "bad-nested.geojson"
+    path.write_text(
+        json.dumps(
+            {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": geometry_type,
+                            "coordinates": coordinates,
+                        },
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RteOdreDownloadError, match="coordinate|structure|finite"):
+        rte_odre_fr._validate_geojson(path)
+
+
+def test_geometry_collection_members_are_validated_recursively(tmp_path: Path) -> None:
+    path = tmp_path / "bad-collection.geojson"
+    path.write_text(
+        json.dumps(
+            {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "GeometryCollection",
+                            "geometries": [
+                                {"type": "Point", "coordinates": None}
+                            ],
+                        },
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RteOdreDownloadError, match="coordinate|Point"):
+        rte_odre_fr._validate_geojson(path)
+
+
 def test_null_feature_geometries_are_accepted(
     tmp_path: Path, source_config: RteOdreSourceConfig
 ) -> None:

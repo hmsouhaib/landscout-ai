@@ -1,3 +1,5 @@
+import re
+
 import geopandas as gpd  # type: ignore[import-untyped]
 import numpy as np
 from pyproj import CRS
@@ -18,6 +20,7 @@ FIELD_MAPPING = {
 REQUIRED_IDENTITY_COLUMNS = frozenset(
     {"id", "commune", "prefixe", "section", "numero"}
 )
+CANONICAL_COMMUNE_PATTERN = re.compile(r"^(?:\d{5}|2[AB]\d{3})$")
 
 
 class CadastreNormalizationError(ValueError):
@@ -44,20 +47,27 @@ def normalize_cadastre_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         raise CadastreNormalizationError(
             f"Missing required cadastral identity columns: {formatted}"
         )
-    if parcels["id"].isna().any():
-        raise CadastreNormalizationError("parcel_id values must not be null")
-    identifiers = parcels["id"].tolist()
-    if any(
-        not isinstance(identifier, str)
-        or not identifier
-        or identifier != identifier.strip()
-        for identifier in identifiers
-    ):
-        raise CadastreNormalizationError(
-            "parcel_id values must be non-empty exact strings"
-        )
+    for column in ("id", "commune", "prefixe", "section", "numero"):
+        values = parcels[column].tolist()
+        if any(
+            not isinstance(value, str)
+            or not value
+            or value != value.strip()
+            for value in values
+        ):
+            label = "parcel_id" if column == "id" else column
+            raise CadastreNormalizationError(
+                f"{label} values must be non-empty exact strings"
+            )
     if parcels["id"].duplicated().any():
         raise CadastreNormalizationError("parcel_id values must be unique")
+    if any(
+        CANONICAL_COMMUNE_PATTERN.fullmatch(value) is None
+        for value in parcels["commune"].tolist()
+    ):
+        raise CadastreNormalizationError(
+            "commune values must be canonical French INSEE strings"
+        )
 
     geometry_column = parcels.active_geometry_name
     if geometry_column is None or geometry_column not in parcels.columns:

@@ -1,12 +1,17 @@
 from __future__ import annotations
 
+import json
+import tempfile
 from copy import deepcopy
 from dataclasses import replace
+from hashlib import sha256
 from pathlib import Path
 from typing import Any, cast
+from uuid import uuid4
 
 import geopandas as gpd
 import pandas as pd
+import pyogrio
 import pytest
 from geopandas.testing import assert_geodataframe_equal
 from shapely.geometry import LineString, MultiLineString, Point, Polygon
@@ -27,6 +32,7 @@ from landscout.stages.normalize_access_ign import (
 ROAD_LAYER = "troncon_de_route"
 ARCHIVE_SHA256 = "a" * 64
 SOURCE_URL = "https://example.test/BDTOPO_D031.7z"
+_FIXTURE_ROOT = Path(tempfile.mkdtemp(prefix="landscout-road-ign-"))
 
 OUTPUT_COLUMNS = (
     "road_feature_id",
@@ -188,6 +194,52 @@ def _summary(
 
 def _source(frame: gpd.GeoDataFrame | None = None) -> IgnBdTopoRoadData:
     road_frame = frame if frame is not None else _road_frame()
+    extraction_path = _FIXTURE_ROOT / uuid4().hex
+    extraction_path.mkdir(parents=True)
+    geopackage_path = extraction_path / "data.gpkg"
+    crs = road_frame.crs or "EPSG:2154"
+    dummy = gpd.GeoDataFrame(
+        {"id": ["dummy"]},
+        geometry=[LineString([(0, 0), (1, 1)])],
+        crs=crs,
+    )
+    pyogrio.write_dataframe(
+        dummy, geopackage_path, layer="ligne_electrique", driver="GPKG"
+    )
+    pyogrio.write_dataframe(
+        dummy,
+        geopackage_path,
+        layer="poste_de_transformation",
+        driver="GPKG",
+        append=True,
+    )
+    pyogrio.write_dataframe(
+        road_frame,
+        geopackage_path,
+        layer=ROAD_LAYER,
+        driver="GPKG",
+        append=True,
+    )
+    road_frame = gpd.read_file(geopackage_path, layer=ROAD_LAYER, engine="pyogrio")
+    payload = geopackage_path.read_bytes()
+    layer_names = tuple(str(row[0]) for row in pyogrio.list_layers(geopackage_path))
+    digest = sha256(payload).hexdigest()
+    (extraction_path / ".landscout-extraction.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 2,
+                "archive_sha256": ARCHIVE_SHA256,
+                "geopackage_relative_path": "data.gpkg",
+                "geopackage_size_bytes": len(payload),
+                "geopackage_sha256": digest,
+                "all_layer_names": list(layer_names),
+                "electric_lines_layer": "ligne_electrique",
+                "transformation_posts_layer": "poste_de_transformation",
+                "spatial_role": "PROXY_GEOMETRY",
+            }
+        ),
+        encoding="utf-8",
+    )
     archive = IgnBdTopoDownload(
         provider="IGN",
         product="BD TOPO",
@@ -211,15 +263,12 @@ def _source(frame: gpd.GeoDataFrame | None = None) -> IgnBdTopoRoadData:
     )
     extraction = IgnBdTopoExtraction(
         archive=archive,
-        extraction_path=Path("cache/x/source"),
-        geopackage_path=Path("cache/x/source/data.gpkg"),
+        extraction_path=extraction_path,
+        geopackage_path=geopackage_path,
         geopackage_filename="data.gpkg",
-        all_layer_names=(
-            "other_layer",
-            "ligne_electrique",
-            "poste_de_transformation",
-            ROAD_LAYER,
-        ),
+        geopackage_size_bytes=len(payload),
+        geopackage_sha256=digest,
+        all_layer_names=layer_names,
         electric_lines_layer="ligne_electrique",
         transformation_posts_layer="poste_de_transformation",
         cache_hit=True,
@@ -457,6 +506,46 @@ def test_summary_row_count_mismatch_is_rejected() -> None:
         normalize_ign_roads(replace(source, road_segments_summary=summary))
 
 
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("feature_count", True),
+        ("feature_count", 1.0),
+        ("feature_count", "1"),
+        ("feature_count", -1),
+        ("null_geometry_count", False),
+        ("null_geometry_count", 0.0),
+        ("empty_geometry_count", "0"),
+        ("invalid_geometry_count", -1),
+        ("columns", ["cleabs", "geometry"]),
+        ("columns", ("cleabs", "cleabs")),
+        ("dtypes", [("cleabs", "str")]),
+        ("dtypes", (("cleabs",),)),
+        ("geometry_types", ["LineString"]),
+    ],
+)
+def test_road_summary_requires_strict_structural_types(
+    field: str, value: object
+) -> None:
+    source = _source()
+    changed = replace(source.road_segments_summary, **{field: value})
+
+    with pytest.raises(IgnRoadNormalizationError):
+        normalize_ign_roads(replace(source, road_segments_summary=changed))
+
+
+@pytest.mark.parametrize("value", ["A" * 64, "a" * 63, "a" * 65, "g" * 64])
+def test_road_archive_sha256_requires_canonical_lowercase(value: str) -> None:
+    source = _source()
+    extraction = replace(
+        source.extraction,
+        archive=replace(source.extraction.archive, sha256=value),
+    )
+
+    with pytest.raises(IgnRoadNormalizationError):
+        normalize_ign_roads(replace(source, extraction=extraction))
+
+
 def test_summary_crs_mismatch_is_rejected() -> None:
     source = _source()
     summary = replace(source.road_segments_summary, crs="EPSG:4326")
@@ -586,6 +675,22 @@ def test_normalization_does_not_mutate_input() -> None:
     normalize_ign_roads(source)
 
     assert_geodataframe_equal(source.road_segments, before)
+
+
+def test_high_level_rejects_coordinated_road_frame_and_summary_forgery() -> None:
+    source = _source()
+    forged = source.road_segments.copy()
+    forged.loc[0, "nature"] = "Invented road nature"
+    forged_summary = _summary(forged)
+
+    with pytest.raises(IgnRoadNormalizationError, match="physical|fresh|source"):
+        normalize_ign_roads(
+            replace(
+                source,
+                road_segments=forged,
+                road_segments_summary=forged_summary,
+            )
+        )
 
 
 def test_malformed_public_input_has_controlled_error() -> None:

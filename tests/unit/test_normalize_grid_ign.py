@@ -1,14 +1,19 @@
 from __future__ import annotations
 
+import json
+import tempfile
 from copy import deepcopy
 from dataclasses import replace
+from hashlib import sha256
 from math import isfinite
 from pathlib import Path
 from typing import Any, Literal, cast
+from uuid import uuid4
 
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import pyogrio
 import pytest
 from geopandas.testing import assert_geodataframe_equal
 from shapely.geometry import (
@@ -48,6 +53,7 @@ LINE_LAYER = "LIGNE_ELECTRIQUE_V2"
 POST_LAYER = "POSTE_DE_TRANSFORMATION_V2"
 ARCHIVE_SHA256 = "a" * 64
 SOURCE_URL = "https://example.test/BDTOPO_D031.7z"
+_FIXTURE_ROOT = Path(tempfile.mkdtemp(prefix="landscout-grid-ign-"))
 
 
 def _line_source(
@@ -182,6 +188,36 @@ def _source_bundle(
 ) -> IgnBdTopoElectricityData:
     line_frame = lines if lines is not None else _line_source()
     post_frame = posts if posts is not None else _post_source()
+    extraction_path = _FIXTURE_ROOT / uuid4().hex
+    extraction_path.mkdir(parents=True)
+    geopackage_path = extraction_path / "data.gpkg"
+    pyogrio.write_dataframe(line_frame, geopackage_path, layer=LINE_LAYER, driver="GPKG")
+    pyogrio.write_dataframe(
+        post_frame,
+        geopackage_path,
+        layer=POST_LAYER,
+        driver="GPKG",
+        append=True,
+    )
+    line_frame = gpd.read_file(geopackage_path, layer=LINE_LAYER, engine="pyogrio")
+    post_frame = gpd.read_file(geopackage_path, layer=POST_LAYER, engine="pyogrio")
+    payload = geopackage_path.read_bytes()
+    layer_names = tuple(str(row[0]) for row in pyogrio.list_layers(geopackage_path))
+    digest = sha256(payload).hexdigest()
+    marker = {
+        "schema_version": 2,
+        "archive_sha256": ARCHIVE_SHA256,
+        "geopackage_relative_path": "data.gpkg",
+        "geopackage_size_bytes": len(payload),
+        "geopackage_sha256": digest,
+        "all_layer_names": list(layer_names),
+        "electric_lines_layer": LINE_LAYER,
+        "transformation_posts_layer": POST_LAYER,
+        "spatial_role": "PROXY_GEOMETRY",
+    }
+    (extraction_path / ".landscout-extraction.json").write_text(
+        json.dumps(marker), encoding="utf-8"
+    )
     archive = IgnBdTopoDownload(
         provider="Institut national de l'information géographique et forestière",
         product="BD TOPO",
@@ -205,10 +241,12 @@ def _source_bundle(
     )
     extraction = IgnBdTopoExtraction(
         archive=archive,
-        extraction_path=Path("cache/x/source"),
-        geopackage_path=Path("cache/x/source/data.gpkg"),
+        extraction_path=extraction_path,
+        geopackage_path=geopackage_path,
         geopackage_filename="data.gpkg",
-        all_layer_names=(LINE_LAYER, POST_LAYER),
+        geopackage_size_bytes=len(payload),
+        geopackage_sha256=digest,
+        all_layer_names=layer_names,
         electric_lines_layer=LINE_LAYER,
         transformation_posts_layer=POST_LAYER,
         cache_hit=True,
@@ -269,13 +307,48 @@ def test_internal_source_context_accepts_supported_department_codes(
     grid_normalization._validate_source_context(context)
 
 
-def test_internal_source_context_preserves_valid_uppercase_sha256() -> None:
+def test_internal_source_context_rejects_uppercase_sha256() -> None:
     archive_sha256 = "A" * 64
     context = replace(_context(LINE_LAYER), archive_sha256=archive_sha256)
 
-    normalized = normalize_ign_electric_lines(_line_source(), context)
+    with pytest.raises(IgnGridNormalizationError, match="archive_sha256"):
+        normalize_ign_electric_lines(_line_source(), context)
 
-    assert normalized["source_archive_sha256"].unique().tolist() == [archive_sha256]
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("feature_count", True),
+        ("feature_count", 1.0),
+        ("feature_count", "1"),
+        ("feature_count", -1),
+        ("null_geometry_count", False),
+        ("null_geometry_count", 0.0),
+        ("empty_geometry_count", "0"),
+        ("invalid_geometry_count", -1),
+        ("columns", ["cleabs", "geometry"]),
+        ("columns", ("cleabs", "cleabs")),
+        ("dtypes", [("cleabs", "str")]),
+        ("dtypes", (("cleabs",),)),
+        ("geometry_types", ["LineString"]),
+    ],
+)
+def test_grid_summary_requires_strict_structural_types(
+    field: str, value: object
+) -> None:
+    source = _source_bundle()
+    changed = replace(source.electric_lines_summary, **{field: value})
+
+    with pytest.raises(IgnGridNormalizationError):
+        normalize_ign_electricity(replace(source, electric_lines_summary=changed))
+
+
+@pytest.mark.parametrize("value", ["A" * 64, "a" * 63, "a" * 65, "g" * 64])
+def test_grid_archive_sha256_requires_canonical_lowercase(value: str) -> None:
+    source = _source_bundle_with_archive(sha256=value)
+
+    with pytest.raises(IgnGridNormalizationError):
+        normalize_ign_electricity(source)
 
 
 @pytest.mark.parametrize(
@@ -718,6 +791,33 @@ def test_high_level_path_uses_discovered_layer_names_and_archive_lineage() -> No
         assert frame["source_product_version"].unique().tolist() == ["3.5"]
         assert frame["source_archive_sha256"].unique().tolist() == [ARCHIVE_SHA256]
         assert frame["source_url"].unique().tolist() == [SOURCE_URL]
+
+
+def test_high_level_rejects_coordinated_frame_and_summary_forgery() -> None:
+    source = _source_bundle()
+    forged = source.electric_lines.copy()
+    forged.loc[0, "voltage"] = "400 kV"
+    forged_summary = _summary(forged, "electric_lines", LINE_LAYER)
+
+    with pytest.raises(IgnGridNormalizationError, match="physical|fresh|source"):
+        normalize_ign_electricity(
+            replace(
+                source,
+                electric_lines=forged,
+                electric_lines_summary=forged_summary,
+            )
+        )
+
+
+def test_source_complete_grid_validation_does_not_mutate_supplied_frames() -> None:
+    source = _source_bundle()
+    lines_before = deepcopy(source.electric_lines)
+    posts_before = deepcopy(source.transformation_posts)
+
+    normalize_ign_electricity(source)
+
+    assert_geodataframe_equal(source.electric_lines, lines_before)
+    assert_geodataframe_equal(source.transformation_posts, posts_before)
 
 
 @pytest.mark.parametrize(

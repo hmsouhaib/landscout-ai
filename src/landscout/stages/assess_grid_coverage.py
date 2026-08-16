@@ -24,6 +24,7 @@ from shapely import (  # type: ignore[import-untyped]
 from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
+    _revalidate_ign_bdtopo_department_coverage,
 )
 from landscout.stages.enrich_grid_proximity import (
     GridProximityResult,
@@ -618,6 +619,12 @@ def assess_grid_coverage(
 
     profile_grid_proximity(proximity_result)
     coverage_frame = _validate_source_coverage(department_coverage)
+    try:
+        _revalidate_ign_bdtopo_department_coverage(department_coverage)
+    except Exception as error:
+        raise GridCoverageAssessmentError(
+            "Department coverage physical source revalidation failed"
+        ) from error
     _validate_proximity_source_identity(proximity_result, department_coverage)
 
     source_parcels = proximity_result.parcels

@@ -1,4 +1,5 @@
 import geopandas as gpd
+import pandas as pd
 import pytest
 from shapely.geometry import Polygon
 
@@ -170,4 +171,44 @@ def test_area_filter_requires_exact_non_empty_parcel_ids(
     invalid.loc[0, "parcel_id"] = parcel_id
 
     with pytest.raises(ParcelFilterError, match="exact non-empty strings"):
+        filter_parcels_by_area(invalid, area_config)
+
+
+def test_area_filter_rejects_plain_dataframe(
+    parcels: gpd.GeoDataFrame, area_config: ParcelConfig
+) -> None:
+    plain = pd.DataFrame(parcels)
+
+    with pytest.raises(ParcelFilterError, match="GeoDataFrame"):
+        filter_parcels_by_area(plain, area_config)  # type: ignore[arg-type]
+
+
+def test_area_filter_rejects_duplicate_columns(
+    parcels: gpd.GeoDataFrame, area_config: ParcelConfig
+) -> None:
+    duplicate = gpd.GeoDataFrame(
+        pd.concat([parcels, parcels[["parcel_id"]]], axis=1),
+        geometry="geometry",
+        crs=parcels.crs,
+    )
+
+    with pytest.raises(ParcelFilterError, match="columns.*unique"):
+        filter_parcels_by_area(duplicate, area_config)
+
+
+@pytest.mark.parametrize("mode", ["missing_geometry", "missing_crs", "unreadable_crs"])
+def test_area_filter_rejects_malformed_spatial_envelope(
+    parcels: gpd.GeoDataFrame,
+    area_config: ParcelConfig,
+    mode: str,
+) -> None:
+    invalid = parcels.copy()
+    if mode == "missing_geometry":
+        invalid = invalid.drop(columns="geometry")
+    elif mode == "missing_crs":
+        invalid = invalid.set_crs(None, allow_override=True)
+    else:
+        invalid.geometry.array._crs = "not-a-crs"
+
+    with pytest.raises(ParcelFilterError, match="geometry|CRS"):
         filter_parcels_by_area(invalid, area_config)
