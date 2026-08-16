@@ -2,15 +2,28 @@
 
 ## Current project state
 
-- Current phase: French urban-planning evidence structuring
-- Latest completed step: STEP 7D.4B.1 — hardened regulation evidence fidelity
+- Current phase: Access / roads — IGN road vehicle proxy policy
+- Latest completed step: STEP 7E.2A.1
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: evidence-based planning-rule interpretation design
+- Next step waiting for review: STEP 7E.2B — apply road proxy policy
+
+## STEP 7E.2A.1 — Correct IGN road proxy policy source semantics and evidence lineage
+
+- Status: Complete. The STEP 7E.2A v1 policy was superseded before any road, relation, parcel, or artifact application.
+- Policy identity: `ign_bdtopo_general_vehicle_proxy_v2`; policy schema version `2`; scope `OFFICIAL_IGN_CAR_ROUTING_EVIDENCE_ONLY`.
+- Evidence lineage is explicit and non-interchangeable: IGN navigation evidence is `Calcul d’itinéraire`, revision `2026-05-27`, scope `GENERAL_CAR_ROUTING_RULES`; IGN product evidence is `BD TOPO® Version 3.5 - Descriptif de contenu`, document `DC_BDTOPO_3-5`, revision `2025-11`, scope `SOURCE_ATTRIBUTE_SEMANTICS`. Evidence was checked on `2026-08-16`; vehicle scope remains `LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK`; heavy-vehicle access remains `NOT_PROVEN`.
+- Exact checked-in config SHA256: `2092bc620063ec1176b2abebaefafcc108a42793992dd18f869d44fdb07ca166`.
+- Asset-state semantics: `En service` is the sole in-service value; `En projet` is `PROJECT_GEOMETRY_NOT_SIGNIFICANT` and maps to `NOT_DISTANCE_PROXY`; `En construction` remains not in service and maps to `NOT_GENERAL_VEHICLE_PROXY`. The three source groups are non-empty, unique, pairwise disjoint, and cover exactly the approved source domain.
+- Importance evidence: the explicit known domain is exactly `1` through `6`; only `6` is limited. Values `1` through `5` are known factual values without a new positive classification.
+- Exact 16-rule precedence: `FICTITIOUS_GEOMETRY` → `PROJECT_GEOMETRY_NOT_SIGNIFICANT` → `NOT_IN_SERVICE` → `PHYSICALLY_IMPOSSIBLE` → `NON_GENERAL_VEHICLE_NATURE` → `RIGHTS_RESTRICTED` → `PRIVATE_ROAD` → `TEMPORAL_CLOSURE` → `KNOWN_RESTRICTION` → `OTHER_RECORDED_RESTRICTION` → `SPECIAL_NATURE` → `LIMITED_NATURE` → `IMPORTANCE_6` → `NARROW_CARRIAGEWAY` → `OPEN_OR_TOLL` → `UNKNOWN`.
+- Test-first proof: the new schema-v2 reference, asset-state, importance-domain, outcome, and precedence regressions failed against the prior schema-v1 compiler before production changes. Final focused validation passed 67 tests; no source road table was read and no road or parcel was classified.
+- Boundary: this step compiles evidence policy only. It does not apply the policy, calculate parcel-road distance, define thresholds, score or reject parcels, infer legal access, or prove heavy-vehicle or construction access.
+- Known issues: None.
 
 ## STEP 7E.2A — Compile official IGN general-vehicle proxy policy
 
-- Status: Complete
+- Status: Superseded before application by STEP 7E.2A.1. The following v1 record is retained only as historical test-first evidence; no v1 application or artifact was produced.
 - Policy identity: `ign_bdtopo_general_vehicle_proxy_v1`; policy schema version `1`; scope `OFFICIAL_IGN_CAR_ROUTING_EVIDENCE_ONLY`.
 - Evidence lineage: publisher `IGN`; reference `Geoplateforme - Calcul d'itineraire`; revision `2026-05-27`; checked on `2026-08-16`; vehicle scope `LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK`; heavy-vehicle access `NOT_PROVEN`.
 - Exact checked-in config SHA256: `5e2135a2661898eaa76207f0a3e80935caeb25fd4774d69d6d7cc308c973ef36`.

@@ -1,14 +1,23 @@
-policy_id: "ign_bdtopo_general_vehicle_proxy_v1"
-schema_version: 1
+policy_id: "ign_bdtopo_general_vehicle_proxy_v2"
+schema_version: 2
 scope: "OFFICIAL_IGN_CAR_ROUTING_EVIDENCE_ONLY"
 
-reference:
-  publisher: "IGN"
-  title: "Geoplateforme - Calcul d'itineraire"
-  revision: "2026-05-27"
-  checked_on: "2026-08-16"
-  vehicle_scope: "LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK"
-  heavy_vehicle_access: "NOT_PROVEN"
+references:
+  navigation:
+    publisher: "IGN"
+    title: "Calcul d’itinéraire"
+    revision: "2026-05-27"
+    evidence_scope: "GENERAL_CAR_ROUTING_RULES"
+  bdtopo_product:
+    publisher: "IGN"
+    title: "BD TOPO® Version 3.5 - Descriptif de contenu"
+    document_id: "DC_BDTOPO_3-5"
+    revision: "2025-11"
+    evidence_scope: "SOURCE_ATTRIBUTE_SEMANTICS"
+
+evidence_checked_on: "2026-08-16"
+vehicle_scope: "LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK"
+heavy_vehicle_access: "NOT_PROVEN"
 
 classes:
   general_vehicle_proxy: "GENERAL_VEHICLE_PROXY"
@@ -22,8 +31,9 @@ source_values:
   asset_state:
     in_service:
       - "En service"
-    known_not_in_service:
+    project_geometry_not_significant:
       - "En projet"
+    under_construction:
       - "En construction"
 
   light_vehicle_access:
@@ -62,13 +72,22 @@ source_values:
     - "Entrée avec gardien"
     - "Passage barré"
 
-  limited_importance:
-    - "6"
+  importance:
+    known:
+      - "1"
+      - "2"
+      - "3"
+      - "4"
+      - "5"
+      - "6"
+    limited:
+      - "6"
 
   width_below_m: 2.9
 
 decision_precedence:
   - "FICTITIOUS_GEOMETRY"
+  - "PROJECT_GEOMETRY_NOT_SIGNIFICANT"
   - "NOT_IN_SERVICE"
   - "PHYSICALLY_IMPOSSIBLE"
   - "NON_GENERAL_VEHICLE_NATURE"
@@ -86,6 +105,7 @@ decision_precedence:
 
 decision_outcomes:
   fictitious_geometry: "NOT_DISTANCE_PROXY"
+  project_geometry_not_significant: "NOT_DISTANCE_PROXY"
   not_in_service: "NOT_GENERAL_VEHICLE_PROXY"
   physically_impossible: "NOT_GENERAL_VEHICLE_PROXY"
   non_general_vehicle_nature: "NOT_GENERAL_VEHICLE_PROXY"

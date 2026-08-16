@@ -32,10 +32,11 @@ _DEFAULT_POLICY_PATH = (
     / "access"
     / "ign_bdtopo_vehicle_proxy_policy.yaml"
 )
-_POLICY_ID = "ign_bdtopo_general_vehicle_proxy_v1"
+_POLICY_ID = "ign_bdtopo_general_vehicle_proxy_v2"
 _POLICY_SCOPE = "OFFICIAL_IGN_CAR_ROUTING_EVIDENCE_ONLY"
 _EXPECTED_PRECEDENCE = (
     "FICTITIOUS_GEOMETRY",
+    "PROJECT_GEOMETRY_NOT_SIGNIFICANT",
     "NOT_IN_SERVICE",
     "PHYSICALLY_IMPOSSIBLE",
     "NON_GENERAL_VEHICLE_NATURE",
@@ -86,13 +87,24 @@ def _require_disjoint(groups: tuple[tuple[str, ...], ...], label: str) -> None:
         raise ValueError(f"{label} source groups overlap")
 
 
-class _ReferenceConfig(_StrictPolicyModel):
+class _NavigationReferenceConfig(_StrictPolicyModel):
     publisher: Literal["IGN"]
-    title: Literal["Geoplateforme - Calcul d'itineraire"]
+    title: Literal["Calcul d’itinéraire"]
     revision: Literal["2026-05-27"]
-    checked_on: Literal["2026-08-16"]
-    vehicle_scope: Literal["LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK"]
-    heavy_vehicle_access: Literal["NOT_PROVEN"]
+    evidence_scope: Literal["GENERAL_CAR_ROUTING_RULES"]
+
+
+class _BdTopoProductReferenceConfig(_StrictPolicyModel):
+    publisher: Literal["IGN"]
+    title: Literal["BD TOPO® Version 3.5 - Descriptif de contenu"]
+    document_id: Literal["DC_BDTOPO_3-5"]
+    revision: Literal["2025-11"]
+    evidence_scope: Literal["SOURCE_ATTRIBUTE_SEMANTICS"]
+
+
+class _ReferencesConfig(_StrictPolicyModel):
+    navigation: _NavigationReferenceConfig
+    bdtopo_product: _BdTopoProductReferenceConfig
 
 
 class _ClassesConfig(_StrictPolicyModel):
@@ -106,15 +118,29 @@ class _ClassesConfig(_StrictPolicyModel):
 
 class _AssetStateConfig(_StrictPolicyModel):
     in_service: _NonEmptyStrings
-    known_not_in_service: _NonEmptyStrings
+    project_geometry_not_significant: _NonEmptyStrings
+    under_construction: _NonEmptyStrings
 
     @model_validator(mode="after")
     def _valid_groups(self) -> Self:
-        _require_unique(self.in_service, "in_service")
-        _require_unique(self.known_not_in_service, "known_not_in_service")
-        _require_disjoint(
-            (self.in_service, self.known_not_in_service), "asset_state"
+        groups = (
+            self.in_service,
+            self.project_geometry_not_significant,
+            self.under_construction,
         )
+        for name, values in zip(
+            (
+                "in_service",
+                "project_geometry_not_significant",
+                "under_construction",
+            ),
+            groups,
+            strict=True,
+        ):
+            _require_unique(values, name)
+        _require_disjoint(groups, "asset_state")
+        if groups != (("En service",), ("En projet",), ("En construction",)):
+            raise ValueError("asset_state groups must cover the exact source domain")
         return self
 
 
@@ -171,12 +197,29 @@ class _RoadNatureConfig(_StrictPolicyModel):
         return self
 
 
+class _ImportanceConfig(_StrictPolicyModel):
+    known: _NonEmptyStrings
+    limited: _NonEmptyStrings
+
+    @model_validator(mode="after")
+    def _valid_domain(self) -> Self:
+        _require_unique(self.known, "importance.known")
+        _require_unique(self.limited, "importance.limited")
+        if self.known != ("1", "2", "3", "4", "5", "6"):
+            raise ValueError("importance.known must cover exactly source values 1-6")
+        if self.limited != ("6",):
+            raise ValueError("importance.limited must contain exactly source value '6'")
+        if not set(self.limited).issubset(self.known):
+            raise ValueError("importance.limited must be a subset of importance.known")
+        return self
+
+
 class _SourceValuesConfig(_StrictPolicyModel):
     asset_state: _AssetStateConfig
     light_vehicle_access: _LightVehicleAccessConfig
     nature: _RoadNatureConfig
     known_restriction_review: _NonEmptyStrings
-    limited_importance: _NonEmptyStrings
+    importance: _ImportanceConfig
     width_below_m: Annotated[StrictFloat, Field(gt=0, allow_inf_nan=False)]
 
     @model_validator(mode="after")
@@ -184,14 +227,12 @@ class _SourceValuesConfig(_StrictPolicyModel):
         _require_unique(
             self.known_restriction_review, "known_restriction_review"
         )
-        _require_unique(self.limited_importance, "limited_importance")
-        if self.limited_importance != ("6",):
-            raise ValueError("limited_importance must contain exactly source value '6'")
         return self
 
 
 class _DecisionOutcomesConfig(_StrictPolicyModel):
     fictitious_geometry: Literal["NOT_DISTANCE_PROXY"]
+    project_geometry_not_significant: Literal["NOT_DISTANCE_PROXY"]
     not_in_service: Literal["NOT_GENERAL_VEHICLE_PROXY"]
     physically_impossible: Literal["NOT_GENERAL_VEHICLE_PROXY"]
     non_general_vehicle_nature: Literal["NOT_GENERAL_VEHICLE_PROXY"]
@@ -212,7 +253,10 @@ class _PolicyConfig(_StrictPolicyModel):
     policy_id: _ExactString
     schema_version: StrictInt
     scope: _ExactString
-    reference: _ReferenceConfig
+    references: _ReferencesConfig
+    evidence_checked_on: Literal["2026-08-16"]
+    vehicle_scope: Literal["LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK"]
+    heavy_vehicle_access: Literal["NOT_PROVEN"]
     classes: _ClassesConfig
     source_values: _SourceValuesConfig
     decision_precedence: _NonEmptyStrings
@@ -221,13 +265,13 @@ class _PolicyConfig(_StrictPolicyModel):
     @model_validator(mode="after")
     def _valid_identity_and_precedence(self) -> Self:
         if self.policy_id != _POLICY_ID:
-            raise ValueError("policy_id is not the approved v1 policy identity")
-        if self.schema_version != 1:
-            raise ValueError("schema_version must be exactly 1")
+            raise ValueError("policy_id is not the approved v2 policy identity")
+        if self.schema_version != 2:
+            raise ValueError("schema_version must be exactly 2")
         if self.scope != _POLICY_SCOPE:
             raise ValueError("scope is not the approved official IGN evidence scope")
         if self.decision_precedence != _EXPECTED_PRECEDENCE:
-            raise ValueError("decision_precedence differs from approved v1 order")
+            raise ValueError("decision_precedence differs from approved v2 order")
         return self
 
 
@@ -255,7 +299,25 @@ class _CompiledClasses:
 @dataclass(frozen=True)
 class _CompiledAssetState:
     in_service: frozenset[str]
-    known_not_in_service: frozenset[str]
+    project_geometry_not_significant: frozenset[str]
+    under_construction: frozenset[str]
+
+
+@dataclass(frozen=True)
+class _CompiledNavigationReference:
+    publisher: str
+    title: str
+    revision: str
+    evidence_scope: str
+
+
+@dataclass(frozen=True)
+class _CompiledBdTopoProductReference:
+    publisher: str
+    title: str
+    document_id: str
+    revision: str
+    evidence_scope: str
 
 
 @dataclass(frozen=True)
@@ -275,8 +337,15 @@ class _CompiledRoadNature:
 
 
 @dataclass(frozen=True)
+class _CompiledImportance:
+    known: frozenset[str]
+    limited: frozenset[str]
+
+
+@dataclass(frozen=True)
 class _CompiledDecisionOutcomes:
     fictitious_geometry: str
+    project_geometry_not_significant: str
     not_in_service: str
     physically_impossible: str
     non_general_vehicle_nature: str
@@ -300,9 +369,8 @@ class IgnRoadVehicleProxyPolicy:
     policy_id: str
     schema_version: int
     scope: str
-    publisher: str
-    source_reference_title: str
-    source_reference_revision: str
+    navigation_reference: _CompiledNavigationReference
+    bdtopo_product_reference: _CompiledBdTopoProductReference
     evidence_checked_on: str
     vehicle_scope: str
     heavy_vehicle_access: str
@@ -311,7 +379,7 @@ class IgnRoadVehicleProxyPolicy:
     light_vehicle_access: _CompiledLightVehicleAccess
     nature: _CompiledRoadNature
     known_restriction_review: frozenset[str]
-    limited_importance: frozenset[str]
+    importance: _CompiledImportance
     width_below_m: float
     decision_precedence: tuple[str, ...]
     decision_outcomes: _CompiledDecisionOutcomes
@@ -357,12 +425,22 @@ def _compile_policy(
         policy_id=config.policy_id,
         schema_version=config.schema_version,
         scope=config.scope,
-        publisher=config.reference.publisher,
-        source_reference_title=config.reference.title,
-        source_reference_revision=config.reference.revision,
-        evidence_checked_on=config.reference.checked_on,
-        vehicle_scope=config.reference.vehicle_scope,
-        heavy_vehicle_access=config.reference.heavy_vehicle_access,
+        navigation_reference=_CompiledNavigationReference(
+            publisher=config.references.navigation.publisher,
+            title=config.references.navigation.title,
+            revision=config.references.navigation.revision,
+            evidence_scope=config.references.navigation.evidence_scope,
+        ),
+        bdtopo_product_reference=_CompiledBdTopoProductReference(
+            publisher=config.references.bdtopo_product.publisher,
+            title=config.references.bdtopo_product.title,
+            document_id=config.references.bdtopo_product.document_id,
+            revision=config.references.bdtopo_product.revision,
+            evidence_scope=config.references.bdtopo_product.evidence_scope,
+        ),
+        evidence_checked_on=config.evidence_checked_on,
+        vehicle_scope=config.vehicle_scope,
+        heavy_vehicle_access=config.heavy_vehicle_access,
         classes=_CompiledClasses(
             general_vehicle_proxy=classes.general_vehicle_proxy,
             limited_vehicle_proxy=classes.limited_vehicle_proxy,
@@ -373,9 +451,10 @@ def _compile_policy(
         ),
         asset_state=_CompiledAssetState(
             in_service=frozenset(source_values.asset_state.in_service),
-            known_not_in_service=frozenset(
-                source_values.asset_state.known_not_in_service
+            project_geometry_not_significant=frozenset(
+                source_values.asset_state.project_geometry_not_significant
             ),
+            under_construction=frozenset(source_values.asset_state.under_construction),
         ),
         light_vehicle_access=_CompiledLightVehicleAccess(
             open=frozenset(access.open),
@@ -392,11 +471,17 @@ def _compile_policy(
         known_restriction_review=frozenset(
             source_values.known_restriction_review
         ),
-        limited_importance=frozenset(source_values.limited_importance),
+        importance=_CompiledImportance(
+            known=frozenset(source_values.importance.known),
+            limited=frozenset(source_values.importance.limited),
+        ),
         width_below_m=source_values.width_below_m,
         decision_precedence=config.decision_precedence,
         decision_outcomes=_CompiledDecisionOutcomes(
             fictitious_geometry=outcomes.fictitious_geometry,
+            project_geometry_not_significant=(
+                outcomes.project_geometry_not_significant
+            ),
             not_in_service=outcomes.not_in_service,
             physically_impossible=outcomes.physically_impossible,
             non_general_vehicle_nature=outcomes.non_general_vehicle_nature,

@@ -16,7 +16,7 @@ from landscout.stages.road_vehicle_proxy_policy import (
 )
 
 POLICY_PATH = Path("configs/access/ign_bdtopo_vehicle_proxy_policy.yaml")
-EXPECTED_POLICY_ID = "ign_bdtopo_general_vehicle_proxy_v1"
+EXPECTED_POLICY_ID = "ign_bdtopo_general_vehicle_proxy_v2"
 EXPECTED_SCOPE = "OFFICIAL_IGN_CAR_ROUTING_EVIDENCE_ONLY"
 EXPECTED_CLASSES = (
     "GENERAL_VEHICLE_PROXY",
@@ -28,6 +28,7 @@ EXPECTED_CLASSES = (
 )
 EXPECTED_PRECEDENCE = (
     "FICTITIOUS_GEOMETRY",
+    "PROJECT_GEOMETRY_NOT_SIGNIFICANT",
     "NOT_IN_SERVICE",
     "PHYSICALLY_IMPOSSIBLE",
     "NON_GENERAL_VEHICLE_NATURE",
@@ -87,11 +88,21 @@ def test_checked_in_policy_loads_with_exact_public_identity_and_reference() -> N
 
     assert type(policy) is IgnRoadVehicleProxyPolicy
     assert policy.policy_id == EXPECTED_POLICY_ID
-    assert policy.schema_version == 1
+    assert policy.schema_version == 2
     assert policy.scope == EXPECTED_SCOPE
-    assert policy.publisher == "IGN"
-    assert policy.source_reference_title == "Geoplateforme - Calcul d'itineraire"
-    assert policy.source_reference_revision == "2026-05-27"
+    assert policy.navigation_reference.publisher == "IGN"
+    assert policy.navigation_reference.title == "Calcul d’itinéraire"
+    assert policy.navigation_reference.revision == "2026-05-27"
+    assert policy.navigation_reference.evidence_scope == "GENERAL_CAR_ROUTING_RULES"
+    assert policy.bdtopo_product_reference.publisher == "IGN"
+    assert policy.bdtopo_product_reference.title == (
+        "BD TOPO® Version 3.5 - Descriptif de contenu"
+    )
+    assert policy.bdtopo_product_reference.document_id == "DC_BDTOPO_3-5"
+    assert policy.bdtopo_product_reference.revision == "2025-11"
+    assert policy.bdtopo_product_reference.evidence_scope == (
+        "SOURCE_ATTRIBUTE_SEMANTICS"
+    )
     assert policy.evidence_checked_on == "2026-08-16"
     assert policy.vehicle_scope == "LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK"
     assert policy.heavy_vehicle_access == "NOT_PROVEN"
@@ -133,7 +144,9 @@ def test_public_api_exports_only_stable_policy_symbols() -> None:
     [
         (lambda payload: payload.update(unexpected=True), "invalid"),
         (
-            lambda payload: payload["reference"].update(unexpected=True),
+            lambda payload: payload["references"]["navigation"].update(
+                unexpected=True
+            ),
             "invalid",
         ),
         (lambda payload: payload.pop("policy_id"), "invalid"),
@@ -156,7 +169,7 @@ def test_invalid_config_structure_is_rejected(
         _load_payload(tmp_path, payload)
 
 
-@pytest.mark.parametrize("version", [0, 2, 999])
+@pytest.mark.parametrize("version", [0, 1, 3, 999])
 def test_unsupported_schema_version_is_rejected(
     tmp_path: Path, version: int
 ) -> None:
@@ -170,9 +183,9 @@ def test_unsupported_schema_version_is_rejected(
 @pytest.mark.parametrize(
     ("path", "value"),
     [
-        (("policy_id",), "another_policy"),
+        (("policy_id",), "ign_bdtopo_general_vehicle_proxy_v1"),
         (("scope",), "HEAVY_VEHICLE_POLICY"),
-        (("reference", "heavy_vehicle_access"), "PROVEN"),
+        (("heavy_vehicle_access",), "PROVEN"),
     ],
 )
 def test_wrong_policy_identity_is_rejected(
@@ -185,6 +198,86 @@ def test_wrong_policy_identity_is_rejected(
     for key in path[:-1]:
         target = target[key]
     target[path[-1]] = value
+
+    with pytest.raises(IgnRoadVehicleProxyPolicyError):
+        _load_payload(tmp_path, payload)
+
+
+@pytest.mark.parametrize("reference", ["navigation", "bdtopo_product"])
+def test_both_evidence_references_are_required(
+    tmp_path: Path, reference: str
+) -> None:
+    payload = _payload()
+    payload["references"].pop(reference)
+
+    with pytest.raises(IgnRoadVehicleProxyPolicyError):
+        _load_payload(tmp_path, payload)
+
+
+def test_product_reference_document_id_is_exact(tmp_path: Path) -> None:
+    payload = _payload()
+    payload["references"]["bdtopo_product"]["document_id"] = "OTHER"
+
+    with pytest.raises(IgnRoadVehicleProxyPolicyError):
+        _load_payload(tmp_path, payload)
+
+
+def test_unknown_evidence_reference_is_rejected(tmp_path: Path) -> None:
+    payload = _payload()
+    payload["references"]["other"] = payload["references"]["navigation"]
+
+    with pytest.raises(IgnRoadVehicleProxyPolicyError):
+        _load_payload(tmp_path, payload)
+
+
+def test_asset_state_groups_cover_exact_v2_domain() -> None:
+    policy = load_ign_road_vehicle_proxy_policy()
+    groups = (
+        policy.asset_state.in_service,
+        policy.asset_state.project_geometry_not_significant,
+        policy.asset_state.under_construction,
+    )
+
+    assert policy.asset_state.in_service == frozenset({"En service"})
+    assert policy.asset_state.project_geometry_not_significant == frozenset(
+        {"En projet"}
+    )
+    assert policy.asset_state.under_construction == frozenset({"En construction"})
+    assert set().union(*groups) == {"En service", "En projet", "En construction"}
+    assert all(sum(value in group for group in groups) == 1 for value in set().union(*groups))
+
+
+def test_asset_state_group_overlap_is_rejected(tmp_path: Path) -> None:
+    payload = _payload()
+    payload["source_values"]["asset_state"]["under_construction"] = [
+        "En projet"
+    ]
+
+    with pytest.raises(IgnRoadVehicleProxyPolicyError):
+        _load_payload(tmp_path, payload)
+
+
+@pytest.mark.parametrize(
+    ("group", "value"),
+    [
+        ("in_service", "En service"),
+        ("project_geometry_not_significant", "En projet"),
+        ("under_construction", "En construction"),
+    ],
+)
+def test_missing_known_asset_state_is_rejected(
+    tmp_path: Path, group: str, value: str
+) -> None:
+    payload = _payload()
+    payload["source_values"]["asset_state"][group].remove(value)
+
+    with pytest.raises(IgnRoadVehicleProxyPolicyError):
+        _load_payload(tmp_path, payload)
+
+
+def test_unknown_additional_asset_state_is_rejected(tmp_path: Path) -> None:
+    payload = _payload()
+    payload["source_values"]["asset_state"]["in_service"].append("Unknown")
 
     with pytest.raises(IgnRoadVehicleProxyPolicyError):
         _load_payload(tmp_path, payload)
@@ -262,15 +355,46 @@ def test_exact_width_threshold_is_accepted(tmp_path: Path) -> None:
     assert _load_payload(tmp_path, payload).width_below_m == 2.9
 
 
-@pytest.mark.parametrize("value", [[], [6], ["6", "5"]])
-def test_limited_importance_must_be_exact_source_string_six(
-    tmp_path: Path, value: object
+@pytest.mark.parametrize(
+    ("group", "mutation"),
+    [
+        ("known", "remove-1"),
+        ("known", "remove-5"),
+        ("known", "add-7"),
+        ("limited", "numeric-6"),
+        ("limited", "limited-5"),
+        ("limited", "empty"),
+    ],
+)
+def test_importance_domains_must_be_exact(
+    tmp_path: Path, group: str, mutation: str
 ) -> None:
     payload = _payload()
-    payload["source_values"]["limited_importance"] = value
+    importance = payload["source_values"]["importance"]
+    if mutation == "remove-1":
+        importance[group].remove("1")
+    elif mutation == "remove-5":
+        importance[group].remove("5")
+    elif mutation == "add-7":
+        importance[group].append("7")
+    elif mutation == "numeric-6":
+        importance[group] = [6]
+    elif mutation == "limited-5":
+        importance[group] = ["5"]
+    else:
+        importance[group] = []
 
     with pytest.raises(IgnRoadVehicleProxyPolicyError):
         _load_payload(tmp_path, payload)
+
+
+def test_importance_domains_expose_known_without_positive_classification() -> None:
+    policy = load_ign_road_vehicle_proxy_policy()
+
+    assert policy.importance.known == frozenset({"1", "2", "3", "4", "5", "6"})
+    assert policy.importance.limited == frozenset({"6"})
+    assert policy.importance.limited <= policy.importance.known
+    assert "7" not in policy.importance.known
 
 
 @pytest.mark.parametrize("mutation", ["missing", "duplicate", "unknown", "reorder"])
@@ -284,7 +408,7 @@ def test_decision_precedence_must_be_exact(
     elif mutation == "duplicate":
         precedence[-1] = precedence[0]
     elif mutation == "unknown":
-        precedence[-1] = "INVENTED_RULE"
+        precedence.append("INVENTED_RULE")
     else:
         precedence[0], precedence[1] = precedence[1], precedence[0]
 
@@ -297,6 +421,12 @@ def test_decision_precedence_and_rule_outcomes_are_approved() -> None:
 
     assert policy.decision_precedence == EXPECTED_PRECEDENCE
     assert policy.decision_outcomes.fictitious_geometry == "NOT_DISTANCE_PROXY"
+    assert policy.decision_outcomes.project_geometry_not_significant == (
+        "NOT_DISTANCE_PROXY"
+    )
+    assert policy.decision_outcomes.not_in_service == (
+        "NOT_GENERAL_VEHICLE_PROXY"
+    )
     assert policy.decision_outcomes.private_road == "RESTRICTED_REVIEW"
     assert policy.decision_outcomes.rights_restricted == "RESTRICTED_REVIEW"
     assert policy.decision_outcomes.temporal_closure == "RESTRICTED_REVIEW"
@@ -306,6 +436,18 @@ def test_decision_precedence_and_rule_outcomes_are_approved() -> None:
     assert policy.decision_outcomes.limited_nature == "LIMITED_VEHICLE_PROXY"
     assert policy.decision_outcomes.open_or_toll == "GENERAL_VEHICLE_PROXY"
     assert policy.decision_outcomes.unknown == "UNKNOWN_REVIEW"
+
+
+def test_project_geometry_rule_has_exact_precedence_position() -> None:
+    policy = load_ign_road_vehicle_proxy_policy()
+
+    fictitious = policy.decision_precedence.index("FICTITIOUS_GEOMETRY")
+    project = policy.decision_precedence.index(
+        "PROJECT_GEOMETRY_NOT_SIGNIFICANT"
+    )
+    not_in_service = policy.decision_precedence.index("NOT_IN_SERVICE")
+    assert fictitious < project < not_in_service
+    assert len(policy.decision_precedence) == 16
 
 
 @pytest.mark.parametrize("mutation", ["missing", "extra", "wrong"])
@@ -361,8 +503,8 @@ def test_observed_d031_access_and_importance_vocabularies_are_compatible() -> No
     )
 
     assert set().union(*access_groups) == OBSERVED_LIGHT_VEHICLE_ACCESS
-    assert policy.limited_importance == frozenset({"6"})
-    assert set("123456") >= policy.limited_importance
+    assert policy.importance.known == frozenset({"1", "2", "3", "4", "5", "6"})
+    assert policy.importance.limited == frozenset({"6"})
     assert policy.decision_outcomes.unknown == "UNKNOWN_REVIEW"
 
 
