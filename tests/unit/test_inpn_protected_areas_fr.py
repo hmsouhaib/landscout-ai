@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import socket
 import stat
 import warnings
 import zipfile
@@ -39,6 +40,8 @@ EXPECTED_EXPORTS = {
     "extract_inpn_protected_areas_archive",
     "load_inpn_protected_areas_source_config",
 }
+PUBLIC_IPV4 = "93.184.216.34"
+PUBLIC_IPV6 = "2606:4700:4700::1111"
 
 
 class _Response:
@@ -99,6 +102,50 @@ class _Session:
         response = self.responses.pop(0)
         response.raw.seek(0)
         return response
+
+
+def _dns_records(
+    addresses: tuple[str, ...],
+    port: int,
+) -> list[tuple[int, int, int, str, tuple[object, ...]]]:
+    records: list[tuple[int, int, int, str, tuple[object, ...]]] = []
+    for address in addresses:
+        if ":" in address:
+            records.append(
+                (
+                    socket.AF_INET6,
+                    socket.SOCK_STREAM,
+                    socket.IPPROTO_TCP,
+                    "",
+                    (address, port, 0, 0),
+                )
+            )
+        else:
+            records.append(
+                (
+                    socket.AF_INET,
+                    socket.SOCK_STREAM,
+                    socket.IPPROTO_TCP,
+                    "",
+                    (address, port),
+                )
+            )
+    return records
+
+
+@pytest.fixture(autouse=True)
+def _public_dns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> list[tuple[str, int]]:
+    calls: list[tuple[str, int]] = []
+
+    def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
+        assert kwargs == {"type": socket.SOCK_STREAM}
+        calls.append((hostname, port))
+        return _dns_records((PUBLIC_IPV4,), port)
+
+    monkeypatch.setattr(inpn.socket, "getaddrinfo", resolve)
+    return calls
 
 
 def _zip_bytes(
@@ -444,6 +491,9 @@ def test_unsupported_zip_compression_has_controlled_error(tmp_path: Path) -> Non
         ("https://10.0.0.2/EP.zip",),
         ("https://2130706433/EP.zip",),
         ("https://0x7f000001/EP.zip",),
+        ("https://[::1]/EP.zip",),
+        ("https://[fd00::1]/EP.zip",),
+        ("https://[fe80::1]/EP.zip",),
         ("https://user:secret@example.test/EP.zip",),
         ("https://cdn.example.test/EP.zip", "http://redirect.test/EP.zip"),
     ],
@@ -466,7 +516,10 @@ def test_unsafe_redirect_destination_is_rejected(
     assert all(call["allow_redirects"] is False for _, call in session.calls)
 
 
-def test_safe_https_redirect_keeps_configured_archive_lineage(tmp_path: Path) -> None:
+def test_safe_https_redirect_keeps_configured_archive_lineage(
+    tmp_path: Path,
+    _public_dns: list[tuple[str, int]],
+) -> None:
     config = _config(tmp_path)
     session = _session(
         config,
@@ -481,6 +534,256 @@ def test_safe_https_redirect_keeps_configured_archive_lineage(tmp_path: Path) ->
         "https://cdn.example.test/snapshot/EP.zip",
     ]
     assert all(call["allow_redirects"] is False for _, call in session.calls)
+    assert {hostname for hostname, _ in _public_dns} == {
+        "assets.patrinat.fr",
+        "cdn.example.test",
+    }
+
+
+def test_direct_official_url_resolves_public_dns_before_http(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config = _config(tmp_path)
+    session = _session(config)
+    events: list[tuple[str, str, int | None]] = []
+
+    def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
+        assert kwargs == {"type": socket.SOCK_STREAM}
+        events.append(("dns", hostname, port))
+        return _dns_records((PUBLIC_IPV4,), port)
+
+    original_get = session.get
+
+    def get(url: str, **kwargs: object) -> _Response:
+        events.append(("http", url, None))
+        return original_get(url, **kwargs)
+
+    monkeypatch.setattr(inpn.socket, "getaddrinfo", resolve)
+    monkeypatch.setattr(session, "get", get)
+
+    result = download_inpn_protected_areas_archive(config, session=session)
+
+    assert result.cache_hit is False
+    assert events[:2] == [
+        ("dns", "assets.patrinat.fr", 443),
+        ("http", str(config.archive_url), None),
+    ]
+
+
+def test_public_ipv4_and_ipv6_dns_answers_are_accepted(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config = _config(tmp_path)
+    session = _session(config)
+    resolved: list[tuple[str, int]] = []
+
+    def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
+        assert kwargs == {"type": socket.SOCK_STREAM}
+        resolved.append((hostname, port))
+        return _dns_records((PUBLIC_IPV4, PUBLIC_IPV6, PUBLIC_IPV4), port)
+
+    monkeypatch.setattr(inpn.socket, "getaddrinfo", resolve)
+
+    result = download_inpn_protected_areas_archive(config, session=session)
+
+    assert result.cache_hit is False
+    assert session.calls
+    assert resolved
+    assert set(resolved) == {("assets.patrinat.fr", 443)}
+
+
+@pytest.mark.parametrize(
+    "addresses",
+    [
+        ("127.0.0.1",),
+        ("10.0.0.2",),
+        ("169.254.1.1",),
+        ("0.0.0.0",),
+        ("240.0.0.1",),
+        ("::1",),
+        ("fd00::1",),
+        ("fe80::1",),
+        ("::",),
+        (PUBLIC_IPV4, "10.0.0.2"),
+        ("::ffff:127.0.0.1",),
+        ("224.0.0.1",),
+        ("ff02::1",),
+    ],
+    ids=[
+        "loopback-v4",
+        "private-v4",
+        "link-local-v4",
+        "unspecified-v4",
+        "reserved-v4",
+        "loopback-v6",
+        "private-v6",
+        "link-local-v6",
+        "unspecified-v6",
+        "mixed-public-private",
+        "mapped-private-v4",
+        "multicast-v4",
+        "multicast-v6",
+    ],
+)
+def test_nonpublic_dns_answer_rejects_redirect_before_request(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    addresses: tuple[str, ...],
+) -> None:
+    config = _config(tmp_path)
+    redirect_url = "https://redirect.example.test/EP.zip"
+    session = _session(config, redirect_chain=(redirect_url,))
+
+    def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
+        assert kwargs == {"type": socket.SOCK_STREAM}
+        selected = addresses if hostname == "redirect.example.test" else (PUBLIC_IPV4,)
+        return _dns_records(selected, port)
+
+    monkeypatch.setattr(inpn.socket, "getaddrinfo", resolve)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="DNS|address|URL|redirect"):
+        download_inpn_protected_areas_archive(config, session=session)
+
+    assert [url for url, _ in session.calls] == [str(config.archive_url)]
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://127.0.0.1/EP.zip",
+        "https://10.0.0.2/EP.zip",
+        "https://2130706433/EP.zip",
+        "https://0x7f000001/EP.zip",
+        "https://[::1]/EP.zip",
+        "https://[fd00::1]/EP.zip",
+        "https://[fe80::1]/EP.zip",
+    ],
+)
+def test_unsafe_literal_ip_validation_never_uses_dns(
+    monkeypatch: pytest.MonkeyPatch,
+    url: str,
+) -> None:
+    def fail_dns(*args: object, **kwargs: object) -> list[tuple[Any, ...]]:
+        raise AssertionError("literal IP used DNS")
+
+    monkeypatch.setattr(inpn.socket, "getaddrinfo", fail_dns)
+
+    with pytest.raises(InpnProtectedAreasSourceError):
+        inpn._validate_destination_url(url)
+
+
+def test_public_literal_ip_validation_never_uses_dns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fail_dns(*args: object, **kwargs: object) -> list[tuple[Any, ...]]:
+        raise AssertionError("literal IP used DNS")
+
+    monkeypatch.setattr(inpn.socket, "getaddrinfo", fail_dns)
+
+    assert (
+        inpn._validate_destination_url(f"https://{PUBLIC_IPV4}/EP.zip")
+        == f"https://{PUBLIC_IPV4}/EP.zip"
+    )
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        "zero",
+        "short-record",
+        "malformed-after-public",
+        "unsupported-family",
+        "bad-sockaddr",
+        "wrong-address-version",
+        "invalid-address-string",
+        "non-string-address",
+    ],
+)
+def test_unusable_dns_results_fail_before_http(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    case: str,
+) -> None:
+    config = _config(tmp_path)
+    session = _session(config)
+
+    def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
+        assert hostname == "assets.patrinat.fr"
+        assert kwargs == {"type": socket.SOCK_STREAM}
+        public = _dns_records((PUBLIC_IPV4,), port)[0]
+        if case == "zero":
+            return []
+        if case == "short-record":
+            return [(socket.AF_INET, socket.SOCK_STREAM)]
+        if case == "malformed-after-public":
+            return [public, ("malformed",)]
+        if case == "unsupported-family":
+            return [(9999, socket.SOCK_STREAM, 0, "", (PUBLIC_IPV4, port))]
+        if case == "bad-sockaddr":
+            return [(socket.AF_INET, socket.SOCK_STREAM, 0, "", (PUBLIC_IPV4,))]
+        if case == "wrong-address-version":
+            return [(socket.AF_INET, socket.SOCK_STREAM, 0, "", (PUBLIC_IPV6, port))]
+        if case == "invalid-address-string":
+            return [(socket.AF_INET, socket.SOCK_STREAM, 0, "", ("not-an-ip", port))]
+        return [(socket.AF_INET, socket.SOCK_STREAM, 0, "", (123, port))]
+
+    monkeypatch.setattr(inpn.socket, "getaddrinfo", resolve)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="DNS|address|URL"):
+        download_inpn_protected_areas_archive(config, session=session)
+
+    assert session.calls == []
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        socket.gaierror("DNS lookup failed"),
+        OSError("resolver failed"),
+        UnicodeError("invalid DNS name"),
+    ],
+    ids=["gaierror", "oserror", "unicode-error"],
+)
+def test_dns_resolution_errors_are_controlled_before_http(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    error: Exception,
+) -> None:
+    config = _config(tmp_path)
+    session = _session(config)
+
+    def fail_resolution(*args: object, **kwargs: object) -> list[tuple[Any, ...]]:
+        raise error
+
+    monkeypatch.setattr(inpn.socket, "getaddrinfo", fail_resolution)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="DNS|address|URL"):
+        download_inpn_protected_areas_archive(config, session=session)
+
+    assert session.calls == []
+
+
+def test_dns_resolution_uses_explicit_https_port(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config = _config(tmp_path)
+    redirect_url = "https://cdn.example.test:8443/EP.zip"
+    session = _session(config, redirect_chain=(redirect_url,))
+    resolved: list[tuple[str, int]] = []
+
+    def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
+        assert kwargs == {"type": socket.SOCK_STREAM}
+        resolved.append((hostname, port))
+        return _dns_records((PUBLIC_IPV4,), port)
+
+    monkeypatch.setattr(inpn.socket, "getaddrinfo", resolve)
+
+    download_inpn_protected_areas_archive(config, session=session)
+
+    assert ("cdn.example.test", 8443) in resolved
 
 
 def test_malformed_response_headers_have_controlled_error(tmp_path: Path) -> None:
@@ -516,9 +819,17 @@ def test_midstream_protocol_failure_has_controlled_error(tmp_path: Path) -> None
         )
 
 
-def test_valid_physical_and_metadata_cache_is_reused(tmp_path: Path) -> None:
+def test_valid_physical_and_metadata_cache_is_reused(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     config, first, _ = _download(tmp_path)
     no_network = _Session(error=AssertionError("network used"))
+
+    def fail_dns(*args: object, **kwargs: object) -> list[tuple[Any, ...]]:
+        raise AssertionError("DNS used for valid cache hit")
+
+    monkeypatch.setattr(inpn.socket, "getaddrinfo", fail_dns)
 
     second = download_inpn_protected_areas_archive(config, session=no_network)
 

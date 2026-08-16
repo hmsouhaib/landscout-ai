@@ -24,7 +24,7 @@ from math import isfinite
 from numbers import Real
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from shutil import copy2, copyfileobj
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Any, Literal, Self, cast
 from urllib.parse import urljoin, urlsplit
 
 import requests  # type: ignore[import-untyped]
@@ -593,6 +593,85 @@ def _publish_cache_pair(
         metadata_backup.unlink(missing_ok=True)
 
 
+def _is_globally_routable_address(
+    address: ipaddress.IPv4Address | ipaddress.IPv6Address,
+) -> bool:
+    if (
+        not address.is_global
+        or address.is_private
+        or address.is_loopback
+        or address.is_link_local
+        or address.is_unspecified
+        or address.is_multicast
+        or address.is_reserved
+    ):
+        return False
+    if isinstance(address, ipaddress.IPv6Address):
+        mapped = address.ipv4_mapped
+        if mapped is not None and not _is_globally_routable_address(mapped):
+            return False
+    return True
+
+
+def _resolve_public_host_addresses(
+    hostname: str,
+    port: int,
+) -> frozenset[ipaddress.IPv4Address | ipaddress.IPv6Address]:
+    try:
+        records = socket.getaddrinfo(hostname, port, type=socket.SOCK_STREAM)
+        addresses: set[ipaddress.IPv4Address | ipaddress.IPv6Address] = set()
+        for record in records:
+            if type(record) is not tuple or len(record) != 5:
+                raise TypeError("DNS result must be a five-item tuple")
+            family = record[0]
+            sockaddr = record[4]
+            if family == socket.AF_INET:
+                expected_version = 4
+                expected_sockaddr_length = 2
+            elif family == socket.AF_INET6:
+                expected_version = 6
+                expected_sockaddr_length = 4
+            else:
+                raise ValueError("DNS result uses an unsupported address family")
+            if type(sockaddr) is not tuple or len(sockaddr) != expected_sockaddr_length:
+                raise TypeError("DNS result has an invalid socket address")
+            validated_sockaddr = cast(tuple[Any, ...], sockaddr)
+            if (
+                type(validated_sockaddr[0]) is not str
+                or type(validated_sockaddr[1]) is not int
+            ):
+                raise TypeError("DNS result has an invalid socket address")
+            if expected_version == 6 and (
+                type(validated_sockaddr[2]) is not int
+                or type(validated_sockaddr[3]) is not int
+            ):
+                raise TypeError("DNS result has an invalid IPv6 socket address")
+            address = ipaddress.ip_address(validated_sockaddr[0])
+            if address.version != expected_version:
+                raise ValueError("DNS result address family does not match its address")
+            if not _is_globally_routable_address(address):
+                raise InpnProtectedAreasSourceError(
+                    f"DNS resolved {hostname} to a non-public address"
+                )
+            addresses.add(address)
+        if not addresses:
+            raise ValueError("DNS resolution returned no addresses")
+        return frozenset(addresses)
+    except InpnProtectedAreasSourceError:
+        raise
+    except (
+        OSError,
+        UnicodeError,
+        IndexError,
+        TypeError,
+        ValueError,
+        OverflowError,
+    ) as error:
+        raise InpnProtectedAreasSourceError(
+            f"DNS resolution failed for download host: {hostname}"
+        ) from error
+
+
 def _validate_destination_url(value: str) -> str:
     try:
         parsed = urlsplit(value)
@@ -603,6 +682,8 @@ def _validate_destination_url(value: str) -> str:
         hostname = parsed.hostname.rstrip(".").casefold()
         if hostname == "localhost" or hostname.endswith(".localhost"):
             raise ValueError("Localhost destinations are forbidden")
+        explicit_port = parsed.port
+        port = 443 if explicit_port is None else explicit_port
         address: ipaddress.IPv4Address | ipaddress.IPv6Address | None = None
         try:
             address = ipaddress.ip_address(hostname)
@@ -617,9 +698,15 @@ def _validate_destination_url(value: str) -> str:
                         address = ipaddress.IPv4Address(numeric_address)
                     except (ValueError, ipaddress.AddressValueError):
                         address = None
-        if address is not None and not address.is_global:
-            raise ValueError("Private or local IP destinations are forbidden")
+        if address is None:
+            if hostname.isdecimal() or hostname.startswith("0x"):
+                raise ValueError("Malformed numeric IP destinations are forbidden")
+            _resolve_public_host_addresses(hostname, port)
+        elif not _is_globally_routable_address(address):
+            raise ValueError("Non-public IP destinations are forbidden")
         return value
+    except InpnProtectedAreasSourceError:
+        raise
     except (AttributeError, TypeError, ValueError) as error:
         raise InpnProtectedAreasSourceError(
             f"Unsafe download or redirect URL: {value}"

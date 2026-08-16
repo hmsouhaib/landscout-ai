@@ -3,10 +3,21 @@
 ## Current project state
 
 - Current phase: Environment / risks — protected-area source acquisition
-- Latest completed step: STEP 7F.1A
+- Latest completed step: STEP 7F.1A.1
 - Current branch: `main`
 - Python version: `3.12.13`
 - Next step waiting for review: protected-area source normalization and category review
+
+## STEP 7F.1A.1 — Close DNS-resolved redirect network-safety gap
+
+- Status: Complete. Every ordinary non-IP hostname is resolved with the standard-library DNS resolver before its configured or redirected HTTPS URL can be requested.
+- Address contract: every returned IPv4 or IPv6 address must parse exactly and be globally routable. Zero-address, malformed, unsupported-family, loopback, private, link-local, unspecified, multicast, reserved, and private IPv4-mapped IPv6 answers fail closed; one non-public address rejects a mixed public/private answer.
+- Request boundary: controlled DNS failures occur before HTTP access to that destination. The configured official archive URL and every manual redirect target use the same pre-request gate, while the existing post-response URL/history validation remains active.
+- Offline and literal behavior: existing localhost and literal/numeric-IP protections remain unchanged and literal addresses do not invoke DNS. A physically verified download cache hit invokes neither DNS resolution nor HTTP.
+- Snapshot preservation: the checked-in `EP` identity and schema-v1 download/extraction metadata are unchanged. The verified archive remains 99,835,011 bytes with SHA256 `73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5`, and the extracted inventory remains 15 regular files. No download or GeoPackage read was performed for this correction.
+- Test-first and validation: 18 focused DNS cases first failed against the prior hostname-only validation. The corrected complete INPN source-adapter suite passed 157 tests; ticket-scoped Ruff and mypy passed.
+- Boundary: no protected-area semantics, category inspection, parcel intersection, Natura 2000 or ZNIEFF evidence, BESS decision, or score was added.
+- Known issues: None.
 
 ## STEP 7F.1A — Acquire PatriNat / INPN protected-areas reference archive
 
