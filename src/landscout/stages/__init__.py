@@ -30,6 +30,11 @@ from landscout.stages.assess_grid_coverage import (
     assess_grid_coverage,
     profile_grid_coverage,
 )
+from landscout.stages.assess_road_proximity_coverage import (
+    RoadProximityCoverageAssessmentResult,
+    RoadProximityCoverageError,
+    assess_road_proximity_coverage,
+)
 from landscout.stages.bess_planning_feature_policy import (
     BessPlanningFeaturePolicyArtifactManifest,
     BessPlanningFeaturePolicyConfig,
@@ -184,6 +189,8 @@ __all__ = [
     "PlanningRegulationStructureConfig",
     "PlanningRegulationStructureError",
     "PlanningRegulationStructureResult",
+    "RoadProximityCoverageAssessmentResult",
+    "RoadProximityCoverageError",
     "RoadProximityError",
     "RoadProxyClassCoverage",
     "ShapeDistributionProfile",
@@ -196,6 +203,7 @@ __all__ = [
     "apply_bess_planning_feature_policy",
     "apply_ign_road_vehicle_proxy_policy",
     "assess_grid_coverage",
+    "assess_road_proximity_coverage",
     "compile_bess_planning_feature_policy",
     "enrich_parcel_grid_proximity",
     "enrich_parcel_road_proximity",

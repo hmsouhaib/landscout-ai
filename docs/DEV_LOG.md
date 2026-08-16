@@ -2,11 +2,24 @@
 
 ## Current project state
 
-- Current phase: Access / roads — parcel proximity evidence
-- Latest completed step: STEP 7E.3A
+- Current phase: Access / roads — source-package boundary diagnostics
+- Latest completed step: STEP 7E.3B
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: IGN source-package boundary diagnosis
+- Next step waiting for review: road-access evidence design beyond package coverage
+
+## STEP 7E.3B — Diagnose parcel-road proximity against source-package boundary
+
+- Status: Complete. The stage invokes the source-complete STEP 7E.3A chain exactly once, validates its untouched parcel/class result, then loads the configured department coverage exactly once from the same verified extraction. It does not accept caller-supplied proximity or coverage results.
+- Source package identity: department `31`, configured physical coverage layer `departement`, edition `2026-06-15`, product version `3.5`, archive SHA256 `4fcd6d1234495c5e38f3a671159aa7c8da88c70fa1b8747c9f93f0a7a3001ab0`, and spatial role `SOURCE_COVERAGE_BOUNDARY`. Coverage contains the one valid Haute-Garonne polygonal feature in `EPSG:2154`; provider, product, department, edition, version, archive, extraction, layer, configured department field, summary, and row lineage are bound to the road package.
+- Real result: all 3,638 unchanged Muret parcels produced 18,190 unchanged-prefix class-proximity rows. Class coverage remains 385,107 roads: `GENERAL_VEHICLE_PROXY` 264,189; `LIMITED_VEHICLE_PROXY` 82,273; `RESTRICTED_REVIEW` 6,275; `NOT_GENERAL_VEHICLE_PROXY` 31,016; `NOT_DISTANCE_PROXY` 329 and ineligible; `UNKNOWN_REVIEW` 1,025. `NOT_DISTANCE_PROXY` still has zero distance rows.
+- Coverage position: `FULLY_COVERED` 3,638; `OUTSIDE_OR_CROSSING_COVERAGE` 0. Full parcel polygons—not centroids or representative points—are evaluated. Storage remains `EPSG:4326`; force-2D and `EPSG:2154` are used only on calculation copies. Touching, crossing, and outside parcels receive a zero internal boundary margin.
+- Source-boundary distance profile in metres across the 3,638 unique parcels: min 8,450.250261; p01 9,183.982004; p05 9,859.522185; p10 10,903.476591; p25 12,494.960144; p50 14,003.102957; p75 14,961.993196; p90 15,660.463906; p95 16,074.718235; p99 16,418.363152; max 16,712.165330.
+- Per-class diagnostic status counts (`NO_MATCH` / `NOT_BOUNDARY_LIMITED` / `BOUNDARY_LIMITED` / `OUTSIDE_OR_CROSSING_COVERAGE`): `GENERAL_VEHICLE_PROXY` 0/3,638/0/0; `LIMITED_VEHICLE_PROXY` 0/3,638/0/0; `RESTRICTED_REVIEW` 0/3,638/0/0; `NOT_GENERAL_VEHICLE_PROXY` 0/3,638/0/0; `UNKNOWN_REVIEW` 0/3,638/0/0. Equality with the boundary distance is conservatively boundary-limited, and `NO_MATCH` takes precedence.
+- Preserved lineage and scope: policy `ign_bdtopo_general_vehicle_proxy_v2`, schema `2`, SHA256 `2092bc620063ec1176b2abebaefafcc108a42793992dd18f869d44fdb07ca166`; proximity scope remains `WITHIN_VERIFIED_SOURCE_PACKAGE`. No road spatial index or nearest-road distance is rebuilt in this stage.
+- Runtime and validation: the complete network-blocked cached D031/Muret chain took 49.553 seconds. Test-first collection initially failed because the module did not exist; final ticket-scoped validation passed 136 tests. Ticket-scoped Ruff, mypy, and `git diff --check` passed.
+- Boundary: NO road-distance threshold, parcel score, parcel decision, legal-access conclusion, heavy-vehicle conclusion, or global-nearest claim is produced. `BOUNDARY_LIMITED` is a source-coverage warning only.
+- Known issues: None.
 
 ## STEP 7E.3A — Compute parcel-to-road proximity by proxy class
 
