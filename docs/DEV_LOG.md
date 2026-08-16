@@ -3,10 +3,24 @@
 ## Current project state
 
 - Current phase: Access / roads — IGN road vehicle proxy policy
-- Latest completed step: STEP 7E.2A.1
+- Latest completed step: STEP 7E.2B
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: STEP 7E.2B — apply road proxy policy
+- Next step waiting for review: parcel-road proximity evidence design
+
+## STEP 7E.2B — Apply IGN road vehicle proxy policy
+
+- Status: Complete. This stage applies only the checked-in general-car/light-vehicle proxy evidence policy to source-completely normalized IGN roads. Policy identity is `ign_bdtopo_general_vehicle_proxy_v2`, schema `2`, scope `OFFICIAL_IGN_CAR_ROUTING_EVIDENCE_ONLY`, and exact config SHA256 `2092bc620063ec1176b2abebaefafcc108a42793992dd18f869d44fdb07ca166`.
+- Source completeness: one application call invokes `normalize_ign_roads(source, source_config)` exactly once before loading the policy bytes. Invalid public types, normalization failures, malformed policy bytes, unknown geometry statuses, and incomplete normalized frames produce controlled application errors.
+- Real cached D031 scalar contract inspected before parser implementation: `fictitious_raw` = `bool`; `private_raw` = `float64`; `asset_status_raw`, `nature_raw`, `importance_raw`, `light_vehicle_access_raw`, `closure_period_raw`, and `restriction_nature_raw` = Pandas `str`; `carriageway_width_raw` = `float64`. Non-null fictitious scalars are booleans and non-null private scalars are floats. Strict parsers do not coerce strings, blur Boolean/integer identity, or broaden the observed source vocabulary.
+- Deterministic application: the technical non-valid-geometry gate precedes the exact compiled 16-rule policy order. The result retains every applicable rule in canonical JSON order, keeps unknown critical/optional facts in a fixed canonical JSON field order, records toll evidence separately, and derives every class and business-rule outcome from the compiled policy rather than duplicating its semantic values.
+- Preservation: 385,107 source rows produced 385,107 output rows and 385,107 unique `road_feature_id` values under `EPSG:2154`. Row order, `RangeIndex`, normalized factual-column prefix, raw values, active geometry, CRS, and exact geometry WKB remain unchanged. No row or geometry was dropped, duplicated, repaired, or reprojected.
+- Class distribution: `GENERAL_VEHICLE_PROXY` 264,189; `LIMITED_VEHICLE_PROXY` 82,273; `RESTRICTED_REVIEW` 6,275; `NOT_GENERAL_VEHICLE_PROXY` 31,016; `NOT_DISTANCE_PROXY` 329; `UNKNOWN_REVIEW` 1,025. The class-count sum is exactly 385,107.
+- Primary-rule distribution: `FICTITIOUS_GEOMETRY` 148; `PROJECT_GEOMETRY_NOT_SIGNIFICANT` 181; `NOT_IN_SERVICE` 97; `PHYSICALLY_IMPOSSIBLE` 30,919; `NON_GENERAL_VEHICLE_NATURE` 0; `RIGHTS_RESTRICTED` 6,118; `PRIVATE_ROAD` 34; `TEMPORAL_CLOSURE` 26; `KNOWN_RESTRICTION` 0; `OTHER_RECORDED_RESTRICTION` 97; `SPECIAL_NATURE` 0; `LIMITED_NATURE` 81,986; `IMPORTANCE_6` 98; `NARROW_CARRIAGEWAY` 189; `OPEN_OR_TOLL` 264,189; `UNKNOWN` 1,025. Technical `SOURCE_GEOMETRY_NOT_VALID` count is 0.
+- Additional evidence diagnostics: toll evidence = 1,119. Unknown-field occurrences are `private_raw` 1,474 and `carriageway_width_raw` 137; `fictitious_raw`, `asset_status_raw`, `nature_raw`, `light_vehicle_access_raw`, `importance_raw`, `closure_period_raw`, and `restriction_nature_raw` are all 0. A known higher-precedence rule may remain primary while `UNKNOWN` is retained later in its complete evidence trace.
+- Runtime and validation: the network-blocked cached source load plus complete source-bound application took 38.953 seconds. Test-first collection initially failed because the application module did not exist. The final ticket-scoped suite passed 225 tests with one expected missing-CRS fixture warning; ticket-scoped Ruff, mypy, and `git diff --check` passed.
+- Boundary: no parcel-road distance, spatial join, road or parcel score, parcel ranking/rejection, legal access, easement, heavy-truck access, or BESS construction-access inference is produced. Every row retains `road_proxy_heavy_vehicle_access = NOT_PROVEN`.
+- Known issues: None.
 
 ## STEP 7E.2A.1 — Correct IGN road proxy policy source semantics and evidence lineage
 

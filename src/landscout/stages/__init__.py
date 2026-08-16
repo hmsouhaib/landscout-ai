@@ -15,6 +15,11 @@ from landscout.stages.apply_bess_planning_feature_policy import (
     validate_bess_planning_feature_application_result,
     validate_bess_planning_feature_application_result_envelope,
 )
+from landscout.stages.apply_road_vehicle_proxy_policy import (
+    IgnRoadVehicleProxyApplicationError,
+    IgnRoadVehicleProxyApplicationResult,
+    apply_ign_road_vehicle_proxy_policy,
+)
 from landscout.stages.assess_grid_coverage import (
     BoundaryDistanceProfile,
     CoverageStatusCounts,
@@ -153,6 +158,8 @@ __all__ = [
     "GridProximityResult",
     "IgnGridNormalizationError",
     "IgnRoadNormalizationError",
+    "IgnRoadVehicleProxyApplicationError",
+    "IgnRoadVehicleProxyApplicationResult",
     "IgnRoadVehicleProxyPolicy",
     "IgnRoadVehicleProxyPolicyError",
     "IgnVoltageNormalization",
@@ -178,6 +185,7 @@ __all__ = [
     "VoltageLevelDistanceProfile",
     "aggregate_bess_planning_feature_policy_to_parcels",
     "apply_bess_planning_feature_policy",
+    "apply_ign_road_vehicle_proxy_policy",
     "assess_grid_coverage",
     "compile_bess_planning_feature_policy",
     "enrich_parcel_grid_proximity",
