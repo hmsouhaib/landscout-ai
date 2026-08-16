@@ -110,6 +110,11 @@ from landscout.stages.resolve_planning_feature_codes import (
     validate_planning_feature_code_result,
     validate_planning_feature_code_result_envelope,
 )
+from landscout.stages.road_vehicle_proxy_policy import (
+    IgnRoadVehicleProxyPolicy,
+    IgnRoadVehicleProxyPolicyError,
+    load_ign_road_vehicle_proxy_policy,
+)
 from landscout.stages.structure_planning_regulation import (
     PlanningRegulationStructureConfig,
     PlanningRegulationStructureError,
@@ -148,6 +153,8 @@ __all__ = [
     "GridProximityResult",
     "IgnGridNormalizationError",
     "IgnRoadNormalizationError",
+    "IgnRoadVehicleProxyPolicy",
+    "IgnRoadVehicleProxyPolicyError",
     "IgnVoltageNormalization",
     "NormalizedIgnElectricityData",
     "NormalizedIgnRoadData",
@@ -187,6 +194,7 @@ __all__ = [
     "load_bess_planning_feature_policy_config",
     "load_bess_zoning_policy_config",
     "load_cnig_feature_code_profile",
+    "load_ign_road_vehicle_proxy_policy",
     "load_planning_regulation_structure_config",
     "normalize_cadastre_parcels",
     "normalize_ign_electricity",

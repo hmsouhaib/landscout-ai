@@ -8,6 +8,26 @@
 - Python version: `3.12.13`
 - Next step waiting for review: evidence-based planning-rule interpretation design
 
+## STEP 7E.2A — Compile official IGN general-vehicle proxy policy
+
+- Status: Complete
+- Policy identity: `ign_bdtopo_general_vehicle_proxy_v1`; policy schema version `1`; scope `OFFICIAL_IGN_CAR_ROUTING_EVIDENCE_ONLY`.
+- Evidence lineage: publisher `IGN`; reference `Geoplateforme - Calcul d'itineraire`; revision `2026-05-27`; checked on `2026-08-16`; vehicle scope `LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK`; heavy-vehicle access `NOT_PROVEN`.
+- Exact checked-in config SHA256: `5e2135a2661898eaa76207f0a3e80935caeb25fd4774d69d6d7cc308c973ef36`.
+- Output classes: `GENERAL_VEHICLE_PROXY`, `LIMITED_VEHICLE_PROXY`, `RESTRICTED_REVIEW`, `NOT_GENERAL_VEHICLE_PROXY`, `NOT_DISTANCE_PROXY`, and `UNKNOWN_REVIEW`.
+- Asset-state groups: in service = `En service`; known not in service = `En projet`, `En construction`.
+- Light-vehicle-access groups: open = `Libre`; toll = `A péage`; rights restricted = `Restreint aux ayants droit`; physically impossible = `Physiquement impossible`.
+- General motor-road natures: `Route à 1 chaussée`, `Route à 2 chaussées`, `Rond-point`, `Bretelle`, `Type autoroutier`.
+- Limited motor-proxy natures: `Route empierrée`, `Chemin`. Non-general-vehicle natures: `Escalier`, `Sentier`, `Piste cyclable`. Special-review nature: `Bac ou liaison maritime`.
+- Known restrictions requiring review: `Plot amovible`, `Voie de tramway utilisable par les véhicules de secours`, `Voie verte`, `Aménagement mixte hors voie verte`, `Piste cyclable`, `Entrée avec gardien`, and `Passage barré`.
+- Limited-network evidence: exact source importance `6`; carriageway width below `2.9 m`. These are compiled evidence categories, not BESS-access decisions.
+- Exact precedence: `FICTITIOUS_GEOMETRY` → `NOT_IN_SERVICE` → `PHYSICALLY_IMPOSSIBLE` → `NON_GENERAL_VEHICLE_NATURE` → `RIGHTS_RESTRICTED` → `PRIVATE_ROAD` → `TEMPORAL_CLOSURE` → `KNOWN_RESTRICTION` → `OTHER_RECORDED_RESTRICTION` → `SPECIAL_NATURE` → `LIMITED_NATURE` → `IMPORTANCE_6` → `NARROW_CARRIAGEWAY` → `OPEN_OR_TOLL` → `UNKNOWN`.
+- Policy boundary: fictitious geometry maps to `NOT_DISTANCE_PROXY`; private, rights-restricted, temporally closed, and otherwise restricted roads map to future `RESTRICTED_REVIEW`, never permanent exclusion. The policy is based only on general-car/light-vehicle evidence and does not prove heavy-vehicle, exceptional-convoy, legal, or construction access.
+- Compiler contract: strict frozen Pydantic input models reject unknown fields and coercion; exact source strings are non-empty and edge-whitespace-free; categorical groups are non-empty, unique, and pairwise disjoint; the approved class vocabulary, rule outcomes, threshold, importance value, and precedence are exact. The compiled dataclass and all group structures are immutable, and `config_sha256` hashes the exact UTF-8 policy file bytes rather than a rewritten YAML representation.
+- Test-first proof: focused collection initially failed because `landscout.stages.road_vehicle_proxy_policy` did not exist. No road or parcel was classified in STEP 7E.2A; no source road table was read; no parcel-road distance, road ranking, BESS score, or parcel decision was produced.
+- Targeted validation: 51 focused policy tests passed in 0.91 seconds; the ticket-scoped Ruff check passed; targeted mypy reported no issues in the policy module. The full repository, Muret planning, CNIG, aggregation, and real D031 normalization suites were intentionally not rerun.
+- Known issues: None.
+
 ## GLOBAL HARDENING REVIEW CORRECTION.1 - Config-bound IGN non-electric roles
 
 - Status: Complete

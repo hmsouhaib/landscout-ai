@@ -1,0 +1,102 @@
+policy_id: "ign_bdtopo_general_vehicle_proxy_v1"
+schema_version: 1
+scope: "OFFICIAL_IGN_CAR_ROUTING_EVIDENCE_ONLY"
+
+reference:
+  publisher: "IGN"
+  title: "Geoplateforme - Calcul d'itineraire"
+  revision: "2026-05-27"
+  checked_on: "2026-08-16"
+  vehicle_scope: "LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK"
+  heavy_vehicle_access: "NOT_PROVEN"
+
+classes:
+  general_vehicle_proxy: "GENERAL_VEHICLE_PROXY"
+  limited_vehicle_proxy: "LIMITED_VEHICLE_PROXY"
+  restricted_review: "RESTRICTED_REVIEW"
+  not_general_vehicle_proxy: "NOT_GENERAL_VEHICLE_PROXY"
+  not_distance_proxy: "NOT_DISTANCE_PROXY"
+  unknown_review: "UNKNOWN_REVIEW"
+
+source_values:
+  asset_state:
+    in_service:
+      - "En service"
+    known_not_in_service:
+      - "En projet"
+      - "En construction"
+
+  light_vehicle_access:
+    open:
+      - "Libre"
+    toll:
+      - "A péage"
+    rights_restricted:
+      - "Restreint aux ayants droit"
+    physically_impossible:
+      - "Physiquement impossible"
+
+  nature:
+    general_motor_road:
+      - "Route à 1 chaussée"
+      - "Route à 2 chaussées"
+      - "Rond-point"
+      - "Bretelle"
+      - "Type autoroutier"
+    limited_motor_proxy:
+      - "Route empierrée"
+      - "Chemin"
+    non_general_vehicle:
+      - "Escalier"
+      - "Sentier"
+      - "Piste cyclable"
+    special_review:
+      - "Bac ou liaison maritime"
+
+  known_restriction_review:
+    - "Plot amovible"
+    - "Voie de tramway utilisable par les véhicules de secours"
+    - "Voie verte"
+    - "Aménagement mixte hors voie verte"
+    - "Piste cyclable"
+    - "Entrée avec gardien"
+    - "Passage barré"
+
+  limited_importance:
+    - "6"
+
+  width_below_m: 2.9
+
+decision_precedence:
+  - "FICTITIOUS_GEOMETRY"
+  - "NOT_IN_SERVICE"
+  - "PHYSICALLY_IMPOSSIBLE"
+  - "NON_GENERAL_VEHICLE_NATURE"
+  - "RIGHTS_RESTRICTED"
+  - "PRIVATE_ROAD"
+  - "TEMPORAL_CLOSURE"
+  - "KNOWN_RESTRICTION"
+  - "OTHER_RECORDED_RESTRICTION"
+  - "SPECIAL_NATURE"
+  - "LIMITED_NATURE"
+  - "IMPORTANCE_6"
+  - "NARROW_CARRIAGEWAY"
+  - "OPEN_OR_TOLL"
+  - "UNKNOWN"
+
+decision_outcomes:
+  fictitious_geometry: "NOT_DISTANCE_PROXY"
+  not_in_service: "NOT_GENERAL_VEHICLE_PROXY"
+  physically_impossible: "NOT_GENERAL_VEHICLE_PROXY"
+  non_general_vehicle_nature: "NOT_GENERAL_VEHICLE_PROXY"
+  rights_restricted: "RESTRICTED_REVIEW"
+  private_road: "RESTRICTED_REVIEW"
+  temporal_closure: "RESTRICTED_REVIEW"
+  known_restriction: "RESTRICTED_REVIEW"
+  other_recorded_restriction: "RESTRICTED_REVIEW"
+  special_nature: "RESTRICTED_REVIEW"
+  limited_nature: "LIMITED_VEHICLE_PROXY"
+  importance_6: "LIMITED_VEHICLE_PROXY"
+  narrow_carriageway: "LIMITED_VEHICLE_PROXY"
+  open_or_toll: "GENERAL_VEHICLE_PROXY"
+  unknown: "UNKNOWN_REVIEW"
