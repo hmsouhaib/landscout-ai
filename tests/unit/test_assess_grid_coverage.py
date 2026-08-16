@@ -24,6 +24,9 @@ from landscout.sources import (
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
     IgnBdTopoExtraction,
+    IgnBdTopoSourceConfig,
+    load_ign_bdtopo_department_coverage,
+    load_ign_bdtopo_source_config,
 )
 from landscout.stages import (
     GridCoverageAssessmentError,
@@ -35,6 +38,8 @@ from landscout.stages import (
 ARCHIVE_SHA256 = "a" * 64
 EDITION = "2026-06-15"
 _FIXTURE_ROOT = Path(tempfile.mkdtemp(prefix="landscout-coverage-ign-"))
+SOURCE_CONFIG = load_ign_bdtopo_source_config()
+ALTERNATE_COVERAGE_LAYER = "zone_administrative"
 
 
 def _coverage(
@@ -181,6 +186,73 @@ def _coverage(
     )
 
 
+def _with_alternate_coverage_layer(
+    source: IgnBdTopoDepartmentCoverage,
+) -> tuple[IgnBdTopoDepartmentCoverage, IgnBdTopoDepartmentCoverage]:
+    alternate = gpd.GeoDataFrame(
+        {"code_insee": ["31"], "nom_officiel": ["Alternate coverage"]},
+        geometry=[
+            Polygon([(0, 0), (0, 900), (900, 900), (900, 0), (0, 0)])
+        ],
+        crs="EPSG:2154",
+    )
+    geopackage_path = source.extraction.geopackage_path
+    pyogrio.write_dataframe(
+        alternate,
+        geopackage_path,
+        layer=ALTERNATE_COVERAGE_LAYER,
+        driver="GPKG",
+        append=True,
+    )
+    payload = geopackage_path.read_bytes()
+    layer_names = tuple(str(row[0]) for row in pyogrio.list_layers(geopackage_path))
+    digest = sha256(payload).hexdigest()
+    marker_path = source.extraction.extraction_path / ".landscout-extraction.json"
+    marker = json.loads(marker_path.read_text(encoding="utf-8"))
+    marker.update(
+        geopackage_size_bytes=len(payload),
+        geopackage_sha256=digest,
+        all_layer_names=list(layer_names),
+    )
+    marker_path.write_text(json.dumps(marker), encoding="utf-8")
+    extraction = replace(
+        source.extraction,
+        geopackage_size_bytes=len(payload),
+        geopackage_sha256=digest,
+        all_layer_names=layer_names,
+    )
+    configured = replace(
+        source,
+        extraction=extraction,
+        coverage=source.coverage.copy(),
+    )
+    configured.coverage["source_layer"] = "departement"
+    alternate_config_payload = SOURCE_CONFIG.model_dump(mode="python")
+    alternate_config_payload["coverage"]["department_layer"] = {
+        "class_label": "Zone administrative",
+        "match_tokens": ("zone", "administrative"),
+        "department_code_field": "code_insee",
+    }
+    alternate_config = IgnBdTopoSourceConfig.model_validate(
+        alternate_config_payload
+    )
+    forged = load_ign_bdtopo_department_coverage(extraction, alternate_config)
+    return configured, forged
+
+
+def test_coverage_assessment_reproduces_configured_logical_layer() -> None:
+    configured, forged = _with_alternate_coverage_layer(_coverage())
+
+    loaded = load_ign_bdtopo_department_coverage(
+        configured.extraction, SOURCE_CONFIG
+    )
+    result = assess_grid_coverage(_proximity(), loaded, SOURCE_CONFIG)
+    assert result.source_coverage.source_layer == "departement"
+
+    with pytest.raises(GridCoverageAssessmentError, match="physical|configured"):
+        assess_grid_coverage(_proximity(), forged, SOURCE_CONFIG)
+
+
 def _parcels(
     geometries: list[object] | None = None,
     *,
@@ -309,7 +381,7 @@ def test_clean_coverage_api_is_exported() -> None:
     ],
 )
 def test_polygonal_coverage_geometry_is_accepted(geometry: object) -> None:
-    result = assess_grid_coverage(_proximity(), _coverage(geometry))
+    result = assess_grid_coverage(_proximity(), _coverage(geometry), SOURCE_CONFIG)
 
     assert result.parcels.iloc[0]["grid_source_boundary_distance_m"] == pytest.approx(
         100.0
@@ -346,7 +418,9 @@ def test_invalid_coverage_geometry_is_rejected(
     message: str,
 ) -> None:
     with pytest.raises(GridCoverageAssessmentError, match=message):
-        assess_grid_coverage(_proximity(), _coverage(geometry, crs=crs))
+        assess_grid_coverage(
+            _proximity(), _coverage(geometry, crs=crs), SOURCE_CONFIG
+        )
 
 
 @pytest.mark.parametrize(
@@ -364,6 +438,7 @@ def test_strict_geometric_boundary_proof(
     result = assess_grid_coverage(
         _proximity(line_distances=[asset_distance], post_distance_m=asset_distance),
         _coverage(),
+        SOURCE_CONFIG,
     )
 
     parcel = result.parcels.iloc[0]
@@ -394,6 +469,7 @@ def test_outside_crossing_or_touching_parcel_is_conservative(
     result = assess_grid_coverage(
         _proximity(parcel_geometries=[parcel_geometry]),
         _coverage(),
+        SOURCE_CONFIG,
     )
 
     parcel = result.parcels.iloc[0]
@@ -414,7 +490,7 @@ def test_no_exact_match_uses_explicit_no_match_status() -> None:
         voltage_statuses=["UNKNOWN"],
         voltages=[None],
     )
-    result = assess_grid_coverage(proximity, _coverage())
+    result = assess_grid_coverage(proximity, _coverage(), SOURCE_CONFIG)
 
     assert result.parcels["nearest_exact_line_proxy_distance_m"].isna().all()
     assert result.parcels["nearest_exact_line_coverage_status"].eq("NO_MATCH").all()
@@ -426,7 +502,7 @@ def test_assessment_preserves_proximity_values_and_does_not_mutate_input() -> No
     parcels_before = deepcopy(proximity.parcels)
     table_before = deepcopy(proximity.voltage_level_proximity)
 
-    result = assess_grid_coverage(proximity, _coverage())
+    result = assess_grid_coverage(proximity, _coverage(), SOURCE_CONFIG)
 
     assert_geodataframe_equal(proximity.parcels, parcels_before)
     assert_frame_equal(proximity.voltage_level_proximity, table_before)
@@ -449,7 +525,7 @@ def test_geographic_parcel_storage_crs_and_geometry_are_preserved() -> None:
     geographic = projected.to_crs("EPSG:4326")
     proximity = enrich_parcel_grid_proximity(geographic, _lines(), _posts())
 
-    result = assess_grid_coverage(proximity, _coverage())
+    result = assess_grid_coverage(proximity, _coverage(), SOURCE_CONFIG)
 
     assert result.parcels.crs.to_epsg() == 4326
     assert result.parcels.geometry.geom_equals_exact(
@@ -468,6 +544,7 @@ def test_profile_reports_dynamic_voltage_and_boundary_distributions() -> None:
             voltages=[110.0, 275.0],
         ),
         _coverage(),
+        SOURCE_CONFIG,
     )
 
     profile = profile_grid_coverage(result)
@@ -491,7 +568,7 @@ def test_proximity_and_coverage_package_lineage_must_match() -> None:
     coverage.coverage.loc[0, "source_archive_sha256"] = "b" * 64
 
     with pytest.raises(GridCoverageAssessmentError, match="lineage"):
-        assess_grid_coverage(proximity, coverage)
+        assess_grid_coverage(proximity, coverage, SOURCE_CONFIG)
 
 
 @pytest.mark.parametrize(
@@ -503,7 +580,7 @@ def test_coverage_rejects_arbitrary_source_identity(field: str, value: str) -> N
     coverage.coverage.loc[0, field] = value
 
     with pytest.raises(GridCoverageAssessmentError, match="provider|product|identity"):
-        assess_grid_coverage(_proximity(), coverage)
+        assess_grid_coverage(_proximity(), coverage, SOURCE_CONFIG)
 
 
 @pytest.mark.parametrize("selected_count", [0, 2])
@@ -517,7 +594,9 @@ def test_coverage_summary_selected_count_must_match_frame(
     )
 
     with pytest.raises(GridCoverageAssessmentError, match="selected|count"):
-        assess_grid_coverage(_proximity(), replace(coverage, summary=summary))
+        assess_grid_coverage(
+            _proximity(), replace(coverage, summary=summary), SOURCE_CONFIG
+        )
 
 
 @pytest.mark.parametrize("mutation", ["missing", "extra", "reordered", "dtype"])
@@ -538,7 +617,9 @@ def test_coverage_summary_schema_must_match_selected_source_columns(
         changed = replace(summary, dtypes=tuple(dtypes))
 
     with pytest.raises(GridCoverageAssessmentError, match="summary|column|dtype|schema"):
-        assess_grid_coverage(_proximity(), replace(coverage, summary=changed))
+        assess_grid_coverage(
+            _proximity(), replace(coverage, summary=changed), SOURCE_CONFIG
+        )
 
 
 def test_coverage_summary_crs_must_match_frame() -> None:
@@ -546,7 +627,9 @@ def test_coverage_summary_crs_must_match_frame() -> None:
     summary = replace(coverage.summary, crs="EPSG:4326")
 
     with pytest.raises(GridCoverageAssessmentError, match="CRS|2154"):
-        assess_grid_coverage(_proximity(), replace(coverage, summary=summary))
+        assess_grid_coverage(
+            _proximity(), replace(coverage, summary=summary), SOURCE_CONFIG
+        )
 
 
 @pytest.mark.parametrize(
@@ -566,7 +649,9 @@ def test_coverage_summary_geometry_facts_are_validated(
     summary = replace(coverage.summary, **{field: value})
 
     with pytest.raises(GridCoverageAssessmentError, match="geometry|summary"):
-        assess_grid_coverage(_proximity(), replace(coverage, summary=summary))
+        assess_grid_coverage(
+            _proximity(), replace(coverage, summary=summary), SOURCE_CONFIG
+        )
 
 
 def test_coverage_summary_selected_department_must_match() -> None:
@@ -574,7 +659,9 @@ def test_coverage_summary_selected_department_must_match() -> None:
     summary = replace(coverage.summary, selected_department_code="32")
 
     with pytest.raises(GridCoverageAssessmentError, match="department"):
-        assess_grid_coverage(_proximity(), replace(coverage, summary=summary))
+        assess_grid_coverage(
+            _proximity(), replace(coverage, summary=summary), SOURCE_CONFIG
+        )
 
 
 @pytest.mark.parametrize("field", ["", " ", "missing"])
@@ -583,7 +670,9 @@ def test_coverage_summary_department_field_must_be_exact(field: str) -> None:
     summary = replace(coverage.summary, department_code_field=field)
 
     with pytest.raises(GridCoverageAssessmentError, match="department|field"):
-        assess_grid_coverage(_proximity(), replace(coverage, summary=summary))
+        assess_grid_coverage(
+            _proximity(), replace(coverage, summary=summary), SOURCE_CONFIG
+        )
 
 
 def test_coverage_summary_source_count_cannot_be_smaller_than_selection() -> None:
@@ -591,7 +680,9 @@ def test_coverage_summary_source_count_cannot_be_smaller_than_selection() -> Non
     summary = replace(coverage.summary, source_feature_count=0)
 
     with pytest.raises(GridCoverageAssessmentError, match="source|count"):
-        assess_grid_coverage(_proximity(), replace(coverage, summary=summary))
+        assess_grid_coverage(
+            _proximity(), replace(coverage, summary=summary), SOURCE_CONFIG
+        )
 
 
 def test_coverage_source_layer_lineage_must_match_summary_and_frame() -> None:
@@ -599,7 +690,9 @@ def test_coverage_source_layer_lineage_must_match_summary_and_frame() -> None:
     summary = replace(coverage.summary, source_layer_name="unknown_layer")
 
     with pytest.raises(GridCoverageAssessmentError, match="layer|lineage"):
-        assess_grid_coverage(_proximity(), replace(coverage, summary=summary))
+        assess_grid_coverage(
+            _proximity(), replace(coverage, summary=summary), SOURCE_CONFIG
+        )
 
 
 def test_assessment_rejects_forged_selected_coverage_row() -> None:
@@ -608,4 +701,6 @@ def test_assessment_rejects_forged_selected_coverage_row() -> None:
     forged.loc[0, "nom_officiel"] = "Invented department"
 
     with pytest.raises(GridCoverageAssessmentError, match="physical|source"):
-        assess_grid_coverage(_proximity(), replace(coverage, coverage=forged))
+        assess_grid_coverage(
+            _proximity(), replace(coverage, coverage=forged), SOURCE_CONFIG
+        )

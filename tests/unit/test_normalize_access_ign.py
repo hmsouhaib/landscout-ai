@@ -22,6 +22,9 @@ from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
     IgnBdTopoRoadData,
+    IgnBdTopoSourceConfig,
+    load_ign_bdtopo_roads,
+    load_ign_bdtopo_source_config,
 )
 from landscout.stages.normalize_access_ign import (
     IgnRoadNormalizationError,
@@ -30,9 +33,11 @@ from landscout.stages.normalize_access_ign import (
 )
 
 ROAD_LAYER = "troncon_de_route"
+ALTERNATE_ROAD_LAYER = "voie_secondaire"
 ARCHIVE_SHA256 = "a" * 64
 SOURCE_URL = "https://example.test/BDTOPO_D031.7z"
 _FIXTURE_ROOT = Path(tempfile.mkdtemp(prefix="landscout-road-ign-"))
+SOURCE_CONFIG = load_ign_bdtopo_source_config()
 
 OUTPUT_COLUMNS = (
     "road_feature_id",
@@ -280,6 +285,62 @@ def _source(frame: gpd.GeoDataFrame | None = None) -> IgnBdTopoRoadData:
     )
 
 
+def _with_alternate_road_layer(
+    source: IgnBdTopoRoadData,
+) -> tuple[IgnBdTopoRoadData, IgnBdTopoRoadData]:
+    alternate = _road_frame(
+        [LineString([(500, 500), (600, 600)])],
+        identifiers=["ALTERNATE-ROAD"],
+    )
+    geopackage_path = source.extraction.geopackage_path
+    pyogrio.write_dataframe(
+        alternate,
+        geopackage_path,
+        layer=ALTERNATE_ROAD_LAYER,
+        driver="GPKG",
+        append=True,
+    )
+    payload = geopackage_path.read_bytes()
+    layer_names = tuple(str(row[0]) for row in pyogrio.list_layers(geopackage_path))
+    digest = sha256(payload).hexdigest()
+    marker_path = source.extraction.extraction_path / ".landscout-extraction.json"
+    marker = json.loads(marker_path.read_text(encoding="utf-8"))
+    marker.update(
+        geopackage_size_bytes=len(payload),
+        geopackage_sha256=digest,
+        all_layer_names=list(layer_names),
+    )
+    marker_path.write_text(json.dumps(marker), encoding="utf-8")
+    extraction = replace(
+        source.extraction,
+        geopackage_size_bytes=len(payload),
+        geopackage_sha256=digest,
+        all_layer_names=layer_names,
+    )
+    configured = replace(source, extraction=extraction)
+    alternate_config_payload = SOURCE_CONFIG.model_dump(mode="python")
+    alternate_config_payload["access"]["road_segments"] = {
+        "class_label": "Voie secondaire",
+        "match_tokens": ("voie", "secondaire"),
+    }
+    alternate_config = IgnBdTopoSourceConfig.model_validate(
+        alternate_config_payload
+    )
+    forged = load_ign_bdtopo_roads(extraction, alternate_config)
+    return configured, forged
+
+
+def test_road_normalization_reproduces_configured_logical_layer() -> None:
+    configured, forged = _with_alternate_road_layer(_source())
+
+    loaded = load_ign_bdtopo_roads(configured.extraction, SOURCE_CONFIG)
+    normalized = normalize_ign_roads(loaded, SOURCE_CONFIG)
+    assert normalized.road_segments["source_layer"].eq(ROAD_LAYER).all()
+
+    with pytest.raises(IgnRoadNormalizationError, match="source|configured|physical"):
+        normalize_ign_roads(forged, SOURCE_CONFIG)
+
+
 def test_public_api_exports_only_stable_road_normalization_symbols() -> None:
     import landscout.stages.normalize_access_ign as access_normalization
 
@@ -295,7 +356,7 @@ def test_public_api_exports_only_stable_road_normalization_symbols() -> None:
 
 
 def test_valid_linestring_normalization_has_exact_schema_identity_and_lineage() -> None:
-    normalized = normalize_ign_roads(_source())
+    normalized = normalize_ign_roads(_source(), SOURCE_CONFIG)
 
     assert type(normalized) is NormalizedIgnRoadData
     roads = normalized.road_segments
@@ -325,7 +386,9 @@ def test_valid_multilinestring_is_preserved() -> None:
         [[(0, 0), (10, 10)], [(20, 20), (30, 30)]]
     )
 
-    roads = normalize_ign_roads(_source(_road_frame([geometry]))).road_segments
+    roads = normalize_ign_roads(
+        _source(_road_frame([geometry])), SOURCE_CONFIG
+    ).road_segments
 
     assert roads.iloc[0]["geometry_status"] == "VALID"
     assert roads.geometry.iloc[0].equals_exact(geometry, tolerance=0)
@@ -335,7 +398,9 @@ def test_valid_multilinestring_is_preserved() -> None:
 def test_z_coordinates_are_preserved_exactly() -> None:
     geometry = LineString([(0, 0, 12), (10, 10, 24)])
 
-    roads = normalize_ign_roads(_source(_road_frame([geometry]))).road_segments
+    roads = normalize_ign_roads(
+        _source(_road_frame([geometry])), SOURCE_CONFIG
+    ).road_segments
 
     assert roads.geometry.iloc[0].has_z
     assert roads.geometry.iloc[0].wkb == geometry.wkb
@@ -354,7 +419,7 @@ def test_row_count_order_geometry_and_range_index_are_preserved() -> None:
         )
     )
 
-    roads = normalize_ign_roads(source).road_segments
+    roads = normalize_ign_roads(source, SOURCE_CONFIG).road_segments
 
     assert len(roads) == 2
     assert roads["source_feature_id"].tolist() == ["SECOND", "FIRST"]
@@ -374,7 +439,7 @@ def test_raw_access_and_restriction_values_are_copied_without_interpretation() -
     source.loc[source.index[0], "restriction_de_poids_total"] = 19.75
     source.loc[source.index[0], "nature_de_la_restriction"] = None
 
-    row = normalize_ign_roads(_source(source)).road_segments.iloc[0]
+    row = normalize_ign_roads(_source(source), SOURCE_CONFIG).road_segments.iloc[0]
 
     assert row["importance_raw"] == "00"
     assert row["private_raw"] == "Valeur IGN non interprétée"
@@ -386,7 +451,7 @@ def test_raw_access_and_restriction_values_are_copied_without_interpretation() -
 def test_every_raw_field_preserves_source_values_nulls_and_dtype() -> None:
     source = _source()
 
-    roads = normalize_ign_roads(source).road_segments
+    roads = normalize_ign_roads(source, SOURCE_CONFIG).road_segments
 
     for source_column, output_column in RAW_FIELD_MAPPING:
         pd.testing.assert_series_equal(
@@ -415,13 +480,15 @@ def test_missing_required_source_field_is_rejected(column: str) -> None:
     mutated = replace(source, road_segments=frame)
 
     with pytest.raises(IgnRoadNormalizationError, match=column):
-        normalize_ign_roads(mutated)
+        normalize_ign_roads(mutated, SOURCE_CONFIG)
 
 
 @pytest.mark.parametrize("identifier", [None, "", "   ", 123])
 def test_null_or_empty_cleabs_is_rejected(identifier: object) -> None:
     with pytest.raises(IgnRoadNormalizationError, match="cleabs"):
-        normalize_ign_roads(_source(_road_frame(identifiers=[identifier])))
+        normalize_ign_roads(
+            _source(_road_frame(identifiers=[identifier])), SOURCE_CONFIG
+        )
 
 
 @pytest.mark.parametrize(
@@ -430,7 +497,9 @@ def test_null_or_empty_cleabs_is_rejected(identifier: object) -> None:
 )
 def test_unsafe_cleabs_is_rejected(identifier: str) -> None:
     with pytest.raises(IgnRoadNormalizationError, match="cleabs"):
-        normalize_ign_roads(_source(_road_frame(identifiers=[identifier])))
+        normalize_ign_roads(
+            _source(_road_frame(identifiers=[identifier])), SOURCE_CONFIG
+        )
 
 
 def test_duplicate_cleabs_is_rejected() -> None:
@@ -440,13 +509,13 @@ def test_duplicate_cleabs_is_rejected() -> None:
     )
 
     with pytest.raises(IgnRoadNormalizationError, match="unique"):
-        normalize_ign_roads(_source(frame))
+        normalize_ign_roads(_source(frame), SOURCE_CONFIG)
 
 
 @pytest.mark.parametrize("crs", [None, "EPSG:4326", "EPSG:3857"])
 def test_wrong_or_missing_road_crs_is_rejected(crs: str | None) -> None:
     with pytest.raises(IgnRoadNormalizationError, match="CRS|2154"):
-        normalize_ign_roads(_source(_road_frame(crs=crs)))
+        normalize_ign_roads(_source(_road_frame(crs=crs)), SOURCE_CONFIG)
 
 
 @pytest.mark.parametrize(
@@ -467,7 +536,7 @@ def test_wrong_archive_identity_is_rejected(
     mutated = replace(source, extraction=replace(source.extraction, archive=archive))
 
     with pytest.raises(IgnRoadNormalizationError, match=message):
-        normalize_ign_roads(mutated)
+        normalize_ign_roads(mutated, SOURCE_CONFIG)
 
 
 @pytest.mark.parametrize("component", ["archive", "extraction", "summary"])
@@ -495,7 +564,7 @@ def test_wrong_source_spatial_role_is_rejected(component: str) -> None:
         )
 
     with pytest.raises(IgnRoadNormalizationError, match="PROXY_GEOMETRY"):
-        normalize_ign_roads(mutated)
+        normalize_ign_roads(mutated, SOURCE_CONFIG)
 
 
 def test_summary_row_count_mismatch_is_rejected() -> None:
@@ -503,7 +572,9 @@ def test_summary_row_count_mismatch_is_rejected() -> None:
     summary = replace(source.road_segments_summary, feature_count=2)
 
     with pytest.raises(IgnRoadNormalizationError, match="row count"):
-        normalize_ign_roads(replace(source, road_segments_summary=summary))
+        normalize_ign_roads(
+            replace(source, road_segments_summary=summary), SOURCE_CONFIG
+        )
 
 
 @pytest.mark.parametrize(
@@ -531,7 +602,9 @@ def test_road_summary_requires_strict_structural_types(
     changed = replace(source.road_segments_summary, **{field: value})
 
     with pytest.raises(IgnRoadNormalizationError):
-        normalize_ign_roads(replace(source, road_segments_summary=changed))
+        normalize_ign_roads(
+            replace(source, road_segments_summary=changed), SOURCE_CONFIG
+        )
 
 
 @pytest.mark.parametrize("value", ["A" * 64, "a" * 63, "a" * 65, "g" * 64])
@@ -543,7 +616,7 @@ def test_road_archive_sha256_requires_canonical_lowercase(value: str) -> None:
     )
 
     with pytest.raises(IgnRoadNormalizationError):
-        normalize_ign_roads(replace(source, extraction=extraction))
+        normalize_ign_roads(replace(source, extraction=extraction), SOURCE_CONFIG)
 
 
 def test_summary_crs_mismatch_is_rejected() -> None:
@@ -551,7 +624,9 @@ def test_summary_crs_mismatch_is_rejected() -> None:
     summary = replace(source.road_segments_summary, crs="EPSG:4326")
 
     with pytest.raises(IgnRoadNormalizationError, match="CRS|2154"):
-        normalize_ign_roads(replace(source, road_segments_summary=summary))
+        normalize_ign_roads(
+            replace(source, road_segments_summary=summary), SOURCE_CONFIG
+        )
 
 
 @pytest.mark.parametrize("mutation", ["missing", "extra", "reordered", "dtype"])
@@ -570,7 +645,9 @@ def test_forged_ordered_summary_schema_is_rejected(mutation: str) -> None:
         changed = replace(summary, dtypes=tuple(dtypes))
 
     with pytest.raises(IgnRoadNormalizationError, match="schema|columns|dtype"):
-        normalize_ign_roads(replace(source, road_segments_summary=changed))
+        normalize_ign_roads(
+            replace(source, road_segments_summary=changed), SOURCE_CONFIG
+        )
 
 
 @pytest.mark.parametrize("role", ["electric", "post"])
@@ -587,7 +664,8 @@ def test_road_source_rejects_physical_role_collision(role: str) -> None:
             replace(
                 source,
                 road_segments_summary=summary,
-            )
+            ),
+            SOURCE_CONFIG,
         )
 
 
@@ -599,7 +677,7 @@ def test_road_source_rejects_duplicate_layer_inventory() -> None:
     )
 
     with pytest.raises(IgnRoadNormalizationError, match="inventory|duplicate"):
-        normalize_ign_roads(replace(source, extraction=extraction))
+        normalize_ign_roads(replace(source, extraction=extraction), SOURCE_CONFIG)
 
 
 @pytest.mark.parametrize(
@@ -619,7 +697,9 @@ def test_summary_geometry_facts_mismatch_is_rejected(
     summary = replace(source.road_segments_summary, **{field: value})
 
     with pytest.raises(IgnRoadNormalizationError, match="geometry summary"):
-        normalize_ign_roads(replace(source, road_segments_summary=summary))
+        normalize_ign_roads(
+            replace(source, road_segments_summary=summary), SOURCE_CONFIG
+        )
 
 
 def test_summary_layer_must_exist_in_extraction_inventory() -> None:
@@ -627,21 +707,25 @@ def test_summary_layer_must_exist_in_extraction_inventory() -> None:
     extraction = replace(source.extraction, all_layer_names=("other_layer",))
 
     with pytest.raises(IgnRoadNormalizationError, match="layer inventory"):
-        normalize_ign_roads(replace(source, extraction=extraction))
+        normalize_ign_roads(replace(source, extraction=extraction), SOURCE_CONFIG)
 
 
 def test_summary_layer_and_logical_name_must_be_exact() -> None:
     source = _source()
     wrong_layer = replace(source.road_segments_summary, source_layer_name="route")
     with pytest.raises(IgnRoadNormalizationError, match="physical layer"):
-        normalize_ign_roads(replace(source, road_segments_summary=wrong_layer))
+        normalize_ign_roads(
+            replace(source, road_segments_summary=wrong_layer), SOURCE_CONFIG
+        )
 
     wrong_logical = replace(
         source.road_segments_summary,
         logical_name=cast(Any, "electric_lines"),
     )
     with pytest.raises(IgnRoadNormalizationError, match="logical name"):
-        normalize_ign_roads(replace(source, road_segments_summary=wrong_logical))
+        normalize_ign_roads(
+            replace(source, road_segments_summary=wrong_logical), SOURCE_CONFIG
+        )
 
 
 @pytest.mark.parametrize(
@@ -650,7 +734,7 @@ def test_summary_layer_and_logical_name_must_be_exact() -> None:
 )
 def test_valid_unsupported_geometry_type_is_rejected(geometry: object) -> None:
     with pytest.raises(IgnRoadNormalizationError, match="geometry types"):
-        normalize_ign_roads(_source(_road_frame([geometry])))
+        normalize_ign_roads(_source(_road_frame([geometry])), SOURCE_CONFIG)
 
 
 def test_null_empty_and_invalid_geometry_are_preserved_with_status() -> None:
@@ -660,7 +744,7 @@ def test_null_empty_and_invalid_geometry_are_preserved_with_status() -> None:
         identifiers=["NULL", "EMPTY", "INVALID"],
     )
 
-    roads = normalize_ign_roads(_source(frame)).road_segments
+    roads = normalize_ign_roads(_source(frame), SOURCE_CONFIG).road_segments
 
     assert roads["geometry_status"].tolist() == ["NULL", "EMPTY", "INVALID"]
     assert roads.geometry.iloc[0] is None
@@ -672,7 +756,7 @@ def test_normalization_does_not_mutate_input() -> None:
     source = _source()
     before = deepcopy(source.road_segments)
 
-    normalize_ign_roads(source)
+    normalize_ign_roads(source, SOURCE_CONFIG)
 
     assert_geodataframe_equal(source.road_segments, before)
 
@@ -689,10 +773,11 @@ def test_high_level_rejects_coordinated_road_frame_and_summary_forgery() -> None
                 source,
                 road_segments=forged,
                 road_segments_summary=forged_summary,
-            )
+            ),
+            SOURCE_CONFIG,
         )
 
 
 def test_malformed_public_input_has_controlled_error() -> None:
     with pytest.raises(IgnRoadNormalizationError):
-        normalize_ign_roads(cast(Any, object()))
+        normalize_ign_roads(cast(Any, object()), SOURCE_CONFIG)

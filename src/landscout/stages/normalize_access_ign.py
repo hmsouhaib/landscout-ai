@@ -19,6 +19,7 @@ from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
     IgnBdTopoRoadData,
+    IgnBdTopoSourceConfig,
     _revalidate_ign_bdtopo_road_data,
     _validate_layer_summary_contract,
 )
@@ -517,21 +518,29 @@ def _normalize_road_frame(
     return normalized
 
 
-def _normalize_ign_roads(source: IgnBdTopoRoadData) -> NormalizedIgnRoadData:
+def _normalize_ign_roads(
+    source: IgnBdTopoRoadData,
+    config: IgnBdTopoSourceConfig,
+) -> NormalizedIgnRoadData:
     context = _validate_source_bundle(source)
-    _revalidate_ign_bdtopo_road_data(source)
+    _revalidate_ign_bdtopo_road_data(source, config)
     return NormalizedIgnRoadData(
         road_segments=_normalize_road_frame(source.road_segments, context)
     )
 
 
-def normalize_ign_roads(source: IgnBdTopoRoadData) -> NormalizedIgnRoadData:
+def normalize_ign_roads(
+    source: IgnBdTopoRoadData,
+    config: IgnBdTopoSourceConfig,
+) -> NormalizedIgnRoadData:
     """Validate and project one already-loaded IGN road source without interpretation."""
 
     try:
         if type(source) is not IgnBdTopoRoadData:
             raise TypeError("source must be an IgnBdTopoRoadData")
-        return _normalize_ign_roads(source)
+        if type(config) is not IgnBdTopoSourceConfig:
+            raise TypeError("config must be an IgnBdTopoSourceConfig")
+        return _normalize_ign_roads(source, config)
     except IgnRoadNormalizationError:
         raise
     except Exception as error:

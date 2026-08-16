@@ -1697,29 +1697,28 @@ def _revalidate_ign_bdtopo_electricity_data(
         ) from error
 
 
-def _revalidate_ign_bdtopo_road_data(source: object) -> IgnBdTopoRoadData:
+def _revalidate_ign_bdtopo_road_data(
+    source: object,
+    config: IgnBdTopoSourceConfig,
+) -> IgnBdTopoRoadData:
     """Fresh-read and exact-compare one supplied road source bundle."""
 
     try:
         if type(source) is not IgnBdTopoRoadData:
             raise TypeError("IGN road source type is invalid")
-        context = _validate_extraction_envelope(source.extraction)
-        summary = _validate_layer_summary_contract(source.road_segments_summary)
-        layer_name = summary.source_layer_name
-        if layer_name in {
-            source.extraction.electric_lines_layer,
-            source.extraction.transformation_posts_layer,
-        }:
-            raise ValueError("IGN road and electricity layer roles overlap")
-        (frame,) = _read_verified_layer_frames(context, (layer_name,))
-        fresh_layer = _loaded_layer_from_frame(frame, layer_name, "road_segments")
-        _compare_loaded_frame(source.road_segments, frame, "road segments")
-        _compare_layer_summary(summary, fresh_layer.summary)
-        return IgnBdTopoRoadData(
-            extraction=source.extraction,
-            road_segments=frame,
-            road_segments_summary=fresh_layer.summary,
+        if type(config) is not IgnBdTopoSourceConfig:
+            raise TypeError("IGN road source config type is invalid")
+        fresh = load_ign_bdtopo_roads(source.extraction, config)
+        _compare_loaded_frame(
+            source.road_segments,
+            fresh.road_segments,
+            "road segments",
         )
+        _compare_layer_summary(
+            source.road_segments_summary,
+            fresh.road_segments_summary,
+        )
+        return fresh
     except IgnBdTopoLayerError:
         raise
     except Exception as error:
@@ -1782,25 +1781,18 @@ def _validate_coverage_summary_contract(
 
 def _revalidate_ign_bdtopo_department_coverage(
     source: object,
+    config: IgnBdTopoSourceConfig,
 ) -> IgnBdTopoDepartmentCoverage:
     """Fresh-read and exact-compare selected coverage with its physical layer."""
 
     try:
         if type(source) is not IgnBdTopoDepartmentCoverage:
             raise TypeError("IGN department coverage type is invalid")
-        summary = _validate_coverage_summary_contract(source.summary)
-        context = _validate_extraction_envelope(source.extraction)
-        (frame,) = _read_verified_layer_frames(
-            context, (summary.source_layer_name,)
-        )
-        fresh = _department_coverage_from_frame(
-            source.extraction,
-            frame,
-            summary.source_layer_name,
-            summary.department_code_field,
-        )
+        if type(config) is not IgnBdTopoSourceConfig:
+            raise TypeError("IGN coverage source config type is invalid")
+        fresh = load_ign_bdtopo_department_coverage(source.extraction, config)
         _compare_loaded_frame(source.coverage, fresh.coverage, "department coverage")
-        if summary != fresh.summary:
+        if source.summary != fresh.summary:
             raise ValueError("IGN coverage summary differs from physical source")
         scalar_names = (
             "source_provider",

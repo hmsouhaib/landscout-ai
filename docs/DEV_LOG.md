@@ -8,6 +8,19 @@
 - Python version: `3.12.13`
 - Next step waiting for review: evidence-based planning-rule interpretation design
 
+## GLOBAL HARDENING REVIEW CORRECTION.1 - Config-bound IGN non-electric roles
+
+- Status: Complete
+- Scope: Source-validation correction only. No grid threshold, road suitability interpretation, BESS policy, scoring, parcel selection, planning artifact, or legal conclusion changed.
+- Road role binding: `normalize_ign_roads()` now requires the exact `IgnBdTopoSourceConfig`. Its source-complete revalidator obtains the authoritative fresh frame and summary only through `load_ign_bdtopo_roads(extraction, config)`, then exact-compares the supplied frame and summary. A supplied road summary can no longer choose its own authoritative physical layer.
+- Coverage role binding: `assess_grid_coverage()` likewise requires the source config. Its source-complete revalidator obtains the configured department layer and department identity field through `load_ign_bdtopo_department_coverage(extraction, config)`, then exact-compares the supplied coverage frame, summary, and lineage. The supplied coverage summary is not a layer-selection authority.
+- Adversarial regressions: Each focused fixture uses one valid schema-v2, byte-sealed GeoPackage containing configured layer A and a second structurally compatible physical layer B. Config-selected A loads and validates; a fully self-consistent object loaded from B is rejected solely because it differs from the configured logical role. No SHA, layer-inventory, summary, geometry, or GeoPackage-byte defect is involved.
+- Targeted tests: 185 passed with 2 expected missing-CRS fixture warnings. The initial run encountered only a missing explicit Windows base-temp parent; after creating that parent, the unchanged required three-file suite passed.
+- Real cached D031 regression: Network access was explicitly blocked. Archive and extraction remained cache hits. Config selected road layer `troncon_de_route` and coverage layer/identity `departement` / `code_insee`; the config-bound road normalizer retained 385,107 rows, 385,107 unique IDs, `EPSG:2154`, and 385,107 `VALID` geometries. The config-bound coverage assessment retained all 3,638 persisted proximity parcels and 14,552 voltage-level rows.
+- Planning invariants: Existing ignored manifests remain unchanged at 3,638 parcels, 479 planning features, 2,414 factual relations, 12 configured/observed CNIG pairs, and 12 policy pairs. Application hash remains `53b8fcddfcbd3920f223071d946d9066c8cb9cc38f0afc8d917e2b723926527e`; aggregation hash remains `c7417273d36c92833fcbd941a5e10c2518e30c97c3a758646a49d19cdc0c6cee`. No planning artifact was rewritten.
+- Final quality gates: Ruff, mypy, and `git diff --check` passed. The single complete pytest run passed with 2,292 tests and 4 expected warnings in 640.72 seconds.
+- Known issues: None.
+
 ## GLOBAL HARDENING REVIEW CORRECTION - Source-boundary and adversarial contracts
 
 - Status: Complete
