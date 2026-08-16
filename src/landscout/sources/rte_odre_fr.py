@@ -1,4 +1,5 @@
 import json
+import sys
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from hashlib import sha256
@@ -513,19 +514,86 @@ def _replace_file(source: Path, target: Path) -> None:
     source.replace(target)
 
 
+def _is_link_or_junction(path: Path) -> bool:
+    try:
+        return path.is_symlink() or path.is_junction()
+    except OSError:
+        return True
+
+
+def _cache_recovery_paths(
+    archive_path: Path,
+    metadata_path: Path,
+) -> tuple[Path, Path]:
+    return (
+        archive_path.with_suffix(f"{archive_path.suffix}.bak"),
+        metadata_path.with_suffix(f"{metadata_path.suffix}.bak"),
+    )
+
+
+def _require_no_cache_recovery_material(
+    archive_path: Path,
+    metadata_path: Path,
+) -> None:
+    if any(
+        path.exists() or _is_link_or_junction(path)
+        for path in _cache_recovery_paths(archive_path, metadata_path)
+    ):
+        raise RteOdreDownloadError(
+            "RTE/ODRE cache recovery backup already exists; manual recovery is required"
+        )
+
+
+def _prepare_temporary_cache_file(path: Path) -> None:
+    try:
+        if _is_link_or_junction(path):
+            raise RteOdreDownloadError(
+                "RTE/ODRE cache temporary path is a link or junction"
+            )
+        if path.exists():
+            if not path.is_file():
+                raise RteOdreDownloadError(
+                    "RTE/ODRE cache temporary path is not a regular file"
+                )
+            path.unlink()
+    except RteOdreDownloadError:
+        raise
+    except OSError as error:
+        raise RteOdreDownloadError(
+            "RTE/ODRE cache temporary path cannot be prepared safely"
+        ) from error
+
+
+def _cleanup_temporary_cache_files(
+    paths: tuple[Path, ...],
+    primary_error: BaseException | None,
+) -> None:
+    cleanup_error: OSError | None = None
+    for path in paths:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as error:
+            cleanup_error = cleanup_error or error
+    if cleanup_error is not None and primary_error is None:
+        raise RteOdreDownloadError(
+            "RTE/ODRE cache temporary files could not be cleaned safely"
+        ) from cleanup_error
+
+
 def _publish_cache_pair(
     temporary_archive: Path,
     temporary_metadata: Path,
     archive_path: Path,
     metadata_path: Path,
 ) -> None:
-    archive_backup = archive_path.with_suffix(f"{archive_path.suffix}.bak")
-    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    archive_backup, metadata_backup = _cache_recovery_paths(
+        archive_path,
+        metadata_path,
+    )
     archive_existed = archive_path.is_file()
     metadata_existed = metadata_path.is_file()
 
-    archive_backup.unlink(missing_ok=True)
-    metadata_backup.unlink(missing_ok=True)
+    _require_no_cache_recovery_material(archive_path, metadata_path)
     try:
         if archive_existed:
             copy2(archive_path, archive_backup)
@@ -647,6 +715,7 @@ def download_rte_odre_dataset(
     filename = f"{dataset.dataset_id}.{dataset.preferred_format}"
     archive_path = cache_dir / filename
     metadata_path = cache_dir / f"{filename}.metadata.json"
+    _require_no_cache_recovery_material(archive_path, metadata_path)
     cached = _load_cached_download(
         archive_path,
         metadata_path,
@@ -657,9 +726,18 @@ def download_rte_odre_dataset(
     if cached is not None:
         return cached
 
-    cache_dir.mkdir(parents=True, exist_ok=True)
     temporary_archive = archive_path.with_suffix(f"{archive_path.suffix}.part")
     temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    try:
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        _prepare_temporary_cache_file(temporary_archive)
+        _prepare_temporary_cache_file(temporary_metadata)
+    except RteOdreDownloadError:
+        raise
+    except OSError as error:
+        raise RteOdreDownloadError(
+            "RTE/ODRE cache paths cannot be prepared safely"
+        ) from error
     try:
         dataset_metadata = fetch_rte_odre_dataset_metadata(
             validated_config, logical_name, timeout=timeout
@@ -670,7 +748,7 @@ def download_rte_odre_dataset(
                 timeout=timeout,
                 headers={"User-Agent": "LandScout-AI/0.1"},
             ) as response,
-            temporary_archive.open("wb") as output,
+            temporary_archive.open("xb") as output,
         ):
             copyfileobj(response, output, length=DOWNLOAD_CHUNK_SIZE)
         summary = _validate_geojson(temporary_archive)
@@ -699,15 +777,18 @@ def download_rte_odre_dataset(
         lineage = asdict(result)
         lineage.pop("path")
         lineage.pop("cache_hit")
-        temporary_metadata.write_text(
-            json.dumps(lineage, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-        )
+        with temporary_metadata.open("x", encoding="utf-8") as output:
+            output.write(json.dumps(lineage, indent=2, sort_keys=True) + "\n")
         _publish_cache_pair(
             temporary_archive, temporary_metadata, archive_path, metadata_path
         )
         return result
+    except RteOdreDownloadError:
+        raise
     except (HTTPError, URLError, OSError) as error:
         raise RteOdreDownloadError(f"RTE/ODRE download failed: {source_url}") from error
     finally:
-        temporary_archive.unlink(missing_ok=True)
-        temporary_metadata.unlink(missing_ok=True)
+        _cleanup_temporary_cache_files(
+            (temporary_archive, temporary_metadata),
+            sys.exception(),
+        )

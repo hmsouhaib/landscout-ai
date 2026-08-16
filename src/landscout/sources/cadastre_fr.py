@@ -1,6 +1,7 @@
 import gzip
 import json
 import re
+import sys
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from hashlib import sha256
@@ -125,18 +126,85 @@ def _replace_file(source: Path, target: Path) -> None:
     source.replace(target)
 
 
+def _is_link_or_junction(path: Path) -> bool:
+    try:
+        return path.is_symlink() or path.is_junction()
+    except OSError:
+        return True
+
+
+def _cache_recovery_paths(
+    archive_path: Path,
+    metadata_path: Path,
+) -> tuple[Path, Path]:
+    return (
+        archive_path.with_suffix(f"{archive_path.suffix}.bak"),
+        metadata_path.with_suffix(f"{metadata_path.suffix}.bak"),
+    )
+
+
+def _require_no_cache_recovery_material(
+    archive_path: Path,
+    metadata_path: Path,
+) -> None:
+    if any(
+        path.exists() or _is_link_or_junction(path)
+        for path in _cache_recovery_paths(archive_path, metadata_path)
+    ):
+        raise CadastreDownloadError(
+            "Cadastre cache recovery backup already exists; manual recovery is required"
+        )
+
+
+def _prepare_temporary_cache_file(path: Path) -> None:
+    try:
+        if _is_link_or_junction(path):
+            raise CadastreDownloadError(
+                "Cadastre cache temporary path is a link or junction"
+            )
+        if path.exists():
+            if not path.is_file():
+                raise CadastreDownloadError(
+                    "Cadastre cache temporary path is not a regular file"
+                )
+            path.unlink()
+    except CadastreDownloadError:
+        raise
+    except OSError as error:
+        raise CadastreDownloadError(
+            "Cadastre cache temporary path cannot be prepared safely"
+        ) from error
+
+
+def _cleanup_temporary_cache_files(
+    paths: tuple[Path, ...],
+    primary_error: BaseException | None,
+) -> None:
+    cleanup_error: OSError | None = None
+    for path in paths:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as error:
+            cleanup_error = cleanup_error or error
+    if cleanup_error is not None and primary_error is None:
+        raise CadastreDownloadError(
+            "Cadastre cache temporary files could not be cleaned safely"
+        ) from cleanup_error
+
+
 def _publish_cache_pair(
     temporary_archive: Path,
     temporary_metadata: Path,
     archive_path: Path,
     metadata_path: Path,
 ) -> None:
-    archive_backup = archive_path.with_suffix(f"{archive_path.suffix}.bak")
-    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    archive_backup, metadata_backup = _cache_recovery_paths(
+        archive_path,
+        metadata_path,
+    )
     archive_existed = archive_path.is_file()
     metadata_existed = metadata_path.is_file()
-    archive_backup.unlink(missing_ok=True)
-    metadata_backup.unlink(missing_ok=True)
+    _require_no_cache_recovery_material(archive_path, metadata_path)
     try:
         if archive_existed:
             copy2(archive_path, archive_backup)
@@ -197,15 +265,25 @@ def download_cadastre_parcelles(
     filename = source_url.rsplit("/", maxsplit=1)[-1]
     archive_path = cache_dir / filename
     metadata_path = cache_dir / f"{filename}.metadata.json"
+    _require_no_cache_recovery_material(archive_path, metadata_path)
     cached = _load_cached_download(
         archive_path, metadata_path, source_url, max_cache_age_hours
     )
     if cached is not None:
         return cached
 
-    cache_dir.mkdir(parents=True, exist_ok=True)
     temporary_archive = archive_path.with_suffix(f"{archive_path.suffix}.part")
     temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    try:
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        _prepare_temporary_cache_file(temporary_archive)
+        _prepare_temporary_cache_file(temporary_metadata)
+    except CadastreDownloadError:
+        raise
+    except OSError as error:
+        raise CadastreDownloadError(
+            "Cadastre cache paths cannot be prepared safely"
+        ) from error
     try:
         with (
             open_safe_https(
@@ -213,45 +291,45 @@ def download_cadastre_parcelles(
                 timeout=timeout,
                 headers={"User-Agent": "LandScout-AI/0.1"},
             ) as response,
-            temporary_archive.open("wb") as output,
+            temporary_archive.open("xb") as output,
         ):
             copyfileobj(response, output)
         if not _is_valid_gzip(temporary_archive):
             raise CadastreDownloadError("Downloaded cadastre archive is not valid gzip")
-    except (HTTPError, URLError, OSError) as error:
-        temporary_archive.unlink(missing_ok=True)
-        raise CadastreDownloadError(f"Cadastre download failed: {source_url}") from error
+        result = CadastreDownload(
+            source_url=source_url,
+            download_timestamp=datetime.now(UTC).isoformat(),
+            filename=filename,
+            file_size=temporary_archive.stat().st_size,
+            sha256=_sha256(temporary_archive),
+            path=archive_path,
+            cache_hit=False,
+        )
+        metadata = asdict(result)
+        metadata.pop("path")
+        metadata.pop("cache_hit")
+        try:
+            with temporary_metadata.open("x", encoding="utf-8") as output:
+                output.write(
+                    json.dumps(metadata, indent=2, sort_keys=True) + "\n"
+                )
+            _publish_cache_pair(
+                temporary_archive,
+                temporary_metadata,
+                archive_path,
+                metadata_path,
+            )
+        except OSError as error:
+            raise CadastreDownloadError(
+                f"Cadastre cache publication failed: {source_url}"
+            ) from error
+        return result
     except CadastreDownloadError:
-        temporary_archive.unlink(missing_ok=True)
         raise
-
-    result = CadastreDownload(
-        source_url=source_url,
-        download_timestamp=datetime.now(UTC).isoformat(),
-        filename=filename,
-        file_size=temporary_archive.stat().st_size,
-        sha256=_sha256(temporary_archive),
-        path=archive_path,
-        cache_hit=False,
-    )
-    metadata = asdict(result)
-    metadata.pop("path")
-    metadata.pop("cache_hit")
-    try:
-        temporary_metadata.write_text(
-            json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-        )
-        _publish_cache_pair(
-            temporary_archive,
-            temporary_metadata,
-            archive_path,
-            metadata_path,
-        )
-    except OSError as error:
-        raise CadastreDownloadError(
-            f"Cadastre cache publication failed: {source_url}"
-        ) from error
+    except (HTTPError, URLError, OSError) as error:
+        raise CadastreDownloadError(f"Cadastre download failed: {source_url}") from error
     finally:
-        temporary_archive.unlink(missing_ok=True)
-        temporary_metadata.unlink(missing_ok=True)
-    return result
+        _cleanup_temporary_cache_files(
+            (temporary_archive, temporary_metadata),
+            sys.exception(),
+        )

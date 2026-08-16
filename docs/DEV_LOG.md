@@ -3,10 +3,22 @@
 ## Current project state
 
 - Current phase: Cross-stage source-trust and policy-integrity hardening
-- Latest completed step: STEP 7F.1A.2
+- Latest completed step: STEP 7F.1A.2.1
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: independent review of STEP 7F.1A.2; no functional step selected
+- Next step waiting for review: independent review of STEP 7F.1A.2.1; no functional step selected
+
+## STEP 7F.1A.2.1 — Complete source cache-recovery safety parity
+
+- Status: Complete. This correction brings Cadastre, RTE / ODRÉ, and the remaining INPN recovery-link edge into the source cache-recovery contract established in STEP 7F.1A.2.
+- Recovery preservation: Cadastre and RTE / ODRÉ now fail closed when archive or metadata `.bak` recovery material already exists. Regular files, symlinks, broken symlinks, and junctions are detected without deleting or replacing their bytes. After a publication-plus-rollback double failure, the next invocation stops before network access; RTE performs zero metadata and zero export requests.
+- Temporary-path safety: pre-existing archive or metadata `.part` links and junctions are rejected before network access and cannot redirect writes to another target. A stale ordinary temporary file may be removed deterministically, while directories and other unsafe path types fail closed. New temporary files use exclusive creation.
+- Failure authority: temporary cleanup is attempted without replacing an active controlled publication/rollback exception. If cleanup is the only failure, it is translated to the adapter's controlled download error; recovery bytes from the higher-severity double failure remain available for manual recovery.
+- INPN parity: archive and metadata recovery detection now includes broken symlinks and junctions as well as existing ordinary backups. The approved `EP` archive snapshot, schema-v1 download metadata, schema-v1 extraction metadata, cache layout, size, SHA256, and extracted inventory are unchanged.
+- Test-first evidence: 13 adversarial cases failed against the prior implementation while the existing normal-INPN-backup baseline passed. After correction, the expanded 18-case recovery selection passed. Focused suites passed 44 Cadastre tests, 73 RTE / ODRÉ tests, and 121 INPN tests; the shared HTTPS, IGN, and GPU regression suite passed 240 tests. The single full repository run passed 2,842 tests with 5 expected warnings in 660.50 seconds.
+- Final quality gates: repository Ruff passed; mypy reported no issues in 45 source files; `uv lock --check` resolved 48 packages; `uv pip check` verified 49 compatible installed packages; and `git diff --check` passed.
+- Boundary: Cadastre URL construction, gzip validation, and cache freshness are unchanged. RTE dataset identities, GeoJSON validation, and official ODRE origin are unchanged. INPN snapshot identity and schemas, shared HTTPS transport, IGN/GPU behavior, grid, road, planning, and BESS semantics are unchanged. No source or business semantics were added or modified.
+- Known issues: None.
 
 ## STEP 7F.1A.2 — Close repository trust-boundary review findings
 

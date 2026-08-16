@@ -552,7 +552,10 @@ def _publish_cache_pair(
 ) -> None:
     archive_backup = archive_path.with_name(f"{archive_path.name}.bak")
     metadata_backup = metadata_path.with_name(f"{metadata_path.name}.bak")
-    if archive_backup.exists() or metadata_backup.exists():
+    if any(
+        path.exists() or _is_link_or_junction(path)
+        for path in (archive_backup, metadata_backup)
+    ):
         raise InpnProtectedAreasSourceError(
             "Cache recovery backup already exists; manual recovery is required"
         )

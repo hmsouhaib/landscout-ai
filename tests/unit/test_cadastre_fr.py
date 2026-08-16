@@ -401,3 +401,220 @@ def test_publication_and_rollback_failure_preserves_recovery_backup(
 
     useful_backups = [path for path in (archive_backup, metadata_backup) if path.exists()]
     assert useful_backups
+
+
+def test_stale_recovery_backup_rejects_cache_before_network_and_preserves_bytes(
+    tmp_path: Path,
+) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        return_value=io.BytesIO(ARCHIVE_CONTENT),
+    ):
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+    recovery_path = first.path.with_suffix(f"{first.path.suffix}.bak")
+    recovery_bytes = b"manual cadastre recovery material"
+    recovery_path.write_bytes(recovery_bytes)
+
+    with (
+        patch(
+            "landscout.sources.cadastre_fr.open_safe_https",
+            side_effect=AssertionError("recovery state must fail before network"),
+        ) as opener,
+        pytest.raises(CadastreDownloadError, match="backup|recovery|manual"),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    opener.assert_not_called()
+    assert recovery_path.read_bytes() == recovery_bytes
+    assert first.path.read_bytes() == ARCHIVE_CONTENT
+
+
+def test_next_run_after_double_failure_preserves_recovery_before_network(
+    tmp_path: Path,
+) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        return_value=io.BytesIO(ARCHIVE_CONTENT),
+    ):
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+    metadata_path = tmp_path / f"{first.filename}.metadata.json"
+    _set_cache_age(metadata_path, timedelta(hours=169))
+    old_archive = first.path.read_bytes()
+    old_metadata = metadata_path.read_bytes()
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
+    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    original_replace = cadastre_fr._replace_file
+
+    def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("publication failed")
+        if source == archive_backup and target == first.path:
+            raise OSError("rollback failed")
+        original_replace(source, target)
+
+    with (
+        patch(
+            "landscout.sources.cadastre_fr.open_safe_https",
+            return_value=io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+        ),
+        patch.object(
+            cadastre_fr,
+            "_replace_file",
+            side_effect=fail_publication_and_rollback,
+        ),
+        pytest.raises(CadastreDownloadError, match="rollback"),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert archive_backup.read_bytes() == old_archive
+    assert metadata_backup.read_bytes() == old_metadata
+    archive_recovery = archive_backup.read_bytes()
+    metadata_recovery = metadata_backup.read_bytes()
+
+    with (
+        patch(
+            "landscout.sources.cadastre_fr.open_safe_https",
+            side_effect=AssertionError("recovery state must fail before network"),
+        ) as opener,
+        pytest.raises(CadastreDownloadError, match="backup|recovery|manual"),
+    ):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    opener.assert_not_called()
+    assert archive_backup.read_bytes() == archive_recovery
+    assert metadata_backup.read_bytes() == metadata_recovery
+
+
+@pytest.mark.parametrize("temporary_role", ["archive", "metadata"])
+@pytest.mark.parametrize("link_kind", ["symlink", "junction"])
+def test_temporary_link_or_junction_cannot_modify_target_before_network(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    temporary_role: str,
+    link_kind: str,
+) -> None:
+    archive_path = tmp_path / "cadastre-31395-parcelles.json.gz"
+    metadata_path = tmp_path / f"{archive_path.name}.metadata.json"
+    temporary_paths = {
+        "archive": archive_path.with_suffix(f"{archive_path.suffix}.part"),
+        "metadata": metadata_path.with_suffix(f"{metadata_path.suffix}.part"),
+    }
+    unsafe_path = temporary_paths[temporary_role]
+    sentinel = tmp_path / "do-not-overwrite.txt"
+    sentinel_bytes = b"irreplaceable cadastre sentinel"
+    sentinel.write_bytes(sentinel_bytes)
+    original_is_symlink = Path.is_symlink
+    original_is_junction = Path.is_junction
+    original_open = Path.open
+
+    def simulated_is_symlink(path: Path) -> bool:
+        return (
+            link_kind == "symlink" and path == unsafe_path
+        ) or original_is_symlink(path)
+
+    def simulated_is_junction(path: Path) -> bool:
+        return (
+            link_kind == "junction" and path == unsafe_path
+        ) or original_is_junction(path)
+
+    def simulated_symlink_open(
+        path: Path, *args: object, **kwargs: object
+    ) -> object:
+        if path == unsafe_path:
+            return original_open(sentinel, *args, **kwargs)
+        return original_open(path, *args, **kwargs)
+
+    network_calls = 0
+
+    def record_network(*args: object, **kwargs: object) -> io.BytesIO:
+        nonlocal network_calls
+        network_calls += 1
+        return io.BytesIO(ARCHIVE_CONTENT)
+
+    monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
+    monkeypatch.setattr(Path, "is_junction", simulated_is_junction)
+    monkeypatch.setattr(Path, "open", simulated_symlink_open)
+    monkeypatch.setattr(cadastre_fr, "open_safe_https", record_network)
+
+    with pytest.raises(CadastreDownloadError, match="temporary|link|cache"):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert network_calls == 0
+    assert sentinel.read_bytes() == sentinel_bytes
+
+
+def test_broken_recovery_symlink_is_rejected_before_network(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    archive_path = tmp_path / "cadastre-31395-parcelles.json.gz"
+    recovery_path = archive_path.with_suffix(f"{archive_path.suffix}.bak")
+    original_is_symlink = Path.is_symlink
+
+    def simulated_is_symlink(path: Path) -> bool:
+        return path == recovery_path or original_is_symlink(path)
+
+    network_calls = 0
+
+    def fail_network(*args: object, **kwargs: object) -> io.BytesIO:
+        nonlocal network_calls
+        network_calls += 1
+        raise AssertionError("broken recovery link must fail before network")
+
+    monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
+    monkeypatch.setattr(cadastre_fr, "open_safe_https", fail_network)
+
+    with pytest.raises(CadastreDownloadError, match="backup|recovery|manual"):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert network_calls == 0
+
+
+def test_cleanup_failure_does_not_mask_double_failure_recovery_error(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    with patch(
+        "landscout.sources.cadastre_fr.open_safe_https",
+        return_value=io.BytesIO(ARCHIVE_CONTENT),
+    ):
+        first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+    metadata_path = tmp_path / f"{first.filename}.metadata.json"
+    _set_cache_age(metadata_path, timedelta(hours=169))
+    old_archive = first.path.read_bytes()
+    old_metadata = metadata_path.read_bytes()
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
+    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    original_replace = cadastre_fr._replace_file
+    original_unlink = Path.unlink
+    rollback_failed = False
+
+    def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        nonlocal rollback_failed
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("publication failed")
+        if source == archive_backup and target == first.path:
+            rollback_failed = True
+            raise OSError("rollback failed")
+        original_replace(source, target)
+
+    def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
+        if rollback_failed and path == temporary_metadata:
+            raise PermissionError("temporary cleanup failed")
+        original_unlink(path, missing_ok=missing_ok)
+
+    monkeypatch.setattr(
+        cadastre_fr,
+        "open_safe_https",
+        lambda *args, **kwargs: io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
+    )
+    monkeypatch.setattr(cadastre_fr, "_replace_file", fail_publication_and_rollback)
+    monkeypatch.setattr(Path, "unlink", fail_temporary_cleanup)
+
+    with pytest.raises(CadastreDownloadError, match="rollback"):
+        download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
+
+    assert archive_backup.read_bytes() == old_archive
+    assert metadata_backup.read_bytes() == old_metadata

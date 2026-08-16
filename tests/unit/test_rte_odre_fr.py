@@ -884,3 +884,209 @@ def test_corrupted_cached_export_triggers_refresh(
     assert opener.call_count == 2
     assert refreshed.cache_hit is False
     assert refreshed.path.read_bytes() == valid_content
+
+
+def test_double_failure_preserves_recovery_and_next_run_uses_zero_network(
+    tmp_path: Path,
+    source_config: RteOdreSourceConfig,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(_feature_collection()),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+    metadata_path = _metadata_path(tmp_path, dataset_id)
+    _expire_cache(metadata_path)
+    old_archive = first.path.read_bytes()
+    old_metadata = metadata_path.read_bytes()
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
+    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    original_replace = rte_odre_fr._replace_file
+
+    def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("publication failed")
+        if source == archive_backup and target == first.path:
+            raise OSError("rollback failed")
+        original_replace(source, target)
+
+    def response_for_url(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        if url.endswith("/exports/geojson"):
+            return _response(_feature_collection())
+        return _response(_metadata_content(dataset_id))
+
+    monkeypatch.setattr(rte_odre_fr, "_replace_file", fail_publication_and_rollback)
+    monkeypatch.setattr(rte_odre_fr, "open_safe_https", response_for_url)
+
+    with pytest.raises(RteOdreDownloadError, match="rollback"):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert archive_backup.read_bytes() == old_archive
+    assert metadata_backup.read_bytes() == old_metadata
+    archive_recovery = archive_backup.read_bytes()
+    metadata_recovery = metadata_backup.read_bytes()
+    network_calls: list[str] = []
+
+    def fail_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        network_calls.append(url)
+        raise AssertionError("manual recovery state must fail before HTTP")
+
+    monkeypatch.setattr(rte_odre_fr, "open_safe_https", fail_network)
+
+    with pytest.raises(RteOdreDownloadError, match="backup|recovery|manual"):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert network_calls == []
+    assert archive_backup.read_bytes() == archive_recovery
+    assert metadata_backup.read_bytes() == metadata_recovery
+
+
+@pytest.mark.parametrize("temporary_role", ["archive", "metadata"])
+@pytest.mark.parametrize("link_kind", ["symlink", "junction"])
+def test_temporary_link_or_junction_cannot_modify_target_before_rte_network(
+    tmp_path: Path,
+    source_config: RteOdreSourceConfig,
+    monkeypatch: pytest.MonkeyPatch,
+    temporary_role: str,
+    link_kind: str,
+) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    archive_path = tmp_path / f"{dataset_id}.geojson"
+    metadata_path = _metadata_path(tmp_path, dataset_id)
+    temporary_paths = {
+        "archive": archive_path.with_suffix(f"{archive_path.suffix}.part"),
+        "metadata": metadata_path.with_suffix(f"{metadata_path.suffix}.part"),
+    }
+    unsafe_path = temporary_paths[temporary_role]
+    sentinel = tmp_path / "do-not-overwrite.txt"
+    sentinel_bytes = b"irreplaceable RTE sentinel"
+    sentinel.write_bytes(sentinel_bytes)
+    original_is_symlink = Path.is_symlink
+    original_is_junction = Path.is_junction
+    original_open = Path.open
+
+    def simulated_is_symlink(path: Path) -> bool:
+        return (
+            link_kind == "symlink" and path == unsafe_path
+        ) or original_is_symlink(path)
+
+    def simulated_is_junction(path: Path) -> bool:
+        return (
+            link_kind == "junction" and path == unsafe_path
+        ) or original_is_junction(path)
+
+    def simulated_symlink_open(
+        path: Path, *args: object, **kwargs: object
+    ) -> object:
+        if path == unsafe_path:
+            return original_open(sentinel, *args, **kwargs)
+        return original_open(path, *args, **kwargs)
+
+    network_calls = 0
+
+    def record_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        nonlocal network_calls
+        network_calls += 1
+        if url.endswith("/exports/geojson"):
+            return _response(_feature_collection())
+        return _response(_metadata_content(dataset_id))
+
+    monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
+    monkeypatch.setattr(Path, "is_junction", simulated_is_junction)
+    monkeypatch.setattr(Path, "open", simulated_symlink_open)
+    monkeypatch.setattr(rte_odre_fr, "open_safe_https", record_network)
+
+    with pytest.raises(RteOdreDownloadError, match="temporary|link|cache"):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert network_calls == 0
+    assert sentinel.read_bytes() == sentinel_bytes
+
+
+def test_broken_recovery_symlink_rejects_rte_before_network(
+    tmp_path: Path,
+    source_config: RteOdreSourceConfig,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    archive_path = tmp_path / f"{dataset_id}.geojson"
+    recovery_path = archive_path.with_suffix(f"{archive_path.suffix}.bak")
+    original_is_symlink = Path.is_symlink
+
+    def simulated_is_symlink(path: Path) -> bool:
+        return path == recovery_path or original_is_symlink(path)
+
+    network_calls: list[str] = []
+
+    def fail_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        network_calls.append(url)
+        raise AssertionError("broken recovery link must fail before HTTP")
+
+    monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
+    monkeypatch.setattr(rte_odre_fr, "open_safe_https", fail_network)
+
+    with pytest.raises(RteOdreDownloadError, match="backup|recovery|manual"):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert network_calls == []
+
+
+def test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error(
+    tmp_path: Path,
+    source_config: RteOdreSourceConfig,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(_feature_collection()),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+    metadata_path = _metadata_path(tmp_path, dataset_id)
+    _expire_cache(metadata_path)
+    old_archive = first.path.read_bytes()
+    old_metadata = metadata_path.read_bytes()
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
+    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    original_replace = rte_odre_fr._replace_file
+    original_unlink = Path.unlink
+    rollback_failed = False
+
+    def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        nonlocal rollback_failed
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("publication failed")
+        if source == archive_backup and target == first.path:
+            rollback_failed = True
+            raise OSError("rollback failed")
+        original_replace(source, target)
+
+    def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
+        if rollback_failed and path == temporary_metadata:
+            raise PermissionError("temporary cleanup failed")
+        original_unlink(path, missing_ok=missing_ok)
+
+    def response_for_url(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        if url.endswith("/exports/geojson"):
+            return _response(_feature_collection())
+        return _response(_metadata_content(dataset_id))
+
+    monkeypatch.setattr(rte_odre_fr, "open_safe_https", response_for_url)
+    monkeypatch.setattr(rte_odre_fr, "_replace_file", fail_publication_and_rollback)
+    monkeypatch.setattr(Path, "unlink", fail_temporary_cleanup)
+
+    with pytest.raises(RteOdreDownloadError, match="rollback"):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert archive_backup.read_bytes() == old_archive
+    assert metadata_backup.read_bytes() == old_metadata

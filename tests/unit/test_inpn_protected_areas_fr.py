@@ -753,6 +753,70 @@ def test_rollback_failure_preserves_recovery_material(
     assert metadata_backup.read_bytes() == old_metadata
 
 
+@pytest.mark.parametrize("backup_role", ["archive", "metadata"])
+def test_broken_download_recovery_symlink_is_rejected(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    backup_role: str,
+) -> None:
+    archive_path = tmp_path / "EP.zip"
+    metadata_path = tmp_path / "EP.zip.metadata.json"
+    temporary_archive = tmp_path / "EP.zip.part"
+    temporary_metadata = tmp_path / "EP.zip.metadata.json.part"
+    temporary_archive.write_bytes(b"replacement archive")
+    temporary_metadata.write_bytes(b"replacement metadata")
+    recovery_paths = {
+        "archive": archive_path.with_name(f"{archive_path.name}.bak"),
+        "metadata": metadata_path.with_name(f"{metadata_path.name}.bak"),
+    }
+    broken_link = recovery_paths[backup_role]
+    original_is_symlink = Path.is_symlink
+
+    def simulated_is_symlink(path: Path) -> bool:
+        return path == broken_link or original_is_symlink(path)
+
+    monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="backup|recovery|manual"):
+        inpn._publish_cache_pair(
+            temporary_archive,
+            temporary_metadata,
+            archive_path,
+            metadata_path,
+        )
+
+    assert not archive_path.exists()
+    assert not metadata_path.exists()
+    assert temporary_archive.read_bytes() == b"replacement archive"
+    assert temporary_metadata.read_bytes() == b"replacement metadata"
+
+
+def test_existing_normal_download_recovery_backup_remains_unchanged(
+    tmp_path: Path,
+) -> None:
+    archive_path = tmp_path / "EP.zip"
+    metadata_path = tmp_path / "EP.zip.metadata.json"
+    temporary_archive = tmp_path / "EP.zip.part"
+    temporary_metadata = tmp_path / "EP.zip.metadata.json.part"
+    archive_backup = archive_path.with_name(f"{archive_path.name}.bak")
+    recovery_bytes = b"manual INPN recovery archive"
+    temporary_archive.write_bytes(b"replacement archive")
+    temporary_metadata.write_bytes(b"replacement metadata")
+    archive_backup.write_bytes(recovery_bytes)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="backup|recovery|manual"):
+        inpn._publish_cache_pair(
+            temporary_archive,
+            temporary_metadata,
+            archive_path,
+            metadata_path,
+        )
+
+    assert archive_backup.read_bytes() == recovery_bytes
+    assert temporary_archive.read_bytes() == b"replacement archive"
+    assert temporary_metadata.read_bytes() == b"replacement metadata"
+
+
 def test_failed_replacement_restores_a_still_reusable_valid_download_pair(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
