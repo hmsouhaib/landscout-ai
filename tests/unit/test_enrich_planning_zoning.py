@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import json
 from copy import deepcopy
 from dataclasses import FrozenInstanceError, replace
+from hashlib import sha256
 from pathlib import Path
+from unittest.mock import patch
 
 import geopandas as gpd  # type: ignore[import-untyped]
 import pandas as pd
@@ -19,8 +22,10 @@ from shapely.geometry import (
 
 from landscout import stages
 from landscout.sources.gpu_fr import (
+    EXTRACTION_MANIFEST_NAME,
     GpuArchiveDownload,
     GpuDocumentMetadata,
+    GpuExtractedFile,
     GpuExtraction,
     GpuInspectedLayer,
     GpuLayerSummary,
@@ -32,6 +37,7 @@ from landscout.stages.enrich_planning_zoning import (
     PlanningZoningError,
     _stabilize_area_relationships,
     intersect_parcels_with_gpu_zoning,
+    validate_normalized_planning_zoning_inputs,
 )
 from landscout.stages.planning_overlay import technical_overlay_tolerance
 
@@ -245,6 +251,76 @@ def _planning_document(
         all_spatial_layers=(reference,),
         zoning=inspected,
         related_layers=(),
+    )
+
+
+def _physical_planning_document(
+    tmp_path: Path,
+    zoning: gpd.GeoDataFrame | None = None,
+) -> GpuPlanningDocument:
+    root = tmp_path / "extraction"
+    root.mkdir(parents=True)
+    path = root / "zoning.gpkg"
+    source = zoning if zoning is not None else _zones()
+    source.to_file(
+        path,
+        layer=SOURCE_LAYER,
+        driver="GPKG",
+        engine="pyogrio",
+        index=False,
+    )
+    reread = gpd.read_file(path, layer=SOURCE_LAYER, engine="pyogrio")
+    base = _planning_document(reread)
+    reference = replace(
+        base.zoning.reference,
+        dataset_path=path,
+        source_layer=SOURCE_LAYER,
+        driver="GPKG",
+    )
+    inspected = replace(
+        base.zoning,
+        reference=reference,
+        data=reread,
+        summary=replace(base.zoning.summary, source_layer=SOURCE_LAYER),
+    )
+    inventory = (
+        GpuExtractedFile(
+            relative_path="zoning.gpkg",
+            file_type="gpkg",
+            size_bytes=path.stat().st_size,
+            sha256=sha256(path.read_bytes()).hexdigest(),
+            category="SPATIAL_DATA",
+        ),
+    )
+    (root / EXTRACTION_MANIFEST_NAME).write_text(
+        json.dumps(
+            {
+                "schema_version": 2,
+                "archive_sha256": ARCHIVE_SHA256,
+                "files": [
+                    {
+                        "relative_path": item.relative_path,
+                        "size_bytes": item.size_bytes,
+                        "sha256": item.sha256,
+                    }
+                    for item in inventory
+                ],
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        ),
+        encoding="utf-8",
+    )
+    extraction = replace(
+        base.extraction,
+        extraction_root=root,
+        files=inventory,
+    )
+    return replace(
+        base,
+        extraction=extraction,
+        all_spatial_layers=(reference,),
+        zoning=inspected,
     )
 
 
@@ -873,3 +949,144 @@ def test_result_frames_are_independent_from_inputs() -> None:
     assert_frame_equal(result.parcels, parcel_snapshot)
     assert_frame_equal(result.zones, zone_snapshot)
     assert_frame_equal(result.intersections, intersections_snapshot)
+
+
+def test_source_complete_zoning_validation_accepts_physical_fixture(
+    tmp_path: Path,
+) -> None:
+    parcels = _parcels()
+    document = _physical_planning_document(tmp_path)
+    factual = intersect_parcels_with_gpu_zoning(parcels, document)
+
+    validate_normalized_planning_zoning_inputs(
+        document,
+        factual.parcels,
+        factual.zones,
+        factual.intersections,
+    )
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "label",
+        "source_id",
+        "source_layer",
+        "reorder",
+        "missing_zone",
+        "extra_zone",
+        "missing_relation",
+        "extra_relation",
+        "coherent_metric",
+        "dominant_zone",
+    ],
+)
+def test_source_complete_zoning_validation_rejects_coordinated_mutations(
+    tmp_path: Path,
+    mutation: str,
+) -> None:
+    source = _zones(
+        [_rectangle(0, 0, 5, 10), _rectangle(5, 0, 10, 10)],
+        identifiers=["ZONE-A", "ZONE-B"],
+        labels=["UA", "UB"],
+    )
+    parcels = _parcels()
+    document = _physical_planning_document(tmp_path, source)
+    factual = intersect_parcels_with_gpu_zoning(parcels, document)
+    zones = factual.zones.copy()
+    relations = factual.intersections.copy()
+    parcel_output = factual.parcels.copy()
+
+    if mutation == "label":
+        zones.loc[0, "zone_label_raw"] = "FORGED"
+        relations.loc[
+            relations["planning_zone_id"].eq(zones.loc[0, "planning_zone_id"]),
+            "zone_label_raw",
+        ] = "FORGED"
+    elif mutation == "source_id":
+        old_planning_id = zones.loc[0, "planning_zone_id"]
+        zones.loc[0, "source_zone_id"] = "FORGED-ID"
+        zones.loc[0, "planning_zone_id"] = f"GPU:{DOCUMENT_ID}:ZONE:FORGED-ID"
+        relations.loc[
+            relations["planning_zone_id"].eq(old_planning_id),
+            ["source_zone_id", "planning_zone_id"],
+        ] = ["FORGED-ID", f"GPU:{DOCUMENT_ID}:ZONE:FORGED-ID"]
+    elif mutation == "source_layer":
+        zones["source_layer"] = "FORGED_LAYER"
+        relations["source_layer"] = "FORGED_LAYER"
+    elif mutation == "reorder":
+        zones = zones.iloc[::-1].reset_index(drop=True)
+    elif mutation == "missing_zone":
+        zones = zones.iloc[:-1].copy()
+    elif mutation == "extra_zone":
+        extra = zones.iloc[[0]].copy()
+        extra["source_zone_id"] = "EXTRA"
+        extra["planning_zone_id"] = f"GPU:{DOCUMENT_ID}:ZONE:EXTRA"
+        zones = gpd.GeoDataFrame(
+            pd.concat([zones, extra], ignore_index=True),
+            geometry="geometry",
+            crs=zones.crs,
+        )
+    elif mutation == "missing_relation":
+        relations = relations.iloc[:-1].copy()
+    elif mutation == "extra_relation":
+        relations = pd.concat([relations, relations.iloc[[0]]], ignore_index=True)
+    elif mutation == "coherent_metric":
+        relations.loc[0, "intersection_area_m2"] /= 2
+        relations.loc[0, "parcel_share_pct"] /= 2
+        relations.loc[0, "zone_share_pct"] /= 2
+    else:
+        parcel_output.loc[
+            parcel_output.index[0],
+            "dominant_planning_zone_id",
+        ] = zones.loc[1, "planning_zone_id"]
+
+    with pytest.raises(PlanningZoningError, match="source|reconstruction|differs"):
+        validate_normalized_planning_zoning_inputs(
+            document,
+            parcel_output,
+            zones,
+            relations,
+        )
+
+
+def test_source_complete_zoning_validation_rejects_physical_tamper(
+    tmp_path: Path,
+) -> None:
+    parcels = _parcels()
+    document = _physical_planning_document(tmp_path)
+    factual = intersect_parcels_with_gpu_zoning(parcels, document)
+    with document.zoning.reference.dataset_path.open("ab") as stream:
+        stream.write(b"tamper")
+
+    with pytest.raises(PlanningZoningError, match="Physical|source"):
+        validate_normalized_planning_zoning_inputs(
+            document,
+            factual.parcels,
+            factual.zones,
+            factual.intersections,
+        )
+
+
+def test_source_complete_zoning_validation_revalidates_physical_source_once(
+    tmp_path: Path,
+) -> None:
+    parcels = _parcels()
+    document = _physical_planning_document(tmp_path)
+    factual = intersect_parcels_with_gpu_zoning(parcels, document)
+    import landscout.stages.enrich_planning_zoning as module
+
+    original = module.revalidate_gpu_spatial_layer_sources
+    with patch.object(
+        module,
+        "revalidate_gpu_spatial_layer_sources",
+        wraps=original,
+    ) as revalidate:
+        validate_normalized_planning_zoning_inputs(
+            document,
+            factual.parcels,
+            factual.zones,
+            factual.intersections,
+        )
+
+    assert revalidate.call_count == 1

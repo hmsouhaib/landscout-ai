@@ -71,6 +71,11 @@ HexChecksum = Annotated[
     str,
     StringConstraints(strip_whitespace=True, to_lower=True, pattern=r"^[0-9a-fA-F]+$"),
 ]
+CanonicalSha256 = Annotated[
+    str,
+    StringConstraints(strict=True, pattern=r"^[0-9a-f]{64}$"),
+]
+StrictPositiveInt = Annotated[int, Field(strict=True, gt=0)]
 
 
 class IgnBdTopoLogicalLayerConfig(BaseModel):
@@ -364,9 +369,11 @@ class _CacheMetadata(BaseModel):
 class _ExtractionMetadata(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    schema_version: Literal[1]
-    archive_sha256: str
+    schema_version: Literal[2]
+    archive_sha256: CanonicalSha256
     geopackage_relative_path: str
+    geopackage_size_bytes: StrictPositiveInt
+    geopackage_sha256: CanonicalSha256
     all_layer_names: tuple[str, ...]
     electric_lines_layer: str
     transformation_posts_layer: str
@@ -901,6 +908,27 @@ def _resolve_relative_path(root: Path, relative_path: str) -> Path:
     return candidate
 
 
+def _geopackage_integrity(path: Path) -> tuple[int, str]:
+    if not path.is_file():
+        raise IgnBdTopoArchiveError(f"IGN GeoPackage does not exist: {path}")
+    try:
+        size_bytes = path.stat().st_size
+    except OSError as error:
+        raise IgnBdTopoArchiveError(
+            f"Cannot inspect IGN GeoPackage: {path}"
+        ) from error
+    if size_bytes <= 0:
+        raise IgnBdTopoArchiveError(f"IGN GeoPackage is empty: {path}")
+    digest = sha256()
+    try:
+        with path.open("rb") as stream:
+            for chunk in iter(lambda: stream.read(DOWNLOAD_CHUNK_SIZE), b""):
+                digest.update(chunk)
+    except OSError as error:
+        raise IgnBdTopoArchiveError(f"Cannot read IGN GeoPackage: {path}") from error
+    return size_bytes, digest.hexdigest()
+
+
 def _load_cached_extraction(
     extraction_path: Path,
     download: IgnBdTopoDownload,
@@ -923,6 +951,14 @@ def _load_cached_extraction(
         )
         discovered_path = discover_ign_bdtopo_geopackage(extraction_path)
         if geopackage_path.resolve() != discovered_path.resolve():
+            return None
+        geopackage_size, geopackage_sha256 = _geopackage_integrity(
+            geopackage_path
+        )
+        if (
+            geopackage_size != metadata.geopackage_size_bytes
+            or geopackage_sha256 != metadata.geopackage_sha256
+        ):
             return None
         selection = discover_ign_bdtopo_layers(geopackage_path, config)
         if (
@@ -1021,10 +1057,15 @@ def extract_ign_bdtopo_archive(
         geopackage_path = discover_ign_bdtopo_geopackage(temporary_path)
         selection = discover_ign_bdtopo_layers(geopackage_path, config)
         relative_path = _safe_relative_path(geopackage_path, temporary_path)
+        geopackage_size, geopackage_sha256 = _geopackage_integrity(
+            geopackage_path
+        )
         metadata = _ExtractionMetadata(
-            schema_version=1,
+            schema_version=2,
             archive_sha256=download.sha256,
             geopackage_relative_path=relative_path,
+            geopackage_size_bytes=geopackage_size,
+            geopackage_sha256=geopackage_sha256,
             all_layer_names=selection.all_layer_names,
             electric_lines_layer=selection.electric_lines_layer,
             transformation_posts_layer=selection.transformation_posts_layer,
@@ -1180,6 +1221,13 @@ def load_ign_bdtopo_roads(
             "IGN extraction layer inventory changed before road loading"
         )
     layer_name = _discover_road_layer(actual_layers, config)
+    if layer_name in {
+        extraction.electric_lines_layer,
+        extraction.transformation_posts_layer,
+    }:
+        raise IgnBdTopoLayerError(
+            "Road, electric-line, and transformation-post roles must use distinct layers"
+        )
     loaded = load_ign_bdtopo_layer(
         extraction.geopackage_path,
         layer_name,

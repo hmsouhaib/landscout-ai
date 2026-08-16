@@ -127,8 +127,35 @@ def test_duplicate_parcel_id_fails(square: Polygon) -> None:
         enrich_parcel_shapes(source)
 
 
+@pytest.mark.parametrize("parcel_id", [1, "", " parcel", "parcel "])
+def test_enrichment_requires_exact_non_empty_parcel_ids(
+    square: Polygon,
+    parcel_id: object,
+) -> None:
+    source = _candidate_frame([square])
+    source["parcel_id"] = source["parcel_id"].astype(object)
+    source.loc[0, "parcel_id"] = parcel_id
+
+    with pytest.raises(ShapeEnrichmentError, match="exact non-empty strings"):
+        enrich_parcel_shapes(source)
+
+
+@pytest.mark.parametrize("area", [-1, 0, float("inf"), float("nan"), "100", True])
+def test_valid_candidate_area_requires_strict_positive_finite_number(
+    square: Polygon,
+    area: object,
+) -> None:
+    source = _candidate_frame([square])
+    source["area_m2"] = source["area_m2"].astype(object)
+    source.loc[0, "area_m2"] = area
+
+    with pytest.raises(ShapeEnrichmentError, match="strict positive finite numeric"):
+        enrich_parcel_shapes(source)
+
+
 def test_failed_geometry_does_not_remove_other_rows(square: Polygon) -> None:
     source = _candidate_frame([square, Point(600000, 6200000)])
+    source.loc[1, "geometry_status"] = "INVALID"
 
     enriched = enrich_parcel_shapes(source)
 
@@ -138,6 +165,7 @@ def test_failed_geometry_does_not_remove_other_rows(square: Polygon) -> None:
 
 def test_exact_parcel_ids_are_preserved(square: Polygon) -> None:
     source = _candidate_frame([square, Point(600000, 6200000)])
+    source.loc[1, "geometry_status"] = "INVALID"
 
     enriched = enrich_parcel_shapes(source)
 

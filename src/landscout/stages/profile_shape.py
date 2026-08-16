@@ -1,7 +1,9 @@
 from dataclasses import dataclass
-from math import isfinite
+from math import isclose, isfinite
+from numbers import Real
 
 import geopandas as gpd  # type: ignore[import-untyped]
+from pyproj import CRS  # type: ignore[import-untyped]
 
 PROFILE_METRICS = (
     "area_m2",
@@ -67,15 +69,31 @@ def _records(frame: gpd.GeoDataFrame) -> list[dict[str, object]]:
 def profile_shape_distribution(
     parcels: gpd.GeoDataFrame,
 ) -> ShapeDistributionProfile:
+    if not isinstance(parcels, gpd.GeoDataFrame):
+        raise ShapeProfileError("Shape candidates must be a GeoDataFrame")
+    if parcels.columns.duplicated().any():
+        raise ShapeProfileError("Shape candidate columns must be unique")
     missing_columns = REQUIRED_COLUMNS - set(parcels.columns)
     if missing_columns:
         formatted = ", ".join(sorted(missing_columns))
         raise ShapeProfileError(f"Missing required shape columns: {formatted}")
     if parcels.crs is None:
         raise ShapeProfileError("Shape candidate CRS is required")
-    if parcels["parcel_id"].isna().any():
+    try:
+        CRS.from_user_input(parcels.crs)
+    except Exception as error:
+        raise ShapeProfileError("Shape candidate CRS must be readable") from error
+    identifiers = parcels["parcel_id"]
+    if identifiers.isna().any():
         raise ShapeProfileError("parcel_id values must not be null")
-    if parcels["parcel_id"].duplicated().any():
+    if any(
+        not isinstance(identifier, str)
+        or not identifier
+        or identifier != identifier.strip()
+        for identifier in identifiers
+    ):
+        raise ShapeProfileError("parcel_id values must be exact non-empty strings")
+    if identifiers.duplicated().any():
         raise ShapeProfileError("parcel_id values must be unique")
 
     statuses = set(parcels["shape_status"].dropna().unique())
@@ -102,18 +120,58 @@ def profile_shape_distribution(
     if parcels.loc[valid_shapes, required_valid_metrics].isna().any().any():
         raise ShapeProfileError("VALID shape rows must have complete shape metrics")
     for column in required_valid_metrics:
-        try:
-            values_are_finite = all(
-                isfinite(float(value))
-                for value in parcels.loc[valid_shapes, column]
-            )
-        except (TypeError, ValueError) as error:
-            raise ShapeProfileError(
-                f"VALID shape metric must be numeric and finite: {column}"
-            ) from error
+        values_are_finite = all(
+            isinstance(value, Real)
+            and not isinstance(value, bool)
+            and isfinite(float(value))
+            for value in parcels.loc[valid_shapes, column]
+        )
         if not values_are_finite:
             raise ShapeProfileError(
-                f"VALID shape metric must be finite: {column}"
+                f"VALID shape metric must be numeric and finite: {column}"
+            )
+
+    valid = parcels.loc[valid_shapes]
+    domain_contracts = (
+        ("area_m2", valid["area_m2"] > 0, "area_m2 must be greater than zero"),
+        ("length_m", valid["length_m"] > 0, "length_m must be greater than zero"),
+        ("width_m", valid["width_m"] > 0, "width_m must be greater than zero"),
+        (
+            "length_width_ratio",
+            valid["length_width_ratio"] >= 1,
+            "length_width_ratio must be at least one",
+        ),
+        (
+            "compactness",
+            (valid["compactness"] > 0) & (valid["compactness"] <= 1),
+            "compactness must be greater than zero and at most one",
+        ),
+        (
+            "centroid_lat",
+            valid["centroid_lat"].between(-90, 90, inclusive="both"),
+            "centroid_lat must be between -90 and 90",
+        ),
+        (
+            "centroid_lon",
+            valid["centroid_lon"].between(-180, 180, inclusive="both"),
+            "centroid_lon must be between -180 and 180",
+        ),
+    )
+    for _, condition, message in domain_contracts:
+        if not bool(condition.all()):
+            raise ShapeProfileError(message)
+    if not bool((valid["length_m"] >= valid["width_m"]).all()):
+        raise ShapeProfileError("length_m must be at least width_m")
+    for row in valid.itertuples(index=False):
+        expected_ratio = float(row.length_m) / float(row.width_m)
+        if not isclose(
+            float(row.length_width_ratio),
+            expected_ratio,
+            rel_tol=1e-9,
+            abs_tol=1e-9,
+        ):
+            raise ShapeProfileError(
+                "length_width_ratio must equal length_m / width_m within tolerance"
             )
 
     working = parcels.loc[valid_shapes].copy()

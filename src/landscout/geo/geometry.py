@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from itertools import pairwise
-from math import hypot, pi
+from math import hypot, isfinite, pi
 
 from pyproj import CRS, Transformer
-from pyproj.exceptions import CRSError
+from shapely import get_coordinate_dimension  # type: ignore[import-untyped]
 from shapely.geometry import (  # type: ignore[import-untyped]
     MultiPolygon,
     Point,
@@ -50,11 +50,17 @@ class ZeroAreaGeometryError(GeometryError):
 
 
 def _validate_geometry(geometry: BaseGeometry) -> Geometry:
+    if not isinstance(geometry, BaseGeometry):
+        raise UnsupportedGeometryError("Input must be a Shapely geometry")
     if geometry.is_empty:
         raise EmptyGeometryError("Geometry must not be empty")
     if not isinstance(geometry, (Polygon, MultiPolygon)):
         raise UnsupportedGeometryError(
             "Only Polygon and MultiPolygon geometries are supported"
+        )
+    if get_coordinate_dimension(geometry) != 2:
+        raise UnsupportedGeometryError(
+            "Parcel geometries must be canonical two-dimensional geometries"
         )
     if not geometry.is_valid:
         raise InvalidGeometryError("Geometry is invalid and was not repaired")
@@ -64,8 +70,8 @@ def _validate_geometry(geometry: BaseGeometry) -> Geometry:
 def _parse_crs(crs: CRS | str | int) -> CRS:
     try:
         return CRS.from_user_input(crs)
-    except CRSError as error:
-        raise MetricCrsError(f"Invalid CRS: {crs}") from error
+    except Exception as error:
+        raise MetricCrsError("Invalid CRS input") from error
 
 
 def _validate_metric_crs(crs: CRS | str | int) -> CRS:
@@ -161,4 +167,13 @@ def centroid_to_latlon(
     center = centroid(geometry)
     transformer = Transformer.from_crs(_parse_crs(source_crs), WGS84, always_xy=True)
     longitude, latitude = transformer.transform(center.x, center.y)
-    return float(latitude), float(longitude)
+    latitude = float(latitude)
+    longitude = float(longitude)
+    if (
+        not isfinite(latitude)
+        or not isfinite(longitude)
+        or not -90 <= latitude <= 90
+        or not -180 <= longitude <= 180
+    ):
+        raise GeometryError("Centroid transform produced invalid latitude/longitude")
+    return latitude, longitude

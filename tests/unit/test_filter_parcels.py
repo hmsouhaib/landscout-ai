@@ -30,7 +30,7 @@ def parcels() -> gpd.GeoDataFrame:
                 "VALID",
                 "VALID",
                 "INVALID",
-                "VALID",
+                "INVALID",
             ],
             "area_m2": [2000.0, 15000.0, 1999.0, 15001.0, 5000.0, None],
             "commune_code": ["31395"] * 6,
@@ -62,7 +62,7 @@ def test_maximum_boundary_is_included(
         ("below-minimum", "AREA_BELOW_MIN"),
         ("above-maximum", "AREA_ABOVE_MAX"),
         ("invalid-geometry", "INVALID_GEOMETRY"),
-        ("unknown-area", "AREA_UNKNOWN"),
+        ("unknown-area", "INVALID_GEOMETRY"),
     ],
 )
 def test_rejected_parcel_has_expected_reason(
@@ -143,3 +143,31 @@ def test_exact_parcel_ids_are_preserved(
     output_ids = list(candidates["parcel_id"]) + list(rejected["parcel_id"])
     assert len(output_ids) == len(set(output_ids))
     assert set(output_ids) == set(parcels["parcel_id"])
+
+
+@pytest.mark.parametrize("area", [-1, 0, float("inf"), float("nan"), "5000", True])
+def test_valid_geometry_requires_strict_positive_finite_area(
+    parcels: gpd.GeoDataFrame,
+    area_config: ParcelConfig,
+    area: object,
+) -> None:
+    invalid = parcels.copy()
+    invalid["area_m2"] = invalid["area_m2"].astype(object)
+    invalid.loc[0, "area_m2"] = area
+
+    with pytest.raises(ParcelFilterError, match="strict positive finite numeric"):
+        filter_parcels_by_area(invalid, area_config)
+
+
+@pytest.mark.parametrize("parcel_id", [1, "", " parcel", "parcel "])
+def test_area_filter_requires_exact_non_empty_parcel_ids(
+    parcels: gpd.GeoDataFrame,
+    area_config: ParcelConfig,
+    parcel_id: object,
+) -> None:
+    invalid = parcels.copy()
+    invalid["parcel_id"] = invalid["parcel_id"].astype(object)
+    invalid.loc[0, "parcel_id"] = parcel_id
+
+    with pytest.raises(ParcelFilterError, match="exact non-empty strings"):
+        filter_parcels_by_area(invalid, area_config)

@@ -1,6 +1,10 @@
+from copy import deepcopy
+
 import geopandas as gpd
+import pandas as pd
 import pytest
-from shapely.geometry import Polygon
+from geopandas.testing import assert_geodataframe_equal
+from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 
 from landscout.stages.normalize_cadastre import (
     CadastreNormalizationError,
@@ -9,7 +13,9 @@ from landscout.stages.normalize_cadastre import (
 
 
 def _source_parcels(
-    geometries: list[Polygon], ids: list[str] | None = None, crs: str | None = "EPSG:4326"
+    geometries: list[object],
+    ids: list[object] | None = None,
+    crs: str | None = "EPSG:4326",
 ) -> gpd.GeoDataFrame:
     parcel_ids = ids or [f"parcel-{index}" for index in range(len(geometries))]
     count = len(geometries)
@@ -106,3 +112,77 @@ def test_duplicate_parcel_id_fails(valid_polygon: Polygon) -> None:
 
     with pytest.raises(CadastreNormalizationError, match="unique"):
         normalize_cadastre_parcels(source)
+
+
+def test_non_geodataframe_is_rejected_safely() -> None:
+    with pytest.raises(CadastreNormalizationError, match="GeoDataFrame"):
+        normalize_cadastre_parcels(pd.DataFrame({"id": ["parcel"]}))  # type: ignore[arg-type]
+
+
+def test_duplicate_columns_are_rejected(valid_polygon: Polygon) -> None:
+    source = _source_parcels([valid_polygon])
+    duplicate = gpd.GeoDataFrame(
+        pd.concat([source, source[["id"]]], axis=1),
+        geometry="geometry",
+        crs=source.crs,
+    )
+
+    with pytest.raises(CadastreNormalizationError, match="columns.*unique"):
+        normalize_cadastre_parcels(duplicate)
+
+
+def test_projected_source_crs_is_rejected(valid_polygon: Polygon) -> None:
+    source = _source_parcels([valid_polygon]).to_crs("EPSG:2154")
+
+    with pytest.raises(CadastreNormalizationError, match="4326"):
+        normalize_cadastre_parcels(source)
+
+
+@pytest.mark.parametrize("identifier", [1, "", " ", " parcel", "parcel "])
+def test_parcel_id_must_be_an_exact_nonempty_string(
+    valid_polygon: Polygon,
+    identifier: object,
+) -> None:
+    source = _source_parcels([valid_polygon], ids=[identifier])
+
+    with pytest.raises(CadastreNormalizationError, match="parcel_id"):
+        normalize_cadastre_parcels(source)
+
+
+@pytest.mark.parametrize(
+    "geometry",
+    [Point(2.35, 43.45), LineString([(2.35, 43.45), (2.36, 43.46)])],
+)
+def test_non_polygonal_geometry_is_rejected(geometry: object) -> None:
+    with pytest.raises(CadastreNormalizationError, match="Polygon"):
+        normalize_cadastre_parcels(_source_parcels([geometry]))
+
+
+def test_valid_multipolygon_is_accepted(valid_polygon: Polygon) -> None:
+    normalized = normalize_cadastre_parcels(
+        _source_parcels([MultiPolygon([valid_polygon])])
+    )
+
+    assert normalized.loc[0, "geometry_status"] == "VALID"
+    assert normalized.loc[0, "area_m2"] > 0
+
+
+@pytest.mark.parametrize("geometry", [None, Polygon()])
+def test_null_and_empty_geometry_are_preserved_as_invalid(geometry: object) -> None:
+    normalized = normalize_cadastre_parcels(_source_parcels([geometry]))
+
+    assert normalized.loc[0, "geometry_status"] == "INVALID"
+    assert pd.isna(normalized.loc[0, "area_m2"])
+    if geometry is None:
+        assert normalized.geometry.isna().iloc[0]
+    else:
+        assert normalized.geometry.is_empty.iloc[0]
+
+
+def test_normalization_does_not_mutate_input(valid_polygon: Polygon) -> None:
+    source = _source_parcels([valid_polygon])
+    before = deepcopy(source)
+
+    normalize_cadastre_parcels(source)
+
+    assert_geodataframe_equal(source, before)

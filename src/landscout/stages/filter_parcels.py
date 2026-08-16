@@ -16,6 +16,29 @@ class ParcelFilterError(ValueError):
     """Raised when normalized parcels cannot be partitioned safely."""
 
 
+def _validate_exact_parcel_ids(parcels: gpd.GeoDataFrame) -> None:
+    identifiers = parcels["parcel_id"]
+    if identifiers.isna().any():
+        raise ParcelFilterError("parcel_id values must not be null")
+    if any(
+        not isinstance(identifier, str)
+        or not identifier
+        or identifier != identifier.strip()
+        for identifier in identifiers
+    ):
+        raise ParcelFilterError("parcel_id values must be exact non-empty strings")
+    if identifiers.duplicated().any():
+        raise ParcelFilterError("parcel_id values must be unique")
+
+
+def _is_strict_finite_number(value: object) -> bool:
+    return (
+        isinstance(value, Real)
+        and not isinstance(value, bool)
+        and isfinite(float(value))
+    )
+
+
 def filter_parcels_by_area(
     parcels: gpd.GeoDataFrame, area_config: ParcelConfig
 ) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
@@ -23,12 +46,18 @@ def filter_parcels_by_area(
     if missing_columns:
         formatted = ", ".join(sorted(missing_columns))
         raise ParcelFilterError(f"Missing required normalized columns: {formatted}")
-    if parcels["parcel_id"].isna().any():
-        raise ParcelFilterError("parcel_id values must not be null")
-    if parcels["parcel_id"].duplicated().any():
-        raise ParcelFilterError("parcel_id values must be unique")
+    _validate_exact_parcel_ids(parcels)
 
     valid_geometry = parcels["geometry_status"] == "VALID"
+    if any(
+        not _is_strict_finite_number(value) or float(value) <= 0
+        for value in parcels.loc[valid_geometry, "area_m2"]
+    ):
+        raise ParcelFilterError(
+            "area_m2 must be a strict positive finite numeric value when "
+            "geometry_status is VALID"
+        )
+
     known_area = parcels["area_m2"].notna()
     within_area_range = parcels["area_m2"].between(
         area_config.min_area_m2, area_config.max_area_m2, inclusive="both"
@@ -78,10 +107,7 @@ def _validate_shape_filter_input(parcels: gpd.GeoDataFrame) -> None:
         raise ParcelFilterError(f"Missing required shape columns: {formatted}")
     if parcels.crs is None:
         raise ParcelFilterError("Shape-filter input must have a known CRS")
-    if parcels["parcel_id"].isna().any():
-        raise ParcelFilterError("parcel_id values must not be null")
-    if parcels["parcel_id"].duplicated().any():
-        raise ParcelFilterError("parcel_id values must be unique")
+    _validate_exact_parcel_ids(parcels)
 
     statuses = parcels["shape_status"]
     unexpected_statuses = set(statuses.dropna().unique()) - ALLOWED_SHAPE_STATUSES
@@ -94,14 +120,22 @@ def _validate_shape_filter_input(parcels: gpd.GeoDataFrame) -> None:
     for column in ("width_m", "length_width_ratio"):
         known_values = parcels.loc[valid_rows, column].dropna()
         if any(
-            isinstance(value, bool)
-            or not isinstance(value, Real)
-            or not isfinite(float(value))
+            not _is_strict_finite_number(value)
             for value in known_values
         ):
             raise ParcelFilterError(
                 f"{column} must be numeric and finite when shape_status is VALID"
             )
+    known_width = parcels.loc[valid_rows, "width_m"].dropna()
+    if any(float(value) <= 0 for value in known_width):
+        raise ParcelFilterError(
+            "width_m must be greater than zero when shape_status is VALID"
+        )
+    known_ratio = parcels.loc[valid_rows, "length_width_ratio"].dropna()
+    if any(float(value) < 1 for value in known_ratio):
+        raise ParcelFilterError(
+            "length_width_ratio must be at least one when shape_status is VALID"
+        )
 
 
 def _validate_shape_partition(

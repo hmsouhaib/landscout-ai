@@ -791,6 +791,71 @@ def test_high_level_rejects_summary_crs_mismatch() -> None:
         normalize_ign_electricity(replace(source, electric_lines_summary=summary))
 
 
+@pytest.mark.parametrize("mutation", ["missing", "extra", "reordered", "dtype"])
+def test_high_level_rejects_forged_ordered_summary_schema(mutation: str) -> None:
+    source = _source_bundle()
+    summary = source.electric_lines_summary
+    if mutation == "missing":
+        changed = replace(summary, columns=summary.columns[:-1])
+    elif mutation == "extra":
+        changed = replace(summary, columns=(*summary.columns, "invented"))
+    elif mutation == "reordered":
+        changed = replace(summary, columns=tuple(reversed(summary.columns)))
+    else:
+        dtypes = list(summary.dtypes)
+        dtypes[0] = (dtypes[0][0], "object")
+        changed = replace(summary, dtypes=tuple(dtypes))
+
+    with pytest.raises(IgnGridNormalizationError, match="schema|columns|dtype"):
+        normalize_ign_electricity(
+            replace(source, electric_lines_summary=changed)
+        )
+
+
+def test_high_level_rejects_duplicate_or_missing_layer_inventory() -> None:
+    source = _source_bundle()
+    duplicate = replace(
+        source,
+        extraction=replace(
+            source.extraction,
+            all_layer_names=(LINE_LAYER, POST_LAYER, LINE_LAYER),
+        ),
+    )
+    with pytest.raises(IgnGridNormalizationError, match="inventory|duplicate"):
+        normalize_ign_electricity(duplicate)
+
+    missing = replace(
+        source,
+        extraction=replace(
+            source.extraction,
+            all_layer_names=(POST_LAYER,),
+        ),
+    )
+    with pytest.raises(IgnGridNormalizationError, match="inventory|selected"):
+        normalize_ign_electricity(missing)
+
+
+def test_high_level_rejects_colliding_electricity_roles() -> None:
+    source = _source_bundle()
+    extraction = replace(
+        source.extraction,
+        transformation_posts_layer=LINE_LAYER,
+    )
+    post_summary = replace(
+        source.transformation_posts_summary,
+        source_layer_name=LINE_LAYER,
+    )
+
+    with pytest.raises(IgnGridNormalizationError, match="same layer|distinct|role"):
+        normalize_ign_electricity(
+            replace(
+                source,
+                extraction=extraction,
+                transformation_posts_summary=post_summary,
+            )
+        )
+
+
 def test_high_level_rejects_stale_geometry_counts_after_frame_mutation() -> None:
     source = _source_bundle()
     mutated = source.electric_lines.copy()

@@ -22,6 +22,11 @@ from pyproj import CRS
 from shapely import to_wkb  # type: ignore[import-untyped]
 from shapely.geometry.base import BaseGeometry  # type: ignore[import-untyped]
 
+from landscout.sources.gpu_fr import GpuPlanningDocument
+from landscout.stages.enrich_planning_zoning import (
+    PlanningZoningError,
+    validate_normalized_planning_zoning_inputs,
+)
 from landscout.stages.index_planning_regulation import (
     PlanningRegulationIndex,
     validate_planning_regulation_index,
@@ -2282,12 +2287,19 @@ def validate_bess_zoning_precheck(
     zones: pd.DataFrame,
     zoning_intersections: pd.DataFrame,
     parcels: gpd.GeoDataFrame,
+    planning_document: GpuPlanningDocument,
     policy: BessZoningPolicyConfig | str | Path,
     result: BessZoningPrecheckResult,
 ) -> None:
     """Rebuild and validate the precheck from every factual and policy input."""
 
     try:
+        validate_normalized_planning_zoning_inputs(
+            planning_document,
+            parcels,
+            zones,  # type: ignore[arg-type]
+            zoning_intersections,
+        )
         resolved_policy = _resolved_policy(policy)
         expected = _build_result(
             index,
@@ -2305,6 +2317,10 @@ def validate_bess_zoning_precheck(
         raise BessZoningPrecheckError(
             f"Factual regulation structure validation failed: {error}"
         ) from error
+    except PlanningZoningError as error:
+        raise BessZoningPrecheckError(
+            f"Factual GPU zoning validation failed: {error}"
+        ) from error
     except Exception as error:
         raise BessZoningPrecheckError(
             "BESS zoning precheck validation failed safely"
@@ -2318,11 +2334,18 @@ def interpret_bess_zoning(
     zones: pd.DataFrame,
     zoning_intersections: pd.DataFrame,
     parcels: gpd.GeoDataFrame,
+    planning_document: GpuPlanningDocument,
     policy: BessZoningPolicyConfig | str | Path,
 ) -> BessZoningPrecheckResult:
     """Build a conservative written-zoning precheck without rejecting parcels."""
 
     try:
+        validate_normalized_planning_zoning_inputs(
+            planning_document,
+            parcels,
+            zones,  # type: ignore[arg-type]
+            zoning_intersections,
+        )
         resolved_policy = _resolved_policy(policy)
         result = _build_result(
             index,
@@ -2333,22 +2356,17 @@ def interpret_bess_zoning(
             parcels,
             resolved_policy,
         )
-        validate_bess_zoning_precheck(
-            index,
-            structure,
-            structure_config,
-            zones,
-            zoning_intersections,
-            parcels,
-            resolved_policy,
-            result,
-        )
+        _compare_results(result, result, parcels)
         return result
     except BessZoningPrecheckError:
         raise
     except PlanningRegulationStructureError as error:
         raise BessZoningPrecheckError(
             f"Factual regulation structure validation failed: {error}"
+        ) from error
+    except PlanningZoningError as error:
+        raise BessZoningPrecheckError(
+            f"Factual GPU zoning validation failed: {error}"
         ) from error
     except Exception as error:
         raise BessZoningPrecheckError(

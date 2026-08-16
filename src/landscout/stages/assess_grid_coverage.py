@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+import unicodedata
 from dataclasses import dataclass
 from math import isfinite
 from numbers import Real
@@ -19,7 +21,10 @@ from shapely import (  # type: ignore[import-untyped]
     intersects,
 )
 
-from landscout.sources.ign_bdtopo_fr import IgnBdTopoDepartmentCoverage
+from landscout.sources.ign_bdtopo_fr import (
+    IgnBdTopoCoverageLayerSummary,
+    IgnBdTopoDepartmentCoverage,
+)
 from landscout.stages.enrich_grid_proximity import (
     GridProximityResult,
     VoltageLevelCoverage,
@@ -69,6 +74,23 @@ COVERAGE_LINEAGE_COLUMNS = (
     "grid_source_coverage_layer",
     "grid_source_coverage_spatial_role",
 )
+_SOURCE_LINEAGE_COLUMNS = (
+    "source_provider",
+    "source_product",
+    "source_department_code",
+    "source_edition",
+    "source_product_version",
+    "source_archive_sha256",
+    "source_layer",
+    "spatial_role",
+)
+_IGN_PROVIDER_IDENTITIES = frozenset(
+    {
+        "ign",
+        "institutnationaldelinformationgeographiqueetforestiereign",
+    }
+)
+_SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 
 
 class GridCoverageAssessmentError(ValueError):
@@ -141,9 +163,172 @@ def _validated_lambert93(value: object, label: str) -> CRS:
     return crs
 
 
+def _normalized_identity(value: object, label: str) -> str:
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise GridCoverageAssessmentError(
+            f"Department coverage {label} must be a non-empty exact string"
+        )
+    decomposed = unicodedata.normalize("NFKD", value)
+    return "".join(
+        character
+        for character in decomposed.casefold()
+        if character.isalnum()
+    )
+
+
+def _strict_nonnegative_integer(value: object, label: str) -> int:
+    if type(value) is not int or value < 0:
+        raise GridCoverageAssessmentError(
+            f"Department coverage summary {label} must be a non-negative integer"
+        )
+    return value
+
+
+def _validate_coverage_summary(
+    source: IgnBdTopoDepartmentCoverage,
+    frame: gpd.GeoDataFrame,
+) -> None:
+    summary = source.summary
+    if type(summary) is not IgnBdTopoCoverageLayerSummary:
+        raise GridCoverageAssessmentError(
+            "Department coverage summary type is invalid"
+        )
+    if summary.source_layer_name != source.source_layer:
+        raise GridCoverageAssessmentError(
+            "Department coverage summary layer does not match source lineage"
+        )
+    summary_crs = _validated_lambert93(summary.crs, "Department coverage summary")
+    frame_crs = _validated_lambert93(frame.crs, "Department coverage")
+    if not summary_crs.equals(frame_crs):
+        raise GridCoverageAssessmentError(
+            "Department coverage summary CRS does not match the selected frame"
+        )
+    if type(summary.selected_feature_count) is not int or (
+        summary.selected_feature_count != len(frame)
+    ):
+        raise GridCoverageAssessmentError(
+            "Department coverage summary selected feature count does not match frame"
+        )
+    source_count = _strict_nonnegative_integer(
+        summary.source_feature_count,
+        "source_feature_count",
+    )
+    if source_count < summary.selected_feature_count:
+        raise GridCoverageAssessmentError(
+            "Department coverage summary source count is smaller than selected count"
+        )
+    if (
+        type(summary.columns) is not tuple
+        or not summary.columns
+        or any(
+            not isinstance(column, str)
+            or not column
+            or column != column.strip()
+            for column in summary.columns
+        )
+        or len(set(summary.columns)) != len(summary.columns)
+    ):
+        raise GridCoverageAssessmentError(
+            "Department coverage summary columns are invalid"
+        )
+    expected_frame_columns = (*summary.columns, *_SOURCE_LINEAGE_COLUMNS)
+    if tuple(str(column) for column in frame.columns) != expected_frame_columns:
+        raise GridCoverageAssessmentError(
+            "Department coverage summary ordered columns do not match frame"
+        )
+    observed_dtypes = tuple(
+        (column, str(frame[column].dtype)) for column in summary.columns
+    )
+    if type(summary.dtypes) is not tuple or summary.dtypes != observed_dtypes:
+        raise GridCoverageAssessmentError(
+            "Department coverage summary ordered dtypes do not match frame"
+        )
+    geometry_counts = (
+        _strict_nonnegative_integer(
+            summary.null_geometry_count,
+            "null_geometry_count",
+        ),
+        _strict_nonnegative_integer(
+            summary.empty_geometry_count,
+            "empty_geometry_count",
+        ),
+        _strict_nonnegative_integer(
+            summary.invalid_geometry_count,
+            "invalid_geometry_count",
+        ),
+    )
+    if any(count > source_count for count in geometry_counts):
+        raise GridCoverageAssessmentError(
+            "Department coverage summary geometry count exceeds source count"
+        )
+    geometry_types = summary.geometry_types
+    if (
+        type(geometry_types) is not tuple
+        or geometry_types != tuple(sorted(set(geometry_types)))
+        or not set(geometry_types) <= {"Polygon", "MultiPolygon"}
+    ):
+        raise GridCoverageAssessmentError(
+            "Department coverage summary geometry types are invalid"
+        )
+    selected_geometry = frame.geometry
+    selected_counts = (
+        int(selected_geometry.isna().sum()),
+        int((~selected_geometry.isna() & selected_geometry.is_empty).sum()),
+        int(
+            (
+                ~selected_geometry.isna()
+                & ~selected_geometry.is_empty
+                & ~selected_geometry.is_valid
+            ).sum()
+        ),
+    )
+    selected_types = tuple(
+        sorted(str(value) for value in selected_geometry.geom_type.dropna().unique())
+    )
+    if source_count == summary.selected_feature_count and (
+        geometry_counts != selected_counts or geometry_types != selected_types
+    ):
+        raise GridCoverageAssessmentError(
+            "Department coverage summary geometry facts do not match frame"
+        )
+    if any(
+        observed > reported
+        for observed, reported in zip(selected_counts, geometry_counts, strict=True)
+    ) or not set(selected_types) <= set(geometry_types):
+        raise GridCoverageAssessmentError(
+            "Department coverage selected geometry contradicts source summary"
+        )
+    department_field = summary.department_code_field
+    if (
+        not isinstance(department_field, str)
+        or not department_field
+        or department_field != department_field.strip()
+        or department_field not in summary.columns
+    ):
+        raise GridCoverageAssessmentError(
+            "Department coverage summary department field is invalid"
+        )
+    if summary.selected_department_code != source.source_department_code:
+        raise GridCoverageAssessmentError(
+            "Department coverage summary selected department code is inconsistent"
+        )
+    if not frame[department_field].eq(source.source_department_code).all():
+        raise GridCoverageAssessmentError(
+            "Department coverage selected department field is inconsistent"
+        )
+    if summary.spatial_role != source.spatial_role:
+        raise GridCoverageAssessmentError(
+            "Department coverage summary spatial role is inconsistent"
+        )
+
+
 def _validate_source_coverage(
     source: IgnBdTopoDepartmentCoverage,
 ) -> gpd.GeoDataFrame:
+    if type(source) is not IgnBdTopoDepartmentCoverage:
+        raise GridCoverageAssessmentError(
+            "Department coverage source type is invalid"
+        )
     if source.spatial_role != COVERAGE_SPATIAL_ROLE:
         raise GridCoverageAssessmentError(
             "Department coverage spatial_role must be SOURCE_COVERAGE_BOUNDARY"
@@ -160,6 +345,20 @@ def _validate_source_coverage(
             raise GridCoverageAssessmentError(
                 f"Department coverage {label} must be a non-empty exact string"
             )
+    provider = _normalized_identity(source.source_provider, "source_provider")
+    product = _normalized_identity(source.source_product, "source_product")
+    if provider not in _IGN_PROVIDER_IDENTITIES:
+        raise GridCoverageAssessmentError(
+            "Department coverage provider is not an IGN identity"
+        )
+    if product != "bdtopo":
+        raise GridCoverageAssessmentError(
+            "Department coverage product is not BD TOPO"
+        )
+    if _SHA256_PATTERN.fullmatch(source.source_archive_sha256) is None:
+        raise GridCoverageAssessmentError(
+            "Department coverage archive SHA256 is invalid"
+        )
     frame = source.coverage
     if not isinstance(frame, gpd.GeoDataFrame):
         raise GridCoverageAssessmentError("Department coverage must be a GeoDataFrame")
@@ -183,6 +382,7 @@ def _validate_source_coverage(
         raise GridCoverageAssessmentError(
             "Department coverage geometry must be Polygon or MultiPolygon"
         )
+    _validate_coverage_summary(source, frame)
     expected_lineage: dict[str, object] = {
         "source_provider": source.source_provider,
         "source_product": source.source_product,

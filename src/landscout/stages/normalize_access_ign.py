@@ -15,6 +15,8 @@ from pyproj import CRS
 from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
+    IgnBdTopoDownload,
+    IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
     IgnBdTopoRoadData,
 )
@@ -283,6 +285,14 @@ def _validate_layer_summary(
         raise IgnRoadNormalizationError(
             "IGN road summary row count does not match the source frame"
         )
+    observed_columns = tuple(str(column) for column in frame.columns)
+    observed_dtypes = tuple(
+        (str(column), str(dtype)) for column, dtype in frame.dtypes.items()
+    )
+    if summary.columns != observed_columns or summary.dtypes != observed_dtypes:
+        raise IgnRoadNormalizationError(
+            "IGN road summary schema columns or dtypes do not match the source frame"
+        )
     if frame.active_geometry_name != "geometry":
         raise IgnRoadNormalizationError(
             "IGN road source requires an active geometry column"
@@ -306,6 +316,12 @@ def _validate_layer_summary(
 
 
 def _validate_source_bundle(source: IgnBdTopoRoadData) -> _IgnRoadSourceContext:
+    if type(source.extraction) is not IgnBdTopoExtraction:
+        raise IgnRoadNormalizationError("IGN road extraction type is invalid")
+    if type(source.extraction.archive) is not IgnBdTopoDownload:
+        raise IgnRoadNormalizationError("IGN road archive type is invalid")
+    if type(source.road_segments_summary) is not IgnBdTopoLayerSummary:
+        raise IgnRoadNormalizationError("IGN road summary type is invalid")
     archive = source.extraction.archive
     provider = _normalized_identity(archive.provider, "provider")
     product = _normalized_identity(archive.product, "product")
@@ -327,10 +343,41 @@ def _validate_source_bundle(source: IgnBdTopoRoadData) -> _IgnRoadSourceContext:
         raise IgnRoadNormalizationError(
             "IGN road source spatial roles must all be PROXY_GEOMETRY"
         )
+    layer_names = source.extraction.all_layer_names
+    if (
+        type(layer_names) is not tuple
+        or not layer_names
+        or any(
+            not isinstance(name, str) or not name or name != name.strip()
+            for name in layer_names
+        )
+        or len(set(layer_names)) != len(layer_names)
+    ):
+        raise IgnRoadNormalizationError(
+            "IGN road layer inventory must be a unique non-empty tuple"
+        )
+    selected_layers = (
+        source.extraction.electric_lines_layer,
+        source.extraction.transformation_posts_layer,
+    )
+    if any(layer not in layer_names for layer in selected_layers):
+        raise IgnRoadNormalizationError(
+            "IGN road extraction selected layer is absent from the layer inventory"
+        )
+    if selected_layers[0] == selected_layers[1]:
+        raise IgnRoadNormalizationError(
+            "IGN electricity roles must use distinct layers, not the same layer"
+        )
+    road_layer = source.road_segments_summary.source_layer_name
+    if road_layer in selected_layers:
+        raise IgnRoadNormalizationError(
+            "IGN road and electricity roles must use distinct layers, not the same layer"
+        )
     if not isinstance(source.road_segments, gpd.GeoDataFrame):
         raise IgnRoadNormalizationError(
             "IGN road_segments must be a GeoDataFrame with an active geometry column"
         )
+    _validate_source_frame(source.road_segments)
     _validate_layer_summary(
         source.road_segments,
         source.road_segments_summary,

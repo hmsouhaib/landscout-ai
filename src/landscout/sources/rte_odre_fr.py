@@ -16,6 +16,17 @@ DEFAULT_CONFIG_PATH = Path("configs/sources/rte_odre_fr.yaml")
 DEFAULT_CACHE_DIR = Path("data/cache/rte_odre")
 DOWNLOAD_CHUNK_SIZE = 1024 * 1024
 LOGICAL_DATASET_NAMES = ("sites", "overhead_lines", "underground_lines")
+COORDINATE_GEOMETRY_TYPES = frozenset(
+    {
+        "Point",
+        "MultiPoint",
+        "LineString",
+        "MultiLineString",
+        "Polygon",
+        "MultiPolygon",
+    }
+)
+GEOJSON_GEOMETRY_TYPES = COORDINATE_GEOMETRY_TYPES | {"GeometryCollection"}
 
 LogicalDatasetName = Literal["sites", "overhead_lines", "underground_lines"]
 ExportFormat = Literal["geojson"]
@@ -285,13 +296,32 @@ def _validate_geojson(path: Path) -> RteOdreExportSummary:
     null_geometry_count = 0
     geometry_types: set[str] = set()
     for feature in features:
-        geometry = feature.get("geometry") if isinstance(feature, dict) else None
-        if not isinstance(geometry, dict):
+        if not isinstance(feature, dict) or feature.get("type") != "Feature":
+            raise RteOdreDownloadError(
+                "Every GeoJSON feature must be an object with type Feature"
+            )
+        geometry = feature.get("geometry")
+        if geometry is None:
             null_geometry_count += 1
             continue
+        if not isinstance(geometry, dict):
+            raise RteOdreDownloadError(
+                "GeoJSON feature geometry must be an object or null"
+            )
         geometry_type = geometry.get("type")
-        if isinstance(geometry_type, str) and geometry_type:
-            geometry_types.add(geometry_type)
+        if geometry_type not in GEOJSON_GEOMETRY_TYPES:
+            raise RteOdreDownloadError("GeoJSON feature has an unsupported geometry type")
+        if geometry_type in COORDINATE_GEOMETRY_TYPES and "coordinates" not in geometry:
+            raise RteOdreDownloadError(
+                f"GeoJSON {geometry_type} geometry must contain coordinates"
+            )
+        if geometry_type == "GeometryCollection" and not isinstance(
+            geometry.get("geometries"), list
+        ):
+            raise RteOdreDownloadError(
+                "GeoJSON GeometryCollection must contain a geometries list"
+            )
+        geometry_types.add(geometry_type)
     return RteOdreExportSummary(
         feature_count=len(features),
         null_geometry_count=null_geometry_count,

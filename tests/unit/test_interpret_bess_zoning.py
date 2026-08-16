@@ -371,7 +371,12 @@ def _policy(index, structure, config, zones, relations) -> BessZoningPolicyConfi
 
 
 @pytest.fixture
-def inputs():
+def inputs(monkeypatch):
+    monkeypatch.setattr(
+        interpret_module,
+        "validate_normalized_planning_zoning_inputs",
+        lambda *args: None,
+    )
     index = _index()
     zones = _zones(index)
     relations = _relations(index)
@@ -379,7 +384,17 @@ def inputs():
     structure = structure_planning_regulation(index, zones, relations, config)
     parcels = _parcels(index)
     policy = _policy(index, structure, config, zones, relations)
-    return index, structure, config, zones, relations, parcels, policy
+    planning_document = object()
+    return (
+        index,
+        structure,
+        config,
+        zones,
+        relations,
+        parcels,
+        planning_document,
+        policy,
+    )
 
 
 @pytest.fixture
@@ -423,7 +438,7 @@ def test_package_exports_precheck_api() -> None:
 
 
 def test_valid_locked_policy_builds_complete_outputs(inputs, valid_result) -> None:
-    index, structure, _, zones, relations, parcels, policy = inputs
+    index, structure, _, zones, relations, parcels, _, policy = inputs
     result = valid_result
     _validate(inputs, result)
     assert tuple(result.chapter_policy.columns) == CHAPTER_POLICY_COLUMNS
@@ -545,7 +560,7 @@ def test_regulation_zone_chapter_labels_and_ids_must_be_unique(inputs) -> None:
 def test_source_complete_validator_rejects_later_duplicate_chapter(
     inputs, valid_result
 ) -> None:
-    index, structure, config, zones, relations, parcels, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
     duplicate = structure.sections.loc[
         structure.sections["section_type"].eq("ZONE_CHAPTER")
     ].iloc[0].copy()
@@ -564,6 +579,7 @@ def test_source_complete_validator_rejects_later_duplicate_chapter(
             zones,
             relations,
             parcels,
+            planning_document,
             policy,
             valid_result,
         )
@@ -1236,7 +1252,7 @@ def test_general_section_review_is_explicit_and_valid(inputs) -> None:
 
 
 def test_same_general_occurrence_may_be_scoped_to_different_chapters(inputs) -> None:
-    index, structure, config, zones, relations, parcels, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
     general = structure.sections.loc[
         structure.sections["section_type"].eq("GENERAL")
     ].iloc[0]
@@ -1280,7 +1296,14 @@ def test_same_general_occurrence_may_be_scoped_to_different_chapters(inputs) -> 
         )
     scoped_policy = BessZoningPolicyConfig.model_validate(payload)
     result = interpret_bess_zoning(
-        index, structure, config, zones, relations, parcels, scoped_policy
+        index,
+        structure,
+        config,
+        zones,
+        relations,
+        parcels,
+        planning_document,
+        scoped_policy,
     )
     scoped = result.evidence_catalog.loc[
         result.evidence_catalog["section_id"].eq(general["section_id"])
@@ -1361,7 +1384,7 @@ def test_exact_and_alias_mappings_are_inherited_without_prefix_logic(valid_resul
 
 
 def test_unmapped_dominant_zone_is_rejected(inputs) -> None:
-    index, structure, config, zones, relations, parcels, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
     mapping = structure.zone_mapping.copy()
     mapping.loc[mapping["source_zone_label_raw"].eq("U"), [
         "resolved_zone_chapter_label",
@@ -1383,7 +1406,14 @@ def test_unmapped_dominant_zone_is_rejected(inputs) -> None:
     )
     with pytest.raises(BessZoningPrecheckError, match="Factual regulation structure"):
         interpret_bess_zoning(
-            index, mutated, config, zones, relations, parcels, changed_policy
+            index,
+            mutated,
+            config,
+            zones,
+            relations,
+            parcels,
+            planning_document,
+            changed_policy,
         )
 
 
@@ -1470,7 +1500,7 @@ def test_prior_parcel_fields_geometry_order_index_and_crs_are_preserved(
 
 
 def test_inputs_are_not_mutated(inputs) -> None:
-    _, structure, _, zones, relations, parcels, _ = inputs
+    _, structure, _, zones, relations, parcels, _, _ = inputs
     zone_snapshot = zones.copy(deep=True)
     relation_snapshot = relations.copy(deep=True)
     parcel_snapshot = parcels.copy(deep=True)
@@ -1503,7 +1533,7 @@ def test_evidence_change_after_result_creation_is_rejected(inputs, valid_result)
 
 
 def test_zoning_relation_and_zone_mapping_changes_are_rejected(inputs, valid_result) -> None:
-    index, structure, config, zones, relations, parcels, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
     changed_relations = relations.copy()
     changed_relations.loc[0, "intersection_area_m2"] = 99.0
     changed_relations.loc[0, "parcel_share_pct"] = 99.0
@@ -1516,13 +1546,14 @@ def test_zoning_relation_and_zone_mapping_changes_are_rejected(inputs, valid_res
             zones,
             changed_relations,
             parcels,
+            planning_document,
             policy,
             valid_result,
         )
 
 
 def test_structure_config_and_hierarchy_changes_are_rejected(inputs) -> None:
-    index, structure, config, zones, relations, parcels, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
     changed_config = config.model_copy(update={"structure_profile": "changed"})
     with pytest.raises(BessZoningPrecheckError, match="Factual regulation structure"):
         interpret_bess_zoning(
@@ -1532,6 +1563,7 @@ def test_structure_config_and_hierarchy_changes_are_rejected(inputs) -> None:
             zones,
             relations,
             parcels,
+            planning_document,
             policy,
         )
     changed_sections = structure.sections.copy(deep=True)
@@ -1559,6 +1591,7 @@ def test_structure_config_and_hierarchy_changes_are_rejected(inputs) -> None:
             zones,
             relations,
             parcels,
+            planning_document,
             changed_policy,
         )
 
@@ -1581,6 +1614,54 @@ def test_public_source_complete_validator_is_invoked(inputs, monkeypatch) -> Non
     assert calls >= 1
 
 
+def test_one_precheck_build_performs_one_zoning_source_complete_validation(
+    inputs,
+    monkeypatch,
+) -> None:
+    calls = 0
+
+    def counted(*args) -> None:
+        nonlocal calls
+        calls += 1
+
+    monkeypatch.setattr(
+        interpret_module,
+        "validate_normalized_planning_zoning_inputs",
+        counted,
+    )
+
+    interpret_bess_zoning(*inputs)
+
+    assert calls == 1
+
+
+def test_invalid_physical_zoning_fails_before_policy_interpretation(
+    inputs,
+    monkeypatch,
+) -> None:
+    policy_calls = 0
+
+    def invalid_source(*args) -> None:
+        raise interpret_module.PlanningZoningError("physical source invalid")
+
+    def counted_policy(*args):
+        nonlocal policy_calls
+        policy_calls += 1
+        return inputs[-1]
+
+    monkeypatch.setattr(
+        interpret_module,
+        "validate_normalized_planning_zoning_inputs",
+        invalid_source,
+    )
+    monkeypatch.setattr(interpret_module, "_resolved_policy", counted_policy)
+
+    with pytest.raises(BessZoningPrecheckError, match="physical source invalid"):
+        interpret_bess_zoning(*inputs)
+
+    assert policy_calls == 0
+
+
 def test_one_build_result_performs_one_factual_structure_rebuild(
     inputs, monkeypatch
 ) -> None:
@@ -1597,7 +1678,7 @@ def test_one_build_result_performs_one_factual_structure_rebuild(
         "validate_planning_regulation_structure_with_fragments",
         counted,
     )
-    interpret_module._build_result(*inputs)
+    interpret_module._build_result(*inputs[:6], inputs[-1])
     assert calls == 1
 
 
@@ -1606,7 +1687,7 @@ def test_one_build_result_performs_one_factual_structure_rebuild(
     ["parcel_metric_area_m2", "zone_area_m2"],
 )
 def test_relation_area_denominators_are_required(inputs, column: str) -> None:
-    index, structure, config, zones, relations, parcels, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
     with pytest.raises(BessZoningPrecheckError):
         interpret_bess_zoning(
             index,
@@ -1615,6 +1696,7 @@ def test_relation_area_denominators_are_required(inputs, column: str) -> None:
             zones,
             relations.drop(columns=column),
             parcels,
+            planning_document,
             policy,
         )
 
@@ -1624,7 +1706,7 @@ def test_relation_area_denominators_are_required(inputs, column: str) -> None:
     ["parcel_share_pct", "zone_share_pct"],
 )
 def test_relation_percentages_must_match_denominators(inputs, column: str) -> None:
-    index, structure, config, zones, relations, parcels, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
     changed = relations.copy(deep=True)
     changed.loc[0, column] += 1.0
     with pytest.raises(BessZoningPrecheckError):
@@ -1635,12 +1717,13 @@ def test_relation_percentages_must_match_denominators(inputs, column: str) -> No
             zones,
             changed,
             parcels,
+            planning_document,
             policy,
         )
 
 
 def test_factual_zone_mapping_counts_are_recomputed(inputs) -> None:
-    index, structure, config, zones, relations, parcels, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
     changed_mapping = structure.zone_mapping.copy(deep=True)
     changed_mapping.loc[0, "candidate_intersection_count"] += 1
     changed_structure = _structure_with_hashes(
@@ -1665,6 +1748,7 @@ def test_factual_zone_mapping_counts_are_recomputed(inputs) -> None:
             zones,
             relations,
             parcels,
+            planning_document,
             changed_policy,
         )
     changed_mapping = structure.zone_mapping.copy()
@@ -1691,6 +1775,7 @@ def test_factual_zone_mapping_counts_are_recomputed(inputs) -> None:
             zones,
             relations,
             parcels,
+            planning_document,
             changed_policy,
             valid_result,
         )
@@ -1785,12 +1870,19 @@ def test_old_result_hash_schemas_are_rejected(
 
 
 def test_relation_identity_change_is_rejected(inputs) -> None:
-    index, structure, config, zones, relations, parcels, policy = inputs
+    index, structure, config, zones, relations, parcels, planning_document, policy = inputs
     changed = relations.copy()
     changed.loc[0, "source_zone_id"] = "SRC-N"
     with pytest.raises(BessZoningPrecheckError, match="Factual regulation structure"):
         interpret_bess_zoning(
-            index, structure, config, zones, changed, parcels, policy
+            index,
+            structure,
+            config,
+            zones,
+            changed,
+            parcels,
+            planning_document,
+            policy,
         )
 
 

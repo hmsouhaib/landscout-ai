@@ -19,7 +19,9 @@ from landscout import sources
 from landscout.sources import ign_bdtopo_fr
 from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoArchiveError,
+    IgnBdTopoDownload,
     IgnBdTopoDownloadError,
+    IgnBdTopoExtraction,
     IgnBdTopoLayerError,
     IgnBdTopoSourceConfig,
     discover_ign_bdtopo_geopackage,
@@ -255,6 +257,34 @@ def _response(content: bytes) -> io.BytesIO:
 
 def _metadata_path(archive_path: Path) -> Path:
     return archive_path.parent / f"{archive_path.name}.metadata.json"
+
+
+def _extraction_metadata_path(extraction_path: Path) -> Path:
+    return extraction_path / ".landscout-extraction.json"
+
+
+def _extracted_fixture(
+    tmp_path: Path,
+    source_config: IgnBdTopoSourceConfig,
+    *,
+    include_roads: bool = False,
+) -> tuple[IgnBdTopoSourceConfig, IgnBdTopoDownload, IgnBdTopoExtraction]:
+    archive_content = _synthetic_archive_bytes(
+        tmp_path / "source",
+        include_roads=include_roads,
+    )
+    config = _synthetic_config(source_config)
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.urlopen",
+        return_value=_response(archive_content),
+    ):
+        download = download_ign_bdtopo_archive(config, tmp_path / "cache")
+    extraction = extract_ign_bdtopo_archive(
+        download,
+        config,
+        extraction_dir=tmp_path / "extracted",
+    )
+    return config, download, extraction
 
 
 def _expire_cache(metadata_path: Path) -> bytes:
@@ -688,6 +718,121 @@ def test_synthetic_archive_extracts_and_discovers_required_layers(
     assert extraction.transformation_posts_layer == POST_LAYER
 
 
+def test_schema_v2_extraction_metadata_binds_physical_geopackage(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    config, download, extraction = _extracted_fixture(tmp_path, source_config)
+    metadata = json.loads(
+        _extraction_metadata_path(extraction.extraction_path).read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert metadata["schema_version"] == 2
+    assert metadata["geopackage_size_bytes"] == extraction.geopackage_path.stat().st_size
+    assert metadata["geopackage_sha256"] == sha256(
+        extraction.geopackage_path.read_bytes()
+    ).hexdigest()
+
+    cached = extract_ign_bdtopo_archive(
+        download,
+        config,
+        extraction_dir=extraction.extraction_path,
+    )
+    assert cached.cache_hit is True
+
+
+def test_same_size_geopackage_tamper_invalidates_extraction_cache(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    config, download, extraction = _extracted_fixture(tmp_path, source_config)
+    original = extraction.geopackage_path.read_bytes()
+    tampered = bytearray(original)
+    tampered[-1] ^= 1
+    extraction.geopackage_path.write_bytes(tampered)
+    assert extraction.geopackage_path.stat().st_size == len(original)
+
+    rebuilt = extract_ign_bdtopo_archive(
+        download,
+        config,
+        extraction_dir=extraction.extraction_path,
+    )
+
+    assert rebuilt.cache_hit is False
+    assert rebuilt.geopackage_path.read_bytes() == original
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("geopackage_sha256", "0" * 64),
+        ("geopackage_size_bytes", 1),
+        ("schema_version", 1),
+        ("geopackage_relative_path", "../escape.gpkg"),
+    ],
+)
+def test_forged_extraction_metadata_never_returns_cache_hit(
+    tmp_path: Path,
+    source_config: IgnBdTopoSourceConfig,
+    field: str,
+    value: object,
+) -> None:
+    config, download, extraction = _extracted_fixture(tmp_path, source_config)
+    metadata_path = _extraction_metadata_path(extraction.extraction_path)
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    metadata[field] = value
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+
+    rebuilt = extract_ign_bdtopo_archive(
+        download,
+        config,
+        extraction_dir=extraction.extraction_path,
+    )
+
+    assert rebuilt.cache_hit is False
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["", "abc", "A" * 64, "a" * 63, "a" * 65],
+)
+def test_malformed_geopackage_sha_is_not_trusted(
+    tmp_path: Path,
+    source_config: IgnBdTopoSourceConfig,
+    value: str,
+) -> None:
+    config, download, extraction = _extracted_fixture(tmp_path, source_config)
+    metadata_path = _extraction_metadata_path(extraction.extraction_path)
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    metadata["geopackage_sha256"] = value
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+
+    rebuilt = extract_ign_bdtopo_archive(
+        download, config, extraction_dir=extraction.extraction_path
+    )
+
+    assert rebuilt.cache_hit is False
+
+
+@pytest.mark.parametrize("value", [0, -1, True, "100"])
+def test_malformed_geopackage_size_is_not_trusted(
+    tmp_path: Path,
+    source_config: IgnBdTopoSourceConfig,
+    value: object,
+) -> None:
+    config, download, extraction = _extracted_fixture(tmp_path, source_config)
+    metadata_path = _extraction_metadata_path(extraction.extraction_path)
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    metadata["geopackage_size_bytes"] = value
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+
+    rebuilt = extract_ign_bdtopo_archive(
+        download, config, extraction_dir=extraction.extraction_path
+    )
+
+    assert rebuilt.cache_hit is False
+
+
 def test_default_extraction_path_is_short_and_content_addressed(
     tmp_path: Path, source_config: IgnBdTopoSourceConfig
 ) -> None:
@@ -805,6 +950,29 @@ def test_road_layer_discovery_loads_selected_physical_layer(
     assert loaded.road_segments_summary.logical_name == "road_segments"
     assert loaded.road_segments["object_id"].tolist() == ["R_LINE", "R_MULTI"]
     assert loaded.road_segments_summary.spatial_role == "PROXY_GEOMETRY"
+
+
+@pytest.mark.parametrize(
+    "role",
+    ["electric_lines", "transformation_posts"],
+)
+def test_road_physical_layer_cannot_collide_with_electricity_roles(
+    tmp_path: Path,
+    source_config: IgnBdTopoSourceConfig,
+    role: str,
+) -> None:
+    config, _, extraction = _extracted_fixture(
+        tmp_path,
+        source_config,
+        include_roads=True,
+    )
+    content = config.model_dump(mode="json")
+    selected = content["logical_layers"][role]
+    content["access"]["road_segments"] = selected
+    colliding = IgnBdTopoSourceConfig.model_validate(content)
+
+    with pytest.raises(IgnBdTopoLayerError, match="same layer|collid|role"):
+        ign_bdtopo_fr.load_ign_bdtopo_roads(extraction, colliding)
 
 
 def test_missing_road_layer_fails_safely(
@@ -996,6 +1164,8 @@ def test_road_layer_does_not_change_electricity_loading_or_cache_shape(
         "schema_version",
         "archive_sha256",
         "geopackage_relative_path",
+        "geopackage_size_bytes",
+        "geopackage_sha256",
         "all_layer_names",
         "electric_lines_layer",
         "transformation_posts_layer",

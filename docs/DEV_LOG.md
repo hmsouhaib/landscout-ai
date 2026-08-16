@@ -1281,6 +1281,95 @@ Distance to an IGN electric line or transformation post does not establish grid 
 
 No BESS grid-distance threshold is selected here.
 
+## GLOBAL HARDENING — Close source-integrity and adversarial validation gaps
+
+- Status: Complete.
+- Starting branch / HEAD: `main` / `cd1861eabd2f4dc2c10b8a368e66cd61d261eb8d`.
+- Baseline before implementation: `uv sync --frozen` checked 45 packages; `uv lock --check` resolved 48 packages; 1,962 tests passed with two existing warnings; Ruff and mypy passed (38 source files).
+- Scope: validation and source-integrity hardening only. No BESS score, parcel rejection, ownership inference, access judgment, new planning interpretation, UI, API, or backend behavior was added.
+
+### A–C — IGN physical source, role, summary, and coverage contracts
+
+- IGN extraction metadata is now strict schema v2 and binds the extracted GeoPackage's exact byte size and lowercase SHA256 to the validated archive. Cache reuse rechecks both properties, including same-size tampering, and cannot report `cache_hit=True` for a changed physical file.
+- Electric-line, transformation-post, road, and department-coverage roles must have distinct physical layer identities. Road-layer discovery rejects physical-name collisions.
+- Grid and access normalizers validate the exact source summary column order, dtype strings, row count, CRS, active geometry, geometry facts, source inventory membership, and `PROXY_GEOMETRY` role before projecting factual rows.
+- Coverage assessment validates the canonical IGN / BD TOPO source identity and the selected department summary against the actual selected frame, including exact selected count, schema/dtypes, CRS, geometry facts, department code, source count, physical layer, and `SOURCE_COVERAGE_BOUNDARY` lineage.
+- Focused source/grid regression sweep is included in the consolidated 758-test non-planning run recorded below.
+
+### D — GPU-bound written zoning validation
+
+- Added `validate_normalized_planning_zoning_inputs(...)` as the source-complete factual boundary for written zoning. It revalidates the physical zoning file family through the existing GPU spatial-source integrity implementation, rebuilds normalized zones and parcel intersections from the fresh source read, and compares deterministic schema, index, CRS, geometry WKB, row order, null patterns, metrics, and any present parcel zoning summaries.
+- Coordinated in-memory mutations of zone identity/text/layer/order, missing or extra zones/relations, coherent metric changes, dominant-zone changes, and physical source tampering all fail.
+- Zoning policy interpretation invokes that heavy validation exactly once; the independent public persisted-result validator performs its own source-complete validation. Invalid physical zoning fails before policy evaluation.
+- Focused result: 176 zoning enrichment and BESS zoning interpretation tests passed.
+
+### E — Strict scan/profile configuration
+
+- Every application config model forbids unknown fields, including nested scan/profile models.
+- Business numerics reject booleans, numeric strings, NaN, and infinities and enforce their positive/non-negative/range domains. AOI lists are non-empty and unique; commune codes accept canonical metropolitan and Corsican forms; CRS values are exact EPSG:4326 / EPSG:2154 identities.
+- Scan country and technology must match the referenced profile rather than merely validating independently.
+
+### F–G — Cadastre cache and normalized parcel contracts
+
+- Commune, timeout, and cache-age inputs are strict. Cached metadata validates canonical types, SHA256, timezone-aware non-future timestamp, byte size, URL, filename, and gzip signature.
+- Archive/metadata publication is transactional with rollback for both refresh and first-publication failures; no half-published pair is trusted.
+- Cadastre normalization now requires an exact GeoDataFrame contract, readable EPSG:4326, unique exact string IDs, and Polygon/MultiPolygon geometry. Null, empty, and invalid polygons remain preserved and explicitly `INVALID`; unsupported geometry families fail and no geometry is repaired.
+
+### H — Parcel and shape numeric domains
+
+- A row claiming valid geometry must have a strict non-boolean, finite, positive area. Exact non-empty parcel IDs are required.
+- Known measurements on a `VALID` shape row require finite numeric width greater than zero and a length/width ratio at least one. The previously fail-open `width_m=20`, `length_width_ratio=-1` case now raises before screening.
+- Shape profiles require positive area/length/width, length at least width, ratio at least one, compactness in `(0, 1]`, bounded latitude/longitude, and a ratio matching `length_m / width_m` within a tight technical tolerance.
+- Focused result: 115 area, enrichment, shape-filter, and profile tests passed; targeted Ruff and mypy passed.
+
+### I — RTE/ODRE GeoJSON fail-closed parsing
+
+- Every FeatureCollection member must be a Feature object. Explicit `geometry: null` remains supported.
+- Non-null geometries must be valid GeoJSON objects using Point, MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon, or GeometryCollection with the corresponding structural member. Empty, missing, unknown, and malformed geometry types fail before summary counts are constructed.
+- Focused result: 46 RTE/ODRE tests passed; targeted Ruff and mypy passed.
+
+### J — Public geometry and CRS error contracts
+
+- Foundational parcel helpers verify `BaseGeometry` before attribute access, retain controlled empty/invalid/unsupported errors, and require canonical 2D Polygon/MultiPolygon inputs without repair or silent dimension loss.
+- Malformed CRS values are consistently wrapped as `MetricCrsError`; metric calculations continue to reject geographic/non-metre CRS. Centroid transforms must produce finite, bounded WGS84 latitude/longitude.
+- Focused result: 48 geometry/CRS tests passed; targeted Ruff and mypy passed.
+
+### Consolidated evidence and retained safety boundaries
+
+- Consolidated non-planning regression sweep: 758 tests passed.
+- Consolidated written-zoning sweep: 176 tests passed.
+- Repository-wide pre-final Ruff and mypy checks passed after all ten implementation phases.
+- Valid data schemas and factual outputs are unchanged by these validation-only corrections. Invalid legacy fixtures that claimed valid geometry while carrying missing/zero measurements were corrected to declare the existing invalid/error state explicitly.
+- No source cache or generated artifact is committed.
+
+### Mandatory final gates and real-data regression
+
+- `uv sync --frozen`: checked 45 packages.
+- `uv lock --check`: resolved 48 packages.
+- `uv pip check`: checked 45 packages; all installed packages are compatible.
+- `uv run pytest -q`: 2,171 tests passed in 637.68 seconds. The two pre-existing GeoPandas/Pyogrio warnings remain; the additional pytest cache warning was caused only by the managed Windows sandbox denying `.pytest_cache` creation and did not affect test execution.
+- `uv run ruff check .`: passed.
+- `uv run mypy src`: passed across 38 source files.
+
+The existing ignored Muret artifacts were loaded from their verified bytes, reconstructed into the immutable schema-v5 CNIG, schema-v1 policy, schema-v2 application, and schema-v1 aggregation results, then run through the independent source-complete GPU/CNIG/policy/application/aggregation validators. No artifact was rewritten.
+
+- Parcels / features / factual relations: 3,638 / 479 / 2,414.
+- CNIG dictionary / policy pairs: 12 / 12.
+- Complete application SHA256: `53b8fcddfcbd3920f223071d946d9066c8cb9cc38f0afc8d917e2b723926527e`.
+- Complete aggregation SHA256: `c7417273d36c92833fcbd941a5e10c2518e30c97c3a758646a49d19cdc0c6cee`.
+- Source-complete persisted-result validation: passed.
+- Real written-zoning source validation: 3,638 parcels, 221 physical-source zones, and 5,095 parcel/zone relations reproduced exactly from the verified GPU zoning layer.
+
+The cached D031 archive was used with network access explicitly disabled. Its legacy extraction marker was rebuilt once into cryptographically bound schema v2, then a second offline pass proved archive and extraction `cache_hit=True`. Real road normalization retained 385,107 rows, 385,107 unique road IDs, EPSG:2154, and geometry status `VALID` for all 385,107 rows. Existing Pyogrio warnings about declared GeoPackage field formats remain informational.
+
+No local feature text or regulation content is interpreted.
+
+No parcel is rejected or ranked by this hardening work.
+
+No score is calculated.
+
+No authorization, prohibition, buildability, legal certainty, grid capacity, or access suitability is claimed.
+
 ## STEP 7D.5B.2B.2 — Seal relation identity and global policy mapping
 
 - Status: Complete

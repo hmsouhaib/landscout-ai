@@ -269,6 +269,52 @@ def test_non_finite_known_metric_on_valid_row_fails(
         filter_parcels_by_shape(invalid, shape_config)
 
 
+@pytest.mark.parametrize("width", [-1, 0, float("inf"), "20", True])
+def test_valid_shape_requires_strict_positive_width(
+    parcels: gpd.GeoDataFrame,
+    shape_config: ShapeScreeningConfig,
+    width: object,
+) -> None:
+    invalid = parcels.copy()
+    invalid["width_m"] = invalid["width_m"].astype(object)
+    invalid.loc[0, "width_m"] = width
+
+    with pytest.raises(
+        ParcelFilterError,
+        match="width_m must be (numeric and finite|greater than zero)",
+    ):
+        filter_parcels_by_shape(invalid, shape_config)
+
+
+@pytest.mark.parametrize("ratio", [-1, 0, 0.999, float("inf"), "2", True])
+def test_valid_shape_requires_ratio_at_least_one(
+    parcels: gpd.GeoDataFrame,
+    shape_config: ShapeScreeningConfig,
+    ratio: object,
+) -> None:
+    invalid = parcels.copy()
+    invalid["length_width_ratio"] = invalid["length_width_ratio"].astype(object)
+    invalid.loc[0, "length_width_ratio"] = ratio
+
+    with pytest.raises(
+        ParcelFilterError,
+        match="length_width_ratio must be (numeric and finite|at least one)",
+    ):
+        filter_parcels_by_shape(invalid, shape_config)
+
+
+def test_negative_ratio_cannot_pass_permissive_thresholds(
+    parcels: gpd.GeoDataFrame,
+    shape_config: ShapeScreeningConfig,
+) -> None:
+    invalid = parcels.copy()
+    invalid.loc[0, "width_m"] = 20
+    invalid.loc[0, "length_width_ratio"] = -1
+
+    with pytest.raises(ParcelFilterError, match="length_width_ratio must be at least one"):
+        filter_parcels_by_shape(invalid, shape_config)
+
+
 def test_disabled_policy_is_an_exact_passthrough(parcels: gpd.GeoDataFrame) -> None:
     disabled = ShapeScreeningConfig(enabled=False)
 

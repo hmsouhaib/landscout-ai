@@ -204,3 +204,158 @@ def test_shape_screening_can_be_disabled_without_policy_values(
     assert shape_screening.min_width_m is None
     assert shape_screening.max_length_width_ratio is None
     assert shape_screening.calibration is None
+
+
+@pytest.mark.parametrize(
+    ("section", "field"),
+    [(None, "unknown"), ("aoi", "unexpected"), ("profile", "unexpected")],
+)
+def test_unknown_scan_fields_are_rejected(
+    tmp_path: Path,
+    section: str | None,
+    field: str,
+) -> None:
+    scan_data = _yaml_data(SCAN_PATH)
+    scan_data["profile"]["path"] = str(PROFILE_PATH)
+    target = scan_data if section is None else scan_data[section]
+    target[field] = "value"
+    scan_path = tmp_path / "scan.yaml"
+    _write_yaml(scan_path, scan_data)
+
+    with pytest.raises(ValidationError, match=field):
+        load_scan_config(scan_path)
+
+
+@pytest.mark.parametrize("section", ["parcel", "crs", "shape_screening"])
+def test_unknown_profile_fields_are_rejected(
+    tmp_path: Path,
+    section: str,
+) -> None:
+    profile_data = _yaml_data(PROFILE_PATH)
+    profile_data[section]["unexpected"] = "value"
+
+    with pytest.raises(ValidationError, match="unexpected"):
+        _load_temporary_profile(tmp_path, profile_data)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("min_area_m2", 0),
+        ("max_area_m2", -1),
+        ("max_area_m2", float("nan")),
+        ("max_area_m2", float("inf")),
+        ("max_area_m2", "15000"),
+        ("min_area_m2", True),
+    ],
+)
+def test_parcel_numeric_contract_is_strict_and_finite(
+    tmp_path: Path,
+    field: str,
+    value: object,
+) -> None:
+    profile_data = _yaml_data(PROFILE_PATH)
+    profile_data["parcel"][field] = value
+
+    with pytest.raises(ValidationError):
+        _load_temporary_profile(tmp_path, profile_data)
+
+
+@pytest.mark.parametrize("value", [True, "4013", 0, -1])
+def test_calibration_sample_size_is_strict_positive_integer(
+    tmp_path: Path,
+    value: object,
+) -> None:
+    profile_data = _yaml_data(PROFILE_PATH)
+    profile_data["shape_screening"]["calibration"]["sample_size"] = value
+
+    with pytest.raises(ValidationError):
+        _load_temporary_profile(tmp_path, profile_data)
+
+
+@pytest.mark.parametrize("value", ["true", 1, 0])
+def test_shape_enabled_is_strict_boolean(tmp_path: Path, value: object) -> None:
+    profile_data = _yaml_data(PROFILE_PATH)
+    profile_data["shape_screening"]["enabled"] = value
+
+    with pytest.raises(ValidationError):
+        _load_temporary_profile(tmp_path, profile_data)
+
+
+@pytest.mark.parametrize("code", ["31395", "75056", "2A004", "2B033"])
+def test_canonical_france_commune_codes_are_accepted(
+    tmp_path: Path,
+    code: str,
+) -> None:
+    scan_data = _yaml_data(SCAN_PATH)
+    scan_data["profile"]["path"] = str(PROFILE_PATH)
+    scan_data["aoi"]["commune_codes"] = [code]
+    scan_path = tmp_path / "scan.yaml"
+    _write_yaml(scan_path, scan_data)
+
+    assert load_scan_config(scan_path).scan_config.aoi.commune_codes == [code]
+
+
+@pytest.mark.parametrize(
+    "code",
+    ["", "3139", "313950", "ABCDE", "2C004", "2a004", " 31395 ", 31395],
+)
+def test_noncanonical_france_commune_codes_are_rejected(
+    tmp_path: Path,
+    code: object,
+) -> None:
+    scan_data = _yaml_data(SCAN_PATH)
+    scan_data["profile"]["path"] = str(PROFILE_PATH)
+    scan_data["aoi"]["commune_codes"] = [code]
+    scan_path = tmp_path / "scan.yaml"
+    _write_yaml(scan_path, scan_data)
+
+    with pytest.raises(ValidationError):
+        load_scan_config(scan_path)
+
+
+@pytest.mark.parametrize("codes", [[], ["31395", "31395"]])
+def test_aoi_requires_nonempty_unique_commune_codes(
+    tmp_path: Path,
+    codes: list[str],
+) -> None:
+    scan_data = _yaml_data(SCAN_PATH)
+    scan_data["profile"]["path"] = str(PROFILE_PATH)
+    scan_data["aoi"]["commune_codes"] = codes
+    scan_path = tmp_path / "scan.yaml"
+    _write_yaml(scan_path, scan_data)
+
+    with pytest.raises(ValidationError):
+        load_scan_config(scan_path)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("country", "BE"), ("technology", "SOLAR")],
+)
+def test_scan_and_profile_identity_must_match(
+    tmp_path: Path,
+    field: str,
+    value: str,
+) -> None:
+    profile_data = _yaml_data(PROFILE_PATH)
+    profile_data[field] = value
+
+    with pytest.raises(ValidationError, match=field):
+        _load_temporary_profile(tmp_path, profile_data)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("storage", "EPSG:3857"), ("calculation", "EPSG:4326"), ("storage", "bad")],
+)
+def test_profile_crs_contract_is_exact(
+    tmp_path: Path,
+    field: str,
+    value: str,
+) -> None:
+    profile_data = _yaml_data(PROFILE_PATH)
+    profile_data["crs"][field] = value
+
+    with pytest.raises(ValidationError, match="CRS|crs|storage|calculation"):
+        _load_temporary_profile(tmp_path, profile_data)

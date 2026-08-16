@@ -1,6 +1,6 @@
 import pytest
 from shapely.affinity import rotate
-from shapely.geometry import MultiPolygon, Polygon
+from shapely.geometry import MultiPolygon, Point, Polygon
 
 from landscout.geo import (
     LAMBERT93,
@@ -9,6 +9,7 @@ from landscout.geo import (
     GeometryError,
     InvalidGeometryError,
     MetricCrsError,
+    UnsupportedGeometryError,
     approximate_length_m,
     approximate_width_m,
     area_m2,
@@ -224,3 +225,30 @@ def test_centralized_shape_metrics_reject_zero_area_geometry() -> None:
 def test_centralized_shape_metrics_reject_geographic_crs(square: Polygon) -> None:
     with pytest.raises(MetricCrsError):
         parcel_shape_metrics_m(square, WGS84)
+
+
+@pytest.mark.parametrize("geometry", [None, "polygon", 123, [], object()])
+def test_non_geometry_inputs_raise_controlled_error(geometry: object) -> None:
+    with pytest.raises(UnsupportedGeometryError):
+        area_m2(geometry, LAMBERT93)  # type: ignore[arg-type]
+
+
+def test_unsupported_geometry_family_raises_controlled_error() -> None:
+    with pytest.raises(UnsupportedGeometryError):
+        area_m2(Point(0, 0), LAMBERT93)
+
+
+def test_three_dimensional_parcel_is_rejected() -> None:
+    polygon_z = Polygon([(0, 0, 1), (10, 0, 1), (10, 10, 1), (0, 10, 1)])
+
+    with pytest.raises(UnsupportedGeometryError, match="two-dimensional"):
+        area_m2(polygon_z, LAMBERT93)
+
+
+@pytest.mark.parametrize("crs", [None, object(), [], "not-a-crs"])
+def test_malformed_crs_inputs_raise_controlled_error(
+    square: Polygon,
+    crs: object,
+) -> None:
+    with pytest.raises(MetricCrsError):
+        area_m2(square, crs)  # type: ignore[arg-type]

@@ -4,8 +4,10 @@ import re
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from hashlib import sha256
+from math import isfinite
+from numbers import Real
 from pathlib import Path
-from shutil import copyfileobj
+from shutil import copy2, copyfileobj
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -36,12 +38,13 @@ def _department_code(commune_code: str) -> str:
 
 
 def build_cadastre_parcelles_url(commune_code: str) -> str:
-    normalized = commune_code.strip().upper()
-    if re.fullmatch(r"[0-9A-Z]{5}", normalized) is None:
-        raise ValueError("Commune code must contain exactly 5 letters or digits")
-    department = _department_code(normalized)
-    filename = f"cadastre-{normalized}-parcelles.json.gz"
-    return f"{CADASTRE_BASE_URL}/{department}/{normalized}/{filename}"
+    if not isinstance(commune_code, str):
+        raise TypeError("Commune code must be an exact string")
+    if re.fullmatch(r"(?:\d{5}|2[AB]\d{3})", commune_code) is None:
+        raise ValueError("Commune code must be a canonical French INSEE code")
+    department = _department_code(commune_code)
+    filename = f"cadastre-{commune_code}-parcelles.json.gz"
+    return f"{CADASTRE_BASE_URL}/{department}/{commune_code}/{filename}"
 
 
 def _sha256(path: Path) -> str:
@@ -74,9 +77,13 @@ def _load_cached_download(
         return None
     try:
         metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        if not isinstance(metadata, dict):
+            return None
         file_size = archive_path.stat().st_size
         checksum = _sha256(archive_path)
-        download_timestamp = str(metadata["download_timestamp"])
+        download_timestamp = metadata["download_timestamp"]
+        if not isinstance(download_timestamp, str):
+            return None
         downloaded_at = datetime.fromisoformat(download_timestamp)
         if downloaded_at.tzinfo is None:
             return None
@@ -87,9 +94,15 @@ def _load_cached_download(
             file_size > 0
             and 0 <= age_seconds <= max_cache_age_hours * 3600
             and _is_valid_gzip(archive_path)
+            and type(metadata["source_url"]) is str
             and metadata["source_url"] == source_url
+            and type(metadata["filename"]) is str
             and metadata["filename"] == archive_path.name
+            and type(metadata["file_size"]) is int
+            and metadata["file_size"] > 0
             and metadata["file_size"] == file_size
+            and type(metadata["sha256"]) is str
+            and re.fullmatch(r"[0-9a-f]{64}", metadata["sha256"]) is not None
             and metadata["sha256"] == checksum
         )
         if not valid:
@@ -107,13 +120,62 @@ def _load_cached_download(
         return None
 
 
+def _replace_file(source: Path, target: Path) -> None:
+    source.replace(target)
+
+
+def _publish_cache_pair(
+    temporary_archive: Path,
+    temporary_metadata: Path,
+    archive_path: Path,
+    metadata_path: Path,
+) -> None:
+    archive_backup = archive_path.with_suffix(f"{archive_path.suffix}.bak")
+    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    archive_existed = archive_path.is_file()
+    metadata_existed = metadata_path.is_file()
+    archive_backup.unlink(missing_ok=True)
+    metadata_backup.unlink(missing_ok=True)
+    try:
+        if archive_existed:
+            copy2(archive_path, archive_backup)
+        if metadata_existed:
+            copy2(metadata_path, metadata_backup)
+        _replace_file(temporary_archive, archive_path)
+        try:
+            _replace_file(temporary_metadata, metadata_path)
+        except OSError:
+            if archive_existed:
+                _replace_file(archive_backup, archive_path)
+            else:
+                archive_path.unlink(missing_ok=True)
+            if metadata_existed and not metadata_path.is_file():
+                _replace_file(metadata_backup, metadata_path)
+            raise
+    finally:
+        archive_backup.unlink(missing_ok=True)
+        metadata_backup.unlink(missing_ok=True)
+
+
 def download_cadastre_parcelles(
     commune_code: str,
     cache_dir: Path = DEFAULT_CACHE_DIR,
     timeout: float = 60.0,
     max_cache_age_hours: float = 168.0,
 ) -> CadastreDownload:
-    if max_cache_age_hours < 0:
+    if (
+        isinstance(timeout, bool)
+        or not isinstance(timeout, Real)
+        or not isfinite(float(timeout))
+        or timeout <= 0
+    ):
+        raise ValueError("timeout must be a strict finite positive number")
+    if (
+        isinstance(max_cache_age_hours, bool)
+        or not isinstance(max_cache_age_hours, Real)
+        or not isfinite(float(max_cache_age_hours))
+        or max_cache_age_hours < 0
+    ):
         raise ValueError("max_cache_age_hours must be non-negative")
     source_url = build_cadastre_parcelles_url(commune_code)
     filename = source_url.rsplit("/", maxsplit=1)[-1]
@@ -127,6 +189,7 @@ def download_cadastre_parcelles(
 
     cache_dir.mkdir(parents=True, exist_ok=True)
     temporary_archive = archive_path.with_suffix(f"{archive_path.suffix}.part")
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
     request = Request(source_url, headers={"User-Agent": "LandScout-AI/0.1"})
     try:
         with (
@@ -136,7 +199,6 @@ def download_cadastre_parcelles(
             copyfileobj(response, output)
         if not _is_valid_gzip(temporary_archive):
             raise CadastreDownloadError("Downloaded cadastre archive is not valid gzip")
-        temporary_archive.replace(archive_path)
     except (HTTPError, URLError, OSError) as error:
         temporary_archive.unlink(missing_ok=True)
         raise CadastreDownloadError(f"Cadastre download failed: {source_url}") from error
@@ -148,17 +210,29 @@ def download_cadastre_parcelles(
         source_url=source_url,
         download_timestamp=datetime.now(UTC).isoformat(),
         filename=filename,
-        file_size=archive_path.stat().st_size,
-        sha256=_sha256(archive_path),
+        file_size=temporary_archive.stat().st_size,
+        sha256=_sha256(temporary_archive),
         path=archive_path,
         cache_hit=False,
     )
     metadata = asdict(result)
     metadata.pop("path")
     metadata.pop("cache_hit")
-    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
-    temporary_metadata.write_text(
-        json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
-    temporary_metadata.replace(metadata_path)
+    try:
+        temporary_metadata.write_text(
+            json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        _publish_cache_pair(
+            temporary_archive,
+            temporary_metadata,
+            archive_path,
+            metadata_path,
+        )
+    except OSError as error:
+        raise CadastreDownloadError(
+            f"Cadastre cache publication failed: {source_url}"
+        ) from error
+    finally:
+        temporary_archive.unlink(missing_ok=True)
+        temporary_metadata.unlink(missing_ok=True)
     return result

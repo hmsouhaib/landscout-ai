@@ -19,7 +19,9 @@ from pyproj import CRS
 from landscout.sources.ign_bdtopo_fr import (
     DepartmentCode,
     EditionString,
+    IgnBdTopoDownload,
     IgnBdTopoElectricityData,
+    IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
 )
 
@@ -610,6 +612,15 @@ def _validate_layer_summary(
         raise IgnGridNormalizationError(
             f"IGN {expected_logical_name} summary row count does not match frame"
         )
+    observed_columns = tuple(str(column) for column in frame.columns)
+    observed_dtypes = tuple(
+        (str(column), str(dtype)) for column, dtype in frame.dtypes.items()
+    )
+    if summary.columns != observed_columns or summary.dtypes != observed_dtypes:
+        raise IgnGridNormalizationError(
+            f"IGN {expected_logical_name} summary schema columns or dtypes "
+            "do not match frame"
+        )
     if frame.active_geometry_name != "geometry":
         raise IgnGridNormalizationError(
             f"IGN {expected_logical_name} requires an active geometry column"
@@ -663,6 +674,50 @@ def _validate_archive_identity(source: IgnBdTopoElectricityData) -> None:
 
 
 def _validate_source_bundle(source: IgnBdTopoElectricityData) -> None:
+    if type(source) is not IgnBdTopoElectricityData:
+        raise IgnGridNormalizationError(
+            "IGN electricity source must be IgnBdTopoElectricityData"
+        )
+    if type(source.extraction) is not IgnBdTopoExtraction:
+        raise IgnGridNormalizationError("IGN electricity extraction type is invalid")
+    if type(source.extraction.archive) is not IgnBdTopoDownload:
+        raise IgnGridNormalizationError("IGN electricity archive type is invalid")
+    if type(source.electric_lines_summary) is not IgnBdTopoLayerSummary or type(
+        source.transformation_posts_summary
+    ) is not IgnBdTopoLayerSummary:
+        raise IgnGridNormalizationError("IGN electricity summary type is invalid")
+    if not isinstance(source.electric_lines, gpd.GeoDataFrame) or not isinstance(
+        source.transformation_posts, gpd.GeoDataFrame
+    ):
+        raise IgnGridNormalizationError(
+            "IGN electricity layers must be GeoDataFrames"
+        )
+    extraction = source.extraction
+    layer_names = extraction.all_layer_names
+    if (
+        type(layer_names) is not tuple
+        or not layer_names
+        or any(
+            not isinstance(name, str) or not name or name != name.strip()
+            for name in layer_names
+        )
+        or len(set(layer_names)) != len(layer_names)
+    ):
+        raise IgnGridNormalizationError(
+            "IGN electricity layer inventory must be a unique non-empty tuple"
+        )
+    selected_layers = (
+        extraction.electric_lines_layer,
+        extraction.transformation_posts_layer,
+    )
+    if any(layer not in layer_names for layer in selected_layers):
+        raise IgnGridNormalizationError(
+            "IGN electricity selected layer is absent from the layer inventory"
+        )
+    if selected_layers[0] == selected_layers[1]:
+        raise IgnGridNormalizationError(
+            "IGN electricity roles must use distinct layers, not the same layer"
+        )
     _validate_archive_identity(source)
     roles = (
         source.spatial_role,
@@ -710,18 +765,25 @@ def normalize_ign_electricity(
 ) -> NormalizedIgnElectricityData:
     """Validate and normalize a complete already-loaded IGN source bundle."""
 
-    _validate_source_bundle(source)
-    line_context = _source_context(
-        source, source.extraction.electric_lines_layer
-    )
-    post_context = _source_context(
-        source, source.extraction.transformation_posts_layer
-    )
-    return NormalizedIgnElectricityData(
-        electric_lines=_normalize_ign_electric_lines(
-            source.electric_lines, line_context
-        ),
-        transformation_posts=_normalize_ign_transformation_posts(
-            source.transformation_posts, post_context
-        ),
-    )
+    try:
+        _validate_source_bundle(source)
+        line_context = _source_context(
+            source, source.extraction.electric_lines_layer
+        )
+        post_context = _source_context(
+            source, source.extraction.transformation_posts_layer
+        )
+        return NormalizedIgnElectricityData(
+            electric_lines=_normalize_ign_electric_lines(
+                source.electric_lines, line_context
+            ),
+            transformation_posts=_normalize_ign_transformation_posts(
+                source.transformation_posts, post_context
+            ),
+        )
+    except IgnGridNormalizationError:
+        raise
+    except Exception as error:
+        raise IgnGridNormalizationError(
+            "IGN electricity source cannot be normalized safely"
+        ) from error

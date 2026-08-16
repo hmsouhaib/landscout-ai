@@ -55,6 +55,7 @@ from landscout.stages.enrich_planning_features import (
 )
 from landscout.stages.enrich_planning_zoning import (
     intersect_parcels_with_gpu_zoning,
+    validate_normalized_planning_zoning_inputs,
 )
 from landscout.stages.enrich_shape import ShapeEnrichmentError, enrich_parcel_shapes
 from landscout.stages.filter_parcels import (
@@ -205,6 +206,7 @@ __all__ = [
     "validate_bess_planning_feature_policy_result_envelope",
     "validate_bess_zoning_precheck",
     "validate_normalized_planning_feature_inputs",
+    "validate_normalized_planning_zoning_inputs",
     "validate_planning_feature_code_result",
     "validate_planning_feature_code_result_envelope",
     "validate_planning_regulation_index",

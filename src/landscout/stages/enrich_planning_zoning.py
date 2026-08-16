@@ -6,7 +6,7 @@ urban-planning interpretation, BESS compatibility policy, rejection, or score.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from math import isfinite
 from numbers import Real
 
@@ -25,10 +25,18 @@ from shapely import (
     intersection as shapely_intersection,
 )
 
-from landscout.sources.gpu_fr import GpuPlanningDocument
+from landscout.common.frame_integrity import deterministic_frame_schema_signature
+from landscout.sources.gpu_fr import (
+    GpuPlanningDocument,
+    GpuSpatialInspectionError,
+    revalidate_gpu_spatial_layer_sources,
+)
 from landscout.stages.planning_overlay import technical_overlay_tolerance
 
-__all__ = ["intersect_parcels_with_gpu_zoning"]
+__all__ = [
+    "intersect_parcels_with_gpu_zoning",
+    "validate_normalized_planning_zoning_inputs",
+]
 
 CALCULATION_CRS = "EPSG:2154"
 
@@ -739,6 +747,118 @@ def _validate_result(
     coverage = output["zoning_coverage_pct"].to_numpy(dtype="float64")
     if (coverage > 100.0).any():
         raise PlanningZoningError("Parcel zoning coverage must not exceed 100 percent")
+
+
+def _compare_exact_frame(
+    supplied: pd.DataFrame,
+    expected: pd.DataFrame,
+    label: str,
+) -> None:
+    try:
+        if type(supplied) is not type(expected):
+            raise PlanningZoningError(f"{label} frame type differs from reconstruction")
+        if deterministic_frame_schema_signature(
+            supplied
+        ) != deterministic_frame_schema_signature(expected):
+            raise PlanningZoningError(f"{label} schema differs from reconstruction")
+        if isinstance(expected, gpd.GeoDataFrame):
+            geometry_column = expected.geometry.name
+            attributes = [
+                column for column in expected.columns if column != geometry_column
+            ]
+            if not supplied[attributes].equals(expected[attributes]):
+                raise PlanningZoningError(
+                    f"{label} values or row order differ from reconstruction"
+                )
+            if supplied.geometry.to_wkb().tolist() != expected.geometry.to_wkb().tolist():
+                raise PlanningZoningError(
+                    f"{label} geometry or row order differs from reconstruction"
+                )
+        elif not supplied.equals(expected):
+            raise PlanningZoningError(
+                f"{label} values or row order differ from reconstruction"
+            )
+    except PlanningZoningError:
+        raise
+    except Exception as error:
+        raise PlanningZoningError(
+            f"{label} cannot be compared safely with its reconstruction"
+        ) from error
+
+
+def validate_normalized_planning_zoning_inputs(
+    planning_document: GpuPlanningDocument,
+    parcels: gpd.GeoDataFrame,
+    zones: gpd.GeoDataFrame,
+    zoning_intersections: pd.DataFrame,
+) -> None:
+    """Prove normalized zoning facts against a freshly read physical GPU layer."""
+
+    try:
+        if type(planning_document) is not GpuPlanningDocument:
+            raise PlanningZoningError(
+                "planning_document must be exactly a GpuPlanningDocument"
+            )
+        if not isinstance(parcels, gpd.GeoDataFrame):
+            raise PlanningZoningError("Zoning parcels must be a GeoDataFrame")
+        if not isinstance(zones, gpd.GeoDataFrame):
+            raise PlanningZoningError("Normalized zones must be a GeoDataFrame")
+        if not isinstance(zoning_intersections, pd.DataFrame) or isinstance(
+            zoning_intersections, gpd.GeoDataFrame
+        ):
+            raise PlanningZoningError(
+                "Zoning intersections must be a non-geospatial DataFrame"
+            )
+        validated_sources = revalidate_gpu_spatial_layer_sources(
+            planning_document,
+            (planning_document.zoning,),
+        )
+        if len(validated_sources) != 1 or (
+            validated_sources[0].logical_name != "zoning"
+        ):
+            raise PlanningZoningError(
+                "Physical GPU zoning validation returned an invalid layer"
+            )
+        fresh_zoning = replace(
+            planning_document.zoning,
+            data=validated_sources[0].data,
+        )
+        fresh_document = replace(planning_document, zoning=fresh_zoning)
+        present_summary_columns = tuple(
+            column for column in PARCEL_ZONING_OUTPUT_COLUMNS if column in parcels.columns
+        )
+        source_parcels = parcels.drop(columns=list(present_summary_columns)).copy()
+        expected = intersect_parcels_with_gpu_zoning(
+            source_parcels,
+            fresh_document,
+        )
+        _compare_exact_frame(zones, expected.zones, "Normalized zoning catalog")
+        _compare_exact_frame(
+            zoning_intersections,
+            expected.intersections,
+            "Parcel/zoning intersections",
+        )
+        if not parcels.index.equals(expected.parcels.index):
+            raise PlanningZoningError(
+                "Parcel zoning index differs from spatial reconstruction"
+            )
+        for column in present_summary_columns:
+            supplied = parcels[column]
+            rebuilt = expected.parcels[column]
+            if str(supplied.dtype) != str(rebuilt.dtype) or not supplied.equals(rebuilt):
+                raise PlanningZoningError(
+                    f"Parcel zoning summary differs from reconstruction: {column}"
+                )
+    except PlanningZoningError:
+        raise
+    except GpuSpatialInspectionError as error:
+        raise PlanningZoningError(
+            "Physical GPU zoning source failed revalidation"
+        ) from error
+    except Exception as error:
+        raise PlanningZoningError(
+            "Normalized planning zoning inputs cannot be validated safely"
+        ) from error
 
 
 def intersect_parcels_with_gpu_zoning(

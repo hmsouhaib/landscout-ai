@@ -1,4 +1,5 @@
 from math import isfinite
+from numbers import Real
 
 import geopandas as gpd  # type: ignore[import-untyped]
 from shapely.errors import GEOSException  # type: ignore[import-untyped]
@@ -25,6 +26,10 @@ class ShapeEnrichmentError(ValueError):
 
 
 def enrich_parcel_shapes(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    if not isinstance(parcels, gpd.GeoDataFrame):
+        raise ShapeEnrichmentError("Candidate parcels must be a GeoDataFrame")
+    if parcels.columns.duplicated().any():
+        raise ShapeEnrichmentError("Candidate parcel columns must be unique")
     missing_columns = REQUIRED_COLUMNS - set(parcels.columns)
     if missing_columns:
         formatted = ", ".join(sorted(missing_columns))
@@ -35,10 +40,32 @@ def enrich_parcel_shapes(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         raise ShapeEnrichmentError("Candidate parcels must use EPSG:4326")
     if parcels.active_geometry_name != "geometry":
         raise ShapeEnrichmentError("An active geometry column is required")
-    if parcels["parcel_id"].isna().any():
+    identifiers = parcels["parcel_id"]
+    if identifiers.isna().any():
         raise ShapeEnrichmentError("parcel_id values must not be null")
-    if parcels["parcel_id"].duplicated().any():
+    if any(
+        not isinstance(identifier, str)
+        or not identifier
+        or identifier != identifier.strip()
+        for identifier in identifiers
+    ):
+        raise ShapeEnrichmentError(
+            "parcel_id values must be exact non-empty strings"
+        )
+    if identifiers.duplicated().any():
         raise ShapeEnrichmentError("parcel_id values must be unique")
+    valid_geometry = parcels["geometry_status"] == "VALID"
+    if any(
+        isinstance(value, bool)
+        or not isinstance(value, Real)
+        or not isfinite(float(value))
+        or float(value) <= 0
+        for value in parcels.loc[valid_geometry, "area_m2"]
+    ):
+        raise ShapeEnrichmentError(
+            "area_m2 must be a strict positive finite numeric value when "
+            "geometry_status is VALID"
+        )
 
     output = parcels.reset_index(drop=True).copy()
     output["shape_status"] = "ERROR"
@@ -47,7 +74,7 @@ def enrich_parcel_shapes(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     measurable = (
         (output["geometry_status"] == "VALID")
-        & output.geometry.notna()
+        & ~output.geometry.isna()
         & ~output.geometry.is_empty
         & output.geometry.is_valid
         & output.geometry.geom_type.isin(SUPPORTED_GEOMETRY_TYPES)

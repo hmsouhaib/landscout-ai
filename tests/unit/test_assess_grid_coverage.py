@@ -1,4 +1,5 @@
 from copy import deepcopy
+from dataclasses import replace
 
 import geopandas as gpd
 import pytest
@@ -39,18 +40,21 @@ def _coverage(
         {
             "code_insee": ["31"],
             "nom_officiel": ["Haute-Garonne"],
-            "source_provider": ["IGN"],
-            "source_product": ["BD TOPO"],
-            "source_department_code": ["31"],
-            "source_edition": [EDITION],
-            "source_product_version": ["3.5"],
-            "source_archive_sha256": [ARCHIVE_SHA256],
-            "source_layer": ["departement"],
-            "spatial_role": [spatial_role],
         },
         geometry=[geometry],
         crs=crs,
     )
+    for column, value in {
+        "source_provider": "IGN",
+        "source_product": "BD TOPO",
+        "source_department_code": "31",
+        "source_edition": EDITION,
+        "source_product_version": "3.5",
+        "source_archive_sha256": ARCHIVE_SHA256,
+        "source_layer": "departement",
+        "spatial_role": spatial_role,
+    }.items():
+        frame[column] = value
     geometry_type = () if geometry is None else (geometry.geom_type,)
     non_null_geometry = ~frame.geometry.isna()
     non_empty_geometry = non_null_geometry & ~frame.geometry.is_empty
@@ -60,7 +64,10 @@ def _coverage(
         source_feature_count=1,
         selected_feature_count=1,
         columns=("code_insee", "nom_officiel", "geometry"),
-        dtypes=tuple((str(column), str(dtype)) for column, dtype in frame.dtypes.items()),
+        dtypes=tuple(
+            (str(column), str(frame[column].dtype))
+            for column in ("code_insee", "nom_officiel", "geometry")
+        ),
         null_geometry_count=int(frame.geometry.isna().sum()),
         empty_geometry_count=int(
             (non_null_geometry & frame.geometry.is_empty).sum()
@@ -397,3 +404,111 @@ def test_proximity_and_coverage_package_lineage_must_match() -> None:
 
     with pytest.raises(GridCoverageAssessmentError, match="lineage"):
         assess_grid_coverage(proximity, coverage)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [("source_provider", "arbitrary"), ("source_product", "roads")],
+)
+def test_coverage_rejects_arbitrary_source_identity(field: str, value: str) -> None:
+    coverage = replace(_coverage(), **{field: value})
+    coverage.coverage.loc[0, field] = value
+
+    with pytest.raises(GridCoverageAssessmentError, match="provider|product|identity"):
+        assess_grid_coverage(_proximity(), coverage)
+
+
+@pytest.mark.parametrize("selected_count", [0, 2])
+def test_coverage_summary_selected_count_must_match_frame(
+    selected_count: int,
+) -> None:
+    coverage = _coverage()
+    summary = replace(
+        coverage.summary,
+        selected_feature_count=selected_count,
+    )
+
+    with pytest.raises(GridCoverageAssessmentError, match="selected|count"):
+        assess_grid_coverage(_proximity(), replace(coverage, summary=summary))
+
+
+@pytest.mark.parametrize("mutation", ["missing", "extra", "reordered", "dtype"])
+def test_coverage_summary_schema_must_match_selected_source_columns(
+    mutation: str,
+) -> None:
+    coverage = _coverage()
+    summary = coverage.summary
+    if mutation == "missing":
+        changed = replace(summary, columns=summary.columns[:-1])
+    elif mutation == "extra":
+        changed = replace(summary, columns=(*summary.columns, "invented"))
+    elif mutation == "reordered":
+        changed = replace(summary, columns=tuple(reversed(summary.columns)))
+    else:
+        dtypes = list(summary.dtypes)
+        dtypes[0] = (dtypes[0][0], "float64")
+        changed = replace(summary, dtypes=tuple(dtypes))
+
+    with pytest.raises(GridCoverageAssessmentError, match="summary|column|dtype|schema"):
+        assess_grid_coverage(_proximity(), replace(coverage, summary=changed))
+
+
+def test_coverage_summary_crs_must_match_frame() -> None:
+    coverage = _coverage()
+    summary = replace(coverage.summary, crs="EPSG:4326")
+
+    with pytest.raises(GridCoverageAssessmentError, match="CRS|2154"):
+        assess_grid_coverage(_proximity(), replace(coverage, summary=summary))
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("null_geometry_count", 1),
+        ("empty_geometry_count", 1),
+        ("invalid_geometry_count", 1),
+        ("geometry_types", ("Point",)),
+    ],
+)
+def test_coverage_summary_geometry_facts_are_validated(
+    field: str,
+    value: object,
+) -> None:
+    coverage = _coverage()
+    summary = replace(coverage.summary, **{field: value})
+
+    with pytest.raises(GridCoverageAssessmentError, match="geometry|summary"):
+        assess_grid_coverage(_proximity(), replace(coverage, summary=summary))
+
+
+def test_coverage_summary_selected_department_must_match() -> None:
+    coverage = _coverage()
+    summary = replace(coverage.summary, selected_department_code="32")
+
+    with pytest.raises(GridCoverageAssessmentError, match="department"):
+        assess_grid_coverage(_proximity(), replace(coverage, summary=summary))
+
+
+@pytest.mark.parametrize("field", ["", " ", "missing"])
+def test_coverage_summary_department_field_must_be_exact(field: str) -> None:
+    coverage = _coverage()
+    summary = replace(coverage.summary, department_code_field=field)
+
+    with pytest.raises(GridCoverageAssessmentError, match="department|field"):
+        assess_grid_coverage(_proximity(), replace(coverage, summary=summary))
+
+
+def test_coverage_summary_source_count_cannot_be_smaller_than_selection() -> None:
+    coverage = _coverage()
+    summary = replace(coverage.summary, source_feature_count=0)
+
+    with pytest.raises(GridCoverageAssessmentError, match="source|count"):
+        assess_grid_coverage(_proximity(), replace(coverage, summary=summary))
+
+
+def test_coverage_source_layer_lineage_must_match_summary_and_frame() -> None:
+    coverage = _coverage()
+    summary = replace(coverage.summary, source_layer_name="unknown_layer")
+
+    with pytest.raises(GridCoverageAssessmentError, match="layer|lineage"):
+        assess_grid_coverage(_proximity(), replace(coverage, summary=summary))

@@ -1,4 +1,6 @@
 import geopandas as gpd  # type: ignore[import-untyped]
+import numpy as np
+from pyproj import CRS
 
 from landscout.geo.crs import LAMBERT93, WGS84
 
@@ -23,9 +25,17 @@ class CadastreNormalizationError(ValueError):
 
 
 def normalize_cadastre_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    if not isinstance(parcels, gpd.GeoDataFrame):
+        raise CadastreNormalizationError("Cadastre input must be a GeoDataFrame")
+    if parcels.columns.duplicated().any():
+        raise CadastreNormalizationError("Cadastre input columns must be unique")
     if parcels.crs is None:
         raise CadastreNormalizationError("Cadastre input CRS is required")
-    if parcels.crs != WGS84:
+    try:
+        source_crs = CRS.from_user_input(parcels.crs)
+    except Exception as error:
+        raise CadastreNormalizationError("Cadastre input CRS is unreadable") from error
+    if not source_crs.equals(CRS.from_user_input(WGS84)):
         raise CadastreNormalizationError("Cadastre source geometry must use EPSG:4326")
 
     missing_columns = REQUIRED_IDENTITY_COLUMNS - set(parcels.columns)
@@ -36,12 +46,31 @@ def normalize_cadastre_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         )
     if parcels["id"].isna().any():
         raise CadastreNormalizationError("parcel_id values must not be null")
+    identifiers = parcels["id"].tolist()
+    if any(
+        not isinstance(identifier, str)
+        or not identifier
+        or identifier != identifier.strip()
+        for identifier in identifiers
+    ):
+        raise CadastreNormalizationError(
+            "parcel_id values must be non-empty exact strings"
+        )
     if parcels["id"].duplicated().any():
         raise CadastreNormalizationError("parcel_id values must be unique")
 
     geometry_column = parcels.active_geometry_name
     if geometry_column is None or geometry_column not in parcels.columns:
         raise CadastreNormalizationError("Cadastre geometry column is required")
+    non_null_geometry = parcels.geometry.dropna()
+    unsupported = sorted(
+        set(non_null_geometry.geom_type.dropna()) - {"Polygon", "MultiPolygon"}
+    )
+    if unsupported:
+        raise CadastreNormalizationError(
+            "Cadastre geometry must be Polygon or MultiPolygon; found: "
+            + ", ".join(unsupported)
+        )
 
     normalized = parcels.rename(columns=FIELD_MAPPING).copy()
     for output_column in FIELD_MAPPING.values():
@@ -49,7 +78,7 @@ def normalize_cadastre_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
             normalized[output_column] = None
 
     valid_geometry = (
-        normalized.geometry.notna()
+        ~normalized.geometry.isna()
         & ~normalized.geometry.is_empty
         & normalized.geometry.is_valid
     )
@@ -58,6 +87,13 @@ def normalize_cadastre_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     normalized["area_m2"] = float("nan")
     projected = normalized.loc[valid_geometry].to_crs(LAMBERT93)
     normalized.loc[valid_geometry, "area_m2"] = projected.geometry.area
+    valid_areas = normalized.loc[valid_geometry, "area_m2"].to_numpy(
+        dtype="float64"
+    )
+    if not np.isfinite(valid_areas).all() or (valid_areas <= 0).any():
+        raise CadastreNormalizationError(
+            "VALID cadastre parcel areas must be finite and positive"
+        )
 
     output_columns = [
         *FIELD_MAPPING.values(),

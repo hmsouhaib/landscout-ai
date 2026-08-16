@@ -525,6 +525,74 @@ def test_invalid_geojson_download_is_rejected(
     assert not list(tmp_path.glob("*.geojson"))
 
 
+@pytest.mark.parametrize(
+    "feature",
+    [
+        123,
+        "feature",
+        {"geometry": None},
+        {"type": "NotFeature", "geometry": None},
+        {"type": "Feature", "geometry": {}},
+        {"type": "Feature", "geometry": {"type": ""}},
+        {"type": "Feature", "geometry": {"type": "SOMETHING_RANDOM"}},
+        {"type": "Feature", "geometry": {"type": "Point"}},
+        {"type": "Feature", "geometry": {"type": "GeometryCollection"}},
+        {"type": "Feature", "geometry": 123},
+    ],
+)
+def test_malformed_geojson_feature_or_geometry_is_rejected(
+    tmp_path: Path,
+    feature: object,
+) -> None:
+    path = tmp_path / "malformed.geojson"
+    path.write_text(
+        json.dumps({"type": "FeatureCollection", "features": [feature]}),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RteOdreDownloadError):
+        rte_odre_fr._validate_geojson(path)
+
+
+def test_standard_geojson_geometry_types_are_summarized(tmp_path: Path) -> None:
+    coordinate_types = {
+        "Point": [1, 2],
+        "MultiPoint": [[1, 2]],
+        "LineString": [[1, 2], [2, 3]],
+        "MultiLineString": [[[1, 2], [2, 3]]],
+        "Polygon": [[[1, 2], [2, 3], [1, 2]]],
+        "MultiPolygon": [[[[1, 2], [2, 3], [1, 2]]]],
+    }
+    features = [
+        {
+            "type": "Feature",
+            "geometry": {"type": geometry_type, "coordinates": coordinates},
+        }
+        for geometry_type, coordinates in coordinate_types.items()
+    ]
+    features.extend(
+        [
+            {
+                "type": "Feature",
+                "geometry": {"type": "GeometryCollection", "geometries": []},
+            },
+            {"type": "Feature", "geometry": None},
+        ]
+    )
+    path = tmp_path / "valid.geojson"
+    path.write_text(
+        json.dumps({"type": "FeatureCollection", "features": features}),
+        encoding="utf-8",
+    )
+
+    summary = rte_odre_fr._validate_geojson(path)
+
+    assert summary.feature_count == 8
+    assert summary.null_geometry_count == 1
+    assert summary.non_null_geometry_count == 7
+    assert summary.geometry_types == tuple(sorted((*coordinate_types, "GeometryCollection")))
+
+
 def test_null_feature_geometries_are_accepted(
     tmp_path: Path, source_config: RteOdreSourceConfig
 ) -> None:

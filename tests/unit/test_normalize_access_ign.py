@@ -214,7 +214,12 @@ def _source(frame: gpd.GeoDataFrame | None = None) -> IgnBdTopoRoadData:
         extraction_path=Path("cache/x/source"),
         geopackage_path=Path("cache/x/source/data.gpkg"),
         geopackage_filename="data.gpkg",
-        all_layer_names=("other_layer", ROAD_LAYER),
+        all_layer_names=(
+            "other_layer",
+            "ligne_electrique",
+            "poste_de_transformation",
+            ROAD_LAYER,
+        ),
         electric_lines_layer="ligne_electrique",
         transformation_posts_layer="poste_de_transformation",
         cache_hit=True,
@@ -458,6 +463,54 @@ def test_summary_crs_mismatch_is_rejected() -> None:
 
     with pytest.raises(IgnRoadNormalizationError, match="CRS|2154"):
         normalize_ign_roads(replace(source, road_segments_summary=summary))
+
+
+@pytest.mark.parametrize("mutation", ["missing", "extra", "reordered", "dtype"])
+def test_forged_ordered_summary_schema_is_rejected(mutation: str) -> None:
+    source = _source()
+    summary = source.road_segments_summary
+    if mutation == "missing":
+        changed = replace(summary, columns=summary.columns[:-1])
+    elif mutation == "extra":
+        changed = replace(summary, columns=(*summary.columns, "invented"))
+    elif mutation == "reordered":
+        changed = replace(summary, columns=tuple(reversed(summary.columns)))
+    else:
+        dtypes = list(summary.dtypes)
+        dtypes[0] = (dtypes[0][0], "float64")
+        changed = replace(summary, dtypes=tuple(dtypes))
+
+    with pytest.raises(IgnRoadNormalizationError, match="schema|columns|dtype"):
+        normalize_ign_roads(replace(source, road_segments_summary=changed))
+
+
+@pytest.mark.parametrize("role", ["electric", "post"])
+def test_road_source_rejects_physical_role_collision(role: str) -> None:
+    source = _source()
+    selected = (
+        source.extraction.electric_lines_layer
+        if role == "electric"
+        else source.extraction.transformation_posts_layer
+    )
+    summary = replace(source.road_segments_summary, source_layer_name=selected)
+    with pytest.raises(IgnRoadNormalizationError, match="same layer|distinct|role"):
+        normalize_ign_roads(
+            replace(
+                source,
+                road_segments_summary=summary,
+            )
+        )
+
+
+def test_road_source_rejects_duplicate_layer_inventory() -> None:
+    source = _source()
+    extraction = replace(
+        source.extraction,
+        all_layer_names=(*source.extraction.all_layer_names, ROAD_LAYER),
+    )
+
+    with pytest.raises(IgnRoadNormalizationError, match="inventory|duplicate"):
+        normalize_ign_roads(replace(source, extraction=extraction))
 
 
 @pytest.mark.parametrize(
