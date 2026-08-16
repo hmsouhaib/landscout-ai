@@ -8,11 +8,20 @@ from pathlib import Path
 from shutil import copy2, copyfileobj
 from typing import Annotated, Any, Literal
 from urllib.error import HTTPError, URLError
-from urllib.parse import quote
-from urllib.request import Request, urlopen
+from urllib.parse import quote, urlsplit
 
 import yaml  # type: ignore[import-untyped]
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl, StringConstraints
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    HttpUrl,
+    StringConstraints,
+    ValidationError,
+    field_validator,
+)
+
+from landscout.common.safe_http import open_safe_https
 
 DEFAULT_CONFIG_PATH = Path("configs/sources/rte_odre_fr.yaml")
 DEFAULT_CACHE_DIR = Path("data/cache/rte_odre")
@@ -69,6 +78,23 @@ class RteOdreApiConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     base_url: HttpUrl
+
+    @field_validator("base_url")
+    @classmethod
+    def _official_api_origin(cls, value: HttpUrl) -> HttpUrl:
+        parsed = urlsplit(str(value))
+        if (
+            parsed.scheme != "https"
+            or parsed.hostname != "odre.opendatasoft.com"
+            or parsed.port not in {None, 443}
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.path.rstrip("/") != "/api/explore/v2.1"
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError("RTE/ODRE API must use the exact official HTTPS origin")
+        return value
 
 
 class RteOdreCacheConfig(BaseModel):
@@ -164,6 +190,17 @@ def load_rte_odre_source_config(
     return RteOdreSourceConfig.model_validate(content)
 
 
+def _validated_source_config(config: object) -> RteOdreSourceConfig:
+    try:
+        if type(config) is not RteOdreSourceConfig:
+            raise TypeError("RTE/ODRE source config type is invalid")
+        return RteOdreSourceConfig.model_validate(config.model_dump(mode="python"))
+    except (AttributeError, TypeError, ValidationError, ValueError) as error:
+        raise RteOdreDownloadError(
+            "RTE/ODRE source config no longer satisfies the official origin contract"
+        ) from error
+
+
 def _get_dataset_config(
     config: RteOdreSourceConfig, logical_name: LogicalDatasetName
 ) -> RteDatasetConfig:
@@ -188,15 +225,19 @@ def _dataset_api_url(
 def build_rte_odre_metadata_url(
     config: RteOdreSourceConfig, logical_name: LogicalDatasetName
 ) -> str:
-    return _dataset_api_url(config, logical_name, "")
+    validated_config = _validated_source_config(config)
+    return _dataset_api_url(validated_config, logical_name, "")
 
 
 def build_rte_odre_export_url(
     config: RteOdreSourceConfig, logical_name: LogicalDatasetName
 ) -> str:
-    dataset = _get_dataset_config(config, logical_name)
+    validated_config = _validated_source_config(config)
+    dataset = _get_dataset_config(validated_config, logical_name)
     export_format = quote(dataset.preferred_format, safe="")
-    return _dataset_api_url(config, logical_name, f"/exports/{export_format}")
+    return _dataset_api_url(
+        validated_config, logical_name, f"/exports/{export_format}"
+    )
 
 
 def _optional_string(mapping: dict[str, Any], key: str) -> str | None:
@@ -217,9 +258,12 @@ def _metadata_precision_status(description: str | None) -> GeometryPrecisionStat
 
 
 def _read_response_json(source_url: str, timeout: float) -> dict[str, Any]:
-    request = Request(source_url, headers={"User-Agent": "LandScout-AI/0.1"})
     try:
-        with urlopen(request, timeout=timeout) as response:
+        with open_safe_https(
+            source_url,
+            timeout=timeout,
+            headers={"User-Agent": "LandScout-AI/0.1"},
+        ) as response:
             payload = json.loads(response.read().decode("utf-8"))
     except (HTTPError, URLError, OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
         raise RteOdreDownloadError(f"RTE/ODRE request failed: {source_url}") from error
@@ -235,8 +279,9 @@ def fetch_rte_odre_dataset_metadata(
     logical_name: LogicalDatasetName,
     timeout: float = 60.0,
 ) -> RteOdreDatasetMetadata:
-    dataset = _get_dataset_config(config, logical_name)
-    metadata_url = build_rte_odre_metadata_url(config, logical_name)
+    validated_config = _validated_source_config(config)
+    dataset = _get_dataset_config(validated_config, logical_name)
+    metadata_url = _dataset_api_url(validated_config, logical_name, "")
     payload = _read_response_json(metadata_url, timeout)
     response_dataset_id = payload.get("dataset_id")
     if response_dataset_id != dataset.dataset_id:
@@ -593,13 +638,21 @@ def download_rte_odre_dataset(
     cache_dir: Path = DEFAULT_CACHE_DIR,
     timeout: float = 60.0,
 ) -> RteOdreDownload:
-    dataset = _get_dataset_config(config, logical_name)
-    source_url = build_rte_odre_export_url(config, logical_name)
+    validated_config = _validated_source_config(config)
+    dataset = _get_dataset_config(validated_config, logical_name)
+    export_format = quote(dataset.preferred_format, safe="")
+    source_url = _dataset_api_url(
+        validated_config, logical_name, f"/exports/{export_format}"
+    )
     filename = f"{dataset.dataset_id}.{dataset.preferred_format}"
     archive_path = cache_dir / filename
     metadata_path = cache_dir / f"{filename}.metadata.json"
     cached = _load_cached_download(
-        archive_path, metadata_path, config, logical_name, source_url
+        archive_path,
+        metadata_path,
+        validated_config,
+        logical_name,
+        source_url,
     )
     if cached is not None:
         return cached
@@ -609,11 +662,14 @@ def download_rte_odre_dataset(
     temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
     try:
         dataset_metadata = fetch_rte_odre_dataset_metadata(
-            config, logical_name, timeout=timeout
+            validated_config, logical_name, timeout=timeout
         )
-        request = Request(source_url, headers={"User-Agent": "LandScout-AI/0.1"})
         with (
-            urlopen(request, timeout=timeout) as response,
+            open_safe_https(
+                source_url,
+                timeout=timeout,
+                headers={"User-Agent": "LandScout-AI/0.1"},
+            ) as response,
             temporary_archive.open("wb") as output,
         ):
             copyfileobj(response, output, length=DOWNLOAD_CHUNK_SIZE)
@@ -627,8 +683,8 @@ def download_rte_odre_dataset(
         result = RteOdreDownload(
             logical_name=logical_name,
             dataset_id=dataset.dataset_id,
-            provider=config.provider,
-            portal=config.portal,
+            provider=validated_config.provider,
+            portal=validated_config.portal,
             source_url=source_url,
             export_format=dataset.preferred_format,
             download_timestamp=datetime.now(UTC).isoformat(),

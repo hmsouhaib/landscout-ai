@@ -12,6 +12,7 @@ import math
 import re
 import shutil
 import stat
+import sys
 import unicodedata
 import zipfile
 from dataclasses import asdict, dataclass
@@ -23,7 +24,6 @@ from shutil import copy2, copyfileobj
 from typing import Annotated, Any, Literal
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode, urljoin, urlparse
-from urllib.request import Request, urlopen
 from xml.etree import ElementTree
 
 import geopandas as gpd  # type: ignore[import-untyped]
@@ -39,6 +39,8 @@ from pydantic import (
     field_validator,
 )
 from pyproj import CRS
+
+from landscout.common.safe_http import open_safe_https
 
 DEFAULT_CONFIG_PATH = Path("configs/sources/gpu_fr.yaml")
 DEFAULT_CACHE_DIR = Path("data/cache/gpu")
@@ -76,12 +78,18 @@ class GpuApiConfig(BaseModel):
     @classmethod
     def _official_api(cls, value: HttpUrl) -> HttpUrl:
         parsed = urlparse(str(value))
-        if parsed.scheme not in {"http", "https"}:
-            raise ValueError("GPU API URL must use HTTP(S)")
-        if parsed.hostname != "www.geoportail-urbanisme.gouv.fr":
-            raise ValueError("GPU API URL must use the official GPU host")
-        if parsed.path.rstrip("/") != "/api":
-            raise ValueError("GPU API URL must identify the official /api base")
+        if (
+            parsed.scheme != "https"
+            or parsed.hostname != "www.geoportail-urbanisme.gouv.fr"
+            or parsed.port not in {None, 443}
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.path.rstrip("/") != "/api"
+            or parsed.params
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError("GPU API URL must use the exact official HTTPS /api base")
         return value
 
 
@@ -336,11 +344,23 @@ def load_gpu_source_config(path: Path = DEFAULT_CONFIG_PATH) -> GpuSourceConfig:
         raise GpuConfigError(f"Invalid GPU source configuration: {path}") from error
 
 
+def _validated_source_config(config: object) -> GpuSourceConfig:
+    try:
+        if type(config) is not GpuSourceConfig:
+            raise TypeError("GPU source config type is invalid")
+        return GpuSourceConfig.model_validate(config.model_dump(mode="python"))
+    except (AttributeError, TypeError, ValidationError, ValueError) as error:
+        raise GpuConfigError(
+            "GPU source config no longer satisfies the official origin contract"
+        ) from error
+
+
 def build_gpu_partition(config: GpuSourceConfig, commune_code: str | None = None) -> str:
-    code = commune_code or config.pilot.commune_code
+    validated_config = _validated_source_config(config)
+    code = commune_code or validated_config.pilot.commune_code
     if not isinstance(code, str) or re.fullmatch(r"[0-9]{5}", code) is None:
         raise GpuConfigError("GPU commune code must contain exactly five digits")
-    return config.download.partition_template.format(code_insee=code)
+    return validated_config.download.partition_template.format(code_insee=code)
 
 
 def _api_url(config: GpuSourceConfig, path: str) -> str:
@@ -350,23 +370,34 @@ def _api_url(config: GpuSourceConfig, path: str) -> str:
 def build_gpu_document_list_url(
     config: GpuSourceConfig, commune_code: str | None = None
 ) -> str:
+    validated_config = _validated_source_config(config)
     query = urlencode(
-        {"partition": build_gpu_partition(config, commune_code), "page": 0, "limit": 100}
+        {
+            "partition": build_gpu_partition(validated_config, commune_code),
+            "page": 0,
+            "limit": 100,
+        }
     )
-    return f"{_api_url(config, 'document')}?{query}"
+    return f"{_api_url(validated_config, 'document')}?{query}"
 
 
 def build_gpu_partition_download_url(
     config: GpuSourceConfig, commune_code: str | None = None
 ) -> str:
-    partition = quote(build_gpu_partition(config, commune_code), safe="")
-    return _api_url(config, f"document/download-by-partition/{partition}")
+    validated_config = _validated_source_config(config)
+    partition = quote(build_gpu_partition(validated_config, commune_code), safe="")
+    return _api_url(
+        validated_config, f"document/download-by-partition/{partition}"
+    )
 
 
 def _request_json(url: str, timeout: float) -> Any:
-    request = Request(url, headers={"Accept": "application/json", "User-Agent": USER_AGENT})
     try:
-        with urlopen(request, timeout=timeout) as response:
+        with open_safe_https(
+            url,
+            timeout=timeout,
+            headers={"Accept": "application/json", "User-Agent": USER_AGENT},
+        ) as response:
             return json.loads(response.read().decode("utf-8"))
     except (HTTPError, URLError, OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
         raise GpuDiscoveryError(f"GPU metadata request failed: {url}") from error
@@ -393,7 +424,10 @@ def _optional_string(payload: dict[str, Any], *keys: str) -> str | None:
 
 
 def _written_files(
-    details: dict[str, Any], payload: Any, document_id: str
+    details: dict[str, Any],
+    payload: Any,
+    document_id: str,
+    config: GpuSourceConfig,
 ) -> tuple[GpuWrittenFile, ...]:
     if not isinstance(payload, list):
         raise GpuDiscoveryError("GPU written-file metadata is not a list")
@@ -408,32 +442,25 @@ def _written_files(
         if filename in seen:
             raise GpuDiscoveryError(f"Duplicate GPU written filename: {filename}")
         seen.add(filename)
+        expected_source_url = _api_url(
+            config,
+            "document/"
+            f"{quote(document_id, safe='')}/files/{quote(filename, safe='')}",
+        )
         source_url = material_urls.get(filename)
-        if source_url is None:
-            source_url = _api_url_from_details(details, document_id, filename)
-        if not isinstance(source_url, str):
-            source_url = None
+        if source_url is not None and source_url != expected_source_url:
+            raise GpuDiscoveryError(
+                "GPU written material URL is not the exact official HTTPS API URL"
+            )
         result.append(
             GpuWrittenFile(
                 filename=filename,
                 title=_optional_string(item, "title"),
                 document_path=_optional_string(item, "path"),
-                source_url=source_url,
+                source_url=expected_source_url,
             )
         )
     return tuple(sorted(result, key=lambda item: item.filename.casefold()))
-
-
-def _api_url_from_details(
-    details: dict[str, Any], document_id: str, filename: str
-) -> str | None:
-    archive_url = details.get("archiveUrl")
-    if not isinstance(archive_url, str):
-        return None
-    parsed = urlparse(archive_url)
-    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
-        return None
-    return f"{parsed.scheme}://{parsed.netloc}/api/document/{quote(document_id)}/files/{quote(filename)}"
 
 
 def discover_current_gpu_document(
@@ -441,9 +468,15 @@ def discover_current_gpu_document(
 ) -> GpuDocumentMetadata:
     """Resolve exactly one official production, approved and in-force DU."""
 
-    code = commune_code or config.pilot.commune_code
-    partition = build_gpu_partition(config, code)
-    listing = _request_json(build_gpu_document_list_url(config, code), timeout)
+    try:
+        validated_config = _validated_source_config(config)
+    except GpuConfigError as error:
+        raise GpuDiscoveryError("GPU source config is invalid") from error
+    code = commune_code or validated_config.pilot.commune_code
+    partition = build_gpu_partition(validated_config, code)
+    listing = _request_json(
+        build_gpu_document_list_url(validated_config, code), timeout
+    )
     if not isinstance(listing, list):
         raise GpuDiscoveryError("GPU document listing is not a list")
     current: list[dict[str, Any]] = []
@@ -474,11 +507,15 @@ def discover_current_gpu_document(
     archive_name = _required_string(selected, "originalName", "archive name")
     listing_type = _required_string(selected, "type", "listing document type")
     try:
-        _safe_gpu_archive_filename(archive_name)
+        archive_filename = _safe_gpu_archive_filename(archive_name)
     except GpuDownloadError as error:
         raise GpuDiscoveryError("GPU archive name is unsafe") from error
-    details_url = _api_url(config, f"document/{quote(document_id)}/details")
-    files_url = _api_url(config, f"document/{quote(document_id)}/files")
+    details_url = _api_url(
+        validated_config, f"document/{quote(document_id, safe='')}/details"
+    )
+    files_url = _api_url(
+        validated_config, f"document/{quote(document_id, safe='')}/files"
+    )
     details_payload = _request_json(details_url, timeout)
     if not isinstance(details_payload, dict):
         raise GpuDiscoveryError("GPU document details are not an object")
@@ -500,14 +537,24 @@ def discover_current_gpu_document(
         raise GpuDiscoveryError("GPU document details do not match the commune")
     if details.get("name") != partition:
         raise GpuDiscoveryError("GPU document details do not match the partition")
+    expected_details_archive_url = _api_url(
+        validated_config,
+        "document/"
+        f"{quote(document_id, safe='')}/download/"
+        f"{quote(archive_filename, safe='')}",
+    )
+    if details.get("archiveUrl") != expected_details_archive_url:
+        raise GpuDiscoveryError(
+            "GPU document archive URL is not the exact official HTTPS API URL"
+        )
     document_type = _required_string(details, "type", "document type")
     if listing_type != document_type:
         raise GpuDiscoveryError("GPU document type changed between listing and details")
     files_payload = _request_json(files_url, timeout)
-    source_url = build_gpu_partition_download_url(config, code)
+    source_url = build_gpu_partition_download_url(validated_config, code)
     return GpuDocumentMetadata(
-        provider=config.provider,
-        portal=config.portal,
+        provider=validated_config.provider,
+        portal=validated_config.portal,
         commune_code=code,
         partition=partition,
         document_id=document_id,
@@ -527,7 +574,12 @@ def discover_current_gpu_document(
         projection=_optional_string(details, "projectionCode"),
         metadata_identifier=_optional_string(details, "metadata", "fileIdentifier"),
         source_url=source_url,
-        written_files=_written_files(details, files_payload, document_id),
+        written_files=_written_files(
+            details,
+            files_payload,
+            document_id,
+            validated_config,
+        ),
     )
 
 
@@ -592,6 +644,45 @@ def _validate_gpu_document_for_config(
         raise GpuDownloadError("GPU document metadata object is invalid")
     if document.provider != config.provider or document.portal != config.portal:
         raise GpuDownloadError("GPU document provider/portal does not match configuration")
+    if (
+        type(document.document_id) is not str
+        or not document.document_id
+        or document.document_id != document.document_id.strip()
+        or any(
+            ord(character) < 32 or ord(character) == 127
+            for character in document.document_id
+        )
+    ):
+        raise GpuDownloadError("GPU document ID is invalid")
+    if type(document.written_files) is not tuple:
+        raise GpuDownloadError("GPU document written-file provenance is invalid")
+    written_filenames: set[str] = set()
+    for written_file in document.written_files:
+        if type(written_file) is not GpuWrittenFile:
+            raise GpuDownloadError("GPU document written-file type is invalid")
+        filename = written_file.filename
+        if (
+            type(filename) is not str
+            or not filename
+            or filename != filename.strip()
+            or any(
+                ord(character) < 32 or ord(character) == 127
+                for character in filename
+            )
+            or filename in written_filenames
+        ):
+            raise GpuDownloadError("GPU document written filename is invalid")
+        written_filenames.add(filename)
+        expected_written_url = _api_url(
+            config,
+            "document/"
+            f"{quote(document.document_id, safe='')}/files/"
+            f"{quote(filename, safe='')}",
+        )
+        if written_file.source_url != expected_written_url:
+            raise GpuDownloadError(
+                "GPU document written source URL is not the exact official API URL"
+            )
     code = document.commune_code
     if not isinstance(code, str) or re.fullmatch(r"[0-9]{5}", code) is None:
         raise GpuDownloadError("GPU document commune code is invalid")
@@ -617,7 +708,7 @@ def _validate_gpu_document_for_config(
     parsed = urlparse(document.source_url)
     expected_parsed = urlparse(expected_url)
     if (
-        parsed.scheme not in {"http", "https"}
+        parsed.scheme != "https"
         or parsed.hostname != "www.geoportail-urbanisme.gouv.fr"
         or parsed.path != expected_parsed.path
         or parsed.params
@@ -830,18 +921,79 @@ def _replace_file(source: Path, target: Path) -> None:
     source.replace(target)
 
 
+def _cache_recovery_paths(
+    archive_path: Path,
+    metadata_path: Path,
+) -> tuple[Path, Path]:
+    return (
+        archive_path.with_suffix(f"{archive_path.suffix}.bak"),
+        metadata_path.with_suffix(f"{metadata_path.suffix}.bak"),
+    )
+
+
+def _require_no_cache_recovery_material(
+    archive_path: Path,
+    metadata_path: Path,
+) -> None:
+    recovery_paths = _cache_recovery_paths(archive_path, metadata_path)
+    if any(
+        path.exists() or _is_link_or_junction(path)
+        for path in recovery_paths
+    ):
+        raise GpuDownloadError(
+            "GPU cache recovery backup already exists; manual recovery is required"
+        )
+
+
+def _prepare_temporary_cache_file(path: Path) -> None:
+    try:
+        if _is_link_or_junction(path):
+            raise GpuDownloadError(
+                "GPU cache temporary path is a link or junction"
+            )
+        if path.exists():
+            if not path.is_file():
+                raise GpuDownloadError(
+                    "GPU cache temporary path is not a regular file"
+                )
+            path.unlink()
+    except GpuDownloadError:
+        raise
+    except OSError as error:
+        raise GpuDownloadError(
+            "GPU cache temporary path cannot be prepared safely"
+        ) from error
+
+
+def _cleanup_temporary_cache_files(
+    paths: tuple[Path, ...],
+    primary_error: BaseException | None,
+) -> None:
+    cleanup_error: OSError | None = None
+    for path in paths:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as error:
+            cleanup_error = cleanup_error or error
+    if cleanup_error is not None and primary_error is None:
+        raise GpuDownloadError(
+            "GPU cache temporary files could not be cleaned safely"
+        ) from cleanup_error
+
+
 def _publish_cache_pair(
     temporary_archive: Path,
     temporary_metadata: Path,
     archive_path: Path,
     metadata_path: Path,
 ) -> None:
-    archive_backup = archive_path.with_suffix(f"{archive_path.suffix}.bak")
-    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    archive_backup, metadata_backup = _cache_recovery_paths(
+        archive_path,
+        metadata_path,
+    )
     archive_existed = archive_path.is_file()
     metadata_existed = metadata_path.is_file()
-    archive_backup.unlink(missing_ok=True)
-    metadata_backup.unlink(missing_ok=True)
+    _require_no_cache_recovery_material(archive_path, metadata_path)
     try:
         if archive_existed:
             copy2(archive_path, archive_backup)
@@ -871,8 +1023,10 @@ def _publish_cache_pair(
             raise GpuDownloadError(
                 "GPU cache publication and rollback both failed"
             ) from rollback_error
+        archive_backup.unlink(missing_ok=True)
+        metadata_backup.unlink(missing_ok=True)
         raise
-    finally:
+    else:
         archive_backup.unlink(missing_ok=True)
         metadata_backup.unlink(missing_ok=True)
 
@@ -939,21 +1093,34 @@ def download_gpu_document(
 ) -> GpuArchiveDownload:
     """Download and transactionally cache one discovered official GPU ZIP."""
 
-    filename = _validate_gpu_document_for_config(document, config)
+    try:
+        validated_config = _validated_source_config(config)
+    except GpuConfigError as error:
+        raise GpuDownloadError("GPU source config is invalid") from error
+    filename = _validate_gpu_document_for_config(document, validated_config)
     archive_path = cache_dir / filename
     metadata_path = cache_dir / f"{filename}.metadata.json"
+    _require_no_cache_recovery_material(archive_path, metadata_path)
     cached = _load_cached_archive(
-        archive_path, metadata_path, document, config.cache.max_age_hours
+        archive_path,
+        metadata_path,
+        document,
+        validated_config.cache.max_age_hours,
     )
     if cached is not None:
         return cached
     cache_dir.mkdir(parents=True, exist_ok=True)
     temporary_archive = archive_path.with_suffix(f"{archive_path.suffix}.part")
     temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    _prepare_temporary_cache_file(temporary_archive)
+    _prepare_temporary_cache_file(temporary_metadata)
     try:
-        request = Request(document.source_url, headers={"User-Agent": USER_AGENT})
         with (
-            urlopen(request, timeout=timeout) as response,
+            open_safe_https(
+                document.source_url,
+                timeout=timeout,
+                headers={"User-Agent": USER_AGENT},
+            ) as response,
             temporary_archive.open("wb") as output,
         ):
             copyfileobj(response, output, length=DOWNLOAD_CHUNK_SIZE)
@@ -990,8 +1157,10 @@ def download_gpu_document(
             f"GPU document download failed: {document.source_url}"
         ) from error
     finally:
-        temporary_archive.unlink(missing_ok=True)
-        temporary_metadata.unlink(missing_ok=True)
+        _cleanup_temporary_cache_files(
+            (temporary_archive, temporary_metadata),
+            sys.exception(),
+        )
 
 
 def _classify_file(path: Path) -> FileCategory:

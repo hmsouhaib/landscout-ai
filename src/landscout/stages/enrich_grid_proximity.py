@@ -13,6 +13,15 @@ from pandas.api.types import is_scalar  # type: ignore[import-untyped]
 from pyproj import CRS
 from shapely import STRtree, force_2d  # type: ignore[import-untyped]
 
+from landscout.sources.ign_bdtopo_fr import (
+    IgnBdTopoElectricityData,
+    IgnBdTopoSourceConfig,
+)
+from landscout.stages.normalize_grid_ign import (
+    NormalizedIgnElectricityData,
+    normalize_ign_electricity,
+)
+
 CALCULATION_CRS = "EPSG:2154"
 SPATIAL_ROLE = "PROXY_GEOMETRY"
 
@@ -873,7 +882,7 @@ def _voltage_level_table(
     return pd.concat(tables, ignore_index=True), tuple(coverage)
 
 
-def enrich_parcel_grid_proximity(
+def _enrich_parcel_grid_proximity_from_normalized(
     parcels: gpd.GeoDataFrame,
     electric_lines: gpd.GeoDataFrame,
     transformation_posts: gpd.GeoDataFrame,
@@ -947,6 +956,45 @@ def enrich_parcel_grid_proximity(
     )
     _validate_output_integrity(parcels, result)
     return result
+
+
+def enrich_parcel_grid_proximity(
+    parcels: gpd.GeoDataFrame,
+    electricity_source: IgnBdTopoElectricityData,
+    source_config: IgnBdTopoSourceConfig,
+) -> GridProximityResult:
+    """Compute proximity from one physically revalidated IGN source bundle."""
+
+    try:
+        if not isinstance(parcels, gpd.GeoDataFrame):
+            raise GridProximityError(
+                "parcels must be a GeoDataFrame with active geometry"
+            )
+        if type(electricity_source) is not IgnBdTopoElectricityData:
+            raise GridProximityError(
+                "electricity source must be an IgnBdTopoElectricityData"
+            )
+        if type(source_config) is not IgnBdTopoSourceConfig:
+            raise GridProximityError(
+                "source_config must be an IgnBdTopoSourceConfig"
+            )
+        _validate_parcels(parcels)
+        normalized = normalize_ign_electricity(electricity_source, source_config)
+        if type(normalized) is not NormalizedIgnElectricityData:
+            raise GridProximityError(
+                "IGN electricity normalization returned an invalid result"
+            )
+        return _enrich_parcel_grid_proximity_from_normalized(
+            parcels,
+            normalized.electric_lines,
+            normalized.transformation_posts,
+        )
+    except GridProximityError:
+        raise
+    except Exception as error:
+        raise GridProximityError(
+            "Parcel-to-grid proximity cannot be computed safely"
+        ) from error
 
 
 def _distance_profile(distances: pd.Series, ties: pd.Series) -> DistanceProfile:

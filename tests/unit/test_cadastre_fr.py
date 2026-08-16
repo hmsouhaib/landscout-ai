@@ -49,7 +49,7 @@ def test_build_cadastre_parcelles_url() -> None:
 
 def test_successful_download(tmp_path: Path) -> None:
     with patch(
-        "landscout.sources.cadastre_fr.urlopen",
+        "landscout.sources.cadastre_fr.open_safe_https",
         return_value=io.BytesIO(ARCHIVE_CONTENT),
     ):
         result = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
@@ -65,7 +65,7 @@ def test_successful_download(tmp_path: Path) -> None:
 
 def test_fresh_cache_is_reused(tmp_path: Path) -> None:
     with patch(
-        "landscout.sources.cadastre_fr.urlopen",
+        "landscout.sources.cadastre_fr.open_safe_https",
         return_value=io.BytesIO(ARCHIVE_CONTENT),
     ) as opener:
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
@@ -80,7 +80,7 @@ def test_fresh_cache_is_reused(tmp_path: Path) -> None:
 
 def test_expired_cache_is_downloaded_again(tmp_path: Path) -> None:
     with patch(
-        "landscout.sources.cadastre_fr.urlopen",
+        "landscout.sources.cadastre_fr.open_safe_https",
         side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
     ) as opener:
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
@@ -96,7 +96,7 @@ def test_expired_cache_is_downloaded_again(tmp_path: Path) -> None:
 
 def test_failed_refresh_preserves_cached_archive(tmp_path: Path) -> None:
     with patch(
-        "landscout.sources.cadastre_fr.urlopen",
+        "landscout.sources.cadastre_fr.open_safe_https",
         return_value=io.BytesIO(ARCHIVE_CONTENT),
     ):
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
@@ -107,7 +107,7 @@ def test_failed_refresh_preserves_cached_archive(tmp_path: Path) -> None:
     error = HTTPError(EXPECTED_URL, 503, "Unavailable", hdrs=None, fp=None)
 
     with (
-        patch("landscout.sources.cadastre_fr.urlopen", side_effect=error),
+        patch("landscout.sources.cadastre_fr.open_safe_https", side_effect=error),
         pytest.raises(CadastreDownloadError),
     ):
         download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
@@ -120,7 +120,7 @@ def test_failed_http_response(tmp_path: Path) -> None:
     error = HTTPError(EXPECTED_URL, 404, "Not Found", hdrs=None, fp=None)
 
     with (
-        patch("landscout.sources.cadastre_fr.urlopen", side_effect=error),
+        patch("landscout.sources.cadastre_fr.open_safe_https", side_effect=error),
         pytest.raises(CadastreDownloadError),
     ):
         download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
@@ -130,7 +130,7 @@ def test_failed_http_response(tmp_path: Path) -> None:
 
 def test_checksum_generation(tmp_path: Path) -> None:
     with patch(
-        "landscout.sources.cadastre_fr.urlopen",
+        "landscout.sources.cadastre_fr.open_safe_https",
         return_value=io.BytesIO(ARCHIVE_CONTENT),
     ):
         result = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
@@ -154,7 +154,7 @@ def test_truncated_gzip_is_rejected(tmp_path: Path) -> None:
 
 def test_corrupted_cached_archive_triggers_fresh_download(tmp_path: Path) -> None:
     with patch(
-        "landscout.sources.cadastre_fr.urlopen",
+        "landscout.sources.cadastre_fr.open_safe_https",
         side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
     ) as opener:
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
@@ -170,7 +170,7 @@ def test_corrupted_cached_archive_triggers_fresh_download(tmp_path: Path) -> Non
 
 def test_corrupted_new_download_preserves_existing_archive(tmp_path: Path) -> None:
     with patch(
-        "landscout.sources.cadastre_fr.urlopen",
+        "landscout.sources.cadastre_fr.open_safe_https",
         return_value=io.BytesIO(ARCHIVE_CONTENT),
     ):
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
@@ -181,7 +181,7 @@ def test_corrupted_new_download_preserves_existing_archive(tmp_path: Path) -> No
 
     with (
         patch(
-            "landscout.sources.cadastre_fr.urlopen",
+            "landscout.sources.cadastre_fr.open_safe_https",
             return_value=io.BytesIO(CORRUPTED_ARCHIVE_CONTENT),
         ),
         pytest.raises(CadastreDownloadError),
@@ -246,7 +246,7 @@ def test_malformed_cached_metadata_triggers_refresh(
     field: str,
 ) -> None:
     with patch(
-        "landscout.sources.cadastre_fr.urlopen",
+        "landscout.sources.cadastre_fr.open_safe_https",
         side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
     ) as opener:
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
@@ -266,7 +266,7 @@ def test_malformed_cached_metadata_triggers_refresh(
 
 def test_future_cached_timestamp_triggers_refresh(tmp_path: Path) -> None:
     with patch(
-        "landscout.sources.cadastre_fr.urlopen",
+        "landscout.sources.cadastre_fr.open_safe_https",
         side_effect=[io.BytesIO(ARCHIVE_CONTENT), io.BytesIO(REFRESHED_ARCHIVE_CONTENT)],
     ) as opener:
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
@@ -286,7 +286,7 @@ def test_metadata_publication_failure_restores_previous_cache_pair(
     tmp_path: Path,
 ) -> None:
     with patch(
-        "landscout.sources.cadastre_fr.urlopen",
+        "landscout.sources.cadastre_fr.open_safe_https",
         return_value=io.BytesIO(ARCHIVE_CONTENT),
     ):
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
@@ -307,7 +307,7 @@ def test_metadata_publication_failure_restores_previous_cache_pair(
 
     with (
         patch(
-            "landscout.sources.cadastre_fr.urlopen",
+            "landscout.sources.cadastre_fr.open_safe_https",
             return_value=io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
         ),
         patch(
@@ -342,7 +342,7 @@ def test_first_metadata_publication_failure_leaves_no_half_pair(
 
     with (
         patch(
-            "landscout.sources.cadastre_fr.urlopen",
+            "landscout.sources.cadastre_fr.open_safe_https",
             return_value=io.BytesIO(ARCHIVE_CONTENT),
         ),
         patch(
@@ -365,7 +365,7 @@ def test_publication_and_rollback_failure_preserves_recovery_backup(
     rollback_target: str,
 ) -> None:
     with patch(
-        "landscout.sources.cadastre_fr.urlopen",
+        "landscout.sources.cadastre_fr.open_safe_https",
         return_value=io.BytesIO(ARCHIVE_CONTENT),
     ):
         first = download_cadastre_parcelles(COMMUNE_CODE, tmp_path)
@@ -387,7 +387,7 @@ def test_publication_and_rollback_failure_preserves_recovery_backup(
 
     with (
         patch(
-            "landscout.sources.cadastre_fr.urlopen",
+            "landscout.sources.cadastre_fr.open_safe_https",
             return_value=io.BytesIO(REFRESHED_ARCHIVE_CONTENT),
         ),
         patch.object(

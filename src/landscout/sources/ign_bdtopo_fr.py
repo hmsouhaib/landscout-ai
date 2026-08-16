@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 import shutil
+import sys
 import unicodedata
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
@@ -18,7 +19,6 @@ from shutil import copy2, copyfileobj
 from typing import Annotated, Any, Literal, Self
 from urllib.error import HTTPError, URLError
 from urllib.parse import unquote, urlparse
-from urllib.request import Request, urlopen
 
 import geopandas as gpd  # type: ignore[import-untyped]
 import pandas as pd  # type: ignore[import-untyped]
@@ -37,6 +37,8 @@ from pydantic import (
     model_validator,
 )
 from pyproj import CRS
+
+from landscout.common.safe_http import open_safe_https
 
 DEFAULT_CONFIG_PATH = Path("configs/sources/ign_bdtopo_fr.yaml")
 DEFAULT_CACHE_DIR = Path("data/cache/ign_bdtopo")
@@ -613,19 +615,80 @@ def _replace_file(source: Path, target: Path) -> None:
     source.replace(target)
 
 
+def _cache_recovery_paths(
+    archive_path: Path,
+    metadata_path: Path,
+) -> tuple[Path, Path]:
+    return (
+        archive_path.with_name(f"{archive_path.name}.bak"),
+        metadata_path.with_name(f"{metadata_path.name}.bak"),
+    )
+
+
+def _require_no_cache_recovery_material(
+    archive_path: Path,
+    metadata_path: Path,
+) -> None:
+    recovery_paths = _cache_recovery_paths(archive_path, metadata_path)
+    if any(
+        path.exists() or path.is_symlink() or path.is_junction()
+        for path in recovery_paths
+    ):
+        raise IgnBdTopoDownloadError(
+            "IGN cache recovery backup already exists; manual recovery is required"
+        )
+
+
+def _prepare_temporary_cache_file(path: Path) -> None:
+    try:
+        if path.is_symlink() or path.is_junction():
+            raise IgnBdTopoDownloadError(
+                "IGN cache temporary path is a link or junction"
+            )
+        if path.exists():
+            if not path.is_file():
+                raise IgnBdTopoDownloadError(
+                    "IGN cache temporary path is not a regular file"
+                )
+            path.unlink()
+    except IgnBdTopoDownloadError:
+        raise
+    except OSError as error:
+        raise IgnBdTopoDownloadError(
+            "IGN cache temporary path cannot be prepared safely"
+        ) from error
+
+
+def _cleanup_temporary_cache_files(
+    paths: tuple[Path, ...],
+    primary_error: BaseException | None,
+) -> None:
+    cleanup_error: OSError | None = None
+    for path in paths:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as error:
+            cleanup_error = cleanup_error or error
+    if cleanup_error is not None and primary_error is None:
+        raise IgnBdTopoDownloadError(
+            "IGN cache temporary files could not be cleaned safely"
+        ) from cleanup_error
+
+
 def _publish_cache_pair(
     temporary_archive: Path,
     temporary_metadata: Path,
     archive_path: Path,
     metadata_path: Path,
 ) -> None:
-    archive_backup = archive_path.with_name(f"{archive_path.name}.bak")
-    metadata_backup = metadata_path.with_name(f"{metadata_path.name}.bak")
+    archive_backup, metadata_backup = _cache_recovery_paths(
+        archive_path,
+        metadata_path,
+    )
     archive_existed = archive_path.is_file()
     metadata_existed = metadata_path.is_file()
 
-    archive_backup.unlink(missing_ok=True)
-    metadata_backup.unlink(missing_ok=True)
+    _require_no_cache_recovery_material(archive_path, metadata_path)
     try:
         if archive_existed:
             copy2(archive_path, archive_backup)
@@ -654,8 +717,10 @@ def _publish_cache_pair(
             raise IgnBdTopoDownloadError(
                 "IGN cache publication and rollback both failed"
             ) from rollback_error
+        archive_backup.unlink(missing_ok=True)
+        metadata_backup.unlink(missing_ok=True)
         raise
-    finally:
+    else:
         archive_backup.unlink(missing_ok=True)
         metadata_backup.unlink(missing_ok=True)
 
@@ -670,6 +735,7 @@ def download_ign_bdtopo_archive(
     filename = _archive_filename(config)
     archive_path = cache_dir / filename
     metadata_path = cache_dir / f"{filename}.metadata.json"
+    _require_no_cache_recovery_material(archive_path, metadata_path)
     cached = _load_cached_download(archive_path, metadata_path, config)
     if cached is not None:
         return cached
@@ -677,13 +743,16 @@ def download_ign_bdtopo_archive(
     cache_dir.mkdir(parents=True, exist_ok=True)
     temporary_archive = archive_path.with_name(f"{archive_path.name}.part")
     temporary_metadata = metadata_path.with_name(f"{metadata_path.name}.part")
-    temporary_archive.unlink(missing_ok=True)
-    temporary_metadata.unlink(missing_ok=True)
+    _prepare_temporary_cache_file(temporary_archive)
+    _prepare_temporary_cache_file(temporary_metadata)
     source_url = str(config.source_url)
     try:
-        request = Request(source_url, headers={"User-Agent": "LandScout-AI/0.1"})
         with (
-            urlopen(request, timeout=timeout) as response,
+            open_safe_https(
+                source_url,
+                timeout=timeout,
+                headers={"User-Agent": "LandScout-AI/0.1"},
+            ) as response,
             temporary_archive.open("wb") as output,
         ):
             copyfileobj(response, output, length=DOWNLOAD_CHUNK_SIZE)
@@ -726,8 +795,10 @@ def download_ign_bdtopo_archive(
     except (HTTPError, URLError, OSError) as error:
         raise IgnBdTopoDownloadError(f"IGN download failed: {source_url}") from error
     finally:
-        temporary_archive.unlink(missing_ok=True)
-        temporary_metadata.unlink(missing_ok=True)
+        _cleanup_temporary_cache_files(
+            (temporary_archive, temporary_metadata),
+            sys.exception(),
+        )
 
 
 def _validate_archive_members(archive: py7zr.SevenZipFile) -> None:
@@ -1469,22 +1540,118 @@ def load_ign_bdtopo_layer(
     return _loaded_layer_from_frame(frame, layer_name, logical_name)
 
 
+def _validated_layer_source_config(config: object) -> IgnBdTopoSourceConfig:
+    try:
+        if type(config) is not IgnBdTopoSourceConfig:
+            raise TypeError("IGN electricity source config type is invalid")
+        return IgnBdTopoSourceConfig.model_validate(
+            config.model_dump(mode="python")
+        )
+    except (AttributeError, TypeError, ValidationError, ValueError) as error:
+        raise IgnBdTopoLayerError(
+            "IGN electricity source config is invalid"
+        ) from error
+
+
+def _validate_archive_config_lineage(
+    extraction: object,
+    config: IgnBdTopoSourceConfig,
+) -> None:
+    try:
+        if type(extraction) is not IgnBdTopoExtraction:
+            raise TypeError("IGN electricity extraction type is invalid")
+        archive = extraction.archive
+        if type(archive) is not IgnBdTopoDownload:
+            raise TypeError("IGN electricity archive type is invalid")
+        if type(archive.file_size) is not int or archive.file_size <= 0:
+            raise TypeError("IGN electricity archive size is invalid")
+        if type(archive.official_checksum_validated) is not bool:
+            raise TypeError(
+                "IGN electricity official-checksum state is invalid"
+            )
+        expected_checksum_url = (
+            str(config.checksum_url) if config.checksum_url is not None else None
+        )
+        expected_values: tuple[tuple[object, object], ...] = (
+            (archive.provider, config.provider),
+            (archive.product, config.product),
+            (archive.department_code, config.department_code),
+            (archive.edition, config.edition),
+            (archive.product_version, config.product_version),
+            (archive.projection, config.projection),
+            (archive.package_format, config.format),
+            (archive.archive_format, config.archive_format),
+            (archive.source_url, str(config.source_url)),
+            (archive.checksum_url, expected_checksum_url),
+            (archive.filename, _archive_filename(config)),
+            (
+                archive.official_checksum_algorithm,
+                config.official_checksum_algorithm,
+            ),
+            (archive.official_checksum, config.official_checksum),
+            (
+                archive.official_checksum_validated,
+                config.official_checksum is not None,
+            ),
+            (archive.spatial_role, SPATIAL_ROLE),
+        )
+        if any(actual != expected for actual, expected in expected_values):
+            raise ValueError(
+                "IGN electricity archive lineage differs from source config"
+            )
+        if (
+            config.expected_archive_size_bytes is not None
+            and archive.file_size != config.expected_archive_size_bytes
+        ):
+            raise ValueError(
+                "IGN electricity archive size differs from source config"
+            )
+    except IgnBdTopoLayerError:
+        raise
+    except Exception as error:
+        raise IgnBdTopoLayerError(
+            "IGN electricity archive lineage differs from source config"
+        ) from error
+
+
 def load_ign_bdtopo_electricity(
     extraction: IgnBdTopoExtraction,
+    config: IgnBdTopoSourceConfig,
 ) -> IgnBdTopoElectricityData:
-    """Load only the two electricity layers selected during extraction."""
+    """Load the two electricity layers reproduced from the source config."""
 
+    validated_config = _validated_layer_source_config(config)
+    _validate_archive_config_lineage(extraction, validated_config)
     context = _validate_extraction_envelope(extraction)
+    configured_selection = discover_ign_bdtopo_layers(
+        context.geopackage_path,
+        validated_config,
+    )
+    if (
+        configured_selection.all_layer_names != extraction.all_layer_names
+        or configured_selection.electric_lines_layer
+        != extraction.electric_lines_layer
+        or configured_selection.transformation_posts_layer
+        != extraction.transformation_posts_layer
+    ):
+        raise IgnBdTopoLayerError(
+            "IGN electricity roles differ from the configured physical layers"
+        )
     line_frame, post_frame = _read_verified_layer_frames(
         context,
-        (extraction.electric_lines_layer, extraction.transformation_posts_layer),
+        (
+            configured_selection.electric_lines_layer,
+            configured_selection.transformation_posts_layer,
+        ),
     )
     electric_lines = _loaded_layer_from_frame(
-        line_frame, extraction.electric_lines_layer, "electric_lines"
+        line_frame,
+        configured_selection.electric_lines_layer,
+        "electric_lines",
     )
     transformation_posts = _loaded_layer_from_frame(
         post_frame,
-        extraction.transformation_posts_layer,
+        configured_selection.transformation_posts_layer,
         "transformation_posts",
     )
     return IgnBdTopoElectricityData(
@@ -1666,13 +1833,16 @@ def load_ign_bdtopo_department_coverage(
 
 def _revalidate_ign_bdtopo_electricity_data(
     source: object,
+    config: IgnBdTopoSourceConfig,
 ) -> IgnBdTopoElectricityData:
     """Fresh-read and exact-compare one supplied electricity source bundle."""
 
     try:
         if type(source) is not IgnBdTopoElectricityData:
             raise TypeError("IGN electricity source type is invalid")
-        fresh = load_ign_bdtopo_electricity(source.extraction)
+        if type(config) is not IgnBdTopoSourceConfig:
+            raise TypeError("IGN electricity source config type is invalid")
+        fresh = load_ign_bdtopo_electricity(source.extraction, config)
         _compare_loaded_frame(source.electric_lines, fresh.electric_lines, "electric lines")
         _compare_loaded_frame(
             source.transformation_posts,

@@ -212,3 +212,20 @@ def test_area_filter_rejects_malformed_spatial_envelope(
 
     with pytest.raises(ParcelFilterError, match="geometry|CRS"):
         filter_parcels_by_area(invalid, area_config)
+
+
+@pytest.mark.parametrize(
+    "geometry_status",
+    [None, "UNKNOWN", "ERROR", "BANANA", "valid", 0, 1, True, False],
+)
+def test_area_filter_rejects_noncanonical_geometry_status(
+    parcels: gpd.GeoDataFrame,
+    area_config: ParcelConfig,
+    geometry_status: object,
+) -> None:
+    invalid = parcels.copy()
+    invalid["geometry_status"] = invalid["geometry_status"].astype(object)
+    invalid.loc[0, "geometry_status"] = geometry_status
+
+    with pytest.raises(ParcelFilterError, match="geometry_status"):
+        filter_parcels_by_area(invalid, area_config)

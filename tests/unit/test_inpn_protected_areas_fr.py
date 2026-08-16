@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import inspect
 import io
 import json
-import socket
 import stat
 import warnings
 import zipfile
+from contextlib import contextmanager
 from dataclasses import FrozenInstanceError, fields, replace
 from datetime import datetime
 from hashlib import sha256
@@ -14,9 +15,10 @@ from typing import Any, Self
 
 import pytest
 import yaml
-from urllib3.exceptions import ProtocolError
 
 from landscout import sources
+from landscout.common import safe_http
+from landscout.common.safe_http import SafeHttpsError
 from landscout.sources import inpn_protected_areas_fr as inpn
 from landscout.sources.inpn_protected_areas_fr import (
     InpnProtectedAreasDownload,
@@ -40,10 +42,6 @@ EXPECTED_EXPORTS = {
     "extract_inpn_protected_areas_archive",
     "load_inpn_protected_areas_source_config",
 }
-PUBLIC_IPV4 = "93.184.216.34"
-PUBLIC_IPV6 = "2606:4700:4700::1111"
-
-
 class _Response:
     def __init__(
         self,
@@ -74,6 +72,9 @@ class _Response:
     def close(self) -> None:
         self.closed = True
 
+    def read(self, size: int = -1) -> bytes:
+        return self.raw.read(size)
+
     def __enter__(self) -> Self:
         return self
 
@@ -103,49 +104,27 @@ class _Session:
         response.raw.seek(0)
         return response
 
-
-def _dns_records(
-    addresses: tuple[str, ...],
-    port: int,
-) -> list[tuple[int, int, int, str, tuple[object, ...]]]:
-    records: list[tuple[int, int, int, str, tuple[object, ...]]] = []
-    for address in addresses:
-        if ":" in address:
-            records.append(
-                (
-                    socket.AF_INET6,
-                    socket.SOCK_STREAM,
-                    socket.IPPROTO_TCP,
-                    "",
-                    (address, port, 0, 0),
-                )
-            )
-        else:
-            records.append(
-                (
-                    socket.AF_INET,
-                    socket.SOCK_STREAM,
-                    socket.IPPROTO_TCP,
-                    "",
-                    (address, port),
-                )
-            )
-    return records
-
-
-@pytest.fixture(autouse=True)
-def _public_dns(
-    monkeypatch: pytest.MonkeyPatch,
-) -> list[tuple[str, int]]:
-    calls: list[tuple[str, int]] = []
-
-    def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
-        assert kwargs == {"type": socket.SOCK_STREAM}
-        calls.append((hostname, port))
-        return _dns_records((PUBLIC_IPV4,), port)
-
-    monkeypatch.setattr(inpn.socket, "getaddrinfo", resolve)
-    return calls
+    @contextmanager
+    def open(
+        self,
+        url: str,
+        *,
+        timeout: float,
+        headers: dict[str, str] | None = None,
+        max_redirects: int = 10,
+    ) -> Any:
+        response = self.get(
+            url,
+            timeout=timeout,
+            headers=headers,
+            max_redirects=max_redirects,
+        )
+        if not 200 <= response.status_code < 300:
+            raise SafeHttpsError(f"HTTP status {response.status_code}")
+        try:
+            yield response
+        finally:
+            response.close()
 
 
 def _zip_bytes(
@@ -198,9 +177,15 @@ def _write_config(tmp_path: Path, payload: dict[str, object]) -> Path:
     return path
 
 
-def _config(tmp_path: Path) -> InpnProtectedAreasSourceConfig:
+def _config(
+    tmp_path: Path,
+    expected_bytes: bytes | None = None,
+) -> InpnProtectedAreasSourceConfig:
+    snapshot = _zip_bytes() if expected_bytes is None else expected_bytes
     payload = _config_payload()
     payload["cache_root"] = str(tmp_path / "cache")
+    payload["expected_archive_size_bytes"] = len(snapshot)
+    payload["expected_archive_sha256"] = sha256(snapshot).hexdigest()
     return InpnProtectedAreasSourceConfig.model_validate(payload)
 
 
@@ -251,10 +236,25 @@ def _download(
     InpnProtectedAreasDownload,
     _Session,
 ]:
-    config = _config(tmp_path)
-    session = _session(config, payload)
-    result = download_inpn_protected_areas_archive(config, session=session)
+    snapshot = _zip_bytes() if payload is None else payload
+    config = _config(tmp_path, snapshot)
+    session = _session(config, snapshot)
+    result = _download_with_session(config, session)
     return config, result, session
+
+
+def _download_with_session(
+    config: InpnProtectedAreasSourceConfig,
+    session: _Session,
+    *,
+    timeout_seconds: float = 120.0,
+) -> InpnProtectedAreasDownload:
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        monkeypatch.setattr(inpn, "open_safe_https", session.open)
+        return download_inpn_protected_areas_archive(
+            config,
+            timeout_seconds=timeout_seconds,
+        )
 
 
 def _download_metadata_path(download: InpnProtectedAreasDownload) -> Path:
@@ -296,6 +296,34 @@ def test_checked_in_config_loads_with_exact_source_identity() -> None:
     assert str(config.reference_page_url).startswith("https://www.patrinat.fr/")
     assert str(config.archive_url) == "https://assets.patrinat.fr/files/donnees/ep/EP.zip"
     assert config.archive_filename == "EP.zip"
+    assert config.expected_archive_size_bytes == 99_835_011
+    assert (
+        config.expected_archive_sha256
+        == "73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5"
+    )
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("expected_archive_size_bytes", 0),
+        ("expected_archive_size_bytes", -1),
+        ("expected_archive_size_bytes", True),
+        ("expected_archive_size_bytes", 1.0),
+        ("expected_archive_sha256", "0" * 63),
+        ("expected_archive_sha256", "A" * 64),
+        ("expected_archive_sha256", None),
+    ],
+)
+def test_config_rejects_invalid_expected_snapshot_integrity(
+    field: str,
+    value: object,
+) -> None:
+    payload = _config_payload()
+    payload[field] = value
+
+    with pytest.raises((TypeError, ValueError)):
+        InpnProtectedAreasSourceConfig.model_validate(payload)
 
 
 @pytest.mark.parametrize(
@@ -359,12 +387,10 @@ def test_download_timeout_is_strict_finite_positive(timeout: object) -> None:
         )
 
 
-def test_malformed_session_has_controlled_error(tmp_path: Path) -> None:
-    with pytest.raises(InpnProtectedAreasSourceError, match="session|download"):
-        download_inpn_protected_areas_archive(
-            _config(tmp_path),
-            session=object(),  # type: ignore[arg-type]
-        )
+def test_download_api_has_no_arbitrary_http_session_injection() -> None:
+    assert "session" not in inspect.signature(
+        download_inpn_protected_areas_archive
+    ).parameters
 
 
 def test_download_cache_setup_failure_is_controlled(tmp_path: Path) -> None:
@@ -375,7 +401,7 @@ def test_download_cache_setup_failure_is_controlled(tmp_path: Path) -> None:
     config = InpnProtectedAreasSourceConfig.model_validate(payload)
 
     with pytest.raises(InpnProtectedAreasSourceError, match="download|cache"):
-        download_inpn_protected_areas_archive(config, session=_session(config))
+        _download_with_session(config, _session(config))
 
 
 def test_valid_zip_download_binds_exact_bytes_and_lineage(tmp_path: Path) -> None:
@@ -385,10 +411,10 @@ def test_valid_zip_download_binds_exact_bytes_and_lineage(tmp_path: Path) -> Non
             "EP/data/areas.dbf": b"table",
         }
     )
-    config = _config(tmp_path)
+    config = _config(tmp_path, payload)
     session = _session(config, payload)
 
-    result = download_inpn_protected_areas_archive(config, session=session)
+    result = _download_with_session(config, session)
 
     assert result.cache_hit is False
     assert result.path.read_bytes() == payload
@@ -414,20 +440,56 @@ def test_valid_zip_download_binds_exact_bytes_and_lineage(tmp_path: Path) -> Non
         if field.endswith("_url"):
             expected = str(expected)
         assert getattr(result, field) == expected
-    assert session.calls == [
-        (
-            str(config.archive_url),
-            {
-                    "allow_redirects": False,
-                "stream": True,
-                "timeout": pytest.approx(120.0),
-            },
-        )
-    ]
+    assert len(session.calls) == 1
+    requested_url, request_options = session.calls[0]
+    assert requested_url == str(config.archive_url)
+    assert request_options["timeout"] == pytest.approx(120.0)
     metadata = _read_json(_download_metadata_path(result))
     assert metadata["schema_version"] == 1
     assert metadata["file_size"] == len(payload)
     assert metadata["sha256"] == result.sha256
+
+
+@pytest.mark.parametrize("mismatch", ["size", "sha256"])
+def test_cold_download_must_match_configured_snapshot_before_publication(
+    tmp_path: Path,
+    mismatch: str,
+) -> None:
+    expected = _zip_bytes()
+    if mismatch == "size":
+        downloaded = _zip_bytes({"EP/other.txt": b"a longer protected-area payload"})
+        assert len(downloaded) != len(expected)
+    else:
+        downloaded = _zip_bytes({"EP/readme.txt": b"protected areaz"})
+        assert len(downloaded) == len(expected)
+        assert sha256(downloaded).digest() != sha256(expected).digest()
+    config = _config(tmp_path, expected)
+
+    with pytest.raises(InpnProtectedAreasSourceError, match="size|SHA|snapshot|integrity"):
+        _download_with_session(config, _session(config, downloaded))
+
+    assert not list(Path(config.cache_root).rglob("EP.zip"))
+    assert not list(Path(config.cache_root).rglob("*.metadata.json"))
+
+
+def test_coordinated_cache_and_metadata_snapshot_change_is_not_a_cache_hit(
+    tmp_path: Path,
+) -> None:
+    config, first, _ = _download(tmp_path)
+    replacement = _zip_bytes({"EP/readme.txt": b"protected areaz"})
+    assert len(replacement) == first.file_size
+    first.path.write_bytes(replacement)
+    metadata_path = _download_metadata_path(first)
+    metadata = _read_json(metadata_path)
+    metadata["file_size"] = len(replacement)
+    metadata["sha256"] = sha256(replacement).hexdigest()
+    _write_json(metadata_path, metadata)
+    no_network = _Session(error=SafeHttpsError("configured snapshot requires refresh"))
+
+    with pytest.raises(InpnProtectedAreasSourceError):
+        _download_with_session(config, no_network)
+
+    assert len(no_network.calls) == 1
 
 
 @pytest.mark.parametrize(
@@ -465,325 +527,17 @@ def test_http_and_payload_failures_are_controlled(
     )
 
     with pytest.raises(InpnProtectedAreasSourceError):
-        download_inpn_protected_areas_archive(config, session=session)
+        _download_with_session(config, session)
 
     assert not list(Path(config.cache_root).rglob("*.part"))
 
 
 def test_unsupported_zip_compression_has_controlled_error(tmp_path: Path) -> None:
-    config = _config(tmp_path)
+    payload = _unsupported_compression_zip()
+    config = _config(tmp_path, payload)
 
     with pytest.raises(InpnProtectedAreasSourceError, match="ZIP|archive"):
-        download_inpn_protected_areas_archive(
-            config,
-            session=_session(config, _unsupported_compression_zip()),
-        )
-
-
-@pytest.mark.parametrize(
-    "redirect_chain",
-    [
-        ("http://cdn.example.test/EP.zip",),
-        ("file:///tmp/EP.zip",),
-        ("ftp://example.test/EP.zip",),
-        ("https://localhost/EP.zip",),
-        ("https://127.0.0.1/EP.zip",),
-        ("https://10.0.0.2/EP.zip",),
-        ("https://2130706433/EP.zip",),
-        ("https://0x7f000001/EP.zip",),
-        ("https://[::1]/EP.zip",),
-        ("https://[fd00::1]/EP.zip",),
-        ("https://[fe80::1]/EP.zip",),
-        ("https://user:secret@example.test/EP.zip",),
-        ("https://cdn.example.test/EP.zip", "http://redirect.test/EP.zip"),
-    ],
-)
-def test_unsafe_redirect_destination_is_rejected(
-    tmp_path: Path,
-    redirect_chain: tuple[str, ...],
-) -> None:
-    config = _config(tmp_path)
-    session = _session(
-        config,
-        redirect_chain=redirect_chain,
-    )
-
-    with pytest.raises(InpnProtectedAreasSourceError, match="redirect|URL|HTTPS|host"):
-        download_inpn_protected_areas_archive(config, session=session)
-
-    requested_urls = [url for url, _ in session.calls]
-    assert redirect_chain[-1] not in requested_urls
-    assert all(call["allow_redirects"] is False for _, call in session.calls)
-
-
-def test_safe_https_redirect_keeps_configured_archive_lineage(
-    tmp_path: Path,
-    _public_dns: list[tuple[str, int]],
-) -> None:
-    config = _config(tmp_path)
-    session = _session(
-        config,
-        redirect_chain=("https://cdn.example.test/snapshot/EP.zip",),
-    )
-
-    result = download_inpn_protected_areas_archive(config, session=session)
-
-    assert result.archive_url == str(config.archive_url)
-    assert [url for url, _ in session.calls] == [
-        str(config.archive_url),
-        "https://cdn.example.test/snapshot/EP.zip",
-    ]
-    assert all(call["allow_redirects"] is False for _, call in session.calls)
-    assert {hostname for hostname, _ in _public_dns} == {
-        "assets.patrinat.fr",
-        "cdn.example.test",
-    }
-
-
-def test_direct_official_url_resolves_public_dns_before_http(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    config = _config(tmp_path)
-    session = _session(config)
-    events: list[tuple[str, str, int | None]] = []
-
-    def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
-        assert kwargs == {"type": socket.SOCK_STREAM}
-        events.append(("dns", hostname, port))
-        return _dns_records((PUBLIC_IPV4,), port)
-
-    original_get = session.get
-
-    def get(url: str, **kwargs: object) -> _Response:
-        events.append(("http", url, None))
-        return original_get(url, **kwargs)
-
-    monkeypatch.setattr(inpn.socket, "getaddrinfo", resolve)
-    monkeypatch.setattr(session, "get", get)
-
-    result = download_inpn_protected_areas_archive(config, session=session)
-
-    assert result.cache_hit is False
-    assert events[:2] == [
-        ("dns", "assets.patrinat.fr", 443),
-        ("http", str(config.archive_url), None),
-    ]
-
-
-def test_public_ipv4_and_ipv6_dns_answers_are_accepted(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    config = _config(tmp_path)
-    session = _session(config)
-    resolved: list[tuple[str, int]] = []
-
-    def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
-        assert kwargs == {"type": socket.SOCK_STREAM}
-        resolved.append((hostname, port))
-        return _dns_records((PUBLIC_IPV4, PUBLIC_IPV6, PUBLIC_IPV4), port)
-
-    monkeypatch.setattr(inpn.socket, "getaddrinfo", resolve)
-
-    result = download_inpn_protected_areas_archive(config, session=session)
-
-    assert result.cache_hit is False
-    assert session.calls
-    assert resolved
-    assert set(resolved) == {("assets.patrinat.fr", 443)}
-
-
-@pytest.mark.parametrize(
-    "addresses",
-    [
-        ("127.0.0.1",),
-        ("10.0.0.2",),
-        ("169.254.1.1",),
-        ("0.0.0.0",),
-        ("240.0.0.1",),
-        ("::1",),
-        ("fd00::1",),
-        ("fe80::1",),
-        ("::",),
-        (PUBLIC_IPV4, "10.0.0.2"),
-        ("::ffff:127.0.0.1",),
-        ("224.0.0.1",),
-        ("ff02::1",),
-    ],
-    ids=[
-        "loopback-v4",
-        "private-v4",
-        "link-local-v4",
-        "unspecified-v4",
-        "reserved-v4",
-        "loopback-v6",
-        "private-v6",
-        "link-local-v6",
-        "unspecified-v6",
-        "mixed-public-private",
-        "mapped-private-v4",
-        "multicast-v4",
-        "multicast-v6",
-    ],
-)
-def test_nonpublic_dns_answer_rejects_redirect_before_request(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    addresses: tuple[str, ...],
-) -> None:
-    config = _config(tmp_path)
-    redirect_url = "https://redirect.example.test/EP.zip"
-    session = _session(config, redirect_chain=(redirect_url,))
-
-    def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
-        assert kwargs == {"type": socket.SOCK_STREAM}
-        selected = addresses if hostname == "redirect.example.test" else (PUBLIC_IPV4,)
-        return _dns_records(selected, port)
-
-    monkeypatch.setattr(inpn.socket, "getaddrinfo", resolve)
-
-    with pytest.raises(InpnProtectedAreasSourceError, match="DNS|address|URL|redirect"):
-        download_inpn_protected_areas_archive(config, session=session)
-
-    assert [url for url, _ in session.calls] == [str(config.archive_url)]
-
-
-@pytest.mark.parametrize(
-    "url",
-    [
-        "https://127.0.0.1/EP.zip",
-        "https://10.0.0.2/EP.zip",
-        "https://2130706433/EP.zip",
-        "https://0x7f000001/EP.zip",
-        "https://[::1]/EP.zip",
-        "https://[fd00::1]/EP.zip",
-        "https://[fe80::1]/EP.zip",
-    ],
-)
-def test_unsafe_literal_ip_validation_never_uses_dns(
-    monkeypatch: pytest.MonkeyPatch,
-    url: str,
-) -> None:
-    def fail_dns(*args: object, **kwargs: object) -> list[tuple[Any, ...]]:
-        raise AssertionError("literal IP used DNS")
-
-    monkeypatch.setattr(inpn.socket, "getaddrinfo", fail_dns)
-
-    with pytest.raises(InpnProtectedAreasSourceError):
-        inpn._validate_destination_url(url)
-
-
-def test_public_literal_ip_validation_never_uses_dns(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    def fail_dns(*args: object, **kwargs: object) -> list[tuple[Any, ...]]:
-        raise AssertionError("literal IP used DNS")
-
-    monkeypatch.setattr(inpn.socket, "getaddrinfo", fail_dns)
-
-    assert (
-        inpn._validate_destination_url(f"https://{PUBLIC_IPV4}/EP.zip")
-        == f"https://{PUBLIC_IPV4}/EP.zip"
-    )
-
-
-@pytest.mark.parametrize(
-    "case",
-    [
-        "zero",
-        "short-record",
-        "malformed-after-public",
-        "unsupported-family",
-        "bad-sockaddr",
-        "wrong-address-version",
-        "invalid-address-string",
-        "non-string-address",
-    ],
-)
-def test_unusable_dns_results_fail_before_http(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    case: str,
-) -> None:
-    config = _config(tmp_path)
-    session = _session(config)
-
-    def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
-        assert hostname == "assets.patrinat.fr"
-        assert kwargs == {"type": socket.SOCK_STREAM}
-        public = _dns_records((PUBLIC_IPV4,), port)[0]
-        if case == "zero":
-            return []
-        if case == "short-record":
-            return [(socket.AF_INET, socket.SOCK_STREAM)]
-        if case == "malformed-after-public":
-            return [public, ("malformed",)]
-        if case == "unsupported-family":
-            return [(9999, socket.SOCK_STREAM, 0, "", (PUBLIC_IPV4, port))]
-        if case == "bad-sockaddr":
-            return [(socket.AF_INET, socket.SOCK_STREAM, 0, "", (PUBLIC_IPV4,))]
-        if case == "wrong-address-version":
-            return [(socket.AF_INET, socket.SOCK_STREAM, 0, "", (PUBLIC_IPV6, port))]
-        if case == "invalid-address-string":
-            return [(socket.AF_INET, socket.SOCK_STREAM, 0, "", ("not-an-ip", port))]
-        return [(socket.AF_INET, socket.SOCK_STREAM, 0, "", (123, port))]
-
-    monkeypatch.setattr(inpn.socket, "getaddrinfo", resolve)
-
-    with pytest.raises(InpnProtectedAreasSourceError, match="DNS|address|URL"):
-        download_inpn_protected_areas_archive(config, session=session)
-
-    assert session.calls == []
-
-
-@pytest.mark.parametrize(
-    "error",
-    [
-        socket.gaierror("DNS lookup failed"),
-        OSError("resolver failed"),
-        UnicodeError("invalid DNS name"),
-    ],
-    ids=["gaierror", "oserror", "unicode-error"],
-)
-def test_dns_resolution_errors_are_controlled_before_http(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    error: Exception,
-) -> None:
-    config = _config(tmp_path)
-    session = _session(config)
-
-    def fail_resolution(*args: object, **kwargs: object) -> list[tuple[Any, ...]]:
-        raise error
-
-    monkeypatch.setattr(inpn.socket, "getaddrinfo", fail_resolution)
-
-    with pytest.raises(InpnProtectedAreasSourceError, match="DNS|address|URL"):
-        download_inpn_protected_areas_archive(config, session=session)
-
-    assert session.calls == []
-
-
-def test_dns_resolution_uses_explicit_https_port(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    config = _config(tmp_path)
-    redirect_url = "https://cdn.example.test:8443/EP.zip"
-    session = _session(config, redirect_chain=(redirect_url,))
-    resolved: list[tuple[str, int]] = []
-
-    def resolve(hostname: str, port: int, **kwargs: object) -> list[tuple[Any, ...]]:
-        assert kwargs == {"type": socket.SOCK_STREAM}
-        resolved.append((hostname, port))
-        return _dns_records((PUBLIC_IPV4,), port)
-
-    monkeypatch.setattr(inpn.socket, "getaddrinfo", resolve)
-
-    download_inpn_protected_areas_archive(config, session=session)
-
-    assert ("cdn.example.test", 8443) in resolved
+        _download_with_session(config, _session(config, payload))
 
 
 def test_malformed_response_headers_have_controlled_error(tmp_path: Path) -> None:
@@ -792,10 +546,7 @@ def test_malformed_response_headers_have_controlled_error(tmp_path: Path) -> Non
     response.headers = None  # type: ignore[assignment]
 
     with pytest.raises(InpnProtectedAreasSourceError, match="response|download"):
-        download_inpn_protected_areas_archive(
-            config,
-            session=_Session(response),
-        )
+        _download_with_session(config, _Session(response))
 
 
 def test_midstream_protocol_failure_has_controlled_error(tmp_path: Path) -> None:
@@ -806,17 +557,14 @@ def test_midstream_protocol_failure_has_controlled_error(tmp_path: Path) -> None
             return offset
 
         def read(self, size: int = -1) -> bytes:
-            raise ProtocolError("connection ended mid-stream")
+            raise OSError("connection ended mid-stream")
 
     config = _config(tmp_path)
     response = _Response(_zip_bytes(), url=str(config.archive_url))
     response.raw = _FailingRaw()  # type: ignore[assignment]
 
     with pytest.raises(InpnProtectedAreasSourceError, match="response|download"):
-        download_inpn_protected_areas_archive(
-            config,
-            session=_Session(response),
-        )
+        _download_with_session(config, _Session(response))
 
 
 def test_valid_physical_and_metadata_cache_is_reused(
@@ -824,19 +572,21 @@ def test_valid_physical_and_metadata_cache_is_reused(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     config, first, _ = _download(tmp_path)
-    no_network = _Session(error=AssertionError("network used"))
 
     def fail_dns(*args: object, **kwargs: object) -> list[tuple[Any, ...]]:
         raise AssertionError("DNS used for valid cache hit")
 
-    monkeypatch.setattr(inpn.socket, "getaddrinfo", fail_dns)
+    def fail_http(*args: object, **kwargs: object) -> Any:
+        raise AssertionError("HTTP used for valid cache hit")
 
-    second = download_inpn_protected_areas_archive(config, session=no_network)
+    monkeypatch.setattr(safe_http.socket, "getaddrinfo", fail_dns)
+    monkeypatch.setattr(inpn, "open_safe_https", fail_http)
+
+    second = download_inpn_protected_areas_archive(config)
 
     assert second.cache_hit is True
     assert second.file_size == first.file_size
     assert second.sha256 == first.sha256
-    assert no_network.calls == []
 
 
 @pytest.mark.parametrize(
@@ -916,8 +666,8 @@ def test_invalid_download_cache_is_a_miss(
         metadata["sha256"] = sha256(invalid_zip).hexdigest()
         _write_json(metadata_path, metadata)
 
-    session = _session(config, _zip_bytes({"EP/fresh.txt": b"fresh"}))
-    refreshed = download_inpn_protected_areas_archive(config, session=session)
+    session = _session(config)
+    refreshed = _download_with_session(config, session)
 
     assert refreshed.cache_hit is False
     assert len(session.calls) == 1
@@ -934,12 +684,9 @@ def _force_cache_miss(download: InpnProtectedAreasDownload) -> tuple[Path, bytes
 def test_successful_first_and_replacement_publication(tmp_path: Path) -> None:
     config, first, _ = _download(tmp_path)
     _force_cache_miss(first)
-    replacement = _zip_bytes({"EP/replacement.txt": b"replacement"})
+    replacement = _zip_bytes()
 
-    second = download_inpn_protected_areas_archive(
-        config,
-        session=_session(config, replacement),
-    )
+    second = _download_with_session(config, _session(config, replacement))
 
     assert second.cache_hit is False
     assert second.path.read_bytes() == replacement
@@ -970,10 +717,7 @@ def test_publication_failure_restores_old_pair(
 
     monkeypatch.setattr(inpn, "_replace_file", fail_once)
     with pytest.raises(InpnProtectedAreasSourceError, match="publication|download"):
-        download_inpn_protected_areas_archive(
-            config,
-            session=_session(config, _zip_bytes({"fresh.txt": b"fresh"})),
-        )
+        _download_with_session(config, _session(config))
 
     assert first.path.read_bytes() == old_archive
     assert metadata_path.read_bytes() == old_metadata
@@ -1001,10 +745,7 @@ def test_rollback_failure_preserves_recovery_material(
 
     monkeypatch.setattr(inpn, "_replace_file", fail_publication_and_rollback)
     with pytest.raises(InpnProtectedAreasSourceError, match="rollback"):
-        download_inpn_protected_areas_archive(
-            config,
-            session=_session(config, _zip_bytes({"fresh.txt": b"fresh"})),
-        )
+        _download_with_session(config, _session(config))
 
     archive_backup = first.path.with_name(f"{first.path.name}.bak")
     metadata_backup = metadata_path.with_name(f"{metadata_path.name}.bak")
@@ -1032,18 +773,15 @@ def test_failed_replacement_restores_a_still_reusable_valid_download_pair(
 
     monkeypatch.setattr(inpn, "_replace_file", fail_metadata)
     with pytest.raises(InpnProtectedAreasSourceError, match="publication"):
-        download_inpn_protected_areas_archive(
-            config,
-            session=_session(config, _zip_bytes({"EP/fresh.txt": b"fresh"})),
-        )
+        _download_with_session(config, _session(config))
 
     assert first.path.read_bytes() == old_archive
     assert metadata_path.read_bytes() == old_metadata
     monkeypatch.setattr(inpn, "_load_cached_download", original_load)
     monkeypatch.setattr(inpn, "_replace_file", original_replace)
-    reused = download_inpn_protected_areas_archive(
+    reused = _download_with_session(
         config,
-        session=_Session(error=AssertionError("network used")),
+        _Session(error=AssertionError("network used")),
     )
     assert reused.cache_hit is True
 
@@ -1072,12 +810,10 @@ def test_unsafe_zip_member_paths_are_rejected(
     tmp_path: Path,
     member_name: str,
 ) -> None:
-    config = _config(tmp_path)
+    payload = _zip_bytes([(member_name, b"bad")])
+    config = _config(tmp_path, payload)
     with pytest.raises(InpnProtectedAreasSourceError, match="ZIP|archive|member|path"):
-        download_inpn_protected_areas_archive(
-            config,
-            session=_session(config, _zip_bytes([(member_name, b"bad")])),
-        )
+        _download_with_session(config, _session(config, payload))
 
 
 @pytest.mark.parametrize(
@@ -1094,12 +830,10 @@ def test_duplicate_or_colliding_zip_destinations_are_rejected(
     tmp_path: Path,
     members: list[tuple[str, bytes]],
 ) -> None:
-    config = _config(tmp_path)
+    payload = _zip_bytes(members)
+    config = _config(tmp_path, payload)
     with pytest.raises(InpnProtectedAreasSourceError, match="duplicate|collid|archive"):
-        download_inpn_protected_areas_archive(
-            config,
-            session=_session(config, _zip_bytes(members)),
-        )
+        _download_with_session(config, _session(config, payload))
 
 
 @pytest.mark.parametrize(
@@ -1111,22 +845,20 @@ def test_zip_links_and_special_files_are_rejected(
     mode: int,
     message: str,
 ) -> None:
-    config = _config(tmp_path)
+    payload = _special_zip("unsafe", mode)
+    config = _config(tmp_path, payload)
     with pytest.raises(InpnProtectedAreasSourceError, match=message):
-        download_inpn_protected_areas_archive(
-            config,
-            session=_session(config, _special_zip("unsafe", mode)),
-        )
+        _download_with_session(config, _session(config, payload))
 
 
 def test_complete_zip_inventory_is_validated_before_member_copy(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    config = _config(tmp_path)
     payload = _zip_bytes(
         [("safe-first.txt", b"safe"), ("../unsafe-last.txt", b"unsafe")]
     )
+    config = _config(tmp_path, payload)
     opened = 0
     original_open = zipfile.ZipFile.open
 
@@ -1138,10 +870,7 @@ def test_complete_zip_inventory_is_validated_before_member_copy(
     monkeypatch.setattr(zipfile.ZipFile, "open", record_open)
 
     with pytest.raises(InpnProtectedAreasSourceError):
-        download_inpn_protected_areas_archive(
-            config,
-            session=_session(config, payload),
-        )
+        _download_with_session(config, _session(config, payload))
 
     assert opened == 0
 
@@ -1536,9 +1265,9 @@ def test_strict_metadata_rejects_boolean_numeric_values_as_cache_hits(
     metadata = _read_json(metadata_path)
     metadata["file_size"] = True
     _write_json(metadata_path, metadata)
-    session = _session(config, _zip_bytes({"fresh.txt": b"fresh"}))
+    session = _session(config)
 
-    refreshed = download_inpn_protected_areas_archive(config, session=session)
+    refreshed = _download_with_session(config, session)
 
     assert refreshed.cache_hit is False
     assert len(session.calls) == 1
@@ -1559,7 +1288,7 @@ def test_download_uses_no_hidden_reference_page_scrape(tmp_path: Path) -> None:
     config = _config(tmp_path)
     session = _session(config)
 
-    download_inpn_protected_areas_archive(config, session=session)
+    _download_with_session(config, session)
 
     assert [url for url, _ in session.calls] == [str(config.archive_url)]
     assert str(config.reference_page_url) not in [url for url, _ in session.calls]
@@ -1588,9 +1317,9 @@ def test_archive_and_extraction_cache_reuse_are_independent(tmp_path: Path) -> N
     config, first_download, _ = _download(tmp_path)
     first_extraction = extract_inpn_protected_areas_archive(first_download, config)
 
-    second_download = download_inpn_protected_areas_archive(
+    second_download = _download_with_session(
         config,
-        session=_Session(error=AssertionError("network used")),
+        _Session(error=AssertionError("network used")),
     )
     second_extraction = extract_inpn_protected_areas_archive(second_download, config)
 

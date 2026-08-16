@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+import json
 from copy import deepcopy
 from dataclasses import replace
+from hashlib import sha256
+from pathlib import Path
+from typing import Any, cast
+from unittest.mock import patch
 
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import pyogrio
 import pytest
 from geopandas.testing import assert_geodataframe_equal
 from pandas.api.types import is_float_dtype, is_integer_dtype
@@ -19,16 +25,32 @@ from shapely.geometry import (
 )
 
 from landscout import stages
+from landscout.sources import (
+    IgnBdTopoDownload,
+    IgnBdTopoElectricityData,
+    IgnBdTopoExtraction,
+    IgnBdTopoLayerSummary,
+    load_ign_bdtopo_source_config,
+)
 from landscout.stages import (
     GridProximityError,
     GridProximityResult,
     VoltageLevelCoverage,
-    enrich_parcel_grid_proximity,
     profile_grid_proximity,
 )
-from landscout.stages.enrich_grid_proximity import VOLTAGE_PROXIMITY_COLUMNS
+from landscout.stages import (
+    enrich_parcel_grid_proximity as public_enrich_parcel_grid_proximity,
+)
+from landscout.stages.enrich_grid_proximity import (
+    VOLTAGE_PROXIMITY_COLUMNS,
+)
+from landscout.stages.enrich_grid_proximity import (
+    _enrich_parcel_grid_proximity_from_normalized as enrich_parcel_grid_proximity,
+)
+from landscout.stages.normalize_grid_ign import NormalizedIgnElectricityData
 
 OVERFLOWING_INTEGER = 10**10000
+SOURCE_CONFIG = load_ign_bdtopo_source_config()
 
 
 def _geometry_status(geometry: object) -> str:
@@ -140,6 +162,258 @@ def _posts(
     )
 
 
+def _electricity_source(
+    lines: gpd.GeoDataFrame | None = None,
+    posts: gpd.GeoDataFrame | None = None,
+) -> IgnBdTopoElectricityData:
+    return IgnBdTopoElectricityData(
+        extraction=cast(Any, None),
+        electric_lines=lines if lines is not None else _lines(),
+        transformation_posts=posts if posts is not None else _posts(),
+        electric_lines_summary=cast(Any, None),
+        transformation_posts_summary=cast(Any, None),
+    )
+
+
+def _physical_line_source(
+    identifier: str,
+    geometry: LineString,
+) -> gpd.GeoDataFrame:
+    return gpd.GeoDataFrame(
+        {
+            "cleabs": [identifier],
+            "voltage": ["225 kV"],
+            "gestionnaire": ["Test manager"],
+            "siren_gestionnaire": ["444619258"],
+            "etat_de_l_objet": ["En service"],
+            "sources": ["Synthetic physical source"],
+            "identifiants_sources": [f"SOURCE-{identifier}"],
+            "date_creation": pd.to_datetime(["2024-01-01"]),
+            "date_modification": pd.to_datetime(["2025-01-01"]),
+            "date_de_confirmation": pd.to_datetime(["2025-02-01"]),
+            "methode_d_acquisition_planimetrique": ["Synthetic"],
+            "precision_planimetrique": [1.0],
+        },
+        geometry=[geometry],
+        crs="EPSG:2154",
+    )
+
+
+def _physical_post_source(
+    identifier: str,
+    geometry: Polygon,
+) -> gpd.GeoDataFrame:
+    return gpd.GeoDataFrame(
+        {
+            "cleabs": [identifier],
+            "toponyme": ["Test post"],
+            "statut_du_toponyme": ["Valid"],
+            "importance": ["5"],
+            "etat_de_l_objet": ["En service"],
+            "sources": ["Synthetic physical source"],
+            "identifiants_sources": [f"SOURCE-{identifier}"],
+            "date_creation": pd.to_datetime(["2024-01-01"]),
+            "date_modification": pd.to_datetime(["2025-01-01"]),
+            "date_de_confirmation": pd.to_datetime(["2025-02-01"]),
+            "methode_d_acquisition_planimetrique": ["Synthetic"],
+            "precision_planimetrique": [1.0],
+        },
+        geometry=[geometry],
+        crs="EPSG:2154",
+    )
+
+
+def _physical_summary(
+    frame: gpd.GeoDataFrame,
+    *,
+    logical_name: str,
+    layer_name: str,
+) -> IgnBdTopoLayerSummary:
+    geometry = frame.geometry
+    null_mask = geometry.isna()
+    empty_mask = ~null_mask & geometry.is_empty
+    invalid_mask = ~null_mask & ~geometry.is_empty & ~geometry.is_valid
+    return IgnBdTopoLayerSummary(
+        logical_name=cast(Any, logical_name),
+        source_layer_name=layer_name,
+        crs=str(frame.crs),
+        feature_count=len(frame),
+        columns=tuple(str(column) for column in frame.columns),
+        dtypes=tuple(
+            (str(column), str(dtype)) for column, dtype in frame.dtypes.items()
+        ),
+        null_geometry_count=int(null_mask.sum()),
+        empty_geometry_count=int(empty_mask.sum()),
+        invalid_geometry_count=int(invalid_mask.sum()),
+        geometry_types=tuple(
+            sorted(
+                str(value)
+                for value in geometry[~null_mask].geom_type.dropna().unique()
+            )
+        ),
+    )
+
+
+def _physical_electricity_source(
+    tmp_path: Path,
+    *,
+    alternate_roles: bool,
+) -> IgnBdTopoElectricityData:
+    configured_line_layer = "LIGNE_ELECTRIQUE_CONFIGURED"
+    configured_post_layer = "POSTE_DE_TRANSFORMATION_CONFIGURED"
+    alternate_line_layer = "CABLE_SOURCE_ALTERNATE"
+    alternate_post_layer = "INSTALLATION_SOURCE_ALTERNATE"
+    frames = (
+        (
+            configured_line_layer,
+            _physical_line_source(
+                "CONFIGURED-LINE",
+                LineString([(500, -20), (500, 30)]),
+            ),
+        ),
+        (
+            configured_post_layer,
+            _physical_post_source(
+                "CONFIGURED-POST",
+                Polygon(
+                    [(500, 0), (500, 10), (510, 10), (510, 0), (500, 0)]
+                ),
+            ),
+        ),
+        (
+            alternate_line_layer,
+            _physical_line_source(
+                "ALTERNATE-LINE",
+                LineString([(10, -20), (10, 30)]),
+            ),
+        ),
+        (
+            alternate_post_layer,
+            _physical_post_source(
+                "ALTERNATE-POST",
+                Polygon([(10, 0), (10, 10), (20, 10), (20, 0), (10, 0)]),
+            ),
+        ),
+    )
+    selected_line_layer = (
+        alternate_line_layer if alternate_roles else configured_line_layer
+    )
+    selected_post_layer = (
+        alternate_post_layer if alternate_roles else configured_post_layer
+    )
+    extraction_path = tmp_path / (
+        "alternate-electricity-extraction"
+        if alternate_roles
+        else "configured-electricity-extraction"
+    )
+    extraction_path.mkdir()
+    geopackage_path = extraction_path / "electricity.gpkg"
+    for position, (layer_name, frame) in enumerate(frames):
+        pyogrio.write_dataframe(
+            frame,
+            geopackage_path,
+            layer=layer_name,
+            driver="GPKG",
+            append=position > 0,
+        )
+    selected_lines = gpd.read_file(
+        geopackage_path,
+        layer=selected_line_layer,
+        engine="pyogrio",
+    )
+    selected_posts = gpd.read_file(
+        geopackage_path,
+        layer=selected_post_layer,
+        engine="pyogrio",
+    )
+    payload = geopackage_path.read_bytes()
+    digest = sha256(payload).hexdigest()
+    layer_names = tuple(
+        str(record[0]) for record in pyogrio.list_layers(geopackage_path)
+    )
+    marker = {
+        "schema_version": 2,
+        "archive_sha256": "a" * 64,
+        "geopackage_relative_path": geopackage_path.name,
+        "geopackage_size_bytes": len(payload),
+        "geopackage_sha256": digest,
+        "all_layer_names": list(layer_names),
+        "electric_lines_layer": selected_line_layer,
+        "transformation_posts_layer": selected_post_layer,
+        "spatial_role": "PROXY_GEOMETRY",
+    }
+    (extraction_path / ".landscout-extraction.json").write_text(
+        json.dumps(marker),
+        encoding="utf-8",
+    )
+    archive = IgnBdTopoDownload(
+        provider=SOURCE_CONFIG.provider,
+        product=SOURCE_CONFIG.product,
+        department_code=SOURCE_CONFIG.department_code,
+        edition=SOURCE_CONFIG.edition,
+        product_version=SOURCE_CONFIG.product_version,
+        projection=SOURCE_CONFIG.projection,
+        package_format=SOURCE_CONFIG.format,
+        archive_format=SOURCE_CONFIG.archive_format,
+        source_url=str(SOURCE_CONFIG.source_url),
+        checksum_url=(
+            str(SOURCE_CONFIG.checksum_url)
+            if SOURCE_CONFIG.checksum_url is not None
+            else None
+        ),
+        download_timestamp="2026-08-11T15:32:03+00:00",
+        filename=Path(str(SOURCE_CONFIG.source_url)).name,
+        file_size=SOURCE_CONFIG.expected_archive_size_bytes or 1,
+        sha256="a" * 64,
+        official_checksum_algorithm=SOURCE_CONFIG.official_checksum_algorithm,
+        official_checksum=SOURCE_CONFIG.official_checksum,
+        official_checksum_validated=(
+            SOURCE_CONFIG.official_checksum is not None
+        ),
+        path=tmp_path / "synthetic.7z",
+        cache_hit=True,
+    )
+    extraction = IgnBdTopoExtraction(
+        archive=archive,
+        extraction_path=extraction_path,
+        geopackage_path=geopackage_path,
+        geopackage_filename=geopackage_path.name,
+        geopackage_size_bytes=len(payload),
+        geopackage_sha256=digest,
+        all_layer_names=layer_names,
+        electric_lines_layer=selected_line_layer,
+        transformation_posts_layer=selected_post_layer,
+        cache_hit=True,
+    )
+    return IgnBdTopoElectricityData(
+        extraction=extraction,
+        electric_lines=selected_lines,
+        transformation_posts=selected_posts,
+        electric_lines_summary=_physical_summary(
+            selected_lines,
+            logical_name="electric_lines",
+            layer_name=selected_line_layer,
+        ),
+        transformation_posts_summary=_physical_summary(
+            selected_posts,
+            logical_name="transformation_posts",
+            layer_name=selected_post_layer,
+        ),
+    )
+
+
+def _alternate_role_electricity_source(
+    tmp_path: Path,
+) -> IgnBdTopoElectricityData:
+    return _physical_electricity_source(tmp_path, alternate_roles=True)
+
+
+def _configured_role_electricity_source(
+    tmp_path: Path,
+) -> IgnBdTopoElectricityData:
+    return _physical_electricity_source(tmp_path, alternate_roles=False)
+
+
 def _two_parcel_two_voltage_result() -> GridProximityResult:
     parcels = _parcels(
         [
@@ -183,10 +457,169 @@ def _mutate_voltage_result(
 
 
 def test_clean_high_level_api_is_exported() -> None:
-    assert stages.enrich_parcel_grid_proximity is enrich_parcel_grid_proximity
+    assert (
+        stages.enrich_parcel_grid_proximity
+        is public_enrich_parcel_grid_proximity
+    )
     assert stages.profile_grid_proximity is profile_grid_proximity
     assert "enrich_parcel_grid_proximity" in stages.__all__
     assert "profile_grid_proximity" in stages.__all__
+
+
+def test_public_proximity_normalizes_verified_source_exactly_once() -> None:
+    parcels = _parcels()
+    lines = _lines()
+    posts = _posts()
+    source = _electricity_source(lines, posts)
+    normalized = NormalizedIgnElectricityData(lines, posts)
+
+    with patch(
+        "landscout.stages.enrich_grid_proximity.normalize_ign_electricity",
+        return_value=normalized,
+        create=True,
+    ) as normalizer:
+        result = public_enrich_parcel_grid_proximity(
+            parcels, source, SOURCE_CONFIG
+        )
+
+    normalizer.assert_called_once_with(source, SOURCE_CONFIG)
+    assert result.parcels.loc[0, "nearest_line_grid_feature_id"] == "LINE-1"
+    assert result.parcels.loc[0, "nearest_post_grid_feature_id"] == "POST-1"
+
+
+@pytest.mark.parametrize("argument", ["parcels", "electricity_source", "source_config"])
+def test_public_proximity_rejects_wrong_source_boundary_types(
+    argument: str,
+) -> None:
+    kwargs: dict[str, object] = {
+        "parcels": _parcels(),
+        "electricity_source": _electricity_source(),
+        "source_config": SOURCE_CONFIG,
+    }
+    kwargs[argument] = pd.DataFrame() if argument == "parcels" else object()
+
+    with patch(
+        "landscout.stages.enrich_grid_proximity.normalize_ign_electricity",
+        create=True,
+    ) as normalizer, pytest.raises(GridProximityError):
+        public_enrich_parcel_grid_proximity(**cast(Any, kwargs))
+
+    normalizer.assert_not_called()
+
+
+def test_caller_crafted_normalized_grid_frame_is_not_a_public_source() -> None:
+    forged_lines = _lines(
+        [LineString([(10, -20), (10, 30)])],
+        identifiers=["IGN_BDTOPO:ELECTRIC_LINE:FORGED"],
+    )
+    assert forged_lines["source_department_code"].eq("31").all()
+    assert forged_lines["source_edition"].eq("2026-06-15").all()
+    assert forged_lines["source_archive_sha256"].eq("a" * 64).all()
+    assert forged_lines["spatial_role"].eq("PROXY_GEOMETRY").all()
+
+    with patch(
+        "landscout.stages.enrich_grid_proximity.normalize_ign_electricity",
+        create=True,
+    ) as normalizer, pytest.raises(
+        GridProximityError,
+        match="IgnBdTopoElectricityData|electricity source",
+    ):
+        public_enrich_parcel_grid_proximity(
+            _parcels(),
+            cast(Any, forged_lines),
+            SOURCE_CONFIG,
+        )
+
+    normalizer.assert_not_called()
+
+
+def test_public_proximity_reproduces_configured_electricity_roles(
+    tmp_path: Path,
+) -> None:
+    forged = _alternate_role_electricity_source(tmp_path)
+    assert forged.extraction.electric_lines_layer == "CABLE_SOURCE_ALTERNATE"
+    assert (
+        forged.extraction.transformation_posts_layer
+        == "INSTALLATION_SOURCE_ALTERNATE"
+    )
+
+    with pytest.raises(GridProximityError):
+        public_enrich_parcel_grid_proximity(_parcels(), forged, SOURCE_CONFIG)
+
+
+@pytest.mark.parametrize(
+    "archive_changes",
+    [
+        pytest.param({"provider": "IGN"}, id="provider"),
+        pytest.param({"product": "BDTOPO"}, id="product"),
+        pytest.param({"edition": "2026-06-16"}, id="edition"),
+        pytest.param({"product_version": "3.6"}, id="product-version"),
+        pytest.param(
+            {"projection": "urn:ogc:def:crs:EPSG::2154"},
+            id="projection",
+        ),
+        pytest.param({"package_format": "SHP"}, id="package-format"),
+        pytest.param({"archive_format": "zip"}, id="archive-format"),
+        pytest.param(
+            {"source_url": "https://example.test/other-package.7z"},
+            id="source-url",
+        ),
+        pytest.param(
+            {"checksum_url": "https://example.test/other-package.md5"},
+            id="checksum-url",
+        ),
+        pytest.param(
+            {
+                "official_checksum_algorithm": "sha256",
+                "official_checksum": "b" * 64,
+                "official_checksum_validated": True,
+            },
+            id="official-checksum",
+        ),
+        pytest.param(
+            {
+                "file_size": (
+                    SOURCE_CONFIG.expected_archive_size_bytes or 1
+                )
+                + 1
+            },
+            id="archive-size",
+        ),
+    ],
+)
+def test_public_proximity_rejects_archive_lineage_differing_from_config(
+    tmp_path: Path,
+    archive_changes: dict[str, object],
+) -> None:
+    source = _configured_role_electricity_source(tmp_path)
+    forged_archive = replace(source.extraction.archive, **archive_changes)
+    forged = replace(
+        source,
+        extraction=replace(source.extraction, archive=forged_archive),
+    )
+
+    with patch(
+        "landscout.stages.enrich_grid_proximity."
+        "_enrich_parcel_grid_proximity_from_normalized",
+    ) as computation, pytest.raises(GridProximityError):
+        public_enrich_parcel_grid_proximity(_parcels(), forged, SOURCE_CONFIG)
+
+    computation.assert_not_called()
+
+
+def test_source_normalization_failure_stops_grid_computation() -> None:
+    source = _electricity_source()
+
+    with patch(
+        "landscout.stages.enrich_grid_proximity.normalize_ign_electricity",
+        side_effect=ValueError("physical source changed"),
+        create=True,
+    ) as normalizer, pytest.raises(GridProximityError):
+        public_enrich_parcel_grid_proximity(
+            _parcels(), source, SOURCE_CONFIG
+        )
+
+    normalizer.assert_called_once_with(source, SOURCE_CONFIG)
 
 
 def test_separated_distance_uses_parcel_edge_not_centroid() -> None:

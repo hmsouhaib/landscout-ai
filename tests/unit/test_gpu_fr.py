@@ -12,7 +12,7 @@ from urllib.error import URLError
 
 import geopandas as gpd  # type: ignore[import-untyped]
 import pytest
-from pydantic import ValidationError
+from pydantic import HttpUrl, ValidationError
 from shapely.geometry import Polygon
 
 import landscout.sources.gpu_fr as gpu
@@ -110,7 +110,7 @@ def _patch_json_responses(monkeypatch: pytest.MonkeyPatch, values: list[object])
     def opener(*args: object, **kwargs: object) -> _Response:
         return _Response(json.dumps(next(responses)).encode())
 
-    monkeypatch.setattr(gpu, "urlopen", opener)
+    monkeypatch.setattr(gpu, "open_safe_https", opener)
 
 
 def _document(monkeypatch: pytest.MonkeyPatch):
@@ -142,7 +142,7 @@ def _download(
     archive_bytes: bytes | None = None,
 ) -> GpuArchiveDownload:
     document = _document(monkeypatch)
-    monkeypatch.setattr(gpu, "urlopen", lambda *args, **kwargs: _Response(archive_bytes or _zip_bytes()))
+    monkeypatch.setattr(gpu, "open_safe_https", lambda *args, **kwargs: _Response(archive_bytes or _zip_bytes()))
     return download_gpu_document(document, _config(), tmp_path)
 
 
@@ -190,7 +190,10 @@ def test_valid_config_and_urls() -> None:
     [
         (("pilot", "commune_code"), "3139"),
         (("api", "base_url"), "file:///api"),
+        (("api", "base_url"), "http://www.geoportail-urbanisme.gouv.fr/api"),
         (("api", "base_url"), "https://example.com/api"),
+        (("api", "base_url"), "https://www.geoportail-urbanisme.gouv.fr:8443/api"),
+        (("api", "base_url"), "https://www.geoportail-urbanisme.gouv.fr/api?x=1"),
         (("download", "strategy"), "parcel"),
         (("download", "partition_template"), ""),
         (("cache", "max_age_hours"), -1),
@@ -201,6 +204,26 @@ def test_invalid_config_values_are_rejected(path: tuple[str, str], value: object
     payload[path[0]][path[1]] = value
     with pytest.raises(ValidationError):
         GpuSourceConfig.model_validate(payload)
+
+
+def test_mutated_loaded_api_origin_is_rejected_before_discovery_network(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config = _config()
+    config.api.base_url = HttpUrl("https://unrelated.example/api")
+    network_calls = 0
+
+    def fail_network(*args: object, **kwargs: object) -> object:
+        nonlocal network_calls
+        network_calls += 1
+        raise AssertionError("network used after GPU origin mutation")
+
+    monkeypatch.setattr(gpu, "open_safe_https", fail_network)
+
+    with pytest.raises(GpuDiscoveryError, match="config|official|origin"):
+        discover_current_gpu_document(config)
+
+    assert network_calls == 0
 
 
 def test_unknown_config_field_is_rejected() -> None:
@@ -218,6 +241,69 @@ def test_document_discovery_success(monkeypatch: pytest.MonkeyPatch) -> None:
     assert document.archive_name == "31395_PLU_20240215"
     assert document.version is None
     assert document.written_files[0].title == "Règlement écrit"
+    assert document.written_files[0].source_url == (
+        "https://www.geoportail-urbanisme.gouv.fr/api/document/"
+        "doc-1/files/reglement.pdf"
+    )
+
+
+@pytest.mark.parametrize(
+    "source_url",
+    [
+        (
+            "http://www.geoportail-urbanisme.gouv.fr/api/document/"
+            "doc-1/files/reglement.pdf"
+        ),
+        "https://unrelated.example/api/document/doc-1/files/reglement.pdf",
+    ],
+    ids=["http", "unrelated-https-origin"],
+)
+def test_written_material_url_must_be_exact_official_https_api_url(
+    monkeypatch: pytest.MonkeyPatch,
+    source_url: str,
+) -> None:
+    _patch_json_responses(
+        monkeypatch,
+        [
+            [_listing_item()],
+            _details(writingMaterials={"reglement.pdf": source_url}),
+            _files(),
+        ],
+    )
+
+    with pytest.raises(GpuDiscoveryError, match="written material URL"):
+        discover_current_gpu_document(_config())
+
+
+@pytest.mark.parametrize(
+    "archive_url",
+    [
+        (
+            "http://www.geoportail-urbanisme.gouv.fr/api/document/"
+            "doc-1/download/31395_PLU_20240215.zip"
+        ),
+        (
+            "https://unrelated.example/api/document/doc-1/download/"
+            "31395_PLU_20240215.zip"
+        ),
+    ],
+    ids=["http", "unrelated-https-origin"],
+)
+def test_written_material_fallback_rejects_unsafe_archive_url_provenance(
+    monkeypatch: pytest.MonkeyPatch,
+    archive_url: str,
+) -> None:
+    _patch_json_responses(
+        monkeypatch,
+        [
+            [_listing_item()],
+            _details(archiveUrl=archive_url, writingMaterials={}),
+            _files(),
+        ],
+    )
+
+    with pytest.raises(GpuDiscoveryError, match="archive URL"):
+        discover_current_gpu_document(_config())
 
 
 def test_no_current_document_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -348,7 +434,7 @@ def test_download_rejects_document_inconsistent_with_config(
     document = replace(_document(monkeypatch), **{field: different_value})
     monkeypatch.setattr(
         gpu,
-        "urlopen",
+        "open_safe_https",
         lambda *args, **kwargs: pytest.fail("invalid document reached network"),
     )
 
@@ -356,6 +442,38 @@ def test_download_rejects_document_inconsistent_with_config(
         download_gpu_document(document, _config(), tmp_path)
 
     assert not any(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize("mutation", ["forged-source-url", "wrong-item-type"])
+def test_download_rejects_forged_written_file_provenance_before_network(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mutation: str,
+) -> None:
+    original = _document(monkeypatch)
+    if mutation == "forged-source-url":
+        written_files = (
+            replace(
+                original.written_files[0],
+                source_url="http://unrelated.example/reglement.pdf",
+            ),
+        )
+    else:
+        written_files = (object(),)
+    document = replace(original, written_files=written_files)  # type: ignore[arg-type]
+    network_calls = 0
+
+    def fail_network(*args: object, **kwargs: object) -> object:
+        nonlocal network_calls
+        network_calls += 1
+        raise AssertionError("forged written-file provenance reached network")
+
+    monkeypatch.setattr(gpu, "open_safe_https", fail_network)
+
+    with pytest.raises(GpuDownloadError, match="written|document|source|URL"):
+        download_gpu_document(document, _config(), tmp_path)
+
+    assert network_calls == 0
 
 
 @pytest.mark.parametrize(
@@ -370,7 +488,7 @@ def test_download_rejects_forged_unsafe_archive_name_before_io(
     document = replace(_document(monkeypatch), archive_name=archive_name)
     monkeypatch.setattr(
         gpu,
-        "urlopen",
+        "open_safe_https",
         lambda *args, **kwargs: pytest.fail("unsafe archive name reached network"),
     )
 
@@ -387,7 +505,7 @@ def test_archive_name_with_one_zip_suffix_is_not_duplicated(
     document = replace(_document(monkeypatch), archive_name="safe-name.zip")
     monkeypatch.setattr(
         gpu,
-        "urlopen",
+        "open_safe_https",
         lambda *args, **kwargs: _Response(_zip_bytes()),
     )
 
@@ -401,10 +519,28 @@ def test_fresh_cache_is_reused(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     first = _download(tmp_path, monkeypatch)
-    monkeypatch.setattr(gpu, "urlopen", lambda *args, **kwargs: pytest.fail("network used"))
+    monkeypatch.setattr(gpu, "open_safe_https", lambda *args, **kwargs: pytest.fail("network used"))
     second = download_gpu_document(first.document, _config(), tmp_path)
     assert second.cache_hit
     assert second.sha256 == first.sha256
+
+
+def test_stale_recovery_backup_rejects_cache_before_network(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    first = _download(tmp_path, monkeypatch)
+    recovery_path = first.path.with_suffix(f"{first.path.suffix}.bak")
+    recovery_bytes = b"manual GPU recovery material"
+    recovery_path.write_bytes(recovery_bytes)
+
+    def fail_network(*args: object, **kwargs: object) -> _Response:
+        pytest.fail("stale recovery must fail before network")
+
+    monkeypatch.setattr(gpu, "open_safe_https", fail_network)
+    with pytest.raises(GpuDownloadError, match="backup|recovery|manual"):
+        download_gpu_document(first.document, _config(), tmp_path)
+
+    assert recovery_path.read_bytes() == recovery_bytes
 
 
 def test_expired_cache_is_refreshed(
@@ -416,7 +552,7 @@ def test_expired_cache_is_refreshed(
     sidecar["download_timestamp"] = (datetime.now(UTC) - timedelta(days=8)).isoformat()
     sidecar_path.write_text(json.dumps(sidecar), encoding="utf-8")
     fresh_bytes = _zip_bytes({"fresh.txt": b"fresh"})
-    monkeypatch.setattr(gpu, "urlopen", lambda *args, **kwargs: _Response(fresh_bytes))
+    monkeypatch.setattr(gpu, "open_safe_https", lambda *args, **kwargs: _Response(fresh_bytes))
     refreshed = download_gpu_document(first.document, _config(), tmp_path)
     assert not refreshed.cache_hit
     assert refreshed.sha256 != first.sha256
@@ -436,7 +572,7 @@ def test_failed_refresh_preserves_previous_cache(
     def fail(*args: object, **kwargs: object) -> _Response:
         raise URLError("offline")
 
-    monkeypatch.setattr(gpu, "urlopen", fail)
+    monkeypatch.setattr(gpu, "open_safe_https", fail)
     with pytest.raises(GpuDownloadError):
         download_gpu_document(first.document, _config(), tmp_path)
     assert first.path.read_bytes() == old_archive
@@ -455,7 +591,7 @@ def test_metadata_publication_failure_rolls_back_both_cache_files(
     old_archive = first.path.read_bytes()
     old_sidecar = sidecar_path.read_bytes()
     monkeypatch.setattr(
-        gpu, "urlopen", lambda *args, **kwargs: _Response(_zip_bytes({"fresh": b"x"}))
+        gpu, "open_safe_https", lambda *args, **kwargs: _Response(_zip_bytes({"fresh": b"x"}))
     )
     original_replace = gpu._replace_file
     failed = False
@@ -476,11 +612,166 @@ def test_metadata_publication_failure_rolls_back_both_cache_files(
     assert not list(tmp_path.glob("*.bak"))
 
 
+def test_publication_and_rollback_failure_preserves_exact_recovery_backups(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    archive_path = tmp_path / "cached.zip"
+    metadata_path = tmp_path / "cached.zip.metadata.json"
+    temporary_archive = tmp_path / "cached.zip.part"
+    temporary_metadata = tmp_path / "cached.zip.metadata.json.part"
+    old_archive = b"exact old archive"
+    old_metadata = b"exact old metadata"
+    archive_path.write_bytes(old_archive)
+    metadata_path.write_bytes(old_metadata)
+    temporary_archive.write_bytes(b"replacement archive")
+    temporary_metadata.write_bytes(b"replacement metadata")
+    archive_backup = archive_path.with_suffix(f"{archive_path.suffix}.bak")
+    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    original_replace = gpu._replace_file
+
+    def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("simulated metadata publication failure")
+        if source == archive_backup and target == archive_path:
+            raise OSError("simulated archive rollback failure")
+        original_replace(source, target)
+
+    monkeypatch.setattr(
+        gpu,
+        "_replace_file",
+        fail_publication_and_rollback,
+    )
+    with pytest.raises(GpuDownloadError, match="rollback"):
+        gpu._publish_cache_pair(
+            temporary_archive,
+            temporary_metadata,
+            archive_path,
+            metadata_path,
+        )
+
+    assert archive_backup.read_bytes() == old_archive
+    assert metadata_backup.read_bytes() == old_metadata
+
+
+def test_cleanup_failure_does_not_mask_double_failure_recovery_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    first = _download(tmp_path, monkeypatch)
+    metadata_path = tmp_path / f"{first.filename}.metadata.json"
+    metadata = json.loads(metadata_path.read_text())
+    metadata["download_timestamp"] = (
+        datetime.now(UTC) - timedelta(days=8)
+    ).isoformat()
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+    old_archive = first.path.read_bytes()
+    old_metadata = metadata_path.read_bytes()
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
+    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    original_replace = gpu._replace_file
+    original_unlink = Path.unlink
+    rollback_failed = False
+
+    def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        nonlocal rollback_failed
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("simulated metadata publication failure")
+        if source == archive_backup and target == first.path:
+            rollback_failed = True
+            raise OSError("simulated archive rollback failure")
+        original_replace(source, target)
+
+    def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
+        if rollback_failed and path == temporary_metadata:
+            raise PermissionError("simulated temporary cleanup failure")
+        original_unlink(path, missing_ok=missing_ok)
+
+    monkeypatch.setattr(
+        gpu,
+        "open_safe_https",
+        lambda *args, **kwargs: _Response(_zip_bytes({"fresh": b"x"})),
+    )
+    monkeypatch.setattr(gpu, "_replace_file", fail_publication_and_rollback)
+    monkeypatch.setattr(Path, "unlink", fail_temporary_cleanup)
+    with pytest.raises(GpuDownloadError, match="rollback"):
+        download_gpu_document(first.document, _config(), tmp_path)
+
+    assert archive_backup.read_bytes() == old_archive
+    assert metadata_backup.read_bytes() == old_metadata
+
+
+def test_stale_cache_recovery_backup_fails_closed_without_destroying_it(
+    tmp_path: Path,
+) -> None:
+    archive_path = tmp_path / "cached.zip"
+    metadata_path = tmp_path / "cached.zip.metadata.json"
+    temporary_archive = tmp_path / "cached.zip.part"
+    temporary_metadata = tmp_path / "cached.zip.metadata.json.part"
+    archive_backup = tmp_path / "cached.zip.bak"
+    archive_path.write_bytes(b"old archive")
+    metadata_path.write_bytes(b"old metadata")
+    temporary_archive.write_bytes(b"new archive")
+    temporary_metadata.write_bytes(b"new metadata")
+    archive_backup.write_bytes(b"manual recovery archive")
+
+    with pytest.raises(GpuDownloadError, match="backup|recovery|manual"):
+        gpu._publish_cache_pair(
+            temporary_archive,
+            temporary_metadata,
+            archive_path,
+            metadata_path,
+        )
+
+    assert archive_path.read_bytes() == b"old archive"
+    assert metadata_path.read_bytes() == b"old metadata"
+    assert archive_backup.read_bytes() == b"manual recovery archive"
+
+
+def test_preexisting_temporary_archive_symlink_cannot_modify_target(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    document = _document(monkeypatch)
+    filename = gpu._safe_gpu_archive_filename(document.archive_name)
+    temporary_archive = tmp_path / f"{filename}.part"
+    sentinel = tmp_path / "do-not-overwrite.txt"
+    sentinel_bytes = b"irreplaceable sentinel bytes"
+    sentinel.write_bytes(sentinel_bytes)
+    original_is_symlink = Path.is_symlink
+    original_open = Path.open
+
+    def simulated_is_symlink(path: Path) -> bool:
+        return path == temporary_archive or original_is_symlink(path)
+
+    def simulated_symlink_open(
+        path: Path, *args: object, **kwargs: object
+    ) -> object:
+        if path == temporary_archive:
+            return original_open(sentinel, *args, **kwargs)
+        return original_open(path, *args, **kwargs)
+
+    opener_calls = 0
+
+    def record_network(*args: object, **kwargs: object) -> _Response:
+        nonlocal opener_calls
+        opener_calls += 1
+        return _Response(_zip_bytes())
+
+    monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
+    monkeypatch.setattr(Path, "open", simulated_symlink_open)
+    monkeypatch.setattr(gpu, "open_safe_https", record_network)
+
+    with pytest.raises(GpuDownloadError):
+        download_gpu_document(document, _config(), tmp_path)
+
+    assert opener_calls == 0
+    assert sentinel.read_bytes() == sentinel_bytes
+
+
 def test_corrupt_download_is_rejected(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     document = _document(monkeypatch)
-    monkeypatch.setattr(gpu, "urlopen", lambda *args, **kwargs: _Response(b"not zip"))
+    monkeypatch.setattr(gpu, "open_safe_https", lambda *args, **kwargs: _Response(b"not zip"))
     with pytest.raises(GpuDownloadError):
         download_gpu_document(document, _config(), tmp_path)
     assert not list(tmp_path.glob("*.part"))
@@ -494,7 +785,7 @@ def test_tampered_sidecar_invalidates_cache(
     sidecar = json.loads(sidecar_path.read_text())
     sidecar["sha256"] = "0" * 64
     sidecar_path.write_text(json.dumps(sidecar), encoding="utf-8")
-    monkeypatch.setattr(gpu, "urlopen", lambda *args, **kwargs: _Response(_zip_bytes()))
+    monkeypatch.setattr(gpu, "open_safe_https", lambda *args, **kwargs: _Response(_zip_bytes()))
     assert not download_gpu_document(first.document, _config(), tmp_path).cache_hit
 
 
@@ -757,6 +1048,20 @@ def test_cached_document_lineage_change_forces_refresh(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     first = _download(tmp_path, monkeypatch)
-    changed = replace(first.document, document_id="doc-2")
-    monkeypatch.setattr(gpu, "urlopen", lambda *args, **kwargs: _Response(_zip_bytes()))
+    changed = replace(
+        first.document,
+        document_id="doc-2",
+        written_files=tuple(
+            replace(
+                item,
+                source_url=(
+                    item.source_url.replace("/doc-1/", "/doc-2/")
+                    if item.source_url is not None
+                    else None
+                ),
+            )
+            for item in first.document.written_files
+        ),
+    )
+    monkeypatch.setattr(gpu, "open_safe_https", lambda *args, **kwargs: _Response(_zip_bytes()))
     assert not download_gpu_document(changed, _config(), tmp_path).cache_hit

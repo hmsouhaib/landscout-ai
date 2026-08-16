@@ -4,6 +4,7 @@ from numbers import Real
 import geopandas as gpd  # type: ignore[import-untyped]
 from pyproj import CRS
 
+from landscout.common.cadastre_contract import validate_cadastre_geometry_statuses
 from landscout.config import ParcelConfig, ShapeScreeningConfig
 
 AREA_REQUIRED_COLUMNS = frozenset(
@@ -82,6 +83,10 @@ def filter_parcels_by_area(
         raise ParcelFilterError(f"Missing required normalized columns: {formatted}")
     parcels = _validate_spatial_frame(parcels, "Area-filter")
     _validate_exact_parcel_ids(parcels)
+    try:
+        validate_cadastre_geometry_statuses(parcels["geometry_status"].tolist())
+    except ValueError as error:
+        raise ParcelFilterError(str(error)) from error
 
     valid_geometry = parcels["geometry_status"] == "VALID"
     if any(

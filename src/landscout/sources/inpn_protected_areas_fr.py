@@ -7,16 +7,13 @@ open spatial files, intersect parcels, or produce environmental decisions.
 
 from __future__ import annotations
 
-import ipaddress
 import json
 import re
 import shutil
-import socket
 import stat
 import unicodedata
 import zipfile
 import zlib
-from contextlib import suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from hashlib import sha256
@@ -24,10 +21,8 @@ from math import isfinite
 from numbers import Real
 from pathlib import Path, PurePosixPath, PureWindowsPath
 from shutil import copy2, copyfileobj
-from typing import Annotated, Any, Literal, Self, cast
-from urllib.parse import urljoin, urlsplit
+from typing import Annotated, Any, Literal, Self
 
-import requests  # type: ignore[import-untyped]
 import yaml  # type: ignore[import-untyped]
 from pydantic import (
     BaseModel,
@@ -40,12 +35,13 @@ from pydantic import (
     model_validator,
 )
 
+from landscout.common.safe_http import SafeHttpsError, open_safe_https
+
 DEFAULT_CONFIG_PATH = Path("configs/sources/inpn_protected_areas_fr.yaml")
 DOWNLOAD_CHUNK_SIZE = 1024 * 1024
 DOWNLOAD_METADATA_SCHEMA_VERSION: Literal[1] = 1
 EXTRACTION_METADATA_SCHEMA_VERSION: Literal[1] = 1
 EXTRACTION_METADATA_FILENAME = ".landscout-extraction.json"
-MAX_REDIRECTS = 10
 
 OFFICIAL_REFERENCE_PAGE_URL = (
     "https://www.patrinat.fr/fr/"
@@ -76,7 +72,6 @@ _WINDOWS_RESERVED_BASENAMES = frozenset(
         *(f"lpt{index}" for index in range(1, 10)),
     }
 )
-_REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
 
 
 class InpnProtectedAreasSourceError(ValueError):
@@ -97,6 +92,8 @@ class InpnProtectedAreasSourceConfig(BaseModel):
     reference_page_url: HttpUrl
     archive_url: HttpUrl
     archive_filename: Literal["EP.zip"]
+    expected_archive_size_bytes: StrictPositiveInt
+    expected_archive_sha256: CanonicalSha256
     cache_root: Path
 
     @model_validator(mode="after")
@@ -508,7 +505,12 @@ def _load_cached_download(
             return None
         size = archive_path.stat().st_size
         checksum = _sha256_file(archive_path)
-        if size != metadata.file_size or checksum != metadata.sha256:
+        if (
+            size != metadata.file_size
+            or size != config.expected_archive_size_bytes
+            or checksum != metadata.sha256
+            or checksum != config.expected_archive_sha256
+        ):
             return None
         _validated_zip_members(archive_path)
         return InpnProtectedAreasDownload(
@@ -593,231 +595,39 @@ def _publish_cache_pair(
         metadata_backup.unlink(missing_ok=True)
 
 
-def _is_globally_routable_address(
-    address: ipaddress.IPv4Address | ipaddress.IPv6Address,
-) -> bool:
-    if (
-        not address.is_global
-        or address.is_private
-        or address.is_loopback
-        or address.is_link_local
-        or address.is_unspecified
-        or address.is_multicast
-        or address.is_reserved
-    ):
-        return False
-    if isinstance(address, ipaddress.IPv6Address):
-        mapped = address.ipv4_mapped
-        if mapped is not None and not _is_globally_routable_address(mapped):
-            return False
-    return True
-
-
-def _resolve_public_host_addresses(
-    hostname: str,
-    port: int,
-) -> frozenset[ipaddress.IPv4Address | ipaddress.IPv6Address]:
-    try:
-        records = socket.getaddrinfo(hostname, port, type=socket.SOCK_STREAM)
-        addresses: set[ipaddress.IPv4Address | ipaddress.IPv6Address] = set()
-        for record in records:
-            if type(record) is not tuple or len(record) != 5:
-                raise TypeError("DNS result must be a five-item tuple")
-            family = record[0]
-            sockaddr = record[4]
-            if family == socket.AF_INET:
-                expected_version = 4
-                expected_sockaddr_length = 2
-            elif family == socket.AF_INET6:
-                expected_version = 6
-                expected_sockaddr_length = 4
-            else:
-                raise ValueError("DNS result uses an unsupported address family")
-            if type(sockaddr) is not tuple or len(sockaddr) != expected_sockaddr_length:
-                raise TypeError("DNS result has an invalid socket address")
-            validated_sockaddr = cast(tuple[Any, ...], sockaddr)
-            if (
-                type(validated_sockaddr[0]) is not str
-                or type(validated_sockaddr[1]) is not int
-            ):
-                raise TypeError("DNS result has an invalid socket address")
-            if expected_version == 6 and (
-                type(validated_sockaddr[2]) is not int
-                or type(validated_sockaddr[3]) is not int
-            ):
-                raise TypeError("DNS result has an invalid IPv6 socket address")
-            address = ipaddress.ip_address(validated_sockaddr[0])
-            if address.version != expected_version:
-                raise ValueError("DNS result address family does not match its address")
-            if not _is_globally_routable_address(address):
-                raise InpnProtectedAreasSourceError(
-                    f"DNS resolved {hostname} to a non-public address"
-                )
-            addresses.add(address)
-        if not addresses:
-            raise ValueError("DNS resolution returned no addresses")
-        return frozenset(addresses)
-    except InpnProtectedAreasSourceError:
-        raise
-    except (
-        OSError,
-        UnicodeError,
-        IndexError,
-        TypeError,
-        ValueError,
-        OverflowError,
-    ) as error:
-        raise InpnProtectedAreasSourceError(
-            f"DNS resolution failed for download host: {hostname}"
-        ) from error
-
-
-def _validate_destination_url(value: str) -> str:
-    try:
-        parsed = urlsplit(value)
-        if parsed.scheme.casefold() != "https" or not parsed.hostname:
-            raise ValueError("Remote URL must use HTTPS and have a hostname")
-        if parsed.username is not None or parsed.password is not None:
-            raise ValueError("Remote URL credentials are forbidden")
-        hostname = parsed.hostname.rstrip(".").casefold()
-        if hostname == "localhost" or hostname.endswith(".localhost"):
-            raise ValueError("Localhost destinations are forbidden")
-        explicit_port = parsed.port
-        port = 443 if explicit_port is None else explicit_port
-        address: ipaddress.IPv4Address | ipaddress.IPv6Address | None = None
-        try:
-            address = ipaddress.ip_address(hostname)
-        except ValueError:
-            try:
-                address = ipaddress.ip_address(socket.inet_aton(hostname))
-            except OSError:
-                if hostname.isdecimal() or hostname.startswith("0x"):
-                    base = 16 if hostname.startswith("0x") else 10
-                    try:
-                        numeric_address = int(hostname, base)
-                        address = ipaddress.IPv4Address(numeric_address)
-                    except (ValueError, ipaddress.AddressValueError):
-                        address = None
-        if address is None:
-            if hostname.isdecimal() or hostname.startswith("0x"):
-                raise ValueError("Malformed numeric IP destinations are forbidden")
-            _resolve_public_host_addresses(hostname, port)
-        elif not _is_globally_routable_address(address):
-            raise ValueError("Non-public IP destinations are forbidden")
-        return value
-    except InpnProtectedAreasSourceError:
-        raise
-    except (AttributeError, TypeError, ValueError) as error:
-        raise InpnProtectedAreasSourceError(
-            f"Unsafe download or redirect URL: {value}"
-        ) from error
-
-
-def _copy_response_bytes(response: Any, destination: Path) -> None:
-    try:
-        headers = getattr(response, "headers", None)
-        header_get = getattr(headers, "get", None)
-        if not callable(header_get):
-            raise InpnProtectedAreasSourceError("HTTP response headers are invalid")
-        content_type = str(header_get("Content-Type", ""))
-        if "text/html" in content_type.casefold():
-            raise InpnProtectedAreasSourceError("HTML response cannot be used as a ZIP")
-        raw = getattr(response, "raw", None)
-        with destination.open("xb") as output:
-            if raw is not None and callable(getattr(raw, "read", None)):
-                if hasattr(raw, "decode_content"):
-                    raw.decode_content = False
-                copyfileobj(raw, output, length=DOWNLOAD_CHUNK_SIZE)
-                return
-            iterator = getattr(response, "iter_content", None)
-            if not callable(iterator):
-                raise InpnProtectedAreasSourceError(
-                    "HTTP response does not expose streaming bytes"
-                )
-            for chunk in iterator(chunk_size=DOWNLOAD_CHUNK_SIZE):
-                if chunk:
-                    output.write(chunk)
-    except InpnProtectedAreasSourceError:
-        raise
-    except Exception as error:
-        raise InpnProtectedAreasSourceError(
-            "Official INPN archive response stream failed"
-        ) from error
-
-
 def _download_archive_bytes(
-    session: Any,
     configured_url: str,
     timeout_seconds: float,
     destination: Path,
 ) -> None:
-    current_url = _validate_destination_url(configured_url)
-    seen = {current_url}
-    for _ in range(MAX_REDIRECTS + 1):
-        response: Any | None = None
-        try:
-            response = session.get(
-                current_url,
-                allow_redirects=False,
-                stream=True,
-                timeout=timeout_seconds,
-            )
-            history = getattr(response, "history", ())
-            for prior in history:
-                _validate_destination_url(str(getattr(prior, "url", "")))
-            response_url = str(getattr(response, "url", current_url))
-            _validate_destination_url(response_url)
-            status_code = getattr(response, "status_code", None)
-            if status_code in _REDIRECT_STATUSES:
-                headers = getattr(response, "headers", {})
-                location = headers.get("Location") if hasattr(headers, "get") else None
-                if type(location) is not str or not location:
-                    raise InpnProtectedAreasSourceError(
-                        "HTTP redirect is missing a Location header"
-                    )
-                next_url = _validate_destination_url(urljoin(current_url, location))
-                if next_url in seen:
-                    raise InpnProtectedAreasSourceError("HTTP redirect loop detected")
-                seen.add(next_url)
-                current_url = next_url
-                continue
-            if type(status_code) is not int or not 200 <= status_code < 300:
+    try:
+        with open_safe_https(
+            configured_url,
+            timeout=timeout_seconds,
+            headers={"User-Agent": "LandScout-AI/0.1"},
+        ) as response:
+            response_headers = getattr(response, "headers", None)
+            header_get = getattr(response_headers, "get", None)
+            if not callable(header_get):
+                raise InpnProtectedAreasSourceError("HTTP response headers are invalid")
+            content_type = str(header_get("Content-Type", ""))
+            if "text/html" in content_type.casefold():
                 raise InpnProtectedAreasSourceError(
-                    "Official INPN archive response was not HTTP success"
+                    "HTML response cannot be used as a ZIP"
                 )
-            raise_for_status = getattr(response, "raise_for_status", None)
-            if not callable(raise_for_status):
-                raise InpnProtectedAreasSourceError(
-                    "HTTP response cannot prove status success"
-                )
-            raise_for_status()
-            _copy_response_bytes(response, destination)
-            return
-        except InpnProtectedAreasSourceError:
-            raise
-        except (
-            AttributeError,
-            OSError,
-            TypeError,
-            ValueError,
-            requests.RequestException,
-        ) as error:
-            raise InpnProtectedAreasSourceError(
-                "Official INPN archive download failed"
-            ) from error
-        finally:
-            if response is not None:
-                close = getattr(response, "close", None)
-                if callable(close):
-                    with suppress(Exception):
-                        close()
-    raise InpnProtectedAreasSourceError("Too many HTTP redirects")
+            with destination.open("xb") as output:
+                copyfileobj(response, output, length=DOWNLOAD_CHUNK_SIZE)
+    except InpnProtectedAreasSourceError:
+        raise
+    except (SafeHttpsError, OSError, TypeError, ValueError) as error:
+        raise InpnProtectedAreasSourceError(
+            "Official INPN archive download failed"
+        ) from error
 
 
 def download_inpn_protected_areas_archive(
     config: InpnProtectedAreasSourceConfig,
     *,
-    session: requests.Session | None = None,
     timeout_seconds: float = 120.0,
 ) -> InpnProtectedAreasDownload:
     """Download or reuse the exact configured official EP ZIP bytes."""
@@ -837,9 +647,6 @@ def download_inpn_protected_areas_archive(
         raise InpnProtectedAreasSourceError(
             "timeout_seconds must be a strict finite positive number"
         )
-    if session is not None and not callable(getattr(session, "get", None)):
-        raise InpnProtectedAreasSourceError("session must provide an HTTP get method")
-
     archive_path = _archive_path(validated_config)
     metadata_path = _metadata_path(archive_path)
     cached = _load_cached_download(
@@ -850,23 +657,25 @@ def download_inpn_protected_areas_archive(
 
     temporary_archive = archive_path.with_name(f"{archive_path.name}.part")
     temporary_metadata = metadata_path.with_name(f"{metadata_path.name}.part")
-    owned_session = session is None
-    http_session: Any | None = session
     try:
         archive_path.parent.mkdir(parents=True, exist_ok=True)
         temporary_archive.unlink(missing_ok=True)
         temporary_metadata.unlink(missing_ok=True)
-        if http_session is None:
-            http_session = requests.Session()
         _download_archive_bytes(
-            http_session,
             str(validated_config.archive_url),
             validated_timeout,
             temporary_archive,
         )
-        _validated_zip_members(temporary_archive)
         file_size = temporary_archive.stat().st_size
         checksum = _sha256_file(temporary_archive)
+        if (
+            file_size != validated_config.expected_archive_size_bytes
+            or checksum != validated_config.expected_archive_sha256
+        ):
+            raise InpnProtectedAreasSourceError(
+                "Downloaded INPN archive differs from the configured snapshot"
+            )
+        _validated_zip_members(temporary_archive)
         result = InpnProtectedAreasDownload(
             provider=validated_config.provider,
             authority=validated_config.authority,
@@ -906,11 +715,6 @@ def download_inpn_protected_areas_archive(
                 temporary_path.unlink(missing_ok=True)
             except OSError:
                 pass
-        if owned_session and http_session is not None:
-            close = getattr(http_session, "close", None)
-            if callable(close):
-                with suppress(Exception):
-                    close()
 
 
 def _validate_download(
@@ -942,8 +746,10 @@ def _validate_download(
         if (
             type(download.file_size) is not int
             or download.file_size <= 0
+            or download.file_size != config.expected_archive_size_bytes
             or type(download.sha256) is not str
             or re.fullmatch(r"[0-9a-f]{64}", download.sha256) is None
+            or download.sha256 != config.expected_archive_sha256
         ):
             raise ValueError("Download integrity scalars are invalid")
         _validate_utc_timestamp(download.download_timestamp)

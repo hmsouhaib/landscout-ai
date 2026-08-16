@@ -23,6 +23,7 @@ from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoElectricityData,
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
+    IgnBdTopoSourceConfig,
     _revalidate_ign_bdtopo_electricity_data,
     _validate_layer_summary_contract,
 )
@@ -770,12 +771,17 @@ def _source_context(
 
 def normalize_ign_electricity(
     source: IgnBdTopoElectricityData,
+    config: IgnBdTopoSourceConfig,
 ) -> NormalizedIgnElectricityData:
     """Validate and normalize a complete already-loaded IGN source bundle."""
 
     try:
+        if type(config) is not IgnBdTopoSourceConfig:
+            raise IgnGridNormalizationError(
+                "IGN electricity source config type is invalid"
+            )
         _validate_source_bundle(source)
-        _revalidate_ign_bdtopo_electricity_data(source)
+        _revalidate_ign_bdtopo_electricity_data(source, config)
         line_context = _source_context(
             source, source.extraction.electric_lines_layer
         )

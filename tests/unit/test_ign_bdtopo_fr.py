@@ -275,7 +275,7 @@ def _extracted_fixture(
     )
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -372,7 +372,7 @@ def test_successful_archive_download_persists_sha256(
     config = _synthetic_config(source_config)
 
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         result = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -413,12 +413,12 @@ def test_fresh_cache_is_reused_without_network(
     config = _synthetic_config(source_config)
     cache_dir = tmp_path / "cache"
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen", return_value=_response(content)
+        "landscout.sources.ign_bdtopo_fr.open_safe_https", return_value=_response(content)
     ):
         first = download_ign_bdtopo_archive(config, cache_dir)
 
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         side_effect=AssertionError("network must not be called"),
     ):
         second = download_ign_bdtopo_archive(config, cache_dir)
@@ -429,6 +429,35 @@ def test_fresh_cache_is_reused_without_network(
     assert second.download_timestamp == first.download_timestamp
 
 
+def test_stale_recovery_backup_rejects_cache_before_network(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    content = _synthetic_archive_bytes(tmp_path)
+    config = _synthetic_config(source_config)
+    cache_dir = tmp_path / "cache"
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
+        return_value=_response(content),
+    ):
+        first = download_ign_bdtopo_archive(config, cache_dir)
+    recovery_path = first.path.with_name(f"{first.path.name}.bak")
+    recovery_bytes = b"manual IGN recovery material"
+    recovery_path.write_bytes(recovery_bytes)
+
+    with (
+        patch(
+            "landscout.sources.ign_bdtopo_fr.open_safe_https",
+            side_effect=AssertionError("stale recovery must fail before network"),
+        ) as opener,
+        pytest.raises(IgnBdTopoDownloadError, match="backup|recovery|manual"),
+    ):
+        download_ign_bdtopo_archive(config, cache_dir)
+
+    opener.assert_not_called()
+    assert recovery_path.read_bytes() == recovery_bytes
+    assert first.path.read_bytes() == content
+
+
 def test_expired_cache_is_refreshed(
     tmp_path: Path, source_config: IgnBdTopoSourceConfig
 ) -> None:
@@ -437,14 +466,14 @@ def test_expired_cache_is_refreshed(
     config = _synthetic_config(source_config)
     cache_dir = tmp_path / "cache"
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(old_content),
     ):
         first = download_ign_bdtopo_archive(config, cache_dir)
     _expire_cache(_metadata_path(first.path))
 
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(new_content),
     ) as opener:
         refreshed = download_ign_bdtopo_archive(config, cache_dir)
@@ -464,7 +493,7 @@ def test_failed_refresh_preserves_valid_cache(
     config = _synthetic_config(source_config)
     cache_dir = tmp_path / "cache"
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen", return_value=_response(content)
+        "landscout.sources.ign_bdtopo_fr.open_safe_https", return_value=_response(content)
     ):
         first = download_ign_bdtopo_archive(config, cache_dir)
     metadata_path = _metadata_path(first.path)
@@ -473,7 +502,7 @@ def test_failed_refresh_preserves_valid_cache(
     error = HTTPError(SYNTHETIC_SOURCE_URL, 503, "Unavailable", None, None)
 
     with (
-        patch("landscout.sources.ign_bdtopo_fr.urlopen", side_effect=error),
+        patch("landscout.sources.ign_bdtopo_fr.open_safe_https", side_effect=error),
         pytest.raises(IgnBdTopoDownloadError),
     ):
         download_ign_bdtopo_archive(config, cache_dir)
@@ -491,7 +520,7 @@ def test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned(
     cache_dir = tmp_path / "cache"
     with (
         patch(
-            "landscout.sources.ign_bdtopo_fr.urlopen",
+            "landscout.sources.ign_bdtopo_fr.open_safe_https",
             return_value=_response(b"not a 7z archive"),
         ),
         pytest.raises(IgnBdTopoArchiveError),
@@ -510,7 +539,7 @@ def test_corrupt_refresh_preserves_valid_cache(
     config = _synthetic_config(source_config)
     cache_dir = tmp_path / "cache"
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen", return_value=_response(content)
+        "landscout.sources.ign_bdtopo_fr.open_safe_https", return_value=_response(content)
     ):
         first = download_ign_bdtopo_archive(config, cache_dir)
     metadata_path = _metadata_path(first.path)
@@ -519,7 +548,7 @@ def test_corrupt_refresh_preserves_valid_cache(
 
     with (
         patch(
-            "landscout.sources.ign_bdtopo_fr.urlopen",
+            "landscout.sources.ign_bdtopo_fr.open_safe_https",
             return_value=_response(b"broken refresh"),
         ),
         pytest.raises(IgnBdTopoArchiveError),
@@ -539,7 +568,7 @@ def test_metadata_publication_failure_restores_previous_cache_pair(
     config = _synthetic_config(source_config)
     cache_dir = tmp_path / "cache"
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(old_content),
     ):
         first = download_ign_bdtopo_archive(config, cache_dir)
@@ -558,7 +587,7 @@ def test_metadata_publication_failure_restores_previous_cache_pair(
 
     with (
         patch(
-            "landscout.sources.ign_bdtopo_fr.urlopen",
+            "landscout.sources.ign_bdtopo_fr.open_safe_https",
             return_value=_response(new_content),
         ),
         patch.object(
@@ -577,6 +606,131 @@ def test_metadata_publication_failure_restores_previous_cache_pair(
     assert not list(cache_dir.glob("*.bak"))
 
 
+def test_publication_and_rollback_failure_preserves_exact_recovery_backups(
+    tmp_path: Path,
+) -> None:
+    archive_path = tmp_path / "cached.7z"
+    metadata_path = tmp_path / "cached.7z.metadata.json"
+    temporary_archive = tmp_path / "cached.7z.part"
+    temporary_metadata = tmp_path / "cached.7z.metadata.json.part"
+    old_archive = b"exact old archive"
+    old_metadata = b"exact old metadata"
+    archive_path.write_bytes(old_archive)
+    metadata_path.write_bytes(old_metadata)
+    temporary_archive.write_bytes(b"replacement archive")
+    temporary_metadata.write_bytes(b"replacement metadata")
+    archive_backup = archive_path.with_name(f"{archive_path.name}.bak")
+    metadata_backup = metadata_path.with_name(f"{metadata_path.name}.bak")
+    original_replace = ign_bdtopo_fr._replace_file
+
+    def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("simulated metadata publication failure")
+        if source == archive_backup and target == archive_path:
+            raise OSError("simulated archive rollback failure")
+        original_replace(source, target)
+
+    with (
+        patch.object(
+            ign_bdtopo_fr,
+            "_replace_file",
+            side_effect=fail_publication_and_rollback,
+        ),
+        pytest.raises(IgnBdTopoDownloadError, match="rollback"),
+    ):
+        ign_bdtopo_fr._publish_cache_pair(
+            temporary_archive,
+            temporary_metadata,
+            archive_path,
+            metadata_path,
+        )
+
+    assert archive_backup.read_bytes() == old_archive
+    assert metadata_backup.read_bytes() == old_metadata
+
+
+def test_cleanup_failure_does_not_mask_double_failure_recovery_error(
+    tmp_path: Path, source_config: IgnBdTopoSourceConfig
+) -> None:
+    old_content = _synthetic_archive_bytes(tmp_path / "v1")
+    new_content = _synthetic_archive_bytes(tmp_path / "v2", invalid_post=True)
+    config = _synthetic_config(source_config)
+    cache_dir = tmp_path / "cache"
+    with patch(
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
+        return_value=_response(old_content),
+    ):
+        first = download_ign_bdtopo_archive(config, cache_dir)
+    metadata_path = _metadata_path(first.path)
+    old_archive = first.path.read_bytes()
+    old_metadata = _expire_cache(metadata_path)
+    temporary_metadata = metadata_path.with_name(f"{metadata_path.name}.part")
+    archive_backup = first.path.with_name(f"{first.path.name}.bak")
+    metadata_backup = metadata_path.with_name(f"{metadata_path.name}.bak")
+    original_replace = ign_bdtopo_fr._replace_file
+    original_unlink = Path.unlink
+    rollback_failed = False
+
+    def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        nonlocal rollback_failed
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("simulated metadata publication failure")
+        if source == archive_backup and target == first.path:
+            rollback_failed = True
+            raise OSError("simulated archive rollback failure")
+        original_replace(source, target)
+
+    def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
+        if rollback_failed and path == temporary_metadata:
+            raise PermissionError("simulated temporary cleanup failure")
+        original_unlink(path, missing_ok=missing_ok)
+
+    with (
+        patch(
+            "landscout.sources.ign_bdtopo_fr.open_safe_https",
+            return_value=_response(new_content),
+        ),
+        patch.object(
+            ign_bdtopo_fr,
+            "_replace_file",
+            side_effect=fail_publication_and_rollback,
+        ),
+        patch.object(Path, "unlink", new=fail_temporary_cleanup),
+        pytest.raises(IgnBdTopoDownloadError, match="rollback"),
+    ):
+        download_ign_bdtopo_archive(config, cache_dir)
+
+    assert archive_backup.read_bytes() == old_archive
+    assert metadata_backup.read_bytes() == old_metadata
+
+
+def test_stale_cache_recovery_backup_fails_closed_without_destroying_it(
+    tmp_path: Path,
+) -> None:
+    archive_path = tmp_path / "cached.7z"
+    metadata_path = tmp_path / "cached.7z.metadata.json"
+    temporary_archive = tmp_path / "cached.7z.part"
+    temporary_metadata = tmp_path / "cached.7z.metadata.json.part"
+    archive_backup = tmp_path / "cached.7z.bak"
+    archive_path.write_bytes(b"old archive")
+    metadata_path.write_bytes(b"old metadata")
+    temporary_archive.write_bytes(b"new archive")
+    temporary_metadata.write_bytes(b"new metadata")
+    archive_backup.write_bytes(b"manual recovery archive")
+
+    with pytest.raises(IgnBdTopoDownloadError, match="backup|recovery|manual"):
+        ign_bdtopo_fr._publish_cache_pair(
+            temporary_archive,
+            temporary_metadata,
+            archive_path,
+            metadata_path,
+        )
+
+    assert archive_path.read_bytes() == b"old archive"
+    assert metadata_path.read_bytes() == b"old metadata"
+    assert archive_backup.read_bytes() == b"manual recovery archive"
+
+
 def test_official_checksum_mismatch_is_rejected(
     tmp_path: Path, source_config: IgnBdTopoSourceConfig
 ) -> None:
@@ -586,7 +740,7 @@ def test_official_checksum_mismatch_is_rejected(
 
     with (
         patch(
-            "landscout.sources.ign_bdtopo_fr.urlopen",
+            "landscout.sources.ign_bdtopo_fr.open_safe_https",
             return_value=_response(archive_content),
         ),
         pytest.raises(IgnBdTopoArchiveError, match="checksum|SHA"),
@@ -608,7 +762,7 @@ def test_unsafe_parent_archive_member_is_rejected(
     )
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -702,7 +856,7 @@ def test_synthetic_archive_extracts_and_discovers_required_layers(
     archive_content = _synthetic_archive_bytes(tmp_path / "source")
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -844,7 +998,7 @@ def test_default_extraction_path_is_short_and_content_addressed(
     config = _synthetic_config(source_config)
     cache_dir = tmp_path / "cache"
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, cache_dir)
@@ -914,7 +1068,7 @@ def test_electricity_loader_retains_both_layer_counts(
     )
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -924,7 +1078,7 @@ def test_electricity_loader_retains_both_layer_counts(
         extraction_dir=tmp_path / "extracted",
     )
 
-    electricity = load_ign_bdtopo_electricity(extraction)
+    electricity = load_ign_bdtopo_electricity(extraction, config)
 
     assert len(electricity.electric_lines) == 2
     assert len(electricity.transformation_posts) == 3
@@ -939,7 +1093,7 @@ def test_road_layer_discovery_loads_selected_physical_layer(
     archive_content = _synthetic_archive_bytes(tmp_path / "source", include_roads=True)
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -985,7 +1139,7 @@ def test_missing_road_layer_fails_safely(
     archive_content = _synthetic_archive_bytes(tmp_path / "source")
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -1020,7 +1174,7 @@ def test_ambiguous_road_layer_fails_safely(
     )
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -1038,7 +1192,7 @@ def test_road_loader_rejects_wrong_archive_config_department(
     archive_content = _synthetic_archive_bytes(tmp_path / "source", include_roads=True)
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -1059,7 +1213,7 @@ def test_road_loader_rejects_changed_layer_inventory(
     archive_content = _synthetic_archive_bytes(tmp_path / "source", include_roads=True)
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -1091,7 +1245,7 @@ def test_road_loader_rejects_geographic_crs(
     )
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -1120,7 +1274,7 @@ def test_road_loader_preserves_lambert93_lines_unchanged(
     )
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -1144,7 +1298,7 @@ def test_road_layer_does_not_change_electricity_loading_or_cache_shape(
     archive_content = _synthetic_archive_bytes(tmp_path / "source", include_roads=True)
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -1152,7 +1306,7 @@ def test_road_layer_does_not_change_electricity_loading_or_cache_shape(
         download, config, extraction_dir=tmp_path / "extracted"
     )
 
-    electricity = load_ign_bdtopo_electricity(extraction)
+    electricity = load_ign_bdtopo_electricity(extraction, config)
     metadata = json.loads(
         (extraction.extraction_path / ".landscout-extraction.json").read_text(
             encoding="utf-8"
@@ -1194,7 +1348,7 @@ def test_department_coverage_loader_selects_configured_identity(
     )
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -1248,7 +1402,7 @@ def test_department_coverage_requires_one_authoritative_feature(
     )
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -1275,7 +1429,7 @@ def test_department_coverage_requires_configured_identity_field(
     )
     config = IgnBdTopoSourceConfig.model_validate(content)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -1295,7 +1449,7 @@ def test_missing_department_coverage_layer_fails(
     archive_content = _synthetic_archive_bytes(tmp_path / "source")
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -1332,7 +1486,7 @@ def test_department_coverage_layer_discovery_must_be_unambiguous(
     )
     config = _synthetic_config(source_config)
     with patch(
-        "landscout.sources.ign_bdtopo_fr.urlopen",
+        "landscout.sources.ign_bdtopo_fr.open_safe_https",
         return_value=_response(archive_content),
     ):
         download = download_ign_bdtopo_archive(config, tmp_path / "cache")
@@ -1375,7 +1529,7 @@ def test_direct_consumers_reject_same_inventory_content_tampering(
             include_department=True,
         )
         with patch(
-            "landscout.sources.ign_bdtopo_fr.urlopen",
+            "landscout.sources.ign_bdtopo_fr.open_safe_https",
             return_value=_response(archive_content),
         ):
             download = download_ign_bdtopo_archive(config, tmp_path / "coverage-cache")
@@ -1393,7 +1547,7 @@ def test_direct_consumers_reject_same_inventory_content_tampering(
 
     with pytest.raises(IgnBdTopoLayerError, match="integrity|SHA|physical|changed"):
         if consumer == "electricity":
-            load_ign_bdtopo_electricity(extraction)
+            load_ign_bdtopo_electricity(extraction, config)
         elif consumer == "roads":
             ign_bdtopo_fr.load_ign_bdtopo_roads(extraction, config)
         else:

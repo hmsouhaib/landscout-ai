@@ -8,7 +8,7 @@ from urllib.error import HTTPError
 
 import pytest
 import yaml
-from pydantic import ValidationError
+from pydantic import HttpUrl, ValidationError
 
 from landscout.sources import rte_odre_fr
 from landscout.sources.rte_odre_fr import (
@@ -123,6 +123,49 @@ def test_empty_base_url_fails() -> None:
         RteOdreSourceConfig.model_validate(config_data)
 
 
+@pytest.mark.parametrize(
+    "base_url",
+    [
+        "http://odre.opendatasoft.com/api/explore/v2.1",
+        "https://example.com/api/explore/v2.1",
+        "https://odre.opendatasoft.com/api/explore/v2.0",
+        "https://user:secret@odre.opendatasoft.com/api/explore/v2.1",
+        "https://odre.opendatasoft.com:8443/api/explore/v2.1",
+        "https://odre.opendatasoft.com/api/explore/v2.1?redirect=elsewhere",
+    ],
+)
+def test_api_base_is_pinned_to_the_official_https_origin_and_path(
+    base_url: str,
+) -> None:
+    config_data = _config_data()
+    config_data["api"]["base_url"] = base_url
+
+    with pytest.raises(ValidationError):
+        RteOdreSourceConfig.model_validate(config_data)
+
+
+def test_mutated_loaded_api_origin_is_rejected_before_metadata_network(
+    source_config: RteOdreSourceConfig,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source_config.api.base_url = HttpUrl(
+        "https://unrelated.example/api/explore/v2.1"
+    )
+    network_calls = 0
+
+    def fail_network(*args: object, **kwargs: object) -> object:
+        nonlocal network_calls
+        network_calls += 1
+        raise AssertionError("network used after ODRE origin mutation")
+
+    monkeypatch.setattr(rte_odre_fr, "open_safe_https", fail_network)
+
+    with pytest.raises(RteOdreDownloadError, match="config|official|origin"):
+        fetch_rte_odre_dataset_metadata(source_config, "sites")
+
+    assert network_calls == 0
+
+
 def test_negative_cache_age_fails() -> None:
     config_data = _config_data()
     config_data["cache"]["max_age_hours"] = -1
@@ -172,7 +215,7 @@ def test_metadata_is_captured_without_fabrication(
 ) -> None:
     content = _metadata_content(DATASET_IDS["sites"])
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen", return_value=_response(content)
+        "landscout.sources.rte_odre_fr.open_safe_https", return_value=_response(content)
     ):
         metadata = fetch_rte_odre_dataset_metadata(source_config, "sites")
 
@@ -192,7 +235,7 @@ def test_successful_download(
     dataset_id = DATASET_IDS["sites"]
     export_content = _feature_collection()
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id)),
             _response(export_content),
@@ -228,7 +271,7 @@ def test_metadata_export_record_count_mismatch_is_rejected(
     dataset_id = DATASET_IDS["sites"]
     with (
         patch(
-            "landscout.sources.rte_odre_fr.urlopen",
+            "landscout.sources.rte_odre_fr.open_safe_https",
             side_effect=[
                 _response(_metadata_content(dataset_id, records_count)),
                 _response(_feature_collection()),
@@ -248,7 +291,7 @@ def test_unavailable_metadata_record_count_is_accepted(
 ) -> None:
     dataset_id = DATASET_IDS["sites"]
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id, records_count=None)),
             _response(_feature_collection()),
@@ -266,7 +309,7 @@ def test_negative_source_record_count_is_rejected(
     dataset_id = DATASET_IDS["sites"]
     with (
         patch(
-            "landscout.sources.rte_odre_fr.urlopen",
+            "landscout.sources.rte_odre_fr.open_safe_https",
             return_value=_response(_metadata_content(dataset_id, records_count=-1)),
         ),
         pytest.raises(RteOdreDownloadError, match="must not be negative"),
@@ -305,7 +348,7 @@ def test_fresh_cache_is_reused(
 ) -> None:
     dataset_id = DATASET_IDS["sites"]
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id)),
             _response(_feature_collection()),
@@ -332,7 +375,7 @@ def test_expired_cache_is_refreshed(
     )
     refreshed_content = json.dumps(refreshed_payload).encode("utf-8")
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id)),
             _response(initial_content),
@@ -342,7 +385,7 @@ def test_expired_cache_is_refreshed(
     _expire_cache(_metadata_path(tmp_path, dataset_id))
 
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id, records_count=3)),
             _response(refreshed_content),
@@ -367,7 +410,7 @@ def test_http_failure_raises_and_cleans_temporary_files(
     error = HTTPError(source_url, 503, "Unavailable", hdrs=None, fp=None)
     with (
         patch(
-            "landscout.sources.rte_odre_fr.urlopen",
+            "landscout.sources.rte_odre_fr.open_safe_https",
             side_effect=[_response(_metadata_content(dataset_id)), error],
         ),
         pytest.raises(RteOdreDownloadError),
@@ -383,7 +426,7 @@ def test_failed_refresh_preserves_previous_valid_cache(
 ) -> None:
     dataset_id = DATASET_IDS["sites"]
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id)),
             _response(_feature_collection()),
@@ -399,7 +442,7 @@ def test_failed_refresh_preserves_previous_valid_cache(
     error = HTTPError(metadata_url, 503, "Unavailable", hdrs=None, fp=None)
 
     with (
-        patch("landscout.sources.rte_odre_fr.urlopen", side_effect=error),
+        patch("landscout.sources.rte_odre_fr.open_safe_https", side_effect=error),
         pytest.raises(RteOdreDownloadError),
     ):
         download_rte_odre_dataset("sites", source_config, tmp_path)
@@ -415,7 +458,7 @@ def test_corrupted_refresh_preserves_previous_valid_cache(
 ) -> None:
     dataset_id = DATASET_IDS["sites"]
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id)),
             _response(_feature_collection()),
@@ -429,7 +472,7 @@ def test_corrupted_refresh_preserves_previous_valid_cache(
 
     with (
         patch(
-            "landscout.sources.rte_odre_fr.urlopen",
+            "landscout.sources.rte_odre_fr.open_safe_https",
             side_effect=[
                 _response(_metadata_content(dataset_id)),
                 _response(b"{corrupted"),
@@ -449,7 +492,7 @@ def test_metadata_publication_failure_restores_previous_pair(
 ) -> None:
     dataset_id = DATASET_IDS["sites"]
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id)),
             _response(_feature_collection()),
@@ -473,7 +516,7 @@ def test_metadata_publication_failure_restores_previous_pair(
 
     with (
         patch(
-            "landscout.sources.rte_odre_fr.urlopen",
+            "landscout.sources.rte_odre_fr.open_safe_https",
             side_effect=[
                 _response(_metadata_content(dataset_id)),
                 _response(_feature_collection(all_null_geometry=True)),
@@ -511,7 +554,7 @@ def test_invalid_geojson_download_is_rejected(
     dataset_id = DATASET_IDS["sites"]
     with (
         patch(
-            "landscout.sources.rte_odre_fr.urlopen",
+            "landscout.sources.rte_odre_fr.open_safe_https",
             side_effect=[
                 _response(_metadata_content(dataset_id)),
                 _response(invalid_content),
@@ -691,7 +734,7 @@ def test_null_feature_geometries_are_accepted(
     dataset_id = DATASET_IDS["sites"]
     export_content = _feature_collection(all_null_geometry=True)
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id)),
             _response(export_content),
@@ -715,7 +758,7 @@ def test_lineage_sidecar_records_integrity(
     dataset_id = DATASET_IDS["sites"]
     export_content = _feature_collection()
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id)),
             _response(export_content),
@@ -753,7 +796,7 @@ def test_invalid_cached_record_count_invalidates_cache(
     dataset_id = DATASET_IDS["sites"]
     valid_content = _feature_collection()
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id)),
             _response(valid_content),
@@ -766,7 +809,7 @@ def test_invalid_cached_record_count_invalidates_cache(
     metadata_path.write_text(json.dumps(lineage), encoding="utf-8")
 
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id)),
             _response(valid_content),
@@ -786,7 +829,7 @@ def test_cached_export_summary_mismatch_invalidates_cache(
     dataset_id = DATASET_IDS["sites"]
     valid_content = _feature_collection()
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id)),
             _response(valid_content),
@@ -801,7 +844,7 @@ def test_cached_export_summary_mismatch_invalidates_cache(
     metadata_path.write_text(json.dumps(lineage), encoding="utf-8")
 
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id)),
             _response(valid_content),
@@ -820,7 +863,7 @@ def test_corrupted_cached_export_triggers_refresh(
     dataset_id = DATASET_IDS["sites"]
     valid_content = _feature_collection()
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id)),
             _response(valid_content),
@@ -830,7 +873,7 @@ def test_corrupted_cached_export_triggers_refresh(
     first.path.write_bytes(b"corrupted")
 
     with patch(
-        "landscout.sources.rte_odre_fr.urlopen",
+        "landscout.sources.rte_odre_fr.open_safe_https",
         side_effect=[
             _response(_metadata_content(dataset_id)),
             _response(valid_content),

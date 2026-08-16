@@ -7,4 +7,6 @@ declared_version: "07/2026"
 reference_page_url: "https://www.patrinat.fr/fr/page-temporaire-de-telechargement-des-referentiels-de-donnees-lies-linpn-7353"
 archive_url: "https://assets.patrinat.fr/files/donnees/ep/EP.zip"
 archive_filename: "EP.zip"
+expected_archive_size_bytes: 99835011
+expected_archive_sha256: "73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5"
 cache_root: ".cache/landscout/inpn/protected_areas"

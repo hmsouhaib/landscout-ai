@@ -24,12 +24,15 @@ from shapely import (  # type: ignore[import-untyped]
 from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
+    IgnBdTopoElectricityData,
     IgnBdTopoSourceConfig,
-    _revalidate_ign_bdtopo_department_coverage,
+    _discover_department_coverage_layer,
+    load_ign_bdtopo_department_coverage,
 )
 from landscout.stages.enrich_grid_proximity import (
     GridProximityResult,
     VoltageLevelCoverage,
+    enrich_parcel_grid_proximity,
     profile_grid_proximity,
 )
 
@@ -411,6 +414,46 @@ def _validate_source_coverage(
     return frame
 
 
+def _validate_configured_coverage_identity(
+    source: IgnBdTopoDepartmentCoverage,
+    config: IgnBdTopoSourceConfig,
+) -> None:
+    archive = source.extraction.archive
+    expected_layer = _discover_department_coverage_layer(
+        source.extraction.all_layer_names,
+        config,
+    )
+    if source.source_layer != expected_layer:
+        raise GridCoverageAssessmentError(
+            "Department coverage does not use the configured physical layer"
+        )
+    expected_field = config.coverage.department_layer.department_code_field
+    if source.summary.department_code_field != expected_field:
+        raise GridCoverageAssessmentError(
+            "Department coverage does not use the configured department field"
+        )
+    if archive.department_code != config.department_code:
+        raise GridCoverageAssessmentError(
+            "Department coverage archive differs from the configured department"
+        )
+    archive_provider = _normalized_identity(archive.provider, "archive provider")
+    config_provider = _normalized_identity(config.provider, "config provider")
+    if (
+        archive_provider not in _IGN_PROVIDER_IDENTITIES
+        or config_provider not in _IGN_PROVIDER_IDENTITIES
+    ):
+        raise GridCoverageAssessmentError(
+            "Department coverage archive provider differs from config"
+        )
+    if (
+        _normalized_identity(archive.product, "archive product") != "bdtopo"
+        or _normalized_identity(config.product, "config product") != "bdtopo"
+    ):
+        raise GridCoverageAssessmentError(
+            "Department coverage archive product differs from config"
+        )
+
+
 def _coverage_lineage_values(
     source: IgnBdTopoDepartmentCoverage,
 ) -> dict[str, object]:
@@ -607,7 +650,7 @@ def _validate_assessment_result(result: GridCoverageAssessmentResult) -> None:
                 )
 
 
-def assess_grid_coverage(
+def _assess_grid_coverage_from_proximity(
     proximity_result: GridProximityResult,
     department_coverage: IgnBdTopoDepartmentCoverage,
     config: IgnBdTopoSourceConfig,
@@ -621,12 +664,7 @@ def assess_grid_coverage(
 
     profile_grid_proximity(proximity_result)
     coverage_frame = _validate_source_coverage(department_coverage)
-    try:
-        _revalidate_ign_bdtopo_department_coverage(department_coverage, config)
-    except Exception as error:
-        raise GridCoverageAssessmentError(
-            "Department coverage physical source revalidation failed"
-        ) from error
+    _validate_configured_coverage_identity(department_coverage, config)
     _validate_proximity_source_identity(proximity_result, department_coverage)
 
     source_parcels = proximity_result.parcels
@@ -730,6 +768,52 @@ def assess_grid_coverage(
     )
     _validate_assessment_result(result)
     return result
+
+
+def assess_grid_coverage(
+    parcels: gpd.GeoDataFrame,
+    electricity_source: IgnBdTopoElectricityData,
+    source_config: IgnBdTopoSourceConfig,
+) -> GridCoverageAssessmentResult:
+    """Diagnose source-complete grid proximity against configured coverage."""
+
+    try:
+        if not isinstance(parcels, gpd.GeoDataFrame):
+            raise GridCoverageAssessmentError(
+                "parcels must be a GeoDataFrame with active geometry"
+            )
+        if type(electricity_source) is not IgnBdTopoElectricityData:
+            raise GridCoverageAssessmentError(
+                "electricity source must be an IgnBdTopoElectricityData"
+            )
+        if type(source_config) is not IgnBdTopoSourceConfig:
+            raise GridCoverageAssessmentError(
+                "source_config must be an IgnBdTopoSourceConfig"
+            )
+        proximity = enrich_parcel_grid_proximity(
+            parcels,
+            electricity_source,
+            source_config,
+        )
+        coverage = load_ign_bdtopo_department_coverage(
+            electricity_source.extraction,
+            source_config,
+        )
+        if coverage.extraction is not electricity_source.extraction:
+            raise GridCoverageAssessmentError(
+                "Department coverage must retain the electricity extraction identity"
+            )
+        return _assess_grid_coverage_from_proximity(
+            proximity,
+            coverage,
+            source_config,
+        )
+    except GridCoverageAssessmentError:
+        raise
+    except Exception as error:
+        raise GridCoverageAssessmentError(
+            "Grid proximity coverage cannot be assessed safely"
+        ) from error
 
 
 def _status_counts(values: pd.Series) -> CoverageStatusCounts:

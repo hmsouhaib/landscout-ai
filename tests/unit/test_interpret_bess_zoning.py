@@ -872,6 +872,128 @@ def test_real_muret_source_rules_preserve_conditional_and_exception_frames() -> 
             assert difficulty.source_rule_excerpt == positive.source_rule_excerpt
 
 
+def test_real_muret_up_route_does_not_use_the_separate_icpe_condition() -> None:
+    policy = load_bess_zoning_policy_config(
+        Path("configs/planning/muret_bess_zoning_policy.yaml")
+    )
+    assert policy.schema_version == 5
+    assert policy.policy_profile == "muret_bess_written_zoning_v6"
+    chapter = next(
+        item for item in policy.chapters if item.resolved_zone_chapter_label == "UP"
+    )
+    route = chapter.route_assessments[0]
+
+    assert route.route_kind == "RESTRICTION_EXCEPTION_ROUTE"
+    assert route.positive_evidence_ids == ("MURET-UP-PUBLIC-ROUTE-01",)
+    assert route.condition_evidence_ids == ()
+    assert route.difficulty_evidence_ids == ("MURET-UP-RESTRICTION-01",)
+
+    restriction = next(
+        evidence
+        for evidence in chapter.evidence
+        if evidence.evidence_id == "MURET-UP-RESTRICTION-01"
+    )
+    assert restriction.evidence_kind == "USE_RESTRICTION"
+    assert restriction.evidence_direction == "SUPPORTS_DIFFICULTY"
+    assert restriction.section_id == "SECTION-0080"
+    assert restriction.page_number == 71
+    assert (
+        restriction.exact_raw_excerpt
+        == "Toutes constructions ou  installations autres que celles"
+    )
+    assert restriction.excerpt_start == 68
+    assert restriction.excerpt_end == 124
+    assert restriction.excerpt_sha256 == (
+        "edfbe54799b8a6c0e74d86b0e9596e8c68471f11105783b3e4e93825f8308462"
+    )
+    assert restriction.section_page_fragment_sha256 == (
+        "06f8ea334a2fa8ce62337d6a3c59d24e03f9d8b9d8cc9e936c92e97b771babbb"
+    )
+    assert restriction.source_rule_id == "MURET-UP-ROUTE-RULE-01"
+    assert restriction.source_rule_start == 68
+    assert restriction.source_rule_end == 236
+    assert restriction.source_rule_sha256 == (
+        "de2615e25b83708c84e9ff9313060dca708ca0a8bc693777b627951bc2de394c"
+    )
+
+
+def test_real_muret_aup_route_uses_the_general_infrastructure_prerequisite() -> None:
+    policy = load_bess_zoning_policy_config(
+        Path("configs/planning/muret_bess_zoning_policy.yaml")
+    )
+    chapter = next(
+        item for item in policy.chapters if item.resolved_zone_chapter_label == "AUp"
+    )
+    route = chapter.route_assessments[0]
+
+    assert route.route_kind == "CONDITIONAL_ROUTE"
+    assert route.positive_evidence_ids == ("MURET-AUP-PUBLIC-ROUTE-01",)
+    assert route.condition_evidence_ids == (
+        "MURET-AUP-INFRASTRUCTURE-CONDITION-01",
+    )
+    assert route.difficulty_evidence_ids == ()
+
+    prerequisite = next(
+        evidence
+        for evidence in chapter.evidence
+        if evidence.evidence_id == "MURET-AUP-INFRASTRUCTURE-CONDITION-01"
+    )
+    exact_rule = (
+        "Les constructions et opérations ne pourront être autorisées qu’après "
+        "réalisation des  \n"
+        "équipements d’infrastructure indispensable à leur fonctionnement "
+        "(accès, voirie et  \n"
+        "réseaux divers) conformément aux articles AUp3 et AUp4."
+    )
+    assert prerequisite.evidence_kind == "ACCESS_OR_NETWORK_CONDITION"
+    assert prerequisite.evidence_direction == "CONDITION"
+    assert prerequisite.section_id == "SECTION-0111"
+    assert prerequisite.page_number == 93
+    assert prerequisite.exact_raw_excerpt == exact_rule
+    assert prerequisite.excerpt_start == 98
+    assert prerequisite.excerpt_end == 325
+    assert prerequisite.excerpt_sha256 == (
+        "b2be9b1f7e3597802d5ed2c301a7e34bb7a9eecaeab55898e55306719b1b315b"
+    )
+    assert prerequisite.section_page_fragment_sha256 == (
+        "57540d28148aefc320fcc8baa9a92df7e382d72299da6e804a3ebfaf52408b44"
+    )
+    assert prerequisite.source_rule_id == "MURET-AUp-INFRASTRUCTURE-RULE-01"
+    assert prerequisite.source_rule_excerpt == exact_rule
+    assert prerequisite.source_rule_start == 98
+    assert prerequisite.source_rule_end == 325
+    assert prerequisite.source_rule_sha256 == prerequisite.excerpt_sha256
+
+
+def test_real_muret_up_and_aup_keep_icpe_applicability_as_context() -> None:
+    policy = load_bess_zoning_policy_config(
+        Path("configs/planning/muret_bess_zoning_policy.yaml")
+    )
+    chapters = {
+        chapter.resolved_zone_chapter_label: chapter for chapter in policy.chapters
+    }
+    identities = {
+        "UP": "MURET-UP-ICPE-CONDITION-01",
+        "AUp": "MURET-AUP-ICPE-CONDITION-01",
+    }
+
+    for label, evidence_id in identities.items():
+        chapter = chapters[label]
+        evidence = next(
+            item for item in chapter.evidence if item.evidence_id == evidence_id
+        )
+        assert evidence.evidence_kind == "ICPE_RULE"
+        assert evidence.evidence_direction == "CONTEXT_ONLY"
+        assert "ICPE" in chapter.missing_information
+        for route in chapter.route_assessments:
+            linked_ids = (
+                route.positive_evidence_ids
+                + route.condition_evidence_ids
+                + route.difficulty_evidence_ids
+            )
+            assert evidence_id not in linked_ids
+
+
 def test_absent_excerpt_and_section_page_mismatch_are_rejected(inputs) -> None:
     *sources, policy = inputs
     payload = _payload(policy)

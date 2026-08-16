@@ -31,12 +31,14 @@ from landscout.sources.ign_bdtopo_fr import (
     IgnBdTopoElectricityData,
     IgnBdTopoExtraction,
     IgnBdTopoLayerSummary,
+    IgnBdTopoSourceConfig,
+    load_ign_bdtopo_source_config,
 )
 from landscout.stages.normalize_grid_ign import (
     LINE_OUTPUT_COLUMNS,
     TRANSFORMATION_POST_OUTPUT_COLUMNS,
     IgnGridNormalizationError,
-    normalize_ign_electricity,
+    NormalizedIgnElectricityData,
     parse_ign_voltage,
 )
 from landscout.stages.normalize_grid_ign import (
@@ -48,12 +50,33 @@ from landscout.stages.normalize_grid_ign import (
 from landscout.stages.normalize_grid_ign import (
     _normalize_ign_transformation_posts as normalize_ign_transformation_posts,
 )
+from landscout.stages.normalize_grid_ign import (
+    normalize_ign_electricity as _normalize_ign_electricity,
+)
 
 LINE_LAYER = "LIGNE_ELECTRIQUE_V2"
 POST_LAYER = "POSTE_DE_TRANSFORMATION_V2"
 ARCHIVE_SHA256 = "a" * 64
 SOURCE_URL = "https://example.test/BDTOPO_D031.7z"
 _FIXTURE_ROOT = Path(tempfile.mkdtemp(prefix="landscout-grid-ign-"))
+_SOURCE_CONFIG_PAYLOAD = load_ign_bdtopo_source_config().model_dump(mode="json")
+_SOURCE_CONFIG_PAYLOAD.update(
+    {
+        "provider": "Institut national de l'information géographique et forestière",
+        "source_url": SOURCE_URL,
+        "checksum_url": None,
+        "official_checksum_algorithm": None,
+        "official_checksum": None,
+        "expected_archive_size_bytes": 1234,
+    }
+)
+SOURCE_CONFIG = IgnBdTopoSourceConfig.model_validate(_SOURCE_CONFIG_PAYLOAD)
+
+
+def normalize_ign_electricity(
+    source: IgnBdTopoElectricityData,
+) -> NormalizedIgnElectricityData:
+    return _normalize_ign_electricity(source, SOURCE_CONFIG)
 
 
 def _line_source(
@@ -291,7 +314,7 @@ def test_supported_package_api_keeps_high_level_normalization() -> None:
     }
 
     assert expected_names <= set(stages.__all__)
-    normalized = stages.normalize_ign_electricity(_source_bundle())
+    normalized = stages.normalize_ign_electricity(_source_bundle(), SOURCE_CONFIG)
     assert normalized.electric_lines["source_layer"].unique().tolist() == [LINE_LAYER]
     assert normalized.transformation_posts["source_layer"].unique().tolist() == [
         POST_LAYER
@@ -840,14 +863,19 @@ def test_high_level_rejects_incompatible_archive_identity(
 
 
 def test_archive_identity_comparison_is_case_accent_and_punctuation_tolerant() -> None:
-    source = _source_bundle_with_archive(
-        provider=(
-            "INSTITUT NATIONAL DE L'INFORMATION GEOGRAPHIQUE ET FORESTIERE (ign)"
-        ),
-        product="bd-topo",
+    provider = (
+        "INSTITUT NATIONAL DE L'INFORMATION GEOGRAPHIQUE ET FORESTIERE (ign)"
     )
+    product = "bd-topo"
+    source = _source_bundle_with_archive(
+        provider=provider,
+        product=product,
+    )
+    config_payload = SOURCE_CONFIG.model_dump(mode="json")
+    config_payload.update({"provider": provider, "product": product})
+    matching_config = IgnBdTopoSourceConfig.model_validate(config_payload)
 
-    normalized = normalize_ign_electricity(source)
+    normalized = _normalize_ign_electricity(source, matching_config)
 
     assert len(normalized.electric_lines) == 1
     assert len(normalized.transformation_posts) == 1

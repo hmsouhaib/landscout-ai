@@ -4,6 +4,8 @@ from copy import deepcopy
 from dataclasses import replace
 from hashlib import sha256
 from pathlib import Path
+from typing import Any, cast
+from unittest.mock import patch
 from uuid import uuid4
 
 import geopandas as gpd
@@ -23,6 +25,7 @@ from landscout.sources import (
     IgnBdTopoCoverageLayerSummary,
     IgnBdTopoDepartmentCoverage,
     IgnBdTopoDownload,
+    IgnBdTopoElectricityData,
     IgnBdTopoExtraction,
     IgnBdTopoSourceConfig,
     load_ign_bdtopo_department_coverage,
@@ -30,9 +33,16 @@ from landscout.sources import (
 )
 from landscout.stages import (
     GridCoverageAssessmentError,
-    assess_grid_coverage,
-    enrich_parcel_grid_proximity,
     profile_grid_coverage,
+)
+from landscout.stages import (
+    assess_grid_coverage as public_assess_grid_coverage,
+)
+from landscout.stages.assess_grid_coverage import (
+    _assess_grid_coverage_from_proximity as assess_grid_coverage,
+)
+from landscout.stages.enrich_grid_proximity import (
+    _enrich_parcel_grid_proximity_from_normalized as enrich_parcel_grid_proximity,
 )
 
 ARCHIVE_SHA256 = "a" * 64
@@ -339,6 +349,18 @@ def _posts(distance_m: float = 50.0) -> gpd.GeoDataFrame:
     )
 
 
+def _electricity_source(
+    extraction: IgnBdTopoExtraction,
+) -> IgnBdTopoElectricityData:
+    return IgnBdTopoElectricityData(
+        extraction=extraction,
+        electric_lines=_lines(),
+        transformation_posts=_posts(),
+        electric_lines_summary=cast(Any, None),
+        transformation_posts_summary=cast(Any, None),
+    )
+
+
 def _proximity(
     *,
     parcel_geometries: list[object] | None = None,
@@ -360,10 +382,80 @@ def _proximity(
 
 
 def test_clean_coverage_api_is_exported() -> None:
-    assert stages.assess_grid_coverage is assess_grid_coverage
+    assert stages.assess_grid_coverage is public_assess_grid_coverage
     assert stages.profile_grid_coverage is profile_grid_coverage
     assert "assess_grid_coverage" in stages.__all__
     assert "profile_grid_coverage" in stages.__all__
+
+
+def test_public_coverage_owns_proximity_and_configured_coverage_once() -> None:
+    coverage = _coverage()
+    source = _electricity_source(coverage.extraction)
+    parcels = _parcels()
+    proximity = _proximity()
+
+    with patch(
+        "landscout.stages.assess_grid_coverage.enrich_parcel_grid_proximity",
+        return_value=proximity,
+        create=True,
+    ) as proximity_stage, patch(
+        "landscout.stages.assess_grid_coverage.load_ign_bdtopo_department_coverage",
+        return_value=coverage,
+        create=True,
+    ) as coverage_loader:
+        result = public_assess_grid_coverage(parcels, source, SOURCE_CONFIG)
+
+    proximity_stage.assert_called_once_with(parcels, source, SOURCE_CONFIG)
+    coverage_loader.assert_called_once_with(source.extraction, SOURCE_CONFIG)
+    assert result.source_coverage is coverage
+
+
+def test_public_coverage_proximity_failure_stops_coverage_loading() -> None:
+    coverage = _coverage()
+    source = _electricity_source(coverage.extraction)
+
+    with patch(
+        "landscout.stages.assess_grid_coverage.enrich_parcel_grid_proximity",
+        side_effect=ValueError("physical electricity source changed"),
+        create=True,
+    ) as proximity_stage, patch(
+        "landscout.stages.assess_grid_coverage.load_ign_bdtopo_department_coverage",
+        create=True,
+    ) as coverage_loader, pytest.raises(GridCoverageAssessmentError):
+        public_assess_grid_coverage(_parcels(), source, SOURCE_CONFIG)
+
+    proximity_stage.assert_called_once()
+    coverage_loader.assert_not_called()
+
+
+def test_caller_provided_proximity_and_coverage_are_not_public_inputs() -> None:
+    forged_proximity = _proximity(line_distances=[0.0], post_distance_m=0.0)
+    forged_coverage = _coverage()
+    assert forged_proximity.parcels[
+        "nearest_line_proxy_distance_m"
+    ].eq(0.0).all()
+    assert forged_proximity.parcels[
+        "nearest_line_source_archive_sha256"
+    ].eq(ARCHIVE_SHA256).all()
+
+    with patch(
+        "landscout.stages.assess_grid_coverage.enrich_parcel_grid_proximity",
+        create=True,
+    ) as proximity_stage, patch(
+        "landscout.stages.assess_grid_coverage.load_ign_bdtopo_department_coverage",
+        create=True,
+    ) as coverage_loader, pytest.raises(
+        GridCoverageAssessmentError,
+        match="parcels|GeoDataFrame",
+    ):
+        public_assess_grid_coverage(
+            cast(Any, forged_proximity),
+            cast(Any, forged_coverage),
+            SOURCE_CONFIG,
+        )
+
+    proximity_stage.assert_not_called()
+    coverage_loader.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -695,12 +787,20 @@ def test_coverage_source_layer_lineage_must_match_summary_and_frame() -> None:
         )
 
 
-def test_assessment_rejects_forged_selected_coverage_row() -> None:
+def test_public_assessment_loads_coverage_from_the_physical_source() -> None:
     coverage = _coverage()
-    forged = coverage.coverage.copy()
-    forged.loc[0, "nom_officiel"] = "Invented department"
+    source = _electricity_source(coverage.extraction)
+    parcels = _parcels()
+    proximity = _proximity()
 
-    with pytest.raises(GridCoverageAssessmentError, match="physical|source"):
-        assess_grid_coverage(
-            _proximity(), replace(coverage, coverage=forged), SOURCE_CONFIG
+    with patch(
+        "landscout.stages.assess_grid_coverage.enrich_parcel_grid_proximity",
+        return_value=proximity,
+    ):
+        result = public_assess_grid_coverage(
+            parcels,
+            source,
+            SOURCE_CONFIG,
         )
+
+    assert result.source_coverage.coverage.loc[0, "nom_officiel"] == "Haute-Garonne"

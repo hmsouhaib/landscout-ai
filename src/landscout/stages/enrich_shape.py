@@ -4,6 +4,7 @@ from numbers import Real
 import geopandas as gpd  # type: ignore[import-untyped]
 from shapely.errors import GEOSException  # type: ignore[import-untyped]
 
+from landscout.common.cadastre_contract import validate_cadastre_geometry_statuses
 from landscout.geo.crs import LAMBERT93, WGS84
 from landscout.geo.geometry import parcel_shape_metrics_m
 
@@ -54,6 +55,10 @@ def enrich_parcel_shapes(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         )
     if identifiers.duplicated().any():
         raise ShapeEnrichmentError("parcel_id values must be unique")
+    try:
+        validate_cadastre_geometry_statuses(parcels["geometry_status"].tolist())
+    except ValueError as error:
+        raise ShapeEnrichmentError(str(error)) from error
     valid_geometry = parcels["geometry_status"] == "VALID"
     if any(
         isinstance(value, bool)

@@ -9,7 +9,8 @@ from numbers import Real
 from pathlib import Path
 from shutil import copy2, copyfileobj
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+
+from landscout.common.safe_http import open_safe_https
 
 CADASTRE_BASE_URL = (
     "https://cadastre.data.gouv.fr/data/etalab-cadastre/latest/geojson/communes"
@@ -205,10 +206,13 @@ def download_cadastre_parcelles(
     cache_dir.mkdir(parents=True, exist_ok=True)
     temporary_archive = archive_path.with_suffix(f"{archive_path.suffix}.part")
     temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
-    request = Request(source_url, headers={"User-Agent": "LandScout-AI/0.1"})
     try:
         with (
-            urlopen(request, timeout=timeout) as response,
+            open_safe_https(
+                source_url,
+                timeout=timeout,
+                headers={"User-Agent": "LandScout-AI/0.1"},
+            ) as response,
             temporary_archive.open("wb") as output,
         ):
             copyfileobj(response, output)

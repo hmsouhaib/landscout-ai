@@ -184,3 +184,19 @@ def test_enrichment_matches_centralized_shape_metrics(square: Polygon) -> None:
     assert row["width_m"] == pytest.approx(expected.width_m)
     assert row["length_width_ratio"] == pytest.approx(expected.length_width_ratio)
     assert row["compactness"] == pytest.approx(expected.compactness)
+
+
+@pytest.mark.parametrize(
+    "geometry_status",
+    [None, "UNKNOWN", "ERROR", "BANANA", "valid", 0, 1, True, False],
+)
+def test_shape_enrichment_rejects_noncanonical_geometry_status(
+    square: Polygon,
+    geometry_status: object,
+) -> None:
+    invalid = _candidate_frame([square])
+    invalid["geometry_status"] = invalid["geometry_status"].astype(object)
+    invalid.loc[0, "geometry_status"] = geometry_status
+
+    with pytest.raises(ShapeEnrichmentError, match="geometry_status"):
+        enrich_parcel_shapes(invalid)
