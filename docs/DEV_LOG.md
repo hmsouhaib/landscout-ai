@@ -2,11 +2,25 @@
 
 ## Current project state
 
-- Current phase: Access / roads — source-package boundary diagnostics
-- Latest completed step: STEP 7E.3B
+- Current phase: Environment / risks — protected-area source acquisition
+- Latest completed step: STEP 7F.1A
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: road-access evidence design beyond package coverage
+- Next step waiting for review: protected-area source normalization and category review
+
+## STEP 7F.1A — Acquire PatriNat / INPN protected-areas reference archive
+
+- Status: Complete. LandScout acquired, byte-verified, transactionally cached, safely extracted, and fully inventoried only the pinned official `EP` archive. No unofficial fallback or hidden latest-version lookup exists.
+- Official identity: provider `PatriNat`, authority `MNHN`, program `INPN`, dataset `EP` (`Base de référence des espaces protégés français`), declared version `07/2026`, evidence checked `2026-08-16`.
+- Reference-page context: temporary PatriNat INPN reference-download page at `https://www.patrinat.fr/fr/page-temporaire-de-telechargement-des-referentiels-de-donnees-lies-linpn-7353`; configured archive `https://assets.patrinat.fr/files/donnees/ep/EP.zip`; archive filename `EP.zip`.
+- Exact archive snapshot: 99,835,011 bytes; SHA256 `73688bc37205a5e7f59e2065a0b81fc8cf2a242bdec5d7d2786f083671c4abe5`; UTC download timestamp `2026-08-16T15:58:03.326002+00:00`.
+- Cache proof: the first download and extraction were cache misses. Immediate reuse returned a download cache hit and extraction cache hit; the reuse download made zero HTTP calls. Cache metadata and extraction metadata both use strict schema version `1`, and reuse physically rechecks size, SHA256, ZIP integrity, and the complete extracted-file inventory.
+- Safe archive composition: 16 ZIP members = 15 regular files + 1 directory. Transactional extraction produced 15 regular files totalling 175,570,944 bytes. The only observed extension was `.gpkg` (15 files), and the sole top-level path was `EP`.
+- Candidate GIS resources discovered factually: `EP/sig_blm.gpkg`, `EP/sig_cli.gpkg`, `EP/sig_epa.gpkg`, `EP/sig_glp.gpkg`, `EP/sig_guf.gpkg`, `EP/sig_maf.gpkg`, `EP/sig_metrop.gpkg`, `EP/sig_mtq.gpkg`, `EP/sig_myt.gpkg`, `EP/sig_ncl.gpkg`, `EP/sig_pyf.gpkg`, `EP/sig_reu.gpkg`, `EP/sig_spm.gpkg`, `EP/sig_subant.gpkg`, and `EP/sig_tadl.gpkg`. These files were inventoried and hashed but not opened or semantically classified.
+- Integrity/security contract: redirects are followed manually and only after HTTPS/destination validation; exact response bytes are streamed; only explicit HTTP 2xx succeeds. Cache pair and extraction-directory publication are rollback-safe. The complete ZIP inventory is validated before extraction, including traversal, absolute path, Windows collision/device-name, link, special-file, encryption, duplicate, and file/directory collision rejection. Every extracted regular file has a canonical relative path, exact byte size, and SHA256.
+- Test-first and runtime: initial collection failed because the source module did not exist. The final focused suite passed 119 tests. Ticket-scoped Ruff, mypy, `uv lock --check`, and `git diff --check` passed. The official download, extraction, factual inventory, and immediate no-network reuse check completed in 13.2 seconds.
+- Boundary: NO protected-area category interpretation. NO Natura 2000 evidence yet. NO ZNIEFF evidence yet. NO parcel intersection. NO BESS exclusion. NO environmental score.
+- Known issues: None.
 
 ## STEP 7E.3B — Diagnose parcel-road proximity against source-package boundary
 
