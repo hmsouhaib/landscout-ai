@@ -8,7 +8,7 @@ flowchart TD
     Url --> Download[download_cadastre_parcelles]
     Download --> Envelope[CadastreDownload]
     Envelope --> Load[load_cadastre_parcels]
-    Load --> Source[source GeoDataFrame with lineage]
+    Load --> Source[parsed source attributes plus geometry]
     Source --> Normalize[normalize_cadastre_parcels]
     Normalize --> Area[filter_parcels_by_area]
     Area --> Shape[enrich_parcel_shapes]
@@ -22,26 +22,32 @@ flowchart TD
 
 ## Source-complete load
 
-`load_cadastre_parcels(download)` accepts the result object rather than a caller path. It validates exact dataclass type and lineage fields, hashes/validates the physical gzip before parsing, parses the GeoJSON with GeoPandas, validates the expected geometry column/types and nonempty dataset, adds source identity columns, and checks the archive again after parsing. This closes coordinated in-memory or read-time byte replacement gaps.
+`load_cadastre_parcels(download)` accepts the result object rather than a caller path. `_validate_download` requires the exact `CadastreDownload` runtime type, a real `Path`, an existing file, an exact non-empty source URL with an `http` or `https` scheme, filename/path agreement, strict positive size, and canonical lowercase SHA256. It compares current physical size/SHA, fully reads the gzip to validate it, parses GeoJSON with GeoPandas, rejects an empty dataset/missing active geometry/non-polygon types, and compares size/SHA again after parsing. It does **not** independently pin `cadastre.data.gouv.fr` and does **not** append source identity/URL/timestamp/hash fields to the returned frame.
 
 ## Normalization
 
-`normalize_cadastre_parcels` requires a spatial GeoDataFrame in EPSG:4326 and the exact cadastral identity fields. It validates unique exact parcel IDs and canonical commune identities. Output uses deterministic row order/index and preserves source geometry/CRS.
+`normalize_cadastre_parcels` requires a spatial GeoDataFrame in EPSG:4326 and the exact cadastral identity fields. It validates unique exact parcel IDs and canonical commune identities. Output preserves input row order and index labels plus source geometry/CRS; it does not add download lineage.
 
-Key normalized fields include:
+The complete ordered output has exactly 12 columns:
 
-| Column | Meaning |
-|---|---|
-| `parcel_id` | Stable exact source parcel identifier used throughout downstream joins. |
-| `commune_code` | Canonical French INSEE commune identity copied from validated source context. |
-| `geometry_status` | Exact `VALID` or `INVALID`; null, empty, invalid, or unsupported source geometry is not repaired. |
-| `area_m2` | Area of valid Polygon/MultiPolygon calculated on an EPSG:2154 copy; null on invalid rows. |
-| source identity fields | Exact provider/source/document/download lineage introduced by the loader and preserved by normalization. |
-| `geometry` | Original active EPSG:4326 source geometry. |
+| Position | Column | Source/calculation and contract |
+|---:|---|---|
+| 1 | `parcel_id` | Etalab `id`; exact non-empty string, unique. |
+| 2 | `commune_code` | Etalab `commune`; canonical French INSEE string. |
+| 3 | `section_prefix` | Etalab `prefixe`; exact non-empty string. |
+| 4 | `section` | Etalab `section`; exact non-empty string. |
+| 5 | `parcel_number` | Etalab `numero`; exact non-empty string. |
+| 6 | `source_contenance` | Etalab `contenance`, value/null/dtype preserved; all-null column inserted if absent. |
+| 7 | `source_arpente` | Etalab `arpente`, value/null/dtype preserved; all-null column inserted if absent. |
+| 8 | `source_created_at` | Etalab `created`, value/null/dtype preserved; all-null column inserted if absent. |
+| 9 | `source_updated_at` | Etalab `updated`, value/null/dtype preserved; all-null column inserted if absent. |
+| 10 | `geometry_status` | Non-null and exactly `VALID` or `INVALID`; source geometry is never repaired. |
+| 11 | `area_m2` | `float64`; finite positive area on an EPSG:2154 calculation copy for VALID rows, NaN for INVALID rows. |
+| 12 | `geometry` | Original active EPSG:4326 Polygon/MultiPolygon geometry, including preserved null/empty/invalid values. |
 
 ## Area filter
 
-`filter_parcels_by_area` validates the exact `geometry_status` vocabulary before masks. It validates parcel IDs, CRS, duplicate columns, and physically valid `area_m2` values on `VALID` rows. Configured minimum and maximum area bounds produce explicit factual columns/statuses. Invalid geometry and out-of-bound area are recorded under the function's closed domain; no ranking occurs.
+`filter_parcels_by_area` validates the exact `geometry_status` vocabulary before masks. It validates parcel IDs, CRS, duplicate columns, and strict positive finite `area_m2` on `VALID` rows. Candidates preserve the input schema. Rejected rows append `rejection_reason`, exactly one of `AREA_UNKNOWN`, `INVALID_GEOMETRY`, `AREA_BELOW_MIN`, or `AREA_ABOVE_MAX`. Both subsets preserve their source-relative order and original index labels. The configured minimum/maximum are policy thresholds, not geometry measurements; no ranking occurs.
 
 ## Shape enrichment
 
@@ -51,13 +57,13 @@ Key normalized fields include:
 - `length_width_ratio`;
 - `compactness`;
 - centroid longitude/latitude derived from the geometric centroid transformed to EPSG:4326;
-- shape calculation/status/error evidence.
+- `shape_status`, initialized to `ERROR` and changed to `VALID` only after every measurement succeeds.
 
-Invalid source geometry is preserved and receives null shape metrics plus explicit diagnostic state. The input is not mutated.
+All input columns/values and row order are preserved, but the result index is reset to RangeIndex. Invalid/non-measurable source geometry is preserved and receives NaN for all six metrics plus `shape_status=ERROR`. The input is not mutated.
 
 ## Shape screening and profiling
 
-`filter_parcels_by_shape` applies the configured scenario thresholds to already computed metrics and records explicit screening results. It does not recalculate geometry or infer planning/access/grid/environment meaning. `profile_shape_distribution` validates physical metric domains, excludes error rows from percentiles/buckets, and returns frozen profile dataclasses with scenario counts/percentages.
+`filter_parcels_by_shape` applies the configured scenario thresholds to already computed metrics. When disabled, retained is an unchanged copy of every input row and rejected is an empty same-schema copy; no policy columns are added. When enabled, both outputs append `shape_policy_version`, `shape_policy_min_width_m`, and `shape_policy_max_ratio`; rejected rows also append `shape_rejection_reason` (`RATIO_ABOVE_MAX`, `WIDTH_BELOW_MIN`, or `SHAPE_ERROR`). It preserves each subset's input order/index and does not recalculate geometry or infer planning/access/grid/environment meaning. `profile_shape_distribution` validates physical metric domains, excludes error rows from percentiles/buckets, and returns frozen profile dataclasses with scenario counts/percentages.
 
 ## GIS rules
 

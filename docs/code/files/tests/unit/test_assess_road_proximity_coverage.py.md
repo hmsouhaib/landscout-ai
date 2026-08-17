@@ -4,9 +4,9 @@
 
 - Repository path: `tests/unit/test_assess_road_proximity_coverage.py`
 - File type: Python test
-- Primary responsibility: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
-- Layer / domain: `unit/regression test` / `test`
-- Public or internal role: Internal test support; not a production API.
+- Layer: unit/regression test
+- Domain: test
+- Responsibility: Provides complete unit and regression coverage for the `assess_road_proximity_coverage` contracts exercised in this file.
 - Source SHA256: `aa04754f7dc742918b0efd586c6c3011ea3a3df7b8bd888a5b804931d84951fa`
 
 ## 1. Purpose
@@ -15,60 +15,194 @@ Provides complete unit and regression coverage for the `assess_road_proximity_co
 
 ## 2. Position in LandScout architecture
 
-This file is a `unit/regression test` artifact in the `test` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **unit/regression test** layer and the **test** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from __future__ import annotations` — required by the implementation paths and symbols documented below.
-- `from copy import deepcopy` — required by the implementation paths and symbols documented below.
-- `from dataclasses import FrozenInstanceError, replace` — required by the implementation paths and symbols documented below.
-- `from pathlib import Path` — required by the implementation paths and symbols documented below.
-- `from typing import Any, cast` — required by the implementation paths and symbols documented below.
+- `from __future__ import annotations`
+- `from copy import deepcopy`
+- `from dataclasses import FrozenInstanceError, replace`
+- `from importlib import import_module`
+- `from pathlib import Path`
+- `from typing import Any, cast`
+- `from unittest.mock import patch`
 
-### Third-party
+### Third-party packages
 
-- `from importlib import import_module` — required by the implementation paths and symbols documented below.
-- `from unittest.mock import patch` — required by the implementation paths and symbols documented below.
-- `import geopandas as gpd` — required by the implementation paths and symbols documented below.
-- `import numpy as np` — required by the implementation paths and symbols documented below.
-- `import pandas as pd` — required by the implementation paths and symbols documented below.
-- `import pytest` — required by the implementation paths and symbols documented below.
-- `from geopandas.testing import assert_geodataframe_equal` — required by the implementation paths and symbols documented below.
-- `from pandas.testing import assert_frame_equal` — required by the implementation paths and symbols documented below.
-- `from shapely.geometry import LineString, MultiPolygon, Point, Polygon` — required by the implementation paths and symbols documented below.
+- `import geopandas as gpd`
+- `import numpy as np`
+- `import pandas as pd`
+- `import pytest`
+- `from geopandas.testing import assert_geodataframe_equal`
+- `from pandas.testing import assert_frame_equal`
+- `from shapely.geometry import LineString, MultiPolygon, Point, Polygon`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout import stages` — required by the implementation paths and symbols documented below.
-- `from landscout.sources.ign_bdtopo_fr import ( IgnBdTopoCoverageLayerSummary, IgnBdTopoDepartmentCoverage, IgnBdTopoDownload, IgnBdTopoExtraction, IgnBdTopoLayerSummary, IgnBdTopoRoadData, IgnBdTopoSourceConfig, load_ign_bdtopo_source_config, )` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.assess_road_proximity_coverage import ( RoadProximityCoverageAssessmentResult, RoadProximityCoverageError, assess_road_proximity_coverage, )` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.enrich_road_proximity import ( CLASS_PROXIMITY_COLUMNS, ParcelRoadProximityResult, RoadProxyClassCoverage, )` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.road_vehicle_proxy_policy import ( load_ign_road_vehicle_proxy_policy, )` — required by the implementation paths and symbols documented below.
+- `from landscout import stages`
+- `from landscout.sources.ign_bdtopo_fr import (
+    IgnBdTopoCoverageLayerSummary,
+    IgnBdTopoDepartmentCoverage,
+    IgnBdTopoDownload,
+    IgnBdTopoExtraction,
+    IgnBdTopoLayerSummary,
+    IgnBdTopoRoadData,
+    IgnBdTopoSourceConfig,
+    load_ign_bdtopo_source_config,
+)`
+- `from landscout.stages.assess_road_proximity_coverage import (
+    RoadProximityCoverageAssessmentResult,
+    RoadProximityCoverageError,
+    assess_road_proximity_coverage,
+)`
+- `from landscout.stages.enrich_road_proximity import (
+    CLASS_PROXIMITY_COLUMNS,
+    ParcelRoadProximityResult,
+    RoadProxyClassCoverage,
+)`
+- `from landscout.stages.road_vehicle_proxy_policy import (
+    load_ign_road_vehicle_proxy_policy,
+)`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `SOURCE_CONFIG` | `load_ign_bdtopo_source_config()` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `ARCHIVE_SHA256` | `"a" * 64` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `GEOPACKAGE_SHA256` | `"b" * 64` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `EDITION` | `"2026-06-15"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `ELIGIBLE_CLASSES` | `( "GENERAL_VEHICLE_PROXY", "LIMITED_VEHICLE_PROXY", "RESTRICTED_REVIEW", "NOT_GENERAL_VEHICLE_PROXY", "UNKNOWN_REVIEW", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `ALL_CLASSES` | `( "GENERAL_VEHICLE_PROXY", "LIMITED_VEHICLE_PROXY", "RESTRICTED_REVIEW", "NOT_GENERAL_VEHICLE_PROXY", "NOT_DISTANCE_PROXY", "UNKNOWN_REVIEW", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `DIAGNOSTIC_COLUMNS` | `( "road_source_boundary_distance_m", "road_source_coverage_position", "road_proximity_coverage_status", "road_source_coverage_provider", "road_source_coverage_product", "road_source_coverage_department_code", "road_source_coverage_edition", "road_source_coverage_product_version", "road_source_coverage_archive_sha256", "road_source_coverage_layer", "road_source_coverage_spatial_role", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `SELECTED_COLUMNS` | `( "nearest_road_proxy_distance_m", "nearest_road_feature_id", "nearest_source_feature_id", "nearest_road_tie_count", "nearest_road_primary_rule", "nearest_road_rule_trace_json", "nearest_road_unknown_fields_json", "nearest_road_toll_evidence", "nearest_nature_raw", "nearest_importance_raw", "nearest_asset_status_raw", "nearest_private_raw", "nearest_light_vehicle_access_raw", "nearest_carriageway_width_raw", "nearest_closure_period_raw", "nearest_restriction_nature_raw", "nearest_source_layer", "nearest_source_department_code", "nearest_source_edition", "nearest_source_archive_sha256", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `SOURCE_CONFIG`
+
+```python
+SOURCE_CONFIG = load_ign_bdtopo_source_config()
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_type_has_controlled_error` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_proximity_failure_stops_coverage_loading` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_caller_provided_proximity_and_coverage_are_not_public_inputs` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_polygonal_coverage_geometry_is_accepted` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_invalid_coverage_geometry_is_rejected` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_strict_geometric_boundary_proof` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_outside_crossing_or_touching_parcel_is_conservative` (value argument/reference).
+
+#### `ARCHIVE_SHA256`
+
+```python
+ARCHIVE_SHA256 = "a" * 64
+```
+
+Hash identity, algorithm, or canonical-content field used by the named integrity contract. Consumers include `tests/unit/test_assess_grid_coverage.py::_coverage` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::_coverage` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_caller_provided_proximity_and_coverage_are_not_public_inputs` (value argument/reference), `tests/unit/test_assess_road_proximity_coverage.py::_archive` (value argument/reference), `tests/unit/test_enrich_planning_zoning.py::_planning_document` (value argument/reference), `tests/unit/test_enrich_planning_zoning.py::_planning_document` (value argument/reference), `tests/unit/test_normalize_access_ign.py::_source` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_context` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference).
+
+#### `GEOPACKAGE_SHA256`
+
+```python
+GEOPACKAGE_SHA256 = "b" * 64
+```
+
+Hash identity, algorithm, or canonical-content field used by the named integrity contract. Consumers include `tests/unit/test_assess_road_proximity_coverage.py::_extraction` (value argument/reference).
+
+#### `EDITION`
+
+```python
+EDITION = "2026-06-15"
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_assess_grid_coverage.py::_coverage` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::_coverage` (value argument/reference), `tests/unit/test_assess_road_proximity_coverage.py::_archive` (value argument/reference).
+
+#### `ELIGIBLE_CLASSES`
+
+```python
+ELIGIBLE_CLASSES = (
+    "GENERAL_VEHICLE_PROXY",
+    "LIMITED_VEHICLE_PROXY",
+    "RESTRICTED_REVIEW",
+    "NOT_GENERAL_VEHICLE_PROXY",
+    "UNKNOWN_REVIEW",
+)
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_assess_road_proximity_coverage.py::_proximity` (value argument/reference), `tests/unit/test_enrich_road_proximity.py::test_output_shape_columns_and_order_are_deterministic` (value argument/reference).
+
+#### `ALL_CLASSES`
+
+```python
+ALL_CLASSES = (
+    "GENERAL_VEHICLE_PROXY",
+    "LIMITED_VEHICLE_PROXY",
+    "RESTRICTED_REVIEW",
+    "NOT_GENERAL_VEHICLE_PROXY",
+    "NOT_DISTANCE_PROXY",
+    "UNKNOWN_REVIEW",
+)
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `DIAGNOSTIC_COLUMNS`
+
+```python
+DIAGNOSTIC_COLUMNS = (
+    "road_source_boundary_distance_m",
+    "road_source_coverage_position",
+    "road_proximity_coverage_status",
+    "road_source_coverage_provider",
+    "road_source_coverage_product",
+    "road_source_coverage_department_code",
+    "road_source_coverage_edition",
+    "road_source_coverage_product_version",
+    "road_source_coverage_archive_sha256",
+    "road_source_coverage_layer",
+    "road_source_coverage_spatial_role",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+
+#### `SELECTED_COLUMNS`
+
+```python
+SELECTED_COLUMNS = (
+    "nearest_road_proxy_distance_m",
+    "nearest_road_feature_id",
+    "nearest_source_feature_id",
+    "nearest_road_tie_count",
+    "nearest_road_primary_rule",
+    "nearest_road_rule_trace_json",
+    "nearest_road_unknown_fields_json",
+    "nearest_road_toll_evidence",
+    "nearest_nature_raw",
+    "nearest_importance_raw",
+    "nearest_asset_status_raw",
+    "nearest_private_raw",
+    "nearest_light_vehicle_access_raw",
+    "nearest_carriageway_width_raw",
+    "nearest_closure_period_raw",
+    "nearest_restriction_nature_raw",
+    "nearest_source_layer",
+    "nearest_source_department_code",
+    "nearest_source_edition",
+    "nearest_source_archive_sha256",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `tests/unit/test_enrich_road_proximity.py::test_empty_eligible_class_emits_null_row_per_parcel` (value argument/reference).
+
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
-No class, model, or dataclass is declared in this file.
+No class/model/dataclass is declared.
 
 ## 6. Functions and methods
 
 ### `_archive`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _archive() -> IgnBdTopoDownload:
@@ -76,55 +210,70 @@ def _archive() -> IgnBdTopoDownload:
 
 **Purpose**
 
-Implements archive according to the exact implementation and guards in this file.
+Private `test` helper for archive; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- No parameters.
+- Declared return annotation: `IgnBdTopoDownload`.
+- Every observed return expression is reproduced without truncation:
+```python
+IgnBdTopoDownload(provider=SOURCE_CONFIG.provider, product=SOURCE_CONFIG.product, department_code='31', edition=EDITION, product_version='3.5', projection='EPSG:2154', package_format='GPKG', archive_format='7z', source_url=str(SOURCE_CONFIG.source_url), checksum_url=None, download_timestamp='2026-08-11T15:32:03+00:00', filename='BDTOPO.7z', file_size=123, sha256=ARCHIVE_SHA256, official_checksum_algorithm=None, official_checksum=None, official_checksum_validated=False, path=Path('synthetic/BDTOPO.7z'), cache_hit=True)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `IgnBdTopoDownload`. Observed return expression(s): `IgnBdTopoDownload(provider=SOURCE_CONFIG.provider, product=SOURCE_CONFIG.product, department_code='31', edition=EDITION, product_version='3.5', projection='EPSG:2154', package_format='GPKG', archive_format='7z', source_url=str(SOURCE_CONFIG.source_url), checksum_url=None, download_timestamp='2026-08-11T15:32:03+00:00', filename='BDTOPO.7z', file_size=123, sha256=ARCHIVE_SHA256, official_checksum_…`.
-
-**Algorithm**
-
-1. Returns `IgnBdTopoDownload(provider=SOURCE_CONFIG.provider, product=SOURCE_CONFIG.product, department_code='31', edition=EDITION, product_version='3.5', projection='EPSG:2154', package_format='GPKG', archive_format='7z', source_url=str(SOURCE_CONFIG.source_url), checksum_url=None, download_timestamp='2026-08-11T15:32:03+00:00', filename='BDTOPO.7z', file_size=123, s…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `IgnBdTopoDownload`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `IgnBdTopoDownload`.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `IgnBdTopoDownload`, `Path`, `str`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_extraction` via `_archive`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_assess_road_proximity_coverage.py` — `_extraction`
+```python
+def _archive() -> IgnBdTopoDownload:
+    return IgnBdTopoDownload(
+        provider=SOURCE_CONFIG.provider,
+        product=SOURCE_CONFIG.product,
+        department_code="31",
+        edition=EDITION,
+        product_version="3.5",
+        projection="EPSG:2154",
+        package_format="GPKG",
+        archive_format="7z",
+        source_url=str(SOURCE_CONFIG.source_url),
+        checksum_url=None,
+        download_timestamp="2026-08-11T15:32:03+00:00",
+        filename="BDTOPO.7z",
+        file_size=123,
+        sha256=ARCHIVE_SHA256,
+        official_checksum_algorithm=None,
+        official_checksum=None,
+        official_checksum_validated=False,
+        path=Path("synthetic/BDTOPO.7z"),
+        cache_hit=True,
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_extraction`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _extraction() -> IgnBdTopoExtraction:
@@ -132,56 +281,68 @@ def _extraction() -> IgnBdTopoExtraction:
 
 **Purpose**
 
-Implements extraction according to the exact implementation and guards in this file.
+Private `test` helper for extraction; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- No parameters.
+- Declared return annotation: `IgnBdTopoExtraction`.
+- Every observed return expression is reproduced without truncation:
+```python
+IgnBdTopoExtraction(archive=_archive(), extraction_path=Path('synthetic/extracted'), geopackage_path=Path('synthetic/extracted/data.gpkg'), geopackage_filename='data.gpkg', geopackage_size_bytes=456, geopackage_sha256=GEOPACKAGE_SHA256, all_layer_names=('ligne_electrique', 'poste_de_transformation', 'troncon_de_route', 'departement', 'zone_administrative'), electric_lines_layer='ligne_electrique', transformation_posts_layer='poste_de_transformation', cache_hit=True)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `IgnBdTopoExtraction`. Observed return expression(s): `IgnBdTopoExtraction(archive=_archive(), extraction_path=Path('synthetic/extracted'), geopackage_path=Path('synthetic/extracted/data.gpkg'), geopackage_filename='data.gpkg', geopackage_size_bytes=456, geopackage_sha256=GEOPACKAGE_SHA256, all_layer_names=('ligne_electrique', 'poste_de_transformation', 'troncon_de_route', 'departement', 'zone_administrative'), electric_lines_layer='ligne_electrique'…`.
-
-**Algorithm**
-
-1. Returns `IgnBdTopoExtraction(archive=_archive(), extraction_path=Path('synthetic/extracted'), geopackage_path=Path('synthetic/extracted/data.gpkg'), geopackage_filename='data.gpkg', geopackage_size_bytes=456, geopackage_sha256=GEOPACKAGE_SHA256, all_layer_names=('ligne_electrique', 'poste_de_transformation', 'troncon_de_route', 'departement', 'zone_administrative'),…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `IgnBdTopoExtraction`, `Path`, `_archive`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_road_source` via `_extraction`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_coverage` via `_extraction`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_assess_road_proximity_coverage.py` — `_coverage`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `_road_source`
+```python
+def _extraction() -> IgnBdTopoExtraction:
+    return IgnBdTopoExtraction(
+        archive=_archive(),
+        extraction_path=Path("synthetic/extracted"),
+        geopackage_path=Path("synthetic/extracted/data.gpkg"),
+        geopackage_filename="data.gpkg",
+        geopackage_size_bytes=456,
+        geopackage_sha256=GEOPACKAGE_SHA256,
+        all_layer_names=(
+            "ligne_electrique",
+            "poste_de_transformation",
+            "troncon_de_route",
+            "departement",
+            "zone_administrative",
+        ),
+        electric_lines_layer="ligne_electrique",
+        transformation_posts_layer="poste_de_transformation",
+        cache_hit=True,
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_road_source`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _road_source(
@@ -191,77 +352,82 @@ def _road_source(
 
 **Purpose**
 
-Implements road source according to the exact implementation and guards in this file.
+Private `test` helper for road source; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `extraction` (`IgnBdTopoExtraction | None`; optional/default `None`) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `IgnBdTopoRoadData`.
+- Every observed return expression is reproduced without truncation:
+```python
+IgnBdTopoRoadData(package, roads, summary)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `IgnBdTopoRoadData`. Observed return expression(s): `IgnBdTopoRoadData(package, roads, summary)`.
-
-**Algorithm**
-
-1. Computes `package` from `extraction or _extraction()`.
-2. Computes `roads` from `gpd.GeoDataFrame({'cleabs': ['ROAD-1']}, geometry=[LineString([(0, 0), (1, 1)])], crs='EPSG:2154')`.
-3. Computes `summary` from `IgnBdTopoLayerSummary(logical_name='road_segments', source_layer_name='troncon_de_route', crs='EPSG:2154', feature_count=1, columns=tuple((str(column) for column in roads.columns)), dtypes=tuple(((str(column), str(dtype)) for column, dtype in roads.dtypes.items())), null_geometry_count=0, empty_geometry_count=0, inval…`.
-4. Returns `IgnBdTopoRoadData(package, roads, summary)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `IgnBdTopoLayerSummary`, `IgnBdTopoRoadData`, `LineString`, `_extraction`, `gpd.GeoDataFrame`, `roads.dtypes.items`, `str`, `tuple`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_assess` via `_road_source`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_wrong_public_input_type_is_controlled_and_fast` via `_road_source`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_source_chain_calls_proximity_then_coverage_exactly_once` via `_road_source`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_proximity_failure_stops_coverage_loading` via `_road_source`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_loader_failure_is_controlled` via `_road_source`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_malformed_upstream_result_fails_before_coverage_load` via `_road_source`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_package_lineage_must_match_road_archive` via `_road_source`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer` via `_road_source`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled` via `_road_source`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_must_retain_same_extraction_object` via `_road_source`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_result_preserves_every_upstream_fact_and_input_object` via `_road_source`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_assess_road_proximity_coverage.py` — `_assess`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_coverage_loader_failure_is_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_coverage_must_retain_same_extraction_object`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_coverage_package_lineage_must_match_road_archive`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_coverage_spatial_role_and_source_type_are_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_malformed_upstream_result_fails_before_coverage_load`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_proximity_failure_stops_coverage_loading`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_result_preserves_every_upstream_fact_and_input_object`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_source_chain_calls_proximity_then_coverage_exactly_once`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_wrong_public_input_type_is_controlled_and_fast`
+```python
+def _road_source(
+    extraction: IgnBdTopoExtraction | None = None,
+) -> IgnBdTopoRoadData:
+    package = extraction or _extraction()
+    roads = gpd.GeoDataFrame(
+        {"cleabs": ["ROAD-1"]},
+        geometry=[LineString([(0, 0), (1, 1)])],
+        crs="EPSG:2154",
+    )
+    summary = IgnBdTopoLayerSummary(
+        logical_name="road_segments",
+        source_layer_name="troncon_de_route",
+        crs="EPSG:2154",
+        feature_count=1,
+        columns=tuple(str(column) for column in roads.columns),
+        dtypes=tuple(
+            (str(column), str(dtype)) for column, dtype in roads.dtypes.items()
+        ),
+        null_geometry_count=0,
+        empty_geometry_count=0,
+        invalid_geometry_count=0,
+        geometry_types=("LineString",),
+    )
+    return IgnBdTopoRoadData(package, roads, summary)
+```
 
-**Tests**
-
-- `tests/unit/test_assess_road_proximity_coverage.py::test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_loader_failure_is_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_must_retain_same_extraction_object`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_package_lineage_must_match_road_archive`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_malformed_upstream_result_fails_before_coverage_load`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_proximity_failure_stops_coverage_loading`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_result_preserves_every_upstream_fact_and_input_object`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_source_chain_calls_proximity_then_coverage_exactly_once`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_wrong_public_input_type_is_controlled_and_fast`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_coverage`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _coverage(
@@ -281,100 +447,158 @@ def _coverage(
 
 **Purpose**
 
-Implements coverage according to the exact implementation and guards in this file.
+Private `test` helper for coverage; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `extraction` (`IgnBdTopoExtraction | None`; optional/default `None`) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `geometries` (`list[object] | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `crs` (`str | None`; optional/default `'EPSG:2154'`) — coordinate reference system identity. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `layer` (`str`; optional/default `'departement'`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `department_code` (`str`; optional/default `'31'`) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `provider` (`str | None`; optional/default `None`) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `product` (`str | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `edition` (`str`; optional/default `EDITION`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `product_version` (`str | None`; optional/default `'3.5'`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `archive_sha256` (`str`; optional/default `ARCHIVE_SHA256`) — integrity digest used to bind exact bytes or canonical content. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `IgnBdTopoDepartmentCoverage`.
+- Every observed return expression is reproduced without truncation:
+```python
+IgnBdTopoDepartmentCoverage(extraction=package, coverage=selected, summary=summary, source_provider=cast(str, lineage['source_provider']), source_product=cast(str, lineage['source_product']), source_department_code=department_code, source_edition=edition, source_product_version=product_version, source_archive_sha256=archive_sha256, source_layer=layer)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `IgnBdTopoDepartmentCoverage`. Observed return expression(s): `IgnBdTopoDepartmentCoverage(extraction=package, coverage=selected, summary=summary, source_provider=cast(str, lineage['source_provider']), source_product=cast(str, lineage['source_product']), source_department_code=department_code, source_edition=edition, source_product_version=product_version, source_archive_sha256=archive_sha256, source_layer=layer)`.
-
-**Algorithm**
-
-1. Computes `package` from `extraction or _extraction()`.
-2. Computes `values` from `geometries`.
-3. Checks `values is None`. When true: Computes `values` from `[Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)])]`.
-4. Computes `raw` from `gpd.GeoDataFrame({'code_insee': [department_code] * len(values), 'nom_officiel': [f'Department {position}' for position in range(len(values))]}, geometry=values, crs=crs)`.
-5. Computes `lineage` from `{'source_provider': provider or package.archive.provider, 'source_product': product or package.archive.product, 'source_department_code': department_code, 'source_edition': edition, 'source_product_version': product_version, 'source_archive_sha256': archive_sha256, 'source_layer': layer, 'spatial_role': 'SOURCE_COVERA…`.
-6. Computes `selected` from `raw.copy()`.
-7. Iterates `(column, value)` over `lineage.items()`. For each value: Computes `selected[column]` from `value`.
-8. Computes `geometry` from `raw.geometry`.
-9. Computes `non_null` from `~geometry.isna()`.
-10. Computes `non_empty` from `non_null & ~geometry.is_empty`.
-11. Computes `summary` from `IgnBdTopoCoverageLayerSummary(source_layer_name=layer, crs='' if crs is None else str(raw.crs), source_feature_count=len(raw), selected_feature_count=len(raw), columns=tuple((str(column) for column in raw.columns)), dtypes=tuple(((str(column), str(dtype)) for column, dtype in raw.dtypes.items())), null_geometry_count=…`.
-12. Returns `IgnBdTopoDepartmentCoverage(extraction=package, coverage=selected, summary=summary, source_provider=cast(str, lineage['source_provider']), source_product=cast(str, lineage['source_product']), source_department_code=department_code, source_edition=edition, source_product_version=product_version, source_archive_sha256=archive_sha256, source_layer=layer)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `raw.copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `(non_empty & ~geometry.is_valid).sum`, `(non_null & geometry.is_empty).sum`, `geometry.geom_type.dropna`, `geometry.geom_type.dropna().unique`, `geometry.isna`, `geometry.isna().sum`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `selected[column]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(non_empty & ~geometry.is_valid).sum`, `(non_null & geometry.is_empty).sum`, `IgnBdTopoCoverageLayerSummary`, `IgnBdTopoDepartmentCoverage`, `Polygon`, `_extraction`, `cast`, `geometry.geom_type.dropna`, `geometry.geom_type.dropna().unique`, `geometry.isna`, `geometry.isna().sum`, `gpd.GeoDataFrame`, `int`, `len`, `lineage.items`, `range`, `raw.copy`, `raw.dtypes.items`, `sorted`, `str`, `tuple`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_proximity_failure_stops_coverage_loading` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_caller_provided_proximity_and_coverage_are_not_public_inputs` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_polygonal_coverage_geometry_is_accepted` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_invalid_coverage_geometry_is_rejected` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_strict_geometric_boundary_proof` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_outside_crossing_or_touching_parcel_is_conservative` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_no_exact_match_uses_explicit_no_match_status` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_assessment_preserves_proximity_values_and_does_not_mutate_input` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_geographic_parcel_storage_crs_and_geometry_are_preserved` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_profile_reports_dynamic_voltage_and_boundary_distributions` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_proximity_and_coverage_package_lineage_must_match` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_rejects_arbitrary_source_identity` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_selected_count_must_match_frame` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_schema_must_match_selected_source_columns` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_crs_must_match_frame` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_geometry_facts_are_validated` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_selected_department_must_match` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_department_field_must_be_exact` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_source_count_cannot_be_smaller_than_selection` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_source_layer_lineage_must_match_summary_and_frame` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_assessment_loads_coverage_from_the_physical_source` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_assess` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_source_chain_calls_proximity_then_coverage_exactly_once` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_package_lineage_must_match_road_archive` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_selected_department_identity_is_exact` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_must_retain_same_extraction_object` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_invalid_coverage_geometry_is_rejected` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_polygonal_coverage_geometry_is_accepted` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_strict_boundary_status_logic` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_classes_are_diagnosed_independently` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_exact_coverage_lineage_is_appended_to_every_row` via `_coverage`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_result_preserves_every_upstream_fact_and_input_object` via `_coverage`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_assess_road_proximity_coverage.py` — `_assess`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_classes_are_diagnosed_independently`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_coverage_must_retain_same_extraction_object`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_coverage_package_lineage_must_match_road_archive`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_coverage_spatial_role_and_source_type_are_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_exact_coverage_lineage_is_appended_to_every_row`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_invalid_coverage_geometry_is_rejected`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_polygonal_coverage_geometry_is_accepted`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_result_preserves_every_upstream_fact_and_input_object`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_selected_department_identity_is_exact`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_source_chain_calls_proximity_then_coverage_exactly_once`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_strict_boundary_status_logic`
+```python
+def _coverage(
+    extraction: IgnBdTopoExtraction | None = None,
+    *,
+    geometries: list[object] | None = None,
+    crs: str | None = "EPSG:2154",
+    layer: str = "departement",
+    department_code: str = "31",
+    provider: str | None = None,
+    product: str | None = None,
+    edition: str = EDITION,
+    product_version: str | None = "3.5",
+    archive_sha256: str = ARCHIVE_SHA256,
+) -> IgnBdTopoDepartmentCoverage:
+    package = extraction or _extraction()
+    values = geometries
+    if values is None:
+        values = [
+            Polygon([(0, 0), (0, 1000), (1000, 1000), (1000, 0), (0, 0)])
+        ]
+    raw = gpd.GeoDataFrame(
+        {
+            "code_insee": [department_code] * len(values),
+            "nom_officiel": [f"Department {position}" for position in range(len(values))],
+        },
+        geometry=values,
+        crs=crs,
+    )
+    lineage = {
+        "source_provider": provider or package.archive.provider,
+        "source_product": product or package.archive.product,
+        "source_department_code": department_code,
+        "source_edition": edition,
+        "source_product_version": product_version,
+        "source_archive_sha256": archive_sha256,
+        "source_layer": layer,
+        "spatial_role": "SOURCE_COVERAGE_BOUNDARY",
+    }
+    selected = raw.copy()
+    for column, value in lineage.items():
+        selected[column] = value
+    geometry = raw.geometry
+    non_null = ~geometry.isna()
+    non_empty = non_null & ~geometry.is_empty
+    summary = IgnBdTopoCoverageLayerSummary(
+        source_layer_name=layer,
+        crs="" if crs is None else str(raw.crs),
+        source_feature_count=len(raw),
+        selected_feature_count=len(raw),
+        columns=tuple(str(column) for column in raw.columns),
+        dtypes=tuple(
+            (str(column), str(dtype)) for column, dtype in raw.dtypes.items()
+        ),
+        null_geometry_count=int(geometry.isna().sum()),
+        empty_geometry_count=int((non_null & geometry.is_empty).sum()),
+        invalid_geometry_count=int((non_empty & ~geometry.is_valid).sum()),
+        geometry_types=tuple(
+            sorted(str(value) for value in geometry.geom_type.dropna().unique())
+        ),
+        department_code_field="code_insee",
+        selected_department_code=department_code,
+    )
+    return IgnBdTopoDepartmentCoverage(
+        extraction=package,
+        coverage=selected,
+        summary=summary,
+        source_provider=cast(str, lineage["source_provider"]),
+        source_product=cast(str, lineage["source_product"]),
+        source_department_code=department_code,
+        source_edition=edition,
+        source_product_version=product_version,
+        source_archive_sha256=archive_sha256,
+        source_layer=layer,
+    )
+```
 
-**Tests**
-
-- `tests/unit/test_assess_road_proximity_coverage.py::test_classes_are_diagnosed_independently`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_must_retain_same_extraction_object`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_package_lineage_must_match_road_archive`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_exact_coverage_lineage_is_appended_to_every_row`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_invalid_coverage_geometry_is_rejected`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_polygonal_coverage_geometry_is_accepted`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_result_preserves_every_upstream_fact_and_input_object`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_selected_department_identity_is_exact`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_source_chain_calls_proximity_then_coverage_exactly_once`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_strict_boundary_status_logic`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_metric_parcels`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _metric_parcels(
@@ -386,58 +610,69 @@ def _metric_parcels(
 
 **Purpose**
 
-Implements metric parcels according to the exact implementation and guards in this file.
+Private `test` helper for metric parcels; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `geometries` (`list[object] | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `identifiers` (`list[str] | None`; optional/default `None`) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+gpd.GeoDataFrame({'parcel_id': ids, 'preserved_value': list(range(len(values)))}, geometry=values, crs='EPSG:2154', index=[20 + position for position in range(len(values))])
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `gpd.GeoDataFrame({'parcel_id': ids, 'preserved_value': list(range(len(values)))}, geometry=values, crs='EPSG:2154', index=[20 + position for position in range(len(values))])`.
-
-**Algorithm**
-
-1. Computes `values` from `geometries or [Polygon([(100, 100), (100, 200), (200, 200), (200, 100), (100, 100)])]`.
-2. Computes `ids` from `identifiers or [f'PARCEL-{position + 1}' for position in range(len(values))]`.
-3. Returns `gpd.GeoDataFrame({'parcel_id': ids, 'preserved_value': list(range(len(values)))}, geometry=values, crs='EPSG:2154', index=[20 + position for position in range(len(values))])`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `Polygon`, `gpd.GeoDataFrame`, `len`, `list`, `range`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_metric_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_metric_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_metric_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_metric_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_parcels` via `_metric_parcels`.
+- direct call or construction: `tests/unit/test_enrich_road_proximity.py::_parcels` via `_metric_parcels`.
+- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_missing_or_wrong_storage_crs_is_rejected` via `_metric_parcels`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_assess_road_proximity_coverage.py` — `_parcels`
+```python
+def _metric_parcels(
+    geometries: list[object] | None = None,
+    *,
+    identifiers: list[str] | None = None,
+) -> gpd.GeoDataFrame:
+    values = geometries or [
+        Polygon([(100, 100), (100, 200), (200, 200), (200, 100), (100, 100)])
+    ]
+    ids = identifiers or [f"PARCEL-{position + 1}" for position in range(len(values))]
+    return gpd.GeoDataFrame(
+        {"parcel_id": ids, "preserved_value": list(range(len(values)))},
+        geometry=values,
+        crs="EPSG:2154",
+        index=[20 + position for position in range(len(values))],
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_parcels`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _parcels(
@@ -449,89 +684,153 @@ def _parcels(
 
 **Purpose**
 
-Implements parcels according to the exact implementation and guards in this file.
+Private `test` helper for parcels; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `geometries` (`list[object] | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `identifiers` (`list[str] | None`; optional/default `None`) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+_metric_parcels(geometries, identifiers=identifiers).to_crs('EPSG:4326')
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `_metric_parcels(geometries, identifiers=identifiers).to_crs('EPSG:4326')`.
-
-**Algorithm**
-
-1. Returns `_metric_parcels(geometries, identifiers=identifiers).to_crs('EPSG:4326')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `_metric_parcels(geometries, identifiers=identifiers).to_crs`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `_metric_parcels(geometries, identifiers=identifiers).to_crs`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_metric_parcels`, `_metric_parcels(geometries, identifiers=identifiers).to_crs`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::_proximity` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_proximity_failure_stops_coverage_loading` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_geographic_parcel_storage_crs_and_geometry_are_preserved` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_assessment_loads_coverage_from_the_physical_source` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_proximity` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_assess` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_wrong_public_input_type_is_controlled_and_fast` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_source_chain_calls_proximity_then_coverage_exactly_once` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_proximity_failure_stops_coverage_loading` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_loader_failure_is_controlled` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_malformed_upstream_result_fails_before_coverage_load` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_full_parcel_coverage_position_is_conservative` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_position_uses_full_geometry_not_centroid` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_strict_boundary_status_logic` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_matched_outside_or_crossing_status` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_no_match_takes_precedence_over_coverage_position` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_classes_are_diagnosed_independently` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_result_preserves_every_upstream_fact_and_input_object` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_corrupt_generated` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_inconsistent_generated_status_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_result_is_frozen_and_has_no_business_decision_fields` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_two_parcel_two_voltage_result` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_normalizes_verified_source_exactly_once` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_wrong_source_boundary_types` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_caller_crafted_normalized_grid_frame_is_not_a_public_source` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_reproduces_configured_electricity_roles` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_archive_lineage_differing_from_config` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_source_normalization_failure_stops_grid_computation` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_separated_distance_uses_parcel_edge_not_centroid` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_touching_line_has_zero_distance` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_post_distance_uses_parcel_and_post_polygons` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_epsg4326_input_is_calculated_in_lambert93_and_preserved` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_epsg2154_parcel_input_remains_epsg2154` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_valid_parcel_id_is_preserved_exactly` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_invalid_parcel_id_hygiene_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_supported_parcel_polygon_geometry_is_preserved` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_semantically_wrong_parcel_geometry_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_missing_crs_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_crs_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_z_line_has_same_horizontal_distance_as_xy_line` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_line_tie_is_counted_and_lexical_feature_id_wins` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_cross_voltage_tie_uses_lexical_global_feature_id` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nonvalid_grid_geometries_are_excluded_without_row_loss` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_feature_type_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_grid_feature_id_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_spatial_role_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_unsupported_valid_grid_geometry_type_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_supported_multi_geometries_are_accepted` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nearest_any_line_preserves_every_voltage_status` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nearest_exact_and_voltage_table_exclude_nonexact_lines` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_invalid_exact_voltage_values_are_not_used_as_exact` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_missing_parcel_column_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_null_parcel_id_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_parcel_id_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_bad_parcel_geometry_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_distance_profile_is_threshold_free_and_tracks_ties` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_allows_consistent_missing_manager_and_asset_status` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_no_valid_required_grid_feature_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_run` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_epsg4326_parcels_are_measured_in_lambert93_but_preserved` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_invalid_parcel_ids_are_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_duplicate_parcel_ids_are_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_missing_crs_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_reserved_output_column_collision_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_relations_are_unique_deterministic_and_summaries_agree` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_result_frames_are_independent_from_mutable_inputs` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_contract_result` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_run` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_one_parcel_fully_inside_one_zone` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_split_across_two_zones` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_dominant_zone_tie_is_deterministic` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_touch_only_relation_is_preserved_but_never_dominant` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_positive_area_zone_is_preserved` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_with_no_intersecting_zone_has_zero_coverage` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_overlapping_source_zones_expose_raw_sum_union_and_excess` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_parcels_are_supported` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_polygon_and_multipolygon_zones_are_supported` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_parcel_crs_is_preserved_while_metric_calculation_uses_lambert93` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_ignf_lamb93_source_zoning_is_normalized_to_epsg2154` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_missing_or_unusable_crs_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_parcel_geometry_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_zone_geometry_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_invalid_parcel_id_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_parcel_id_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_missing_parcel_id_is_rejected` via `_parcels`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_geometry_must_be_the_active_parcel_geometry_column` via `_parcels`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_assess_road_proximity_coverage.py` — `_assess`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `_corrupt_generated`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `_proximity`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_classes_are_diagnosed_independently`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_coverage_loader_failure_is_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_coverage_spatial_role_and_source_type_are_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_full_parcel_coverage_position_is_conservative`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_inconsistent_generated_status_is_rejected`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_malformed_upstream_result_fails_before_coverage_load`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_matched_outside_or_crossing_status`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_no_match_takes_precedence_over_coverage_position`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_position_uses_full_geometry_not_centroid`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_proximity_failure_stops_coverage_loading`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_result_is_frozen_and_has_no_business_decision_fields`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_result_preserves_every_upstream_fact_and_input_object`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_source_chain_calls_proximity_then_coverage_exactly_once`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_strict_boundary_status_logic`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_wrong_public_input_type_is_controlled_and_fast`
+```python
+def _parcels(
+    geometries: list[object] | None = None,
+    *,
+    identifiers: list[str] | None = None,
+) -> gpd.GeoDataFrame:
+    return _metric_parcels(geometries, identifiers=identifiers).to_crs("EPSG:4326")
+```
 
-**Tests**
-
-- `tests/unit/test_assess_road_proximity_coverage.py::test_classes_are_diagnosed_independently`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_loader_failure_is_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_full_parcel_coverage_position_is_conservative`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_inconsistent_generated_status_is_rejected`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_malformed_upstream_result_fails_before_coverage_load`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_matched_outside_or_crossing_status`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_no_match_takes_precedence_over_coverage_position`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_position_uses_full_geometry_not_centroid`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_proximity_failure_stops_coverage_loading`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_result_is_frozen_and_has_no_business_decision_fields`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_result_preserves_every_upstream_fact_and_input_object`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_source_chain_calls_proximity_then_coverage_exactly_once`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_strict_boundary_status_logic`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_wrong_public_input_type_is_controlled_and_fast`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_proximity`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _proximity(
@@ -543,95 +842,154 @@ def _proximity(
 
 **Purpose**
 
-Implements proximity according to the exact implementation and guards in this file.
+Private `test` helper for proximity; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame | None`; optional/default `None`) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `distances` (`dict[str, float] | None`; optional/default `None`) — linear quantity, normally metres where the name ends in `_m`. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `ParcelRoadProximityResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+ParcelRoadProximityResult(source_parcels.copy(), table, coverage)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `ParcelRoadProximityResult`. Observed return expression(s): `ParcelRoadProximityResult(source_parcels.copy(), table, coverage)`.
-
-**Algorithm**
-
-1. Computes `source_parcels` from `parcels if parcels is not None else _parcels()`.
-2. Computes `policy` from `load_ign_road_vehicle_proxy_policy()`.
-3. Computes `configured_distances` from `distances or {}`.
-4. Computes `primary_rules` from `{'GENERAL_VEHICLE_PROXY': 'OPEN_OR_TOLL', 'LIMITED_VEHICLE_PROXY': 'LIMITED_NATURE', 'RESTRICTED_REVIEW': 'PRIVATE_ROAD', 'NOT_GENERAL_VEHICLE_PROXY': 'PHYSICALLY_IMPOSSIBLE', 'UNKNOWN_REVIEW': 'UNKNOWN'}`.
-5. Defines `rows` with annotation `list[dict[str, object]]` from `[]`.
-6. Iterates `parcel_id` over `source_parcels['parcel_id']`. For each value: Iterates `(position, road_class)` over `enumerate(ELIGIBLE_CLASSES)`. For each value: Computes `distance_m` from `configured_distances.get(road_class, 50.0 + position)`. Computes `primary_rule` from `primary_rules[road_class]`. Calls `rows.append({'parcel_id': parcel_id, 'road_proxy_class': road_class, 'nearest_road_proxy_distance_m': distance_m, 'nearest_road_feature_id': f'ROAD-{road_class}', 'nearest_source_feature_id': f'SOURCE-{road_class}', 'nearest_road_tie_count': 1, 'nearest_road_primary_rule': primary_rule, 'nearest_road_rule_trace_json': f'["{primary_rule}"]', 'nearest_road_un…` for its validation or side effect.
-7. Computes `table` from `pd.DataFrame(rows, columns=CLASS_PROXIMITY_COLUMNS)`.
-8. Computes `table['nearest_road_proxy_distance_m']` from `table['nearest_road_proxy_distance_m'].astype('float64')`.
-9. Computes `table['nearest_road_tie_count']` from `table['nearest_road_tie_count'].astype('Int64')`.
-10. Computes `table['nearest_road_toll_evidence']` from `table['nearest_road_toll_evidence'].astype('boolean')`.
-11. Computes `coverage` from `tuple((RoadProxyClassCoverage(road_proxy_class=road_class, feature_count=1, distance_eligible=road_class != 'NOT_DISTANCE_PROXY') for road_class in ALL_CLASSES))`.
-12. Returns `ParcelRoadProximityResult(source_parcels.copy(), table, coverage)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `load_ign_road_vehicle_proxy_policy`, `source_parcels.copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `configured_distances.get`, `table['nearest_road_proxy_distance_m'].astype`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `table['nearest_road_proxy_distance_m']`, `table['nearest_road_tie_count']`, `table['nearest_road_toll_evidence']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ParcelRoadProximityResult`, `RoadProxyClassCoverage`, `_parcels`, `configured_distances.get`, `enumerate`, `load_ign_road_vehicle_proxy_policy`, `pd.DataFrame`, `rows.append`, `source_parcels.copy`, `table['nearest_road_proxy_distance_m'].astype`, `table['nearest_road_tie_count'].astype`, `table['nearest_road_toll_evidence'].astype`, `tuple`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_caller_provided_proximity_and_coverage_are_not_public_inputs` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_polygonal_coverage_geometry_is_accepted` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_invalid_coverage_geometry_is_rejected` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_strict_geometric_boundary_proof` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_outside_crossing_or_touching_parcel_is_conservative` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_no_exact_match_uses_explicit_no_match_status` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_assessment_preserves_proximity_values_and_does_not_mutate_input` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_profile_reports_dynamic_voltage_and_boundary_distributions` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_proximity_and_coverage_package_lineage_must_match` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_rejects_arbitrary_source_identity` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_selected_count_must_match_frame` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_schema_must_match_selected_source_columns` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_crs_must_match_frame` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_geometry_facts_are_validated` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_selected_department_must_match` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_department_field_must_be_exact` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_summary_source_count_cannot_be_smaller_than_selection` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_coverage_source_layer_lineage_must_match_summary_and_frame` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_public_assessment_loads_coverage_from_the_physical_source` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_assess` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_source_chain_calls_proximity_then_coverage_exactly_once` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_loader_failure_is_controlled` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_malformed_upstream_result_fails_before_coverage_load` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_full_parcel_coverage_position_is_conservative` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_position_uses_full_geometry_not_centroid` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_strict_boundary_status_logic` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_matched_outside_or_crossing_status` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_no_match_takes_precedence_over_coverage_position` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_classes_are_diagnosed_independently` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_matched_road_lineage_must_match_coverage` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_result_preserves_every_upstream_fact_and_input_object` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_corrupt_generated` via `_proximity`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_inconsistent_generated_status_is_rejected` via `_proximity`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_assess_road_proximity_coverage.py` — `_assess`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `_corrupt_generated`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_classes_are_diagnosed_independently`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_coverage_loader_failure_is_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_coverage_spatial_role_and_source_type_are_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_full_parcel_coverage_position_is_conservative`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_inconsistent_generated_status_is_rejected`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_malformed_upstream_result_fails_before_coverage_load`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_matched_outside_or_crossing_status`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_matched_road_lineage_must_match_coverage`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_no_match_takes_precedence_over_coverage_position`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_position_uses_full_geometry_not_centroid`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_result_preserves_every_upstream_fact_and_input_object`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_source_chain_calls_proximity_then_coverage_exactly_once`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_strict_boundary_status_logic`
+```python
+def _proximity(
+    parcels: gpd.GeoDataFrame | None = None,
+    *,
+    distances: dict[str, float] | None = None,
+) -> ParcelRoadProximityResult:
+    source_parcels = parcels if parcels is not None else _parcels()
+    policy = load_ign_road_vehicle_proxy_policy()
+    configured_distances = distances or {}
+    primary_rules = {
+        "GENERAL_VEHICLE_PROXY": "OPEN_OR_TOLL",
+        "LIMITED_VEHICLE_PROXY": "LIMITED_NATURE",
+        "RESTRICTED_REVIEW": "PRIVATE_ROAD",
+        "NOT_GENERAL_VEHICLE_PROXY": "PHYSICALLY_IMPOSSIBLE",
+        "UNKNOWN_REVIEW": "UNKNOWN",
+    }
+    rows: list[dict[str, object]] = []
+    for parcel_id in source_parcels["parcel_id"]:
+        for position, road_class in enumerate(ELIGIBLE_CLASSES):
+            distance_m = configured_distances.get(road_class, 50.0 + position)
+            primary_rule = primary_rules[road_class]
+            rows.append(
+                {
+                    "parcel_id": parcel_id,
+                    "road_proxy_class": road_class,
+                    "nearest_road_proxy_distance_m": distance_m,
+                    "nearest_road_feature_id": f"ROAD-{road_class}",
+                    "nearest_source_feature_id": f"SOURCE-{road_class}",
+                    "nearest_road_tie_count": 1,
+                    "nearest_road_primary_rule": primary_rule,
+                    "nearest_road_rule_trace_json": f'["{primary_rule}"]',
+                    "nearest_road_unknown_fields_json": "[]",
+                    "nearest_road_toll_evidence": False,
+                    "nearest_nature_raw": "Route à 1 chaussée",
+                    "nearest_importance_raw": "2",
+                    "nearest_asset_status_raw": "En service",
+                    "nearest_private_raw": 0.0,
+                    "nearest_light_vehicle_access_raw": "Libre",
+                    "nearest_carriageway_width_raw": 7.0,
+                    "nearest_closure_period_raw": None,
+                    "nearest_restriction_nature_raw": None,
+                    "nearest_source_layer": "troncon_de_route",
+                    "nearest_source_department_code": "31",
+                    "nearest_source_edition": EDITION,
+                    "nearest_source_archive_sha256": ARCHIVE_SHA256,
+                    "road_proxy_policy_id": policy.policy_id,
+                    "road_proxy_policy_schema_version": policy.schema_version,
+                    "road_proxy_policy_config_sha256": policy.config_sha256,
+                    "road_proxy_heavy_vehicle_access": policy.heavy_vehicle_access,
+                    "proximity_scope": "WITHIN_VERIFIED_SOURCE_PACKAGE",
+                }
+            )
+    table = pd.DataFrame(rows, columns=CLASS_PROXIMITY_COLUMNS)
+    table["nearest_road_proxy_distance_m"] = table[
+        "nearest_road_proxy_distance_m"
+    ].astype("float64")
+    table["nearest_road_tie_count"] = table["nearest_road_tie_count"].astype(
+        "Int64"
+    )
+    table["nearest_road_toll_evidence"] = table[
+        "nearest_road_toll_evidence"
+    ].astype("boolean")
+    coverage = tuple(
+        RoadProxyClassCoverage(
+            road_proxy_class=road_class,
+            feature_count=1,
+            distance_eligible=road_class != "NOT_DISTANCE_PROXY",
+        )
+        for road_class in ALL_CLASSES
+    )
+    return ParcelRoadProximityResult(source_parcels.copy(), table, coverage)
+```
 
-**Tests**
-
-- `tests/unit/test_assess_road_proximity_coverage.py::test_classes_are_diagnosed_independently`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_loader_failure_is_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_full_parcel_coverage_position_is_conservative`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_inconsistent_generated_status_is_rejected`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_malformed_upstream_result_fails_before_coverage_load`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_matched_outside_or_crossing_status`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_matched_road_lineage_must_match_coverage`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_no_match_takes_precedence_over_coverage_position`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_position_uses_full_geometry_not_centroid`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_result_preserves_every_upstream_fact_and_input_object`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_source_chain_calls_proximity_then_coverage_exactly_once`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_strict_boundary_status_logic`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_without_match`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _without_match(
@@ -642,63 +1000,72 @@ def _without_match(
 
 **Purpose**
 
-Implements without match according to the exact implementation and guards in this file.
+Private `test` helper for without match; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `proximity` (`ParcelRoadProximityResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `road_class` (`str`; optional/default `'UNKNOWN_REVIEW'`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `ParcelRoadProximityResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+replace(proximity, class_proximity=table, class_coverage=coverage)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `ParcelRoadProximityResult`. Observed return expression(s): `replace(proximity, class_proximity=table, class_coverage=coverage)`.
-
-**Algorithm**
-
-1. Computes `table` from `proximity.class_proximity.copy()`.
-2. Computes `mask` from `table['road_proxy_class'].eq(road_class)`.
-3. Iterates `column` over `SELECTED_COLUMNS`. For each value: Computes `table.loc[mask, column]` from `pd.NA`.
-4. Computes `table['nearest_road_proxy_distance_m']` from `table['nearest_road_proxy_distance_m'].astype('float64')`.
-5. Computes `table['nearest_road_tie_count']` from `table['nearest_road_tie_count'].astype('Int64')`.
-6. Computes `table['nearest_road_toll_evidence']` from `table['nearest_road_toll_evidence'].astype('boolean')`.
-7. Computes `coverage` from `tuple((replace(item, feature_count=0) if item.road_proxy_class == road_class else item for item in proximity.class_coverage))`.
-8. Returns `replace(proximity, class_proximity=table, class_coverage=coverage)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `proximity.class_proximity.copy`, `replace`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `table['nearest_road_proxy_distance_m'].astype`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `table.loc[mask, column]`, `table['nearest_road_proxy_distance_m']`, `table['nearest_road_tie_count']`, `table['nearest_road_toll_evidence']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `proximity.class_proximity.copy`, `replace`, `table['nearest_road_proxy_distance_m'].astype`, `table['nearest_road_tie_count'].astype`, `table['nearest_road_toll_evidence'].astype`, `table['road_proxy_class'].eq`, `tuple`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_no_match_takes_precedence_over_coverage_position` via `_without_match`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_no_match_takes_precedence_over_coverage_position`
+```python
+def _without_match(
+    proximity: ParcelRoadProximityResult,
+    road_class: str = "UNKNOWN_REVIEW",
+) -> ParcelRoadProximityResult:
+    table = proximity.class_proximity.copy()
+    mask = table["road_proxy_class"].eq(road_class)
+    for column in SELECTED_COLUMNS:
+        table.loc[mask, column] = pd.NA
+    table["nearest_road_proxy_distance_m"] = table[
+        "nearest_road_proxy_distance_m"
+    ].astype("float64")
+    table["nearest_road_tie_count"] = table["nearest_road_tie_count"].astype(
+        "Int64"
+    )
+    table["nearest_road_toll_evidence"] = table[
+        "nearest_road_toll_evidence"
+    ].astype("boolean")
+    coverage = tuple(
+        replace(item, feature_count=0)
+        if item.road_proxy_class == road_class
+        else item
+        for item in proximity.class_coverage
+    )
+    return replace(proximity, class_proximity=table, class_coverage=coverage)
+```
 
-**Tests**
-
-- `tests/unit/test_assess_road_proximity_coverage.py::test_no_match_takes_precedence_over_coverage_position`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_measured_boundary_distance`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _measured_boundary_distance(
@@ -709,61 +1076,56 @@ def _measured_boundary_distance(
 
 **Purpose**
 
-Implements measured boundary distance according to the exact implementation and guards in this file.
+Private `test` helper for measured boundary distance; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `coverage` (`IgnBdTopoDepartmentCoverage`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `float`.
+- Every observed return expression is reproduced without truncation:
+```python
+float(geometry.distance(coverage.coverage.geometry.iloc[0].boundary))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `float`. Observed return expression(s): `float(geometry.distance(coverage.coverage.geometry.iloc[0].boundary))`.
-
-**Algorithm**
-
-1. Computes `geometry` from `parcels.to_crs('EPSG:2154').geometry.iloc[0]`.
-2. Returns `float(geometry.distance(coverage.coverage.geometry.iloc[0].boundary))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `parcels.to_crs`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `geometry.distance`, `parcels.to_crs`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `float`, `geometry.distance`, `parcels.to_crs`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative` via `_measured_boundary_distance`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_strict_boundary_status_logic` via `_measured_boundary_distance`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_classes_are_diagnosed_independently` via `_measured_boundary_distance`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_classes_are_diagnosed_independently`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_strict_boundary_status_logic`
+```python
+def _measured_boundary_distance(
+    parcels: gpd.GeoDataFrame,
+    coverage: IgnBdTopoDepartmentCoverage,
+) -> float:
+    geometry = parcels.to_crs("EPSG:2154").geometry.iloc[0]
+    return float(geometry.distance(coverage.coverage.geometry.iloc[0].boundary))
+```
 
-**Tests**
-
-- `tests/unit/test_assess_road_proximity_coverage.py::test_classes_are_diagnosed_independently`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_strict_boundary_status_logic`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_assess`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _assess(
@@ -779,103 +1141,96 @@ def _assess(
 
 **Purpose**
 
-Assesses assess according to the exact implementation and guards in this file.
+Derives diagnostic evidence for assess; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame | None`; optional/default `None`) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `proximity` (`object | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `coverage` (`IgnBdTopoDepartmentCoverage | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `road_source` (`IgnBdTopoRoadData | None`; optional/default `None`) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_config` (`IgnBdTopoSourceConfig`; optional/default `SOURCE_CONFIG`) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_path` (`Path | None`; optional/default `None`) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `RoadProximityCoverageAssessmentResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+assess_road_proximity_coverage(selected_parcels, selected_source, source_config, policy_path)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `RoadProximityCoverageAssessmentResult`. Observed return expression(s): `assess_road_proximity_coverage(selected_parcels, selected_source, source_config, policy_path)`.
-
-**Algorithm**
-
-1. Computes `selected_parcels` from `parcels if parcels is not None else _parcels()`.
-2. Computes `selected_proximity` from `proximity if proximity is not None else _proximity(selected_parcels)`.
-3. Computes `selected_coverage` from `coverage or _coverage()`.
-4. Computes `selected_source` from `road_source or _road_source(selected_coverage.extraction)`.
-5. Enters managed context(s) `patch('landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity', return_value=selected_proximity), patch('landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage', return_value=selected_coverage)` and executes: Returns `assess_road_proximity_coverage(selected_parcels, selected_source, source_config, policy_path)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_coverage`, `_parcels`, `_proximity`, `_road_source`, `assess_road_proximity_coverage`, `patch`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_stage_does_not_construct_a_road_spatial_index` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_package_lineage_must_match_road_archive` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_selected_department_identity_is_exact` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_must_retain_same_extraction_object` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_invalid_coverage_geometry_is_rejected` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_polygonal_coverage_geometry_is_accepted` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_full_parcel_coverage_position_is_conservative` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_position_uses_full_geometry_not_centroid` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_strict_boundary_status_logic` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_matched_outside_or_crossing_status` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_no_match_takes_precedence_over_coverage_position` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_classes_are_diagnosed_independently` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_exact_coverage_lineage_is_appended_to_every_row` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_matched_road_lineage_must_match_coverage` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_result_preserves_every_upstream_fact_and_input_object` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_corrupt_generated` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_inconsistent_generated_status_is_rejected` via `_assess`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_result_is_frozen_and_has_no_business_decision_fields` via `_assess`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_assess_road_proximity_coverage.py` — `_corrupt_generated`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_classes_are_diagnosed_independently`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_coverage_must_retain_same_extraction_object`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_coverage_package_lineage_must_match_road_archive`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_coverage_spatial_role_and_source_type_are_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_exact_coverage_lineage_is_appended_to_every_row`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_full_parcel_coverage_position_is_conservative`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_inconsistent_generated_status_is_rejected`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_invalid_coverage_geometry_is_rejected`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_matched_outside_or_crossing_status`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_matched_road_lineage_must_match_coverage`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_no_match_takes_precedence_over_coverage_position`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_polygonal_coverage_geometry_is_accepted`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_position_uses_full_geometry_not_centroid`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_result_is_frozen_and_has_no_business_decision_fields`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_result_preserves_every_upstream_fact_and_input_object`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_selected_department_identity_is_exact`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_stage_does_not_construct_a_road_spatial_index`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_strict_boundary_status_logic`
+```python
+def _assess(
+    *,
+    parcels: gpd.GeoDataFrame | None = None,
+    proximity: object | None = None,
+    coverage: IgnBdTopoDepartmentCoverage | None = None,
+    road_source: IgnBdTopoRoadData | None = None,
+    source_config: IgnBdTopoSourceConfig = SOURCE_CONFIG,
+    policy_path: Path | None = None,
+) -> RoadProximityCoverageAssessmentResult:
+    selected_parcels = parcels if parcels is not None else _parcels()
+    selected_proximity = (
+        proximity if proximity is not None else _proximity(selected_parcels)
+    )
+    selected_coverage = coverage or _coverage()
+    selected_source = road_source or _road_source(selected_coverage.extraction)
+    with patch(
+        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+        return_value=selected_proximity,
+    ), patch(
+        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage",
+        return_value=selected_coverage,
+    ):
+        return assess_road_proximity_coverage(
+            selected_parcels,
+            selected_source,
+            source_config,
+            policy_path,
+        )
+```
 
-**Tests**
-
-- `tests/unit/test_assess_road_proximity_coverage.py::test_classes_are_diagnosed_independently`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_must_retain_same_extraction_object`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_package_lineage_must_match_road_archive`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_coverage_spatial_role_and_source_type_are_controlled`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_exact_coverage_lineage_is_appended_to_every_row`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_full_parcel_coverage_position_is_conservative`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_inconsistent_generated_status_is_rejected`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_invalid_coverage_geometry_is_rejected`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_matched_outside_or_crossing_status`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_matched_road_lineage_must_match_coverage`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_no_match_takes_precedence_over_coverage_position`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_polygonal_coverage_geometry_is_accepted`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_position_uses_full_geometry_not_centroid`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_result_is_frozen_and_has_no_business_decision_fields`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_result_preserves_every_upstream_fact_and_input_object`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_selected_department_identity_is_exact`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_stage_does_not_construct_a_road_spatial_index`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_strict_boundary_status_logic`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_first_row`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _first_row(
@@ -886,62 +1241,1549 @@ def _first_row(
 
 **Purpose**
 
-Implements first row according to the exact implementation and guards in this file.
+Private `test` helper for first row; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `result` (`RoadProximityCoverageAssessmentResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `road_class` (`str`; optional/default `'GENERAL_VEHICLE_PROXY'`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.Series`.
+- Every observed return expression is reproduced without truncation:
+```python
+result.class_proximity.loc[result.class_proximity['road_proxy_class'].eq(road_class)].iloc[0]
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.Series`. Observed return expression(s): `result.class_proximity.loc[result.class_proximity['road_proxy_class'].eq(road_class)].iloc[0]`.
-
-**Algorithm**
-
-1. Returns `result.class_proximity.loc[result.class_proximity['road_proxy_class'].eq(road_class)].iloc[0]`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `result.class_proximity['road_proxy_class'].eq`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_full_parcel_coverage_position_is_conservative` via `_first_row`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_position_uses_full_geometry_not_centroid` via `_first_row`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_no_match_takes_precedence_over_coverage_position` via `_first_row`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_classes_are_diagnosed_independently` via `_first_row`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_classes_are_diagnosed_independently`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_full_parcel_coverage_position_is_conservative`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_no_match_takes_precedence_over_coverage_position`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_position_uses_full_geometry_not_centroid`
+```python
+def _first_row(
+    result: RoadProximityCoverageAssessmentResult,
+    road_class: str = "GENERAL_VEHICLE_PROXY",
+) -> pd.Series:
+    return result.class_proximity.loc[
+        result.class_proximity["road_proxy_class"].eq(road_class)
+    ].iloc[0]
+```
 
-**Tests**
-
-- `tests/unit/test_assess_road_proximity_coverage.py::test_classes_are_diagnosed_independently`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_full_parcel_coverage_position_is_conservative`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_no_match_takes_precedence_over_coverage_position`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_position_uses_full_geometry_not_centroid`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
+### `test_public_api_exports_only_stable_symbols`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+module = import_module("landscout.stages.assess_road_proximity_coverage")
+expected = {
+        "RoadProximityCoverageError",
+        "RoadProximityCoverageAssessmentResult",
+        "assess_road_proximity_coverage",
+    }
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert set(module.__all__) == expected
+assert expected <= set(stages.__all__)
+assert all(hasattr(stages, symbol) for symbol in expected)
+assert not hasattr(stages, "_coverage_positions")
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_public_api_exports_only_stable_symbols() -> None:
+    module = import_module("landscout.stages.assess_road_proximity_coverage")
+
+    expected = {
+        "RoadProximityCoverageError",
+        "RoadProximityCoverageAssessmentResult",
+        "assess_road_proximity_coverage",
+    }
+    assert set(module.__all__) == expected
+    assert expected <= set(stages.__all__)
+    assert all(hasattr(stages, symbol) for symbol in expected)
+    assert not hasattr(stages, "_coverage_positions")
+```
+
+### `test_wrong_public_input_type_is_controlled_and_fast`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `argument`.
+
+**Setup**
+
+```python
+kwargs: dict[str, object] = {
+        "parcels": _parcels(),
+        "road_source": _road_source(),
+        "source_config": SOURCE_CONFIG,
+        "policy_path": None,
+    }
+kwargs[argument] = pd.DataFrame() if argument == "parcels" else object()
+proximity_stage.assert_not_called()
+coverage_loader.assert_not_called()
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with patch(
+        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity"
+    ) as proximity_stage, patch(
+        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage"
+    ) as coverage_loader, pytest.raises(RoadProximityCoverageError):
+        assess_road_proximity_coverage(**cast(Any, kwargs))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+
+**Complete test implementation**
+
+```python
+def test_wrong_public_input_type_is_controlled_and_fast(argument: str) -> None:
+    kwargs: dict[str, object] = {
+        "parcels": _parcels(),
+        "road_source": _road_source(),
+        "source_config": SOURCE_CONFIG,
+        "policy_path": None,
+    }
+    kwargs[argument] = pd.DataFrame() if argument == "parcels" else object()
+    with patch(
+        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity"
+    ) as proximity_stage, patch(
+        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage"
+    ) as coverage_loader, pytest.raises(RoadProximityCoverageError):
+        assess_road_proximity_coverage(**cast(Any, kwargs))
+    proximity_stage.assert_not_called()
+    coverage_loader.assert_not_called()
+```
+
+### `test_source_chain_calls_proximity_then_coverage_exactly_once`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+coverage = _coverage()
+road_source = _road_source(coverage.extraction)
+parcels = _parcels()
+proximity = _proximity(parcels)
+policy_path = Path("configs/access/ign_bdtopo_vehicle_proxy_policy.yaml")
+proximity_stage.assert_called_once_with(
+        parcels, road_source, SOURCE_CONFIG, policy_path
+    )
+coverage_loader.assert_called_once_with(road_source.extraction, SOURCE_CONFIG)
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+        return_value=proximity,
+    ) as proximity_stage, patch(
+        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage",
+        return_value=coverage,
+    ) as coverage_loader:
+        assess_road_proximity_coverage(
+            parcels, road_source, SOURCE_CONFIG, policy_path
+        )
+```
+
+**Expected result**
+
+```python
+# Completion without an exception is the asserted outcome.
+```
+
+**Regression protected**
+
+Pins the exact framework interaction and outcome reproduced in the complete test source.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+
+**Complete test implementation**
+
+```python
+def test_source_chain_calls_proximity_then_coverage_exactly_once() -> None:
+    coverage = _coverage()
+    road_source = _road_source(coverage.extraction)
+    parcels = _parcels()
+    proximity = _proximity(parcels)
+    policy_path = Path("configs/access/ign_bdtopo_vehicle_proxy_policy.yaml")
+    with patch(
+        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+        return_value=proximity,
+    ) as proximity_stage, patch(
+        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage",
+        return_value=coverage,
+    ) as coverage_loader:
+        assess_road_proximity_coverage(
+            parcels, road_source, SOURCE_CONFIG, policy_path
+        )
+    proximity_stage.assert_called_once_with(
+        parcels, road_source, SOURCE_CONFIG, policy_path
+    )
+    coverage_loader.assert_called_once_with(road_source.extraction, SOURCE_CONFIG)
+```
+
+### `test_proximity_failure_stops_coverage_loading`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+coverage_loader.assert_not_called()
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with patch(
+        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+        side_effect=ValueError("bad proximity"),
+    ), patch(
+        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage"
+    ) as coverage_loader, pytest.raises(RoadProximityCoverageError):
+        assess_road_proximity_coverage(_parcels(), _road_source(), SOURCE_CONFIG)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+
+**Complete test implementation**
+
+```python
+def test_proximity_failure_stops_coverage_loading() -> None:
+    with patch(
+        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+        side_effect=ValueError("bad proximity"),
+    ), patch(
+        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage"
+    ) as coverage_loader, pytest.raises(RoadProximityCoverageError):
+        assess_road_proximity_coverage(_parcels(), _road_source(), SOURCE_CONFIG)
+    coverage_loader.assert_not_called()
+```
+
+### `test_coverage_loader_failure_is_controlled`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+parcels = _parcels()
+coverage_loader.assert_called_once()
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with patch(
+        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+        return_value=_proximity(parcels),
+    ), patch(
+        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage",
+        side_effect=ValueError("bad coverage"),
+    ) as coverage_loader, pytest.raises(RoadProximityCoverageError):
+        assess_road_proximity_coverage(parcels, _road_source(), SOURCE_CONFIG)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+
+**Complete test implementation**
+
+```python
+def test_coverage_loader_failure_is_controlled() -> None:
+    parcels = _parcels()
+    with patch(
+        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+        return_value=_proximity(parcels),
+    ), patch(
+        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage",
+        side_effect=ValueError("bad coverage"),
+    ) as coverage_loader, pytest.raises(RoadProximityCoverageError):
+        assess_road_proximity_coverage(parcels, _road_source(), SOURCE_CONFIG)
+    coverage_loader.assert_called_once()
+```
+
+### `test_stage_does_not_construct_a_road_spatial_index`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+with patch("shapely.STRtree", side_effect=AssertionError("forbidden")):
+        _assess()
+source = Path(
+        "src/landscout/stages/assess_road_proximity_coverage.py"
+    ).read_text(encoding="utf-8")
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert "STRtree(" not in source
+assert "query_nearest(" not in source
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+
+**Complete test implementation**
+
+```python
+def test_stage_does_not_construct_a_road_spatial_index() -> None:
+    with patch("shapely.STRtree", side_effect=AssertionError("forbidden")):
+        _assess()
+    source = Path(
+        "src/landscout/stages/assess_road_proximity_coverage.py"
+    ).read_text(encoding="utf-8")
+    assert "STRtree(" not in source
+    assert "query_nearest(" not in source
+```
+
+### `test_malformed_upstream_result_fails_before_coverage_load`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `mutation`.
+
+**Setup**
+
+```python
+parcels = _parcels()
+malformed = mutation(_proximity(parcels))
+coverage_loader.assert_not_called()
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with patch(
+        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+        return_value=malformed,
+    ), patch(
+        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage"
+    ) as coverage_loader, pytest.raises(RoadProximityCoverageError):
+        assess_road_proximity_coverage(parcels, _road_source(), SOURCE_CONFIG)
+```
+
+**Regression protected**
+
+Prevents coordinated metadata/content mutation from being accepted without agreement with the authoritative byte or result envelope.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
+
+```python
+def test_malformed_upstream_result_fails_before_coverage_load(mutation: Any) -> None:
+    parcels = _parcels()
+    malformed = mutation(_proximity(parcels))
+    with patch(
+        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+        return_value=malformed,
+    ), patch(
+        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage"
+    ) as coverage_loader, pytest.raises(RoadProximityCoverageError):
+        assess_road_proximity_coverage(parcels, _road_source(), SOURCE_CONFIG)
+    coverage_loader.assert_not_called()
+```
+
+### `test_coverage_package_lineage_must_match_road_archive`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `field`, `value`.
+
+**Setup**
+
+```python
+coverage = _coverage()
+frame = coverage.coverage.copy()
+frame[field] = value
+if field == "source_department_code":
+        frame[coverage.summary.department_code_field] = value
+        summary = replace(coverage.summary, selected_department_code=cast(str, value))
+    else:
+        summary = coverage.summary
+forged = replace(coverage, coverage=frame, summary=summary, **{field: value})
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(RoadProximityCoverageError, match="package|lineage|provider|product"):
+        _assess(coverage=forged, road_source=_road_source(coverage.extraction))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_coverage_package_lineage_must_match_road_archive(
+    field: str, value: object
+) -> None:
+    coverage = _coverage()
+    frame = coverage.coverage.copy()
+    frame[field] = value
+    if field == "source_department_code":
+        frame[coverage.summary.department_code_field] = value
+        summary = replace(coverage.summary, selected_department_code=cast(str, value))
+    else:
+        summary = coverage.summary
+    forged = replace(coverage, coverage=frame, summary=summary, **{field: value})
+    with pytest.raises(RoadProximityCoverageError, match="package|lineage|provider|product"):
+        _assess(coverage=forged, road_source=_road_source(coverage.extraction))
+```
+
+### `test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+coverage = _coverage(layer="zone_administrative")
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(RoadProximityCoverageError, match="configured|layer"):
+        _assess(coverage=coverage, road_source=_road_source(coverage.extraction))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer() -> None:
+    coverage = _coverage(layer="zone_administrative")
+    with pytest.raises(RoadProximityCoverageError, match="configured|layer"):
+        _assess(coverage=coverage, road_source=_road_source(coverage.extraction))
+```
+
+### `test_selected_department_identity_is_exact`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+coverage = _coverage()
+frame = coverage.coverage.copy()
+frame[coverage.summary.department_code_field] = "32"
+forged = replace(
+        coverage,
+        coverage=frame,
+        summary=replace(coverage.summary, selected_department_code="32"),
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(RoadProximityCoverageError, match="department"):
+        _assess(coverage=forged)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_selected_department_identity_is_exact() -> None:
+    coverage = _coverage()
+    frame = coverage.coverage.copy()
+    frame[coverage.summary.department_code_field] = "32"
+    forged = replace(
+        coverage,
+        coverage=frame,
+        summary=replace(coverage.summary, selected_department_code="32"),
+    )
+    with pytest.raises(RoadProximityCoverageError, match="department"):
+        _assess(coverage=forged)
+```
+
+### `test_coverage_spatial_role_and_source_type_are_controlled`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+coverage = _coverage()
+frame = coverage.coverage.copy()
+frame["spatial_role"] = "PROXY_GEOMETRY"
+wrong_role = replace(
+        coverage,
+        coverage=frame,
+        summary=replace(
+            coverage.summary,
+            spatial_role=cast(Any, "PROXY_GEOMETRY"),
+        ),
+        spatial_role=cast(Any, "PROXY_GEOMETRY"),
+    )
+parcels = _parcels()
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(RoadProximityCoverageError, match="spatial|lineage"):
+        _assess(coverage=wrong_role)
+with patch(
+        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+        return_value=_proximity(parcels),
+    ), patch(
+        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage",
+        return_value=object(),
+    ), pytest.raises(RoadProximityCoverageError):
+        assess_road_proximity_coverage(parcels, _road_source(), SOURCE_CONFIG)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
+
+```python
+def test_coverage_spatial_role_and_source_type_are_controlled() -> None:
+    coverage = _coverage()
+    frame = coverage.coverage.copy()
+    frame["spatial_role"] = "PROXY_GEOMETRY"
+    wrong_role = replace(
+        coverage,
+        coverage=frame,
+        summary=replace(
+            coverage.summary,
+            spatial_role=cast(Any, "PROXY_GEOMETRY"),
+        ),
+        spatial_role=cast(Any, "PROXY_GEOMETRY"),
+    )
+    with pytest.raises(RoadProximityCoverageError, match="spatial|lineage"):
+        _assess(coverage=wrong_role)
+
+    parcels = _parcels()
+    with patch(
+        "landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity",
+        return_value=_proximity(parcels),
+    ), patch(
+        "landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage",
+        return_value=object(),
+    ), pytest.raises(RoadProximityCoverageError):
+        assess_road_proximity_coverage(parcels, _road_source(), SOURCE_CONFIG)
+```
+
+### `test_coverage_must_retain_same_extraction_object`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+coverage = _coverage()
+forged = replace(coverage, extraction=replace(coverage.extraction))
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(RoadProximityCoverageError, match="extraction"):
+        _assess(coverage=forged, road_source=_road_source(coverage.extraction))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_coverage_must_retain_same_extraction_object() -> None:
+    coverage = _coverage()
+    forged = replace(coverage, extraction=replace(coverage.extraction))
+    with pytest.raises(RoadProximityCoverageError, match="extraction"):
+        _assess(coverage=forged, road_source=_road_source(coverage.extraction))
+```
+
+### `test_invalid_coverage_geometry_is_rejected`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `crs`, `geometries`, `message`.
+
+**Setup**
+
+```python
+coverage = _coverage(geometries=geometries, crs=crs)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(RoadProximityCoverageError, match=message):
+        _assess(coverage=coverage)
+```
+
+**Regression protected**
+
+Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
+
+```python
+def test_invalid_coverage_geometry_is_rejected(
+    geometries: list[object], crs: str | None, message: str
+) -> None:
+    coverage = _coverage(geometries=geometries, crs=crs)
+    with pytest.raises(RoadProximityCoverageError, match=message):
+        _assess(coverage=coverage)
+```
+
+### `test_polygonal_coverage_geometry_is_accepted`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `geometry`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert len(_assess(coverage=_coverage(geometries=[geometry])).parcels) == 1
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
+
+```python
+def test_polygonal_coverage_geometry_is_accepted(geometry: object) -> None:
+    assert len(_assess(coverage=_coverage(geometries=[geometry])).parcels) == 1
+```
+
+### `test_full_parcel_coverage_position_is_conservative`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `geometry`, `position`.
+
+**Setup**
+
+```python
+parcels = _parcels([geometry])
+row = _first_row(_assess(parcels=parcels, proximity=_proximity(parcels)))
+if position != "FULLY_COVERED":
+        assert row.road_source_boundary_distance_m == 0.0
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert row.road_source_coverage_position == position
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
+
+```python
+def test_full_parcel_coverage_position_is_conservative(
+    geometry: Polygon, position: str
+) -> None:
+    parcels = _parcels([geometry])
+    row = _first_row(_assess(parcels=parcels, proximity=_proximity(parcels)))
+    assert row.road_source_coverage_position == position
+    if position != "FULLY_COVERED":
+        assert row.road_source_boundary_distance_m == 0.0
+```
+
+### `test_position_uses_full_geometry_not_centroid`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+crossing_with_inside_centroid = Polygon(
+        [(-10, 100), (-10, 200), (300, 200), (300, 100), (-10, 100)]
+    )
+parcels = _parcels([crossing_with_inside_centroid])
+row = _first_row(_assess(parcels=parcels, proximity=_proximity(parcels)))
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert row.road_source_coverage_position == "OUTSIDE_OR_CROSSING_COVERAGE"
+assert row.road_source_boundary_distance_m == 0.0
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
+
+```python
+def test_position_uses_full_geometry_not_centroid() -> None:
+    crossing_with_inside_centroid = Polygon(
+        [(-10, 100), (-10, 200), (300, 200), (300, 100), (-10, 100)]
+    )
+    parcels = _parcels([crossing_with_inside_centroid])
+    row = _first_row(_assess(parcels=parcels, proximity=_proximity(parcels)))
+    assert row.road_source_coverage_position == "OUTSIDE_OR_CROSSING_COVERAGE"
+    assert row.road_source_boundary_distance_m == 0.0
+```
+
+### `test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+parcels = _parcels()
+coverage = _coverage()
+expected = _measured_boundary_distance(parcels, coverage)
+result = _assess(parcels=parcels, proximity=_proximity(parcels), coverage=coverage)
+values = result.class_proximity["road_source_boundary_distance_m"]
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert values.eq(expected).all()
+assert np.isfinite(values).all()
+assert values.ge(0).all()
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
+
+```python
+def test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative() -> None:
+    parcels = _parcels()
+    coverage = _coverage()
+    expected = _measured_boundary_distance(parcels, coverage)
+    result = _assess(parcels=parcels, proximity=_proximity(parcels), coverage=coverage)
+    values = result.class_proximity["road_source_boundary_distance_m"]
+    assert values.eq(expected).all()
+    assert np.isfinite(values).all()
+    assert values.ge(0).all()
+```
+
+### `test_strict_boundary_status_logic`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `expected`, `offset`.
+
+**Setup**
+
+```python
+parcels = _parcels()
+coverage = _coverage()
+margin = _measured_boundary_distance(parcels, coverage)
+proximity = _proximity(
+        parcels, distances={road_class: margin + offset for road_class in ELIGIBLE_CLASSES}
+    )
+result = _assess(parcels=parcels, proximity=proximity, coverage=coverage)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert result.class_proximity["road_proximity_coverage_status"].eq(expected).all()
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_strict_boundary_status_logic(offset: float, expected: str) -> None:
+    parcels = _parcels()
+    coverage = _coverage()
+    margin = _measured_boundary_distance(parcels, coverage)
+    proximity = _proximity(
+        parcels, distances={road_class: margin + offset for road_class in ELIGIBLE_CLASSES}
+    )
+    result = _assess(parcels=parcels, proximity=proximity, coverage=coverage)
+    assert result.class_proximity["road_proximity_coverage_status"].eq(expected).all()
+```
+
+### `test_matched_outside_or_crossing_status`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `geometry`.
+
+**Setup**
+
+```python
+parcels = _parcels([geometry])
+result = _assess(parcels=parcels, proximity=_proximity(parcels))
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert result.class_proximity["road_proximity_coverage_status"].eq(
+        "OUTSIDE_OR_CROSSING_COVERAGE"
+    ).all()
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
+
+```python
+def test_matched_outside_or_crossing_status(geometry: Polygon) -> None:
+    parcels = _parcels([geometry])
+    result = _assess(parcels=parcels, proximity=_proximity(parcels))
+    assert result.class_proximity["road_proximity_coverage_status"].eq(
+        "OUTSIDE_OR_CROSSING_COVERAGE"
+    ).all()
+```
+
+### `test_no_match_takes_precedence_over_coverage_position`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `geometry`.
+
+**Setup**
+
+```python
+parcels = _parcels([geometry])
+proximity = _without_match(_proximity(parcels))
+result = _assess(parcels=parcels, proximity=proximity)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert _first_row(result, "UNKNOWN_REVIEW").road_proximity_coverage_status == "NO_MATCH"
+```
+
+**Regression protected**
+
+Pins the configured policy-rule ordering so a lower-priority observation cannot replace the controlling evidence.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
+
+```python
+def test_no_match_takes_precedence_over_coverage_position(geometry: Polygon) -> None:
+    parcels = _parcels([geometry])
+    proximity = _without_match(_proximity(parcels))
+    result = _assess(parcels=parcels, proximity=proximity)
+    assert _first_row(result, "UNKNOWN_REVIEW").road_proximity_coverage_status == "NO_MATCH"
+```
+
+### `test_classes_are_diagnosed_independently`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+parcels = _parcels()
+coverage = _coverage()
+margin = _measured_boundary_distance(parcels, coverage)
+proximity = _proximity(
+        parcels,
+        distances={
+            "GENERAL_VEHICLE_PROXY": margin - 1,
+            "RESTRICTED_REVIEW": margin + 1,
+        },
+    )
+result = _assess(parcels=parcels, proximity=proximity, coverage=coverage)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert _first_row(result, "GENERAL_VEHICLE_PROXY").road_proximity_coverage_status == "NOT_BOUNDARY_LIMITED"
+assert _first_row(result, "RESTRICTED_REVIEW").road_proximity_coverage_status == "BOUNDARY_LIMITED"
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_classes_are_diagnosed_independently() -> None:
+    parcels = _parcels()
+    coverage = _coverage()
+    margin = _measured_boundary_distance(parcels, coverage)
+    proximity = _proximity(
+        parcels,
+        distances={
+            "GENERAL_VEHICLE_PROXY": margin - 1,
+            "RESTRICTED_REVIEW": margin + 1,
+        },
+    )
+    result = _assess(parcels=parcels, proximity=proximity, coverage=coverage)
+    assert _first_row(result, "GENERAL_VEHICLE_PROXY").road_proximity_coverage_status == "NOT_BOUNDARY_LIMITED"
+    assert _first_row(result, "RESTRICTED_REVIEW").road_proximity_coverage_status == "BOUNDARY_LIMITED"
+```
+
+### `test_exact_coverage_lineage_is_appended_to_every_row`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+coverage = _coverage()
+result = _assess(coverage=coverage)
+expected = {
+        "road_source_coverage_provider": coverage.source_provider,
+        "road_source_coverage_product": coverage.source_product,
+        "road_source_coverage_department_code": coverage.source_department_code,
+        "road_source_coverage_edition": coverage.source_edition,
+        "road_source_coverage_product_version": coverage.source_product_version,
+        "road_source_coverage_archive_sha256": coverage.source_archive_sha256,
+        "road_source_coverage_layer": coverage.source_layer,
+        "road_source_coverage_spatial_role": coverage.spatial_role,
+    }
+for column, value in expected.items():
+        assert result.class_proximity[column].eq(value).all()
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+# Completion without an exception is the asserted outcome.
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_exact_coverage_lineage_is_appended_to_every_row() -> None:
+    coverage = _coverage()
+    result = _assess(coverage=coverage)
+    expected = {
+        "road_source_coverage_provider": coverage.source_provider,
+        "road_source_coverage_product": coverage.source_product,
+        "road_source_coverage_department_code": coverage.source_department_code,
+        "road_source_coverage_edition": coverage.source_edition,
+        "road_source_coverage_product_version": coverage.source_product_version,
+        "road_source_coverage_archive_sha256": coverage.source_archive_sha256,
+        "road_source_coverage_layer": coverage.source_layer,
+        "road_source_coverage_spatial_role": coverage.spatial_role,
+    }
+    for column, value in expected.items():
+        assert result.class_proximity[column].eq(value).all()
+```
+
+### `test_matched_road_lineage_must_match_coverage`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `column`, `value`.
+
+**Setup**
+
+```python
+proximity = _proximity()
+table = proximity.class_proximity.copy()
+table[column] = value
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(RoadProximityCoverageError, match="lineage|package"):
+        _assess(proximity=replace(proximity, class_proximity=table))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_matched_road_lineage_must_match_coverage(
+    column: str, value: str
+) -> None:
+    proximity = _proximity()
+    table = proximity.class_proximity.copy()
+    table[column] = value
+    with pytest.raises(RoadProximityCoverageError, match="lineage|package"):
+        _assess(proximity=replace(proximity, class_proximity=table))
+```
+
+### `test_result_preserves_every_upstream_fact_and_input_object`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+parcels = _parcels(
+        [
+            Polygon([(100, 100), (100, 200), (200, 200), (200, 100), (100, 100)]),
+            Polygon([(300, 300), (300, 400), (400, 400), (400, 300), (300, 300)]),
+        ],
+        identifiers=["SECOND", "FIRST"],
+    )
+proximity = _proximity(parcels)
+coverage = _coverage()
+road_source = _road_source(coverage.extraction)
+parcels_before = deepcopy(parcels)
+proximity_parcels_before = deepcopy(proximity.parcels)
+table_before = deepcopy(proximity.class_proximity)
+coverage_before = deepcopy(coverage.coverage)
+roads_before = deepcopy(road_source.road_segments)
+road_summary_before = road_source.road_segments_summary
+extraction_before = road_source.extraction
+config_before = SOURCE_CONFIG.model_dump(mode="python")
+result = _assess(
+        parcels=parcels,
+        proximity=proximity,
+        coverage=coverage,
+        road_source=road_source,
+    )
+assert_geodataframe_equal(parcels, parcels_before)
+assert_geodataframe_equal(proximity.parcels, proximity_parcels_before)
+assert_frame_equal(proximity.class_proximity, table_before)
+assert_geodataframe_equal(coverage.coverage, coverage_before)
+assert_geodataframe_equal(road_source.road_segments, roads_before)
+assert_geodataframe_equal(result.parcels, proximity_parcels_before)
+assert_frame_equal(
+        result.class_proximity.loc[:, list(CLASS_PROXIMITY_COLUMNS)],
+        table_before,
+        check_dtype=True,
+        check_index_type=True,
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert road_source.road_segments_summary == road_summary_before
+assert road_source.extraction is extraction_before
+assert SOURCE_CONFIG.model_dump(mode="python") == config_before
+assert tuple(result.class_proximity.columns[: len(CLASS_PROXIMITY_COLUMNS)]) == CLASS_PROXIMITY_COLUMNS
+assert tuple(result.class_proximity.columns[len(CLASS_PROXIMITY_COLUMNS) :]) == DIAGNOSTIC_COLUMNS
+assert result.class_coverage is proximity.class_coverage
+assert result.source_coverage is coverage
+```
+
+**Regression protected**
+
+Prevents a schema-compatible-looking frame from replacing the canonical dtype contract with an object/category/other representation.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
+
+```python
+def test_result_preserves_every_upstream_fact_and_input_object() -> None:
+    parcels = _parcels(
+        [
+            Polygon([(100, 100), (100, 200), (200, 200), (200, 100), (100, 100)]),
+            Polygon([(300, 300), (300, 400), (400, 400), (400, 300), (300, 300)]),
+        ],
+        identifiers=["SECOND", "FIRST"],
+    )
+    proximity = _proximity(parcels)
+    coverage = _coverage()
+    road_source = _road_source(coverage.extraction)
+    parcels_before = deepcopy(parcels)
+    proximity_parcels_before = deepcopy(proximity.parcels)
+    table_before = deepcopy(proximity.class_proximity)
+    coverage_before = deepcopy(coverage.coverage)
+    roads_before = deepcopy(road_source.road_segments)
+    road_summary_before = road_source.road_segments_summary
+    extraction_before = road_source.extraction
+    config_before = SOURCE_CONFIG.model_dump(mode="python")
+    result = _assess(
+        parcels=parcels,
+        proximity=proximity,
+        coverage=coverage,
+        road_source=road_source,
+    )
+
+    assert_geodataframe_equal(parcels, parcels_before)
+    assert_geodataframe_equal(proximity.parcels, proximity_parcels_before)
+    assert_frame_equal(proximity.class_proximity, table_before)
+    assert_geodataframe_equal(coverage.coverage, coverage_before)
+    assert_geodataframe_equal(road_source.road_segments, roads_before)
+    assert road_source.road_segments_summary == road_summary_before
+    assert road_source.extraction is extraction_before
+    assert SOURCE_CONFIG.model_dump(mode="python") == config_before
+    assert_geodataframe_equal(result.parcels, proximity_parcels_before)
+    assert_frame_equal(
+        result.class_proximity.loc[:, list(CLASS_PROXIMITY_COLUMNS)],
+        table_before,
+        check_dtype=True,
+        check_index_type=True,
+    )
+    assert tuple(result.class_proximity.columns[: len(CLASS_PROXIMITY_COLUMNS)]) == CLASS_PROXIMITY_COLUMNS
+    assert tuple(result.class_proximity.columns[len(CLASS_PROXIMITY_COLUMNS) :]) == DIAGNOSTIC_COLUMNS
+    assert result.class_coverage is proximity.class_coverage
+    assert result.source_coverage is coverage
+```
+
 ### `_corrupt_generated`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _corrupt_generated(column: str, value: object, *, outside: bool = False) -> None:
@@ -949,69 +2791,71 @@ def _corrupt_generated(column: str, value: object, *, outside: bool = False) -> 
 
 **Purpose**
 
-Implements corrupt generated according to the exact implementation and guards in this file.
+Private `test` helper for corrupt generated; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `column` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `outside` (`bool`; optional/default `False`) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- Every observed return expression is reproduced without truncation:
+```python
+output
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. Observed return expression(s): `output`.
-
-**Algorithm**
-
-1. Computes `module` from `import_module('landscout.stages.assess_road_proximity_coverage')`.
-2. Computes `geometry` from `Polygon([(-200, 100), (-200, 200), (-100, 200), (-100, 100), (-200, 100)]) if outside else None`.
-3. Computes `parcels` from `_parcels([geometry]) if geometry is not None else _parcels()`.
-4. Computes `proximity` from `_proximity(parcels)`.
-5. Computes `original` from `module._diagnosed_class_proximity`.
-6. Defines the local helper `corrupt`; its behavior is documented with the parent function's nested helpers.
-7. Enters managed context(s) `patch.object(module, '_diagnosed_class_proximity', side_effect=corrupt), pytest.raises(RoadProximityCoverageError)` and executes: Calls `_assess(parcels=parcels, proximity=proximity)` for its validation or side effect.
-
-**Meaningful nested/local helpers**
-
-- `corrupt` — `def corrupt(*args: object, **kwargs: object) -> pd.DataFrame:`. It executes 4 top-level statement(s), uses `original`, `output[column].astype`, and has no explicit raises. Trivial test callbacks are intentionally grouped here with their parent.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `output.at[0, column]`, `output[column]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `Polygon`, `_assess`, `_parcels`, `_proximity`, `import_module`, `original`, `output[column].astype`, `patch.object`, `pytest.raises`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_malformed_generated_value_is_rejected` via `_corrupt_generated`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::test_outside_position_requires_zero_boundary_distance` via `_corrupt_generated`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_malformed_generated_value_is_rejected`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `test_outside_position_requires_zero_boundary_distance`
+```python
+def _corrupt_generated(column: str, value: object, *, outside: bool = False) -> None:
+    module = import_module("landscout.stages.assess_road_proximity_coverage")
 
-**Tests**
+    geometry = (
+        Polygon([(-200, 100), (-200, 200), (-100, 200), (-100, 100), (-200, 100)])
+        if outside
+        else None
+    )
+    parcels = _parcels([geometry]) if geometry is not None else _parcels()
+    proximity = _proximity(parcels)
+    original = module._diagnosed_class_proximity
 
-- `tests/unit/test_assess_road_proximity_coverage.py::test_malformed_generated_value_is_rejected`
-- `tests/unit/test_assess_road_proximity_coverage.py::test_outside_position_requires_zero_boundary_distance`
+    def corrupt(*args: object, **kwargs: object) -> pd.DataFrame:
+        output = original(*args, **kwargs)
+        output[column] = output[column].astype("object")
+        output.at[0, column] = value
+        return output
 
-**Business interpretation**
+    with patch.object(
+        module, "_diagnosed_class_proximity", side_effect=corrupt
+    ), pytest.raises(RoadProximityCoverageError):
+        _assess(parcels=parcels, proximity=proximity)
+```
 
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_corrupt_generated.corrupt`
 
-**Signature**
+**Exact signature**
 
 ```python
 def corrupt(*args: object, **kwargs: object) -> pd.DataFrame:
@@ -1019,1473 +2863,417 @@ def corrupt(*args: object, **kwargs: object) -> pd.DataFrame:
 
 **Purpose**
 
-Implements corrupt according to the exact implementation and guards in this file.
+Private `test` helper for corrupt; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+output
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `output`.
-
-**Algorithm**
-
-1. Computes `output` from `original(*args, **kwargs)`.
-2. Computes `output[column]` from `output[column].astype('object')`.
-3. Computes `output.at[0, column]` from `value`.
-4. Returns `output`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `output.at[0, column]`, `output[column]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `original`, `output[column].astype`.
+- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::_corrupt_generated` via `patch.object(module, '_diagnosed_class_proximity', side_effect=corrupt)`.
+- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_inconsistent_generated_status_is_rejected` via `patch.object(module, '_diagnosed_class_proximity', side_effect=corrupt)`.
 
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_inconsistent_generated_status_is_rejected.corrupt`
-
-**Signature**
+**Complete source-ordered implementation**
 
 ```python
 def corrupt(*args: object, **kwargs: object) -> pd.DataFrame:
+        output = original(*args, **kwargs)
+        output[column] = output[column].astype("object")
+        output.at[0, column] = value
+        return output
 ```
 
-**Purpose**
-
-Implements corrupt according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `output`.
-
-**Algorithm**
-
-1. Computes `output` from `original(*args, **kwargs)`.
-2. Computes `output.at[0, 'road_proximity_coverage_status']` from `wrong_status`.
-3. Returns `output`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `original`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_public_api_exports_only_stable_symbols`
-
-**Signature**
-
-```python
-def test_public_api_exports_only_stable_symbols() -> None:
-```
-
-**Purpose**
-
-Protects the `public api exports only stable symbols` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `module` from `import_module('landscout.stages.assess_road_proximity_coverage')`.
-- Computes `expected` from `{'RoadProximityCoverageError', 'RoadProximityCoverageAssessmentResult', 'assess_road_proximity_coverage'}`.
-
-**Action**
-
-- Calls `all`, `hasattr`, `import_module`.
-
-**Expected result**
-
-- Direct assertions: `assert set(module.__all__) == expected`; `assert expected <= set(stages.__all__)`; `assert all((hasattr(stages, symbol) for symbol in expected))`; `assert not hasattr(stages, '_coverage_positions')`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `public api exports only stable symbols` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `all`, `hasattr`, `import_module`, `set`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_wrong_public_input_type_is_controlled_and_fast`
-
-**Signature**
-
-```python
-def test_wrong_public_input_type_is_controlled_and_fast(argument: str) -> None:
-```
-
-**Purpose**
-
-Protects the `wrong public input type is controlled and fast` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `argument`.
-- Contains 3 explicit setup/context statement(s).
-- Defines `kwargs` with annotation `dict[str, object]` from `{'parcels': _parcels(), 'road_source': _road_source(), 'source_config': SOURCE_CONFIG, 'policy_path': None}`.
-- Computes `kwargs[argument]` from `pd.DataFrame() if argument == 'parcels' else object()`.
-- Enters managed context(s) `patch('landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity'), patch('landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage'), pytest.raises(RoadProximityCoverageError)` and executes: Calls `assess_road_proximity_coverage(**cast(Any, kwargs))` for its validation or side effect.
-
-**Action**
-
-- Calls `_parcels`, `_road_source`, `assess_road_proximity_coverage`, `cast`, `coverage_loader.assert_not_called`, `object`, `pd.DataFrame`, `proximity_stage.assert_not_called`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with patch('landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity') as proximity_stage, patch('landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage') as coverage_loader, pytest.raises(RoadProximityCoverageError): assess_road_proximity_coverage(**cast(Any, kwargs))`.
-
-**Regression protected**
-
-- Protects the exact `wrong public input type is controlled and fast` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_parcels`, `_road_source`, `assess_road_proximity_coverage`, `cast`, `coverage_loader.assert_not_called`, `object`, `patch`, `pd.DataFrame`, `proximity_stage.assert_not_called`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_source_chain_calls_proximity_then_coverage_exactly_once`
-
-**Signature**
-
-```python
-def test_source_chain_calls_proximity_then_coverage_exactly_once() -> None:
-```
-
-**Purpose**
-
-Protects the `source chain calls proximity then coverage exactly once` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 6 explicit setup/context statement(s).
-- Computes `coverage` from `_coverage()`.
-- Computes `road_source` from `_road_source(coverage.extraction)`.
-- Computes `parcels` from `_parcels()`.
-- Computes `proximity` from `_proximity(parcels)`.
-- Computes `policy_path` from `Path('configs/access/ign_bdtopo_vehicle_proxy_policy.yaml')`.
-- Enters managed context(s) `patch('landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity', return_value=proximity), patch('landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage', return_value=coverage)` and executes: Calls `assess_road_proximity_coverage(parcels, road_source, SOURCE_CONFIG, policy_path)` for its validation or side effect.
-
-**Action**
-
-- Calls `Path`, `_coverage`, `_parcels`, `_proximity`, `_road_source`, `assess_road_proximity_coverage`, `coverage_loader.assert_called_once_with`, `proximity_stage.assert_called_once_with`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `source chain calls proximity then coverage exactly once` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `Path`, `_coverage`, `_parcels`, `_proximity`, `_road_source`, `assess_road_proximity_coverage`, `coverage_loader.assert_called_once_with`, `patch`, `proximity_stage.assert_called_once_with`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_proximity_failure_stops_coverage_loading`
-
-**Signature**
-
-```python
-def test_proximity_failure_stops_coverage_loading() -> None:
-```
-
-**Purpose**
-
-Protects the `proximity failure stops coverage loading` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 1 explicit setup/context statement(s).
-- Enters managed context(s) `patch('landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity', side_effect=ValueError('bad proximity')), patch('landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage'), pytest.raises(RoadProximityCoverageError)` and executes: Calls `assess_road_proximity_coverage(_parcels(), _road_source(), SOURCE_CONFIG)` for its validation or side effect.
-
-**Action**
-
-- Calls `ValueError`, `_parcels`, `_road_source`, `assess_road_proximity_coverage`, `coverage_loader.assert_not_called`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with patch('landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity', side_effect=ValueError('bad proximity')), patch('landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage') as coverage_loader, pytest.raises(RoadProximityCoverageError): assess_road_proximity_coverage(_parcels(), _road_source(), SOURCE_CONFIG)`.
-
-**Regression protected**
-
-- Protects the exact `proximity failure stops coverage loading` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `ValueError`, `_parcels`, `_road_source`, `assess_road_proximity_coverage`, `coverage_loader.assert_not_called`, `patch`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_coverage_loader_failure_is_controlled`
-
-**Signature**
-
-```python
-def test_coverage_loader_failure_is_controlled() -> None:
-```
-
-**Purpose**
-
-Protects the `coverage loader failure is controlled` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `parcels` from `_parcels()`.
-- Enters managed context(s) `patch('landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity', return_value=_proximity(parcels)), patch('landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage', side_effect=ValueError('bad coverage')), pytest.raises(RoadProximityCoverageError)` and executes: Calls `assess_road_proximity_coverage(parcels, _road_source(), SOURCE_CONFIG)` for its validation or side effect.
-
-**Action**
-
-- Calls `ValueError`, `_parcels`, `_proximity`, `_road_source`, `assess_road_proximity_coverage`, `coverage_loader.assert_called_once`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with patch('landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity', return_value=_proximity(parcels)), patch('landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage', side_effect=ValueError('bad coverage')) as coverage_loader, pytest.raises(RoadProximityCoverageError): assess_road_proximity_coverage(parcels, _road_source(), SOURCE_CONFIG)`.
-
-**Regression protected**
-
-- Protects the exact `coverage loader failure is controlled` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `ValueError`, `_parcels`, `_proximity`, `_road_source`, `assess_road_proximity_coverage`, `coverage_loader.assert_called_once`, `patch`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_stage_does_not_construct_a_road_spatial_index`
-
-**Signature**
-
-```python
-def test_stage_does_not_construct_a_road_spatial_index() -> None:
-```
-
-**Purpose**
-
-Protects the `stage does not construct a road spatial index` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Enters managed context(s) `patch('shapely.STRtree', side_effect=AssertionError('forbidden'))` and executes: Calls `_assess()` for its validation or side effect.
-- Computes `source` from `Path('src/landscout/stages/assess_road_proximity_coverage.py').read_text(encoding='utf-8')`.
-
-**Action**
-
-- Calls `AssertionError`, `Path`, `Path('src/landscout/stages/assess_road_proximity_coverage.py').read_text`, `_assess`.
-
-**Expected result**
-
-- Direct assertions: `assert 'STRtree(' not in source`; `assert 'query_nearest(' not in source`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `stage does not construct a road spatial index` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `AssertionError`, `Path`, `Path('src/landscout/stages/assess_road_proximity_coverage.py').read_text`, `_assess`, `patch`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_malformed_upstream_result_fails_before_coverage_load`
-
-**Signature**
-
-```python
-def test_malformed_upstream_result_fails_before_coverage_load(mutation: Any) -> None:
-```
-
-**Purpose**
-
-Protects the `malformed upstream result fails before coverage load` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `mutation`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `parcels` from `_parcels()`.
-- Computes `malformed` from `mutation(_proximity(parcels))`.
-- Enters managed context(s) `patch('landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity', return_value=malformed), patch('landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage'), pytest.raises(RoadProximityCoverageError)` and executes: Calls `assess_road_proximity_coverage(parcels, _road_source(), SOURCE_CONFIG)` for its validation or side effect.
-
-**Action**
-
-- Calls `_parcels`, `_proximity`, `_road_source`, `assess_road_proximity_coverage`, `coverage_loader.assert_not_called`, `mutation`, `object`, `range`, `replace`, `result.class_proximity.assign`, `result.class_proximity.drop`, `result.class_proximity.iloc[:-1].copy`, `result.class_proximity.iloc[[1, 0, *range(2, 5)]].reset_index`, `result.parcels.drop`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with patch('landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity', return_value=malformed), patch('landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage') as coverage_loader, pytest.raises(RoadProximityCoverageError): assess_road_proximity_coverage(parcels, _road_source(), SOURCE_CONFIG)`.
-
-**Regression protected**
-
-- Protects the exact `malformed upstream result fails before coverage load` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_parcels`, `_proximity`, `_road_source`, `assess_road_proximity_coverage`, `coverage_loader.assert_not_called`, `mutation`, `object`, `patch`, `pytest.mark.parametrize`, `pytest.raises`, `range`, `replace`, `result.class_proximity.assign`, `result.class_proximity.drop`, `result.class_proximity.iloc[:-1].copy`, `result.class_proximity.iloc[[1, 0, *range(2, 5)]].reset_index`, `result.parcels.drop`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_coverage_package_lineage_must_match_road_archive`
-
-**Signature**
-
-```python
-def test_coverage_package_lineage_must_match_road_archive(
-    field: str, value: object
-) -> None:
-```
-
-**Purpose**
-
-Protects the `coverage package lineage must match road archive` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `field`, `value`.
-- Contains 5 explicit setup/context statement(s).
-- Computes `coverage` from `_coverage()`.
-- Computes `frame` from `coverage.coverage.copy()`.
-- Computes `frame[field]` from `value`.
-- Computes `forged` from `replace(coverage, coverage=frame, summary=summary, **{field: value})`.
-- Enters managed context(s) `pytest.raises(RoadProximityCoverageError, match='package|lineage|provider|product')` and executes: Calls `_assess(coverage=forged, road_source=_road_source(coverage.extraction))` for its validation or side effect.
-
-**Action**
-
-- Calls `_assess`, `_coverage`, `_road_source`, `cast`, `coverage.coverage.copy`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(RoadProximityCoverageError, match='package|lineage|provider|product'): _assess(coverage=forged, road_source=_road_source(coverage.extraction))`.
-
-**Regression protected**
-
-- Protects the exact `coverage package lineage must match road archive` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_assess`, `_coverage`, `_road_source`, `cast`, `coverage.coverage.copy`, `pytest.mark.parametrize`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer`
-
-**Signature**
-
-```python
-def test_configured_coverage_layer_cannot_be_replaced_by_real_alternate_layer() -> None:
-```
-
-**Purpose**
-
-Protects the `configured coverage layer cannot be replaced by real alternate layer` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `coverage` from `_coverage(layer='zone_administrative')`.
-- Enters managed context(s) `pytest.raises(RoadProximityCoverageError, match='configured|layer')` and executes: Calls `_assess(coverage=coverage, road_source=_road_source(coverage.extraction))` for its validation or side effect.
-
-**Action**
-
-- Calls `_assess`, `_coverage`, `_road_source`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(RoadProximityCoverageError, match='configured|layer'): _assess(coverage=coverage, road_source=_road_source(coverage.extraction))`.
-
-**Regression protected**
-
-- Protects the exact `configured coverage layer cannot be replaced by real alternate layer` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_assess`, `_coverage`, `_road_source`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_selected_department_identity_is_exact`
-
-**Signature**
-
-```python
-def test_selected_department_identity_is_exact() -> None:
-```
-
-**Purpose**
-
-Protects the `selected department identity is exact` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 5 explicit setup/context statement(s).
-- Computes `coverage` from `_coverage()`.
-- Computes `frame` from `coverage.coverage.copy()`.
-- Computes `frame[coverage.summary.department_code_field]` from `'32'`.
-- Computes `forged` from `replace(coverage, coverage=frame, summary=replace(coverage.summary, selected_department_code='32'))`.
-- Enters managed context(s) `pytest.raises(RoadProximityCoverageError, match='department')` and executes: Calls `_assess(coverage=forged)` for its validation or side effect.
-
-**Action**
-
-- Calls `_assess`, `_coverage`, `coverage.coverage.copy`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(RoadProximityCoverageError, match='department'): _assess(coverage=forged)`.
-
-**Regression protected**
-
-- Protects the exact `selected department identity is exact` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_assess`, `_coverage`, `coverage.coverage.copy`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_coverage_spatial_role_and_source_type_are_controlled`
-
-**Signature**
-
-```python
-def test_coverage_spatial_role_and_source_type_are_controlled() -> None:
-```
-
-**Purpose**
-
-Protects the `coverage spatial role and source type are controlled` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 7 explicit setup/context statement(s).
-- Computes `coverage` from `_coverage()`.
-- Computes `frame` from `coverage.coverage.copy()`.
-- Computes `frame['spatial_role']` from `'PROXY_GEOMETRY'`.
-- Computes `wrong_role` from `replace(coverage, coverage=frame, summary=replace(coverage.summary, spatial_role=cast(Any, 'PROXY_GEOMETRY')), spatial_role=cast(Any, 'PROXY_GEOMETRY'))`.
-- Enters managed context(s) `pytest.raises(RoadProximityCoverageError, match='spatial|lineage')` and executes: Calls `_assess(coverage=wrong_role)` for its validation or side effect.
-- Computes `parcels` from `_parcels()`.
-- Enters managed context(s) `patch('landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity', return_value=_proximity(parcels)), patch('landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage', return_value=object()), pytest.raises(RoadProximityCoverageError)` and executes: Calls `assess_road_proximity_coverage(parcels, _road_source(), SOURCE_CONFIG)` for its validation or side effect.
-
-**Action**
-
-- Calls `_assess`, `_coverage`, `_parcels`, `_proximity`, `_road_source`, `assess_road_proximity_coverage`, `cast`, `coverage.coverage.copy`, `object`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(RoadProximityCoverageError, match='spatial|lineage'): _assess(coverage=wrong_role)`; `with patch('landscout.stages.assess_road_proximity_coverage.enrich_parcel_road_proximity', return_value=_proximity(parcels)), patch('landscout.stages.assess_road_proximity_coverage.load_ign_bdtopo_department_coverage', return_value=object()), pytest.raises(RoadProximityCoverageError): assess_road_proximity_coverage(parcels, _road_source(), SOURCE_CONFIG)`.
-
-**Regression protected**
-
-- Protects the exact `coverage spatial role and source type are controlled` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_assess`, `_coverage`, `_parcels`, `_proximity`, `_road_source`, `assess_road_proximity_coverage`, `cast`, `coverage.coverage.copy`, `object`, `patch`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_coverage_must_retain_same_extraction_object`
-
-**Signature**
-
-```python
-def test_coverage_must_retain_same_extraction_object() -> None:
-```
-
-**Purpose**
-
-Protects the `coverage must retain same extraction object` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `coverage` from `_coverage()`.
-- Computes `forged` from `replace(coverage, extraction=replace(coverage.extraction))`.
-- Enters managed context(s) `pytest.raises(RoadProximityCoverageError, match='extraction')` and executes: Calls `_assess(coverage=forged, road_source=_road_source(coverage.extraction))` for its validation or side effect.
-
-**Action**
-
-- Calls `_assess`, `_coverage`, `_road_source`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(RoadProximityCoverageError, match='extraction'): _assess(coverage=forged, road_source=_road_source(coverage.extraction))`.
-
-**Regression protected**
-
-- Protects the exact `coverage must retain same extraction object` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_assess`, `_coverage`, `_road_source`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_invalid_coverage_geometry_is_rejected`
-
-**Signature**
-
-```python
-def test_invalid_coverage_geometry_is_rejected(
-    geometries: list[object], crs: str | None, message: str
-) -> None:
-```
-
-**Purpose**
-
-Protects the `invalid coverage geometry is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `geometries`, `crs`, `message`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `coverage` from `_coverage(geometries=geometries, crs=crs)`.
-- Enters managed context(s) `pytest.raises(RoadProximityCoverageError, match=message)` and executes: Calls `_assess(coverage=coverage)` for its validation or side effect.
-
-**Action**
-
-- Calls `LineString`, `Point`, `Polygon`, `_assess`, `_coverage`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(RoadProximityCoverageError, match=message): _assess(coverage=coverage)`.
-
-**Regression protected**
-
-- Protects the exact `invalid coverage geometry is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `LineString`, `Point`, `Polygon`, `_assess`, `_coverage`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_polygonal_coverage_geometry_is_accepted`
-
-**Signature**
-
-```python
-def test_polygonal_coverage_geometry_is_accepted(geometry: object) -> None:
-```
-
-**Purpose**
-
-Protects the `polygonal coverage geometry is accepted` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `geometry`.
-- Contains 0 explicit setup/context statement(s).
-
-**Action**
-
-- Calls `MultiPolygon`, `Polygon`, `_assess`, `_coverage`.
-
-**Expected result**
-
-- Direct assertions: `assert len(_assess(coverage=_coverage(geometries=[geometry])).parcels) == 1`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `polygonal coverage geometry is accepted` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `MultiPolygon`, `Polygon`, `_assess`, `_coverage`, `len`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_full_parcel_coverage_position_is_conservative`
-
-**Signature**
-
-```python
-def test_full_parcel_coverage_position_is_conservative(
-    geometry: Polygon, position: str
-) -> None:
-```
-
-**Purpose**
-
-Protects the `full parcel coverage position is conservative` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `geometry`, `position`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `parcels` from `_parcels([geometry])`.
-- Computes `row` from `_first_row(_assess(parcels=parcels, proximity=_proximity(parcels)))`.
-
-**Action**
-
-- Calls `Polygon`, `_assess`, `_first_row`, `_parcels`, `_proximity`.
-
-**Expected result**
-
-- Direct assertions: `assert row.road_source_coverage_position == position`; `assert row.road_source_boundary_distance_m == 0.0`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `full parcel coverage position is conservative` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `Polygon`, `_assess`, `_first_row`, `_parcels`, `_proximity`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_position_uses_full_geometry_not_centroid`
-
-**Signature**
-
-```python
-def test_position_uses_full_geometry_not_centroid() -> None:
-```
-
-**Purpose**
-
-Protects the `position uses full geometry not centroid` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `crossing_with_inside_centroid` from `Polygon([(-10, 100), (-10, 200), (300, 200), (300, 100), (-10, 100)])`.
-- Computes `parcels` from `_parcels([crossing_with_inside_centroid])`.
-- Computes `row` from `_first_row(_assess(parcels=parcels, proximity=_proximity(parcels)))`.
-
-**Action**
-
-- Calls `Polygon`, `_assess`, `_first_row`, `_parcels`, `_proximity`.
-
-**Expected result**
-
-- Direct assertions: `assert row.road_source_coverage_position == 'OUTSIDE_OR_CROSSING_COVERAGE'`; `assert row.road_source_boundary_distance_m == 0.0`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `position uses full geometry not centroid` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `Polygon`, `_assess`, `_first_row`, `_parcels`, `_proximity`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative`
-
-**Signature**
-
-```python
-def test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative() -> None:
-```
-
-**Purpose**
-
-Protects the `internal boundary distance is full geometry finite and nonnegative` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 5 explicit setup/context statement(s).
-- Computes `parcels` from `_parcels()`.
-- Computes `coverage` from `_coverage()`.
-- Computes `expected` from `_measured_boundary_distance(parcels, coverage)`.
-- Computes `result` from `_assess(parcels=parcels, proximity=_proximity(parcels), coverage=coverage)`.
-- Computes `values` from `result.class_proximity['road_source_boundary_distance_m']`.
-
-**Action**
-
-- Calls `_assess`, `_coverage`, `_measured_boundary_distance`, `_parcels`, `_proximity`, `np.isfinite`, `np.isfinite(values).all`, `values.eq`, `values.eq(expected).all`, `values.ge`, `values.ge(0).all`.
-
-**Expected result**
-
-- Direct assertions: `assert values.eq(expected).all()`; `assert np.isfinite(values).all()`; `assert values.ge(0).all()`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `internal boundary distance is full geometry finite and nonnegative` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_assess`, `_coverage`, `_measured_boundary_distance`, `_parcels`, `_proximity`, `np.isfinite`, `np.isfinite(values).all`, `values.eq`, `values.eq(expected).all`, `values.ge`, `values.ge(0).all`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_strict_boundary_status_logic`
-
-**Signature**
-
-```python
-def test_strict_boundary_status_logic(offset: float, expected: str) -> None:
-```
-
-**Purpose**
-
-Protects the `strict boundary status logic` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `offset`, `expected`.
-- Contains 5 explicit setup/context statement(s).
-- Computes `parcels` from `_parcels()`.
-- Computes `coverage` from `_coverage()`.
-- Computes `margin` from `_measured_boundary_distance(parcels, coverage)`.
-- Computes `proximity` from `_proximity(parcels, distances={road_class: margin + offset for road_class in ELIGIBLE_CLASSES})`.
-- Computes `result` from `_assess(parcels=parcels, proximity=proximity, coverage=coverage)`.
-
-**Action**
-
-- Calls `_assess`, `_coverage`, `_measured_boundary_distance`, `_parcels`, `_proximity`, `result.class_proximity['road_proximity_coverage_status'].eq`, `result.class_proximity['road_proximity_coverage_status'].eq(expected).all`.
-
-**Expected result**
-
-- Direct assertions: `assert result.class_proximity['road_proximity_coverage_status'].eq(expected).all()`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `strict boundary status logic` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_assess`, `_coverage`, `_measured_boundary_distance`, `_parcels`, `_proximity`, `pytest.mark.parametrize`, `result.class_proximity['road_proximity_coverage_status'].eq`, `result.class_proximity['road_proximity_coverage_status'].eq(expected).all`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_matched_outside_or_crossing_status`
-
-**Signature**
-
-```python
-def test_matched_outside_or_crossing_status(geometry: Polygon) -> None:
-```
-
-**Purpose**
-
-Protects the `matched outside or crossing status` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `geometry`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `parcels` from `_parcels([geometry])`.
-- Computes `result` from `_assess(parcels=parcels, proximity=_proximity(parcels))`.
-
-**Action**
-
-- Calls `Polygon`, `_assess`, `_parcels`, `_proximity`, `result.class_proximity['road_proximity_coverage_status'].eq`, `result.class_proximity['road_proximity_coverage_status'].eq('OUTSIDE_OR_CROSSING_COVERAGE').all`.
-
-**Expected result**
-
-- Direct assertions: `assert result.class_proximity['road_proximity_coverage_status'].eq('OUTSIDE_OR_CROSSING_COVERAGE').all()`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `matched outside or crossing status` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `Polygon`, `_assess`, `_parcels`, `_proximity`, `pytest.mark.parametrize`, `result.class_proximity['road_proximity_coverage_status'].eq`, `result.class_proximity['road_proximity_coverage_status'].eq('OUTSIDE_OR_CROSSING_COVERAGE').all`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_no_match_takes_precedence_over_coverage_position`
-
-**Signature**
-
-```python
-def test_no_match_takes_precedence_over_coverage_position(geometry: Polygon) -> None:
-```
-
-**Purpose**
-
-Protects the `no match takes precedence over coverage position` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `geometry`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `parcels` from `_parcels([geometry])`.
-- Computes `proximity` from `_without_match(_proximity(parcels))`.
-- Computes `result` from `_assess(parcels=parcels, proximity=proximity)`.
-
-**Action**
-
-- Calls `Polygon`, `_assess`, `_first_row`, `_parcels`, `_proximity`, `_without_match`.
-
-**Expected result**
-
-- Direct assertions: `assert _first_row(result, 'UNKNOWN_REVIEW').road_proximity_coverage_status == 'NO_MATCH'`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `no match takes precedence over coverage position` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `Polygon`, `_assess`, `_first_row`, `_parcels`, `_proximity`, `_without_match`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_classes_are_diagnosed_independently`
-
-**Signature**
-
-```python
-def test_classes_are_diagnosed_independently() -> None:
-```
-
-**Purpose**
-
-Protects the `classes are diagnosed independently` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 5 explicit setup/context statement(s).
-- Computes `parcels` from `_parcels()`.
-- Computes `coverage` from `_coverage()`.
-- Computes `margin` from `_measured_boundary_distance(parcels, coverage)`.
-- Computes `proximity` from `_proximity(parcels, distances={'GENERAL_VEHICLE_PROXY': margin - 1, 'RESTRICTED_REVIEW': margin + 1})`.
-- Computes `result` from `_assess(parcels=parcels, proximity=proximity, coverage=coverage)`.
-
-**Action**
-
-- Calls `_assess`, `_coverage`, `_first_row`, `_measured_boundary_distance`, `_parcels`, `_proximity`.
-
-**Expected result**
-
-- Direct assertions: `assert _first_row(result, 'GENERAL_VEHICLE_PROXY').road_proximity_coverage_status == 'NOT_BOUNDARY_LIMITED'`; `assert _first_row(result, 'RESTRICTED_REVIEW').road_proximity_coverage_status == 'BOUNDARY_LIMITED'`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `classes are diagnosed independently` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_assess`, `_coverage`, `_first_row`, `_measured_boundary_distance`, `_parcels`, `_proximity`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_exact_coverage_lineage_is_appended_to_every_row`
-
-**Signature**
-
-```python
-def test_exact_coverage_lineage_is_appended_to_every_row() -> None:
-```
-
-**Purpose**
-
-Protects the `exact coverage lineage is appended to every row` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `coverage` from `_coverage()`.
-- Computes `result` from `_assess(coverage=coverage)`.
-- Computes `expected` from `{'road_source_coverage_provider': coverage.source_provider, 'road_source_coverage_product': coverage.source_product, 'road_source_coverage_department_code': coverage.source_department_code, 'road_source_coverage_edition': coverage.source_edition, 'road_source_coverage_product_version': coverage.source_product_version,…`.
-
-**Action**
-
-- Calls `_assess`, `_coverage`, `expected.items`, `result.class_proximity[column].eq`, `result.class_proximity[column].eq(value).all`.
-
-**Expected result**
-
-- Direct assertions: `assert result.class_proximity[column].eq(value).all()`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `exact coverage lineage is appended to every row` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_assess`, `_coverage`, `expected.items`, `result.class_proximity[column].eq`, `result.class_proximity[column].eq(value).all`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_matched_road_lineage_must_match_coverage`
-
-**Signature**
-
-```python
-def test_matched_road_lineage_must_match_coverage(
-    column: str, value: str
-) -> None:
-```
-
-**Purpose**
-
-Protects the `matched road lineage must match coverage` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `column`, `value`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `proximity` from `_proximity()`.
-- Computes `table` from `proximity.class_proximity.copy()`.
-- Computes `table[column]` from `value`.
-- Enters managed context(s) `pytest.raises(RoadProximityCoverageError, match='lineage|package')` and executes: Calls `_assess(proximity=replace(proximity, class_proximity=table))` for its validation or side effect.
-
-**Action**
-
-- Calls `_assess`, `_proximity`, `proximity.class_proximity.copy`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(RoadProximityCoverageError, match='lineage|package'): _assess(proximity=replace(proximity, class_proximity=table))`.
-
-**Regression protected**
-
-- Protects the exact `matched road lineage must match coverage` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_assess`, `_proximity`, `proximity.class_proximity.copy`, `pytest.mark.parametrize`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_result_preserves_every_upstream_fact_and_input_object`
-
-**Signature**
-
-```python
-def test_result_preserves_every_upstream_fact_and_input_object() -> None:
-```
-
-**Purpose**
-
-Protects the `result preserves every upstream fact and input object` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 13 explicit setup/context statement(s).
-- Computes `parcels` from `_parcels([Polygon([(100, 100), (100, 200), (200, 200), (200, 100), (100, 100)]), Polygon([(300, 300), (300, 400), (400, 400), (400, 300), (300, 300)])], identifiers=['SECOND', 'FIRST'])`.
-- Computes `proximity` from `_proximity(parcels)`.
-- Computes `coverage` from `_coverage()`.
-- Computes `road_source` from `_road_source(coverage.extraction)`.
-- Computes `parcels_before` from `deepcopy(parcels)`.
-- Computes `proximity_parcels_before` from `deepcopy(proximity.parcels)`.
-- Computes `table_before` from `deepcopy(proximity.class_proximity)`.
-- Computes `coverage_before` from `deepcopy(coverage.coverage)`.
-- Computes `roads_before` from `deepcopy(road_source.road_segments)`.
-- Computes `road_summary_before` from `road_source.road_segments_summary`.
-- Computes `extraction_before` from `road_source.extraction`.
-- Computes `config_before` from `SOURCE_CONFIG.model_dump(mode='python')`.
-
-**Action**
-
-- Calls `Polygon`, `SOURCE_CONFIG.model_dump`, `_assess`, `_coverage`, `_parcels`, `_proximity`, `_road_source`, `deepcopy`.
-
-**Expected result**
-
-- Direct assertions: `assert road_source.road_segments_summary == road_summary_before`; `assert road_source.extraction is extraction_before`; `assert SOURCE_CONFIG.model_dump(mode='python') == config_before`; `assert tuple(result.class_proximity.columns[:len(CLASS_PROXIMITY_COLUMNS)]) == CLASS_PROXIMITY_COLUMNS`; `assert tuple(result.class_proximity.columns[len(CLASS_PROXIMITY_COLUMNS):]) == DIAGNOSTIC_COLUMNS`; `assert result.class_coverage is proximity.class_coverage`; `assert result.source_coverage is coverage`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `result preserves every upstream fact and input object` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `Polygon`, `SOURCE_CONFIG.model_dump`, `_assess`, `_coverage`, `_parcels`, `_proximity`, `_road_source`, `assert_frame_equal`, `assert_geodataframe_equal`, `deepcopy`, `len`, `list`, `tuple`.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_malformed_generated_value_is_rejected`
 
-**Signature**
-
-```python
-def test_malformed_generated_value_is_rejected(column: str, value: object) -> None:
-```
-
 **Purpose**
 
-Protects the `malformed generated value is rejected` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `column`, `value`.
 
 **Setup**
 
-- Uses parameters/fixtures: `column`, `value`.
-- Contains 0 explicit setup/context statement(s).
+```python
+_corrupt_generated(column, value)
+```
 
 **Action**
 
-- Calls `_corrupt_generated`, `float`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: none.
+```python
+# Completion without an exception is the asserted outcome.
+```
 
 **Regression protected**
 
-- Protects the exact `malformed generated value is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
+Pins the exact framework interaction and outcome reproduced in the complete test source.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- In-memory/local unit boundary defined entirely by the reproduced setup.
 
-**Calls**
+**Complete test implementation**
 
-- `_corrupt_generated`, `float`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+```python
+def test_malformed_generated_value_is_rejected(column: str, value: object) -> None:
+    _corrupt_generated(column, value)
+```
 
 ### `test_inconsistent_generated_status_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `distance`, `wrong_status`.
+
+**Setup**
+
+```python
+module = import_module("landscout.stages.assess_road_proximity_coverage")
+parcels = _parcels()
+proximity = _proximity(
+        parcels, distances={road_class: distance for road_class in ELIGIBLE_CLASSES}
+    )
+original = module._diagnosed_class_proximity
+def corrupt(*args: object, **kwargs: object) -> pd.DataFrame:
+        output = original(*args, **kwargs)
+        output.at[0, "road_proximity_coverage_status"] = wrong_status
+        return output
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with patch.object(
+        module, "_diagnosed_class_proximity", side_effect=corrupt
+    ), pytest.raises(RoadProximityCoverageError):
+        _assess(parcels=parcels, proximity=proximity)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+
+**Complete test implementation**
 
 ```python
 def test_inconsistent_generated_status_is_rejected(
     distance: float, wrong_status: str
 ) -> None:
+    module = import_module("landscout.stages.assess_road_proximity_coverage")
+
+    parcels = _parcels()
+    proximity = _proximity(
+        parcels, distances={road_class: distance for road_class in ELIGIBLE_CLASSES}
+    )
+    original = module._diagnosed_class_proximity
+
+    def corrupt(*args: object, **kwargs: object) -> pd.DataFrame:
+        output = original(*args, **kwargs)
+        output.at[0, "road_proximity_coverage_status"] = wrong_status
+        return output
+
+    with patch.object(
+        module, "_diagnosed_class_proximity", side_effect=corrupt
+    ), pytest.raises(RoadProximityCoverageError):
+        _assess(parcels=parcels, proximity=proximity)
+```
+
+### `test_inconsistent_generated_status_is_rejected.corrupt`
+
+**Exact signature**
+
+```python
+def corrupt(*args: object, **kwargs: object) -> pd.DataFrame:
 ```
 
 **Purpose**
 
-Protects the `inconsistent generated status is rejected` behavior encoded by this regression's setup, action, and assertions.
+Private `test` helper for corrupt; its complete implementation below is the authoritative behavioral contract.
 
-**Setup**
+**Return contract**
 
-- Uses parameters/fixtures: `distance`, `wrong_status`.
-- Contains 5 explicit setup/context statement(s).
-- Computes `module` from `import_module('landscout.stages.assess_road_proximity_coverage')`.
-- Computes `parcels` from `_parcels()`.
-- Computes `proximity` from `_proximity(parcels, distances={road_class: distance for road_class in ELIGIBLE_CLASSES})`.
-- Computes `original` from `module._diagnosed_class_proximity`.
-- Enters managed context(s) `patch.object(module, '_diagnosed_class_proximity', side_effect=corrupt), pytest.raises(RoadProximityCoverageError)` and executes: Calls `_assess(parcels=parcels, proximity=proximity)` for its validation or side effect.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+output
+```
 
-**Action**
+**Validation and exceptions**
 
-- Calls `_assess`, `_parcels`, `_proximity`, `import_module`, `original`.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
-**Expected result**
+**Side effects**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with patch.object(module, '_diagnosed_class_proximity', side_effect=corrupt), pytest.raises(RoadProximityCoverageError): _assess(parcels=parcels, proximity=proximity)`.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `output.at[0, 'road_proximity_coverage_status']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Regression protected**
+**Repository interfaces and consumers**
 
-- Protects the exact `inconsistent generated status is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
+- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::_corrupt_generated` via `patch.object(module, '_diagnosed_class_proximity', side_effect=corrupt)`.
+- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_inconsistent_generated_status_is_rejected` via `patch.object(module, '_diagnosed_class_proximity', side_effect=corrupt)`.
 
-**Test boundary**
+**Complete source-ordered implementation**
 
-- monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
+```python
+def corrupt(*args: object, **kwargs: object) -> pd.DataFrame:
+        output = original(*args, **kwargs)
+        output.at[0, "road_proximity_coverage_status"] = wrong_status
+        return output
+```
 
-**Calls**
-
-- `_assess`, `_parcels`, `_proximity`, `import_module`, `original`, `patch.object`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_outside_position_requires_zero_boundary_distance`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+_corrupt_generated("road_source_boundary_distance_m", 1.0, outside=True)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+# Completion without an exception is the asserted outcome.
+```
+
+**Regression protected**
+
+Pins the exact framework interaction and outcome reproduced in the complete test source.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_outside_position_requires_zero_boundary_distance() -> None:
+    _corrupt_generated("road_source_boundary_distance_m", 1.0, outside=True)
 ```
-
-**Purpose**
-
-Protects the `outside position requires zero boundary distance` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 0 explicit setup/context statement(s).
-
-**Action**
-
-- Calls `_corrupt_generated`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `outside position requires zero boundary distance` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_corrupt_generated`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_result_is_frozen_and_has_no_business_decision_fields`
 
-**Signature**
-
-```python
-def test_result_is_frozen_and_has_no_business_decision_fields() -> None:
-```
-
 **Purpose**
 
-Protects the `result is frozen and has no business decision fields` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `result` from `_assess()`.
-- Enters managed context(s) `pytest.raises(FrozenInstanceError)` and executes: Computes `result.parcels` from `_parcels()`.
-- Computes `forbidden` from `{'accessible', 'road_access_ok', 'legal_access', 'truck_access', 'bess_access', 'score', 'retained', 'rejected'}`.
+```python
+result = _assess()
+forbidden = {
+        "accessible",
+        "road_access_ok",
+        "legal_access",
+        "truck_access",
+        "bess_access",
+        "score",
+        "retained",
+        "rejected",
+    }
+```
 
 **Action**
 
-- Calls `_assess`, `_parcels`, `forbidden.isdisjoint`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: `assert forbidden.isdisjoint(result.parcels.columns)`; `assert forbidden.isdisjoint(result.class_proximity.columns)`.
-- Expected exception contexts: `with pytest.raises(FrozenInstanceError): result.parcels = _parcels()`.
+```python
+with pytest.raises(FrozenInstanceError):
+        result.parcels = _parcels()
+assert forbidden.isdisjoint(result.parcels.columns)
+assert forbidden.isdisjoint(result.class_proximity.columns)
+```
 
 **Regression protected**
 
-- Protects the exact `result is frozen and has no business decision fields` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- In-memory/local unit boundary defined entirely by the reproduced setup.
 
-**Calls**
+**Complete test implementation**
 
-- `_assess`, `_parcels`, `forbidden.isdisjoint`, `pytest.raises`.
+```python
+def test_result_is_frozen_and_has_no_business_decision_fields() -> None:
+    result = _assess()
+    with pytest.raises(FrozenInstanceError):
+        result.parcels = _parcels()  # type: ignore[misc]
+    forbidden = {
+        "accessible",
+        "road_access_ok",
+        "legal_access",
+        "truck_access",
+        "bess_access",
+        "score",
+        "retained",
+        "rejected",
+    }
+    assert forbidden.isdisjoint(result.parcels.columns)
+    assert forbidden.isdisjoint(result.class_proximity.columns)
+```
 
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+### `DIAGNOSTIC_COLUMNS` — canonical or derived frame-column schema
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `cleabs` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `code_insee` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `columns` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_asset_status_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_carriageway_width_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_closure_period_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_importance_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_light_vehicle_access_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_nature_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_private_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_restriction_nature_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_road_feature_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_road_primary_rule` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_road_proxy_distance_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_road_rule_trace_json` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_road_tie_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_road_toll_evidence` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_road_unknown_fields_json` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_source_archive_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_source_department_code` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_source_edition` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_source_feature_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_source_layer` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `nom_officiel` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `preserved_value` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `proximity_scope` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `road_proximity_coverage_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `road_proxy_class` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `road_proxy_policy_config_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `road_source_boundary_distance_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
-| `road_source_coverage_archive_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `road_source_coverage_department_code` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `road_source_coverage_edition` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `road_source_coverage_layer` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `road_source_coverage_position` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `road_source_coverage_product` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `road_source_coverage_product_version` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `road_source_coverage_provider` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `road_source_coverage_spatial_role` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `source_product` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_provider` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `spatial_role` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
+```python
+DIAGNOSTIC_COLUMNS = (
+    "road_source_boundary_distance_m",
+    "road_source_coverage_position",
+    "road_proximity_coverage_status",
+    "road_source_coverage_provider",
+    "road_source_coverage_product",
+    "road_source_coverage_department_code",
+    "road_source_coverage_edition",
+    "road_source_coverage_product_version",
+    "road_source_coverage_archive_sha256",
+    "road_source_coverage_layer",
+    "road_source_coverage_spatial_role",
+)
+```
+
+### `SELECTED_COLUMNS` — canonical or derived frame-column schema
+
+```python
+SELECTED_COLUMNS = (
+    "nearest_road_proxy_distance_m",
+    "nearest_road_feature_id",
+    "nearest_source_feature_id",
+    "nearest_road_tie_count",
+    "nearest_road_primary_rule",
+    "nearest_road_rule_trace_json",
+    "nearest_road_unknown_fields_json",
+    "nearest_road_toll_evidence",
+    "nearest_nature_raw",
+    "nearest_importance_raw",
+    "nearest_asset_status_raw",
+    "nearest_private_raw",
+    "nearest_light_vehicle_access_raw",
+    "nearest_carriageway_width_raw",
+    "nearest_closure_period_raw",
+    "nearest_restriction_nature_raw",
+    "nearest_source_layer",
+    "nearest_source_department_code",
+    "nearest_source_edition",
+    "nearest_source_archive_sha256",
+)
+```
+
+
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `test` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the test flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -2493,8 +3281,8 @@ This file contributes to LandScout's `test` evidence flow as described by its pu
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

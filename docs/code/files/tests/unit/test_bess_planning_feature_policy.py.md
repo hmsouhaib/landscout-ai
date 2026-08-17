@@ -4,9 +4,9 @@
 
 - Repository path: `tests/unit/test_bess_planning_feature_policy.py`
 - File type: Python test
-- Primary responsibility: Provides complete unit and regression coverage for the `bess_planning_feature_policy` contracts exercised in this file.
-- Layer / domain: `unit/regression test` / `test`
-- Public or internal role: Internal test support; not a production API.
+- Layer: unit/regression test
+- Domain: test
+- Responsibility: Provides complete unit and regression coverage for the `bess_planning_feature_policy` contracts exercised in this file.
 - Source SHA256: `3f7bc1a603948f9de88b87aeac65b89eb5532cd30ef777780692b3ea6bffe981`
 
 ## 1. Purpose
@@ -15,75 +15,217 @@ Provides complete unit and regression coverage for the `bess_planning_feature_po
 
 ## 2. Position in LandScout architecture
 
-This file is a `unit/regression test` artifact in the `test` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **unit/regression test** layer and the **test** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from __future__ import annotations` — required by the implementation paths and symbols documented below.
-- `import json` — required by the implementation paths and symbols documented below.
-- `from dataclasses import fields, replace` — required by the implementation paths and symbols documented below.
-- `from hashlib import sha256` — required by the implementation paths and symbols documented below.
-- `from io import BytesIO` — required by the implementation paths and symbols documented below.
-- `from pathlib import Path` — required by the implementation paths and symbols documented below.
+- `from __future__ import annotations`
+- `import importlib`
+- `import json`
+- `import tomllib`
+- `from dataclasses import fields, replace`
+- `from hashlib import sha256`
+- `from io import BytesIO`
+- `from pathlib import Path`
 
-### Third-party
+### Third-party packages
 
-- `import importlib` — required by the implementation paths and symbols documented below.
-- `import tomllib` — required by the implementation paths and symbols documented below.
-- `import pandas as pd` — required by the implementation paths and symbols documented below.
-- `import pytest` — required by the implementation paths and symbols documented below.
-- `from pandas.testing import assert_frame_equal` — required by the implementation paths and symbols documented below.
-- `from pydantic import ValidationError` — required by the implementation paths and symbols documented below.
-- `from test_resolve_planning_feature_codes import _integration_inputs` — required by the implementation paths and symbols documented below.
+- `import pandas as pd`
+- `import pytest`
+- `from pandas.testing import assert_frame_equal`
+- `from pydantic import ValidationError`
+- `from test_resolve_planning_feature_codes import _integration_inputs`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout import stages` — required by the implementation paths and symbols documented below.
-- `from landscout.common.artifact_paths import validate_portable_parquet_filename` — required by the implementation paths and symbols documented below.
-- `from landscout.common.frame_integrity import deterministic_frame_schema_signature` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.bess_planning_feature_policy import ( BessPlanningFeaturePolicyConfig, BessPlanningFeaturePolicyError, BessPlanningFeaturePolicyResult, compile_bess_planning_feature_policy, load_bess_planning_feature_policy_config, validate_bess_planning_feature_policy_result, )` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.resolve_planning_feature_codes import ( load_cnig_feature_code_profile, resolve_planning_feature_codes, )` — required by the implementation paths and symbols documented below.
+- `from landscout import stages`
+- `from landscout.common.artifact_paths import validate_portable_parquet_filename`
+- `from landscout.common.frame_integrity import deterministic_frame_schema_signature`
+- `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+)`
+- `from landscout.stages.resolve_planning_feature_codes import (
+    load_cnig_feature_code_profile,
+    resolve_planning_feature_codes,
+)`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `POLICY_PATH` | `Path("configs/planning/muret_bess_cnig_feature_policy.yaml")` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `POLICY_SCOPE` | `"OFFICIAL_CNIG_CODE_MEANING_ONLY"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `STATUS_PRIORITIES` | `{ "LIKELY_MATERIAL_CONSTRAINT": 50, "UNKNOWN": 40, "MATERIAL_REVIEW_REQUIRED": 30, "DESIGN_REVIEW_REQUIRED": 20, "CONTEXT_REVIEW_REQUIRED": 10, }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `EXPECTED_MURET_DECISIONS` | `{ ("INFORMATION", "02", "00"): ("CONTEXT_REVIEW_REQUIRED", "HIGH"), ("INFORMATION", "14", "00"): ("CONTEXT_REVIEW_REQUIRED", "HIGH"), ("INFORMATION", "27", "00"): ("CONTEXT_REVIEW_REQUIRED", "HIGH"), ("INFORMATION", "99", "00"): ("UNKNOWN", "LOW"), ("PRESCRIPTION", "01", "00"): ("LIKELY_MATERIAL_CONSTRAINT", "HIGH"), ("PRESCRIPTION", "05", "00"): ("MATERIAL_REVIEW_REQUIRED", "HIGH"), ("PRESCRIPTION", "07", "00"): ("LIKELY_MATERIAL_CONSTRAINT", "MEDIUM"), ("PRESCRIPTION", "07", "04"): ("LIKELY_MATERIAL_CONSTRAINT", "HIGH"), ("PRESCRIPTION", "15", "00"): ("DESIGN_REVIEW_REQUIRED", "MEDIUM"), ("PRESCRIPTION", "15", "01"): ("DESIGN_REVIEW_REQUIRED", "HIGH"), ("PRESCRIPTION", "17", "00"): ("MATERIAL_REVIEW_REQUIRED", "MEDIUM"), ("PRESCRIPTION", "18", "00"): ("MATERIAL_REVIEW_REQUIRED", "HIGH"), }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `EXPECTED_POLICY_ENTRIES_SHA256` | `"1d3e63f1123000402065b74402cb1e2295db2ac5655209ce410aaf36bfc2be91"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `EXPECTED_POLICY_SHA256` | `"1cfca0eb3d777e9b6604748e8a81609abe7b728de8d0695711cd569180df6489"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `EXPECTED_POLICY_TABLE_SHA256` | `"225105fe488e21f8aa080751812dde1671340c26620cae1d8372c2e59488ed41"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `EXPECTED_COMPLETE_RESULT_SHA256` | `"84a59b418f5a53bc61df73296964b2847cc5d3529c10d0c6912c96222edba09c"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `EXPECTED_SOURCE_LOCK` | `{ "document_id": "33edb4c9f6943c88d8d92518bff20bec", "archive_sha256": ( "9d6677cd6634b56b712311042f0cc714d5ca42a38f82a417b27dd473255d7d93" ), "cnig_profile": "cnig_plu_2017_muret_observed_pairs_v2", "cnig_profile_schema_version": 2, "cnig_profile_sha256": ( "5611b814eb4bc057578b908c6505094f9df5d2c2bf4ca126629b1362983c47ee" ), "cnig_result_hash_schema_version": 5, "cnig_complete_result_content_sha256": ( "b56b195b32914583e6599fe96b3d29977c52450c9755228d89ce7e192903ab3e" ), }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `ARTIFACT_KIND` | `"BESS_CNIG_FEATURE_POLICY_RESULT"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `POLICY_PATH`
+
+```python
+POLICY_PATH = Path("configs/planning/muret_bess_cnig_feature_policy.yaml")
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_policy_pins_all_twelve_exact_muret_decisions` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_policy_complete_snapshot_is_immutable` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_policy_text_drift` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_source_lock_drift` (value argument/reference), `tests/unit/test_road_vehicle_proxy_policy.py::test_checked_in_policy_hash_binds_exact_file_bytes` (value argument/reference).
+
+#### `POLICY_SCOPE`
+
+```python
+POLICY_SCOPE = "OFFICIAL_CNIG_CODE_MEANING_ONLY"
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` (import/re-export), `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import/re-export).
+
+#### `STATUS_PRIORITIES`
+
+```python
+STATUS_PRIORITIES = {
+    "LIKELY_MATERIAL_CONSTRAINT": 50,
+    "UNKNOWN": 40,
+    "MATERIAL_REVIEW_REQUIRED": 30,
+    "DESIGN_REVIEW_REQUIRED": 20,
+    "CONTEXT_REVIEW_REQUIRED": 10,
+}
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `tests/unit/test_bess_planning_feature_policy.py::_policy_entry` (value argument/reference), `tests/unit/test_bess_planning_feature_policy.py::_policy_payload` (value argument/reference).
+
+#### `EXPECTED_MURET_DECISIONS`
+
+```python
+EXPECTED_MURET_DECISIONS = {
+    ("INFORMATION", "02", "00"): ("CONTEXT_REVIEW_REQUIRED", "HIGH"),
+    ("INFORMATION", "14", "00"): ("CONTEXT_REVIEW_REQUIRED", "HIGH"),
+    ("INFORMATION", "27", "00"): ("CONTEXT_REVIEW_REQUIRED", "HIGH"),
+    ("INFORMATION", "99", "00"): ("UNKNOWN", "LOW"),
+    ("PRESCRIPTION", "01", "00"): ("LIKELY_MATERIAL_CONSTRAINT", "HIGH"),
+    ("PRESCRIPTION", "05", "00"): ("MATERIAL_REVIEW_REQUIRED", "HIGH"),
+    ("PRESCRIPTION", "07", "00"): ("LIKELY_MATERIAL_CONSTRAINT", "MEDIUM"),
+    ("PRESCRIPTION", "07", "04"): ("LIKELY_MATERIAL_CONSTRAINT", "HIGH"),
+    ("PRESCRIPTION", "15", "00"): ("DESIGN_REVIEW_REQUIRED", "MEDIUM"),
+    ("PRESCRIPTION", "15", "01"): ("DESIGN_REVIEW_REQUIRED", "HIGH"),
+    ("PRESCRIPTION", "17", "00"): ("MATERIAL_REVIEW_REQUIRED", "MEDIUM"),
+    ("PRESCRIPTION", "18", "00"): ("MATERIAL_REVIEW_REQUIRED", "HIGH"),
+}
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `EXPECTED_POLICY_ENTRIES_SHA256`
+
+```python
+EXPECTED_POLICY_ENTRIES_SHA256 = (
+    "1d3e63f1123000402065b74402cb1e2295db2ac5655209ce410aaf36bfc2be91"
+)
+```
+
+Hash identity, algorithm, or canonical-content field used by the named integrity contract.
+
+#### `EXPECTED_POLICY_SHA256`
+
+```python
+EXPECTED_POLICY_SHA256 = (
+    "1cfca0eb3d777e9b6604748e8a81609abe7b728de8d0695711cd569180df6489"
+)
+```
+
+Hash identity, algorithm, or canonical-content field used by the named integrity contract.
+
+#### `EXPECTED_POLICY_TABLE_SHA256`
+
+```python
+EXPECTED_POLICY_TABLE_SHA256 = (
+    "225105fe488e21f8aa080751812dde1671340c26620cae1d8372c2e59488ed41"
+)
+```
+
+Hash identity, algorithm, or canonical-content field used by the named integrity contract.
+
+#### `EXPECTED_COMPLETE_RESULT_SHA256`
+
+```python
+EXPECTED_COMPLETE_RESULT_SHA256 = (
+    "84a59b418f5a53bc61df73296964b2847cc5d3529c10d0c6912c96222edba09c"
+)
+```
+
+Hash identity, algorithm, or canonical-content field used by the named integrity contract.
+
+#### `EXPECTED_SOURCE_LOCK`
+
+```python
+EXPECTED_SOURCE_LOCK = {
+    "document_id": "33edb4c9f6943c88d8d92518bff20bec",
+    "archive_sha256": (
+        "9d6677cd6634b56b712311042f0cc714d5ca42a38f82a417b27dd473255d7d93"
+    ),
+    "cnig_profile": "cnig_plu_2017_muret_observed_pairs_v2",
+    "cnig_profile_schema_version": 2,
+    "cnig_profile_sha256": (
+        "5611b814eb4bc057578b908c6505094f9df5d2c2bf4ca126629b1362983c47ee"
+    ),
+    "cnig_result_hash_schema_version": 5,
+    "cnig_complete_result_content_sha256": (
+        "b56b195b32914583e6599fe96b3d29977c52450c9755228d89ce7e192903ab3e"
+    ),
+}
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `ARTIFACT_KIND`
+
+```python
+ARTIFACT_KIND = "BESS_CNIG_FEATURE_POLICY_RESULT"
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
 ### `test_policy_envelope_requires_exact_type_and_accepts_valid_schema_v1.DerivedPolicyResult`
 
-**Purpose:** Carries an immutable stage/result envelope whose fields and hashes are consumed by downstream validation.
+**Purpose:** Encapsulates the test behavior implemented by its exact methods and attributes below.
+
+**Kind:** class.
 
 **Inheritance:** `BessPlanningFeaturePolicyResult`.
 
-**Model form and mutability:** class inheriting from `BessPlanningFeaturePolicyResult`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields:** none declared directly on this class.
 
-- No annotated instance fields are declared directly on this class.
+**Interface consumers**
 
-**Validators and methods:**
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_exact_type_and_accepts_valid_schema_v1` via `DerivedPolicyResult`.
 
-- None.
+**Exact class source**
+
+```python
+class DerivedPolicyResult(BessPlanningFeaturePolicyResult):
+        pass
+```
+
 
 ## 6. Functions and methods
 
 ### `_canonical_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _canonical_sha256(value: object) -> str:
@@ -91,71 +233,88 @@ def _canonical_sha256(value: object) -> str:
 
 **Purpose**
 
-Implements canonical sha256 according to the exact implementation and guards in this file.
+Private `test` helper for canonical sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+sha256(json.dumps(value, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest()
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `sha256(json.dumps(value, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest()`.
-
-**Algorithm**
-
-1. Returns `sha256(json.dumps(value, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest()`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `sha256`, `sha256(json.dumps(value, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `json.dumps`, `json.dumps(value, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(',', ':')).encode`, `sha256`, `sha256(json.dumps(value, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(',', ':')).encode('utf-8')).hexdigest`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_frame_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_result_with_hashes` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_page_content_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_pages_content_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_content_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_source_selection_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_hits_content_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_frame_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_policy_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_factual_structure_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_mapping_input_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_result_frame_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_complete_result_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_config_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_source_records_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_section_content_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_input_frame_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_frame_hash` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_structure_result_content_sha256` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_policy_payload` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_validated_config` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_policy_complete_snapshot_is_immutable` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_policy_text_drift` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_source_lock_drift` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_duplicate_policy_pair_is_rejected` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_or_legal_conclusion_status_is_rejected` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_confidence_is_rejected` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_noncanonical_whitespace_is_rejected` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_entries_require_deterministic_order` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_canonical_hash_serialization_failure_is_controlled_and_chained` via `regulation_module._canonical_sha256`.
+- property/attribute access: `tests/unit/test_index_planning_regulation.py::test_canonical_hash_serialization_failure_is_controlled_and_chained` via `regulation_module._canonical_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_bess_planning_feature_policy.py` — `_policy_payload`
-- `tests/unit/test_bess_planning_feature_policy.py` — `_validated_config`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_checked_in_policy_complete_snapshot_is_immutable`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_duplicate_policy_pair_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_invalid_confidence_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_invalid_or_legal_conclusion_status_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_noncanonical_whitespace_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_entries_require_deterministic_order`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_profile_v1_snapshot_detects_policy_text_drift`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_profile_v1_snapshot_detects_source_lock_drift`
+```python
+def _canonical_sha256(value: object) -> str:
+    return sha256(
+        json.dumps(
+            value,
+            ensure_ascii=False,
+            allow_nan=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+```
 
-**Tests**
-
-- `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_policy_complete_snapshot_is_immutable`
-- `tests/unit/test_bess_planning_feature_policy.py::test_duplicate_policy_pair_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_invalid_confidence_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_invalid_or_legal_conclusion_status_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_noncanonical_whitespace_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_entries_require_deterministic_order`
-- `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_policy_text_drift`
-- `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_source_lock_drift`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_policy_entry`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _policy_entry(row: object, position: int) -> dict[str, object]:
@@ -163,60 +322,70 @@ def _policy_entry(row: object, position: int) -> dict[str, object]:
 
 **Purpose**
 
-Implements policy entry according to the exact implementation and guards in this file.
+Private `test` helper for policy entry; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `row` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `position` (`int`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[str, object]`.
+- Every observed return expression is reproduced without truncation:
+```python
+{'feature_family': row.feature_family, 'type_code': row.type_code, 'subtype_code': row.subtype_code, 'expected_official_label': row.official_label, 'expected_legal_reference': None if pd.isna(legal_reference) else legal_reference, 'expected_regulation_reference': None if pd.isna(regulation_reference) else regulation_reference, 'precheck_status': status, 'confidence': ('HIGH', 'MEDIUM', 'LOW')[position % 3], 'rationale': f'Official pair {row.feature_family} {row.type_code}/{row.subtype_code} requires conservative review.', 'required_human_action': 'Review the official code meaning and the separate local planning material.', 'limitations': 'This entry does not interpret local text or establish authorization or prohibition.'}
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[str, object]`. Observed return expression(s): `{'feature_family': row.feature_family, 'type_code': row.type_code, 'subtype_code': row.subtype_code, 'expected_official_label': row.official_label, 'expected_legal_reference': None if pd.isna(legal_reference) else legal_reference, 'expected_regulation_reference': None if pd.isna(regulation_reference) else regulation_reference, 'precheck_status': status, 'confidence': ('HIGH', 'MEDIUM', 'LOW')[pos…`.
-
-**Algorithm**
-
-1. Computes `statuses` from `tuple(STATUS_PRIORITIES)`.
-2. Computes `status` from `statuses[position % len(statuses)]`.
-3. Computes `legal_reference` from `row.legal_reference`.
-4. Computes `regulation_reference` from `row.regulation_or_annex_reference`.
-5. Returns `{'feature_family': row.feature_family, 'type_code': row.type_code, 'subtype_code': row.subtype_code, 'expected_official_label': row.official_label, 'expected_legal_reference': None if pd.isna(legal_reference) else legal_reference, 'expected_regulation_reference': None if pd.isna(regulation_reference) else regulation_reference, 'precheck_status': status, 'co…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `len`, `pd.isna`, `tuple`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_policy_payload` via `_policy_entry`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_bess_planning_feature_policy.py` — `_policy_payload`
+```python
+def _policy_entry(row: object, position: int) -> dict[str, object]:
+    statuses = tuple(STATUS_PRIORITIES)
+    status = statuses[position % len(statuses)]
+    legal_reference = row.legal_reference
+    regulation_reference = row.regulation_or_annex_reference
+    return {
+        "feature_family": row.feature_family,
+        "type_code": row.type_code,
+        "subtype_code": row.subtype_code,
+        "expected_official_label": row.official_label,
+        "expected_legal_reference": (
+            None if pd.isna(legal_reference) else legal_reference
+        ),
+        "expected_regulation_reference": (
+            None if pd.isna(regulation_reference) else regulation_reference
+        ),
+        "precheck_status": status,
+        "confidence": ("HIGH", "MEDIUM", "LOW")[position % 3],
+        "rationale": f"Official pair {row.feature_family} {row.type_code}/{row.subtype_code} requires conservative review.",
+        "required_human_action": "Review the official code meaning and the separate local planning material.",
+        "limitations": "This entry does not interpret local text or establish authorization or prohibition.",
+    }
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_compiled_fixture`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _compiled_fixture() -> tuple[
@@ -229,116 +398,95 @@ def _compiled_fixture() -> tuple[
 
 **Purpose**
 
-Implements compiled fixture according to the exact implementation and guards in this file.
+Private `test` helper for compiled fixture; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- No parameters.
+- Declared return annotation: `tuple[tuple[object, ...], object, BessPlanningFeaturePolicyConfig, BessPlanningFeaturePolicyResult]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(inputs, coded, config, result)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[tuple[object, ...], object, BessPlanningFeaturePolicyConfig, BessPlanningFeaturePolicyResult]`. Observed return expression(s): `(inputs, coded, config, result)`.
-
-**Algorithm**
-
-1. Computes `inputs` from `_integration_inputs()`.
-2. Computes `coded` from `resolve_planning_feature_codes(*inputs)`.
-3. Computes `config` from `BessPlanningFeaturePolicyConfig.model_validate(_policy_payload(inputs, coded))`.
-4. Computes `result` from `compile_bess_planning_feature_policy(*inputs, coded, config)`.
-5. Returns `(inputs, coded, config, result)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyConfig.model_validate`, `_integration_inputs`, `_policy_payload`, `compile_bess_planning_feature_policy`, `resolve_planning_feature_codes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_application_fixture` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_and_relation_inputs_are_preserved_and_not_mutated` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `_compiled_fixture`.
+- import/re-export: `tests/unit/test_apply_bess_planning_feature_policy.py::<module>` via `from test_bess_planning_feature_policy import (
+    _canonical_empty_policy_result,
+    _checked_in_policy_result,
+    _compiled_fixture,
+)`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_information_9900_official_references_remain_missing` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_null_reference_literal_is_rejected_by_local_envelope` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_source_lock_mismatch_is_rejected` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_in_memory_config_is_revalidated_before_compilation` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_table_is_sorted_and_preserves_leading_zero_codes` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_table_mutation_is_rejected` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_coordinated_policy_table_and_hash_mutation_is_rejected` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_persisted_parquet_and_json_readback_is_source_complete` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_manifest_model_is_strict_and_frozen` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_manifest_mismatch` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_duplicate_json_key` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_parquet_replacement` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_parses_the_exact_verified_parquet_bytes` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_step_7d_5b_2b_5_exposes_lightweight_policy_result_validator` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_manifest_rejects_nonportable_parquet_filename` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_manifest_rejects_unsupported_cnig_source_schema` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_artifact_loader_rejects_source_schema_before_parquet_read` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_rejects_canonical_empty_policy_table` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_accepts_one_exact_policy_row` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_cnig_profile_schema_two` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_cnig_result_schema_five` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_validates_every_intrinsic_row_contract` via `_compiled_fixture`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_exact_type_and_accepts_valid_schema_v1` via `_compiled_fixture`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_apply_bess_planning_feature_policy.py` — `_application_fixture`
-- `tests/unit/test_apply_bess_planning_feature_policy.py` — `test_application_and_public_validator_heavy_validation_counts`
-- `tests/unit/test_apply_bess_planning_feature_policy.py` — `test_feature_and_relation_inputs_are_preserved_and_not_mutated`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_artifact_loader_parses_the_exact_verified_parquet_bytes`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_artifact_loader_rejects_duplicate_json_key`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_artifact_loader_rejects_manifest_mismatch`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_artifact_loader_rejects_parquet_replacement`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_artifact_manifest_model_is_strict_and_frozen`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_compiler_wrong_source_lock_fast_fails_before_source_validation`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_coordinated_policy_table_and_hash_mutation_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_forged_matching_lock_still_runs_source_complete_validation`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_in_memory_config_is_revalidated_before_compilation`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_information_9900_official_references_remain_missing`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_locally_invalid_result_fast_fails_before_source_validation`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_null_reference_literal_is_rejected_by_local_envelope`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_persisted_parquet_and_json_readback_is_source_complete`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_artifact_loader_rejects_source_schema_before_parquet_read`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_envelope_accepts_one_exact_policy_row`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_envelope_rejects_canonical_empty_policy_table`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_envelope_requires_cnig_profile_schema_two`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_envelope_requires_cnig_result_schema_five`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_envelope_requires_exact_type_and_accepts_valid_schema_v1`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_envelope_validates_every_intrinsic_row_contract`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_manifest_rejects_nonportable_parquet_filename`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_manifest_rejects_unsupported_cnig_source_schema`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_table_is_sorted_and_preserves_leading_zero_codes`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_table_mutation_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_source_lock_mismatch_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_step_7d_5b_2b_5_exposes_lightweight_policy_result_validator`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status`
+```python
+def _compiled_fixture() -> tuple[
+    tuple[object, ...],
+    object,
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyResult,
+]:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    config = BessPlanningFeaturePolicyConfig.model_validate(
+        _policy_payload(inputs, coded)
+    )
+    result = compile_bess_planning_feature_policy(*inputs, coded, config)
+    return inputs, coded, config, result
+```
 
-**Tests**
-
-- `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts`
-- `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_and_relation_inputs_are_preserved_and_not_mutated`
-- `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_parses_the_exact_verified_parquet_bytes`
-- `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_duplicate_json_key`
-- `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_manifest_mismatch`
-- `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_parquet_replacement`
-- `tests/unit/test_bess_planning_feature_policy.py::test_artifact_manifest_model_is_strict_and_frozen`
-- `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation`
-- `tests/unit/test_bess_planning_feature_policy.py::test_coordinated_policy_table_and_hash_mutation_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation`
-- `tests/unit/test_bess_planning_feature_policy.py::test_in_memory_config_is_revalidated_before_compilation`
-- `tests/unit/test_bess_planning_feature_policy.py::test_information_9900_official_references_remain_missing`
-- `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation`
-- `tests/unit/test_bess_planning_feature_policy.py::test_null_reference_literal_is_rejected_by_local_envelope`
-- `tests/unit/test_bess_planning_feature_policy.py::test_persisted_parquet_and_json_readback_is_source_complete`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_artifact_loader_rejects_source_schema_before_parquet_read`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_accepts_one_exact_policy_row`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_rejects_canonical_empty_policy_table`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_cnig_profile_schema_two`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_cnig_result_schema_five`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_exact_type_and_accepts_valid_schema_v1`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_validates_every_intrinsic_row_contract`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_manifest_rejects_nonportable_parquet_filename`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_manifest_rejects_unsupported_cnig_source_schema`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_table_is_sorted_and_preserves_leading_zero_codes`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_table_mutation_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_source_lock_mismatch_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_step_7d_5b_2b_5_exposes_lightweight_policy_result_validator`
-- `tests/unit/test_bess_planning_feature_policy.py::test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_policy_payload`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _policy_payload(inputs: tuple[object, ...], coded: object) -> dict[str, object]:
@@ -346,82 +494,90 @@ def _policy_payload(inputs: tuple[object, ...], coded: object) -> dict[str, obje
 
 **Purpose**
 
-Implements policy payload according to the exact implementation and guards in this file.
+Private `test` helper for policy payload; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `inputs` (`tuple[object, ...]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `coded` (`object`; required) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[str, object]`.
+- Every observed return expression is reproduced without truncation:
+```python
+{'schema_version': 1, 'profile': 'synthetic_bess_cnig_feature_policy_v1', 'policy_scope': POLICY_SCOPE, 'local_feature_text_interpreted': False, 'local_regulation_content_interpreted': False, 'legal_conclusion_produced': False, 'source_lock': {'document_id': coded.source_document_id, 'archive_sha256': coded.source_archive_sha256, 'cnig_profile': coded.profile, 'cnig_profile_schema_version': coded.profile_schema_version, 'cnig_profile_sha256': coded.profile_sha256, 'cnig_result_hash_schema_version': coded.result_hash_schema_version, 'cnig_complete_result_content_sha256': coded.complete_result_content_sha256}, 'status_priority': dict(STATUS_PRIORITIES), 'canonical_policy_entries_sha256': _canonical_sha256(entries), 'entries': entries}
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[str, object]`. Observed return expression(s): `{'schema_version': 1, 'profile': 'synthetic_bess_cnig_feature_policy_v1', 'policy_scope': POLICY_SCOPE, 'local_feature_text_interpreted': False, 'local_regulation_content_interpreted': False, 'legal_conclusion_produced': False, 'source_lock': {'document_id': coded.source_document_id, 'archive_sha256': coded.source_archive_sha256, 'cnig_profile': coded.profile, 'cnig_profile_schema_version': coded…`.
-
-**Algorithm**
-
-1. Computes `entries` from `[_policy_entry(row, position) for position, row in enumerate(coded.code_dictionary.itertuples(index=False))]`.
-2. Returns `{'schema_version': 1, 'profile': 'synthetic_bess_cnig_feature_policy_v1', 'policy_scope': POLICY_SCOPE, 'local_feature_text_interpreted': False, 'local_regulation_content_interpreted': False, 'legal_conclusion_produced': False, 'source_lock': {'document_id': coded.source_document_id, 'archive_sha256': coded.source_archive_sha256, 'cnig_profile': coded.profi…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_canonical_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_sha256`, `_policy_entry`, `coded.code_dictionary.itertuples`, `dict`, `enumerate`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_compiled_fixture` via `_policy_payload`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_missing_policy_pair_is_rejected` via `_policy_payload`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_extra_policy_pair_is_rejected_without_type_fallback` via `_policy_payload`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_duplicate_policy_pair_is_rejected` via `_policy_payload`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_prescription_information_code_spaces_remain_separate` via `_policy_payload`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_official_meaning_mismatch_is_rejected` via `_policy_payload`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_or_legal_conclusion_status_is_rejected` via `_policy_payload`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_confidence_is_rejected` via `_policy_payload`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_status_priority_contract_is_strict` via `_policy_payload`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_unknown_yaml_field_is_rejected` via `_policy_payload`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_noncanonical_whitespace_is_rejected` via `_policy_payload`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_malformed_sha256_is_rejected` via `_policy_payload`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_entries_require_deterministic_order` via `_policy_payload`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `_policy_payload`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_bess_planning_feature_policy.py` — `_compiled_fixture`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_compiler_and_public_validator_invoke_source_complete_coding_validation`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_duplicate_policy_pair_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_extra_policy_pair_is_rejected_without_type_fallback`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_invalid_confidence_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_invalid_or_legal_conclusion_status_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_malformed_sha256_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_missing_policy_pair_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_noncanonical_whitespace_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_official_meaning_mismatch_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_entries_require_deterministic_order`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_prescription_information_code_spaces_remain_separate`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_status_priority_contract_is_strict`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_unknown_yaml_field_is_rejected`
+```python
+def _policy_payload(inputs: tuple[object, ...], coded: object) -> dict[str, object]:
+    entries = [
+        _policy_entry(row, position)
+        for position, row in enumerate(
+            coded.code_dictionary.itertuples(index=False),
+        )
+    ]
+    return {
+        "schema_version": 1,
+        "profile": "synthetic_bess_cnig_feature_policy_v1",
+        "policy_scope": POLICY_SCOPE,
+        "local_feature_text_interpreted": False,
+        "local_regulation_content_interpreted": False,
+        "legal_conclusion_produced": False,
+        "source_lock": {
+            "document_id": coded.source_document_id,
+            "archive_sha256": coded.source_archive_sha256,
+            "cnig_profile": coded.profile,
+            "cnig_profile_schema_version": coded.profile_schema_version,
+            "cnig_profile_sha256": coded.profile_sha256,
+            "cnig_result_hash_schema_version": coded.result_hash_schema_version,
+            "cnig_complete_result_content_sha256": (
+                coded.complete_result_content_sha256
+            ),
+        },
+        "status_priority": dict(STATUS_PRIORITIES),
+        "canonical_policy_entries_sha256": _canonical_sha256(entries),
+        "entries": entries,
+    }
+```
 
-**Tests**
-
-- `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation`
-- `tests/unit/test_bess_planning_feature_policy.py::test_duplicate_policy_pair_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_extra_policy_pair_is_rejected_without_type_fallback`
-- `tests/unit/test_bess_planning_feature_policy.py::test_invalid_confidence_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_invalid_or_legal_conclusion_status_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_malformed_sha256_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_missing_policy_pair_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_noncanonical_whitespace_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_official_meaning_mismatch_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_entries_require_deterministic_order`
-- `tests/unit/test_bess_planning_feature_policy.py::test_prescription_information_code_spaces_remain_separate`
-- `tests/unit/test_bess_planning_feature_policy.py::test_status_priority_contract_is_strict`
-- `tests/unit/test_bess_planning_feature_policy.py::test_unknown_yaml_field_is_rejected`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_validated_config`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validated_config(payload: dict[str, object]) -> BessPlanningFeaturePolicyConfig:
@@ -429,64 +585,58 @@ def _validated_config(payload: dict[str, object]) -> BessPlanningFeaturePolicyCo
 
 **Purpose**
 
-Validates and returns canonical config according to the exact implementation and guards in this file.
+Checks and returns canonical config; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `payload` (`dict[str, object]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessPlanningFeaturePolicyConfig`.
+- Every observed return expression is reproduced without truncation:
+```python
+BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessPlanningFeaturePolicyConfig`. Observed return expression(s): `BessPlanningFeaturePolicyConfig.model_validate(payload)`.
-
-**Algorithm**
-
-1. Computes `entries` from `payload['entries']`.
-2. Asserts `isinstance(entries, list)`.
-3. Computes `payload['canonical_policy_entries_sha256']` from `_canonical_sha256(entries)`.
-4. Returns `BessPlanningFeaturePolicyConfig.model_validate(payload)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_canonical_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `payload['canonical_policy_entries_sha256']`.
+- Input mutation: `payload['canonical_policy_entries_sha256']`.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyConfig.model_validate`, `_canonical_sha256`, `isinstance`.
+- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_validated_config`.
+- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_validated_config`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_missing_policy_pair_is_rejected` via `_validated_config`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_extra_policy_pair_is_rejected_without_type_fallback` via `_validated_config`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_prescription_information_code_spaces_remain_separate` via `_validated_config`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_official_meaning_mismatch_is_rejected` via `_validated_config`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_extra_policy_pair_is_rejected_without_type_fallback`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_missing_policy_pair_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_official_meaning_mismatch_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_prescription_information_code_spaces_remain_separate`
+```python
+def _validated_config(payload: dict[str, object]) -> BessPlanningFeaturePolicyConfig:
+    entries = payload["entries"]
+    assert isinstance(entries, list)
+    payload["canonical_policy_entries_sha256"] = _canonical_sha256(entries)
+    return BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
 
-**Tests**
-
-- `tests/unit/test_bess_planning_feature_policy.py::test_extra_policy_pair_is_rejected_without_type_fallback`
-- `tests/unit/test_bess_planning_feature_policy.py::test_missing_policy_pair_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_official_meaning_mismatch_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_prescription_information_code_spaces_remain_separate`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_artifact_manifest`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _artifact_manifest(
@@ -497,57 +647,69 @@ def _artifact_manifest(
 
 **Purpose**
 
-Implements artifact manifest according to the exact implementation and guards in this file.
+Private `test` helper for artifact manifest; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `result` (`BessPlanningFeaturePolicyResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `parquet` (`Path`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[str, object]`.
+- Every observed return expression is reproduced without truncation:
+```python
+{'schema_version': 2, 'artifact_kind': ARTIFACT_KIND, **{name: getattr(result, name) for name in scalar_names}, 'parquet_filename': parquet.name, 'parquet_row_count': len(result.policy_table), 'parquet_size_bytes': parquet.stat().st_size, 'parquet_sha256': sha256(parquet.read_bytes()).hexdigest(), 'policy_table_schema_signature': deterministic_frame_schema_signature(result.policy_table)}
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[str, object]`. Observed return expression(s): `{'schema_version': 2, 'artifact_kind': ARTIFACT_KIND, **{name: getattr(result, name) for name in scalar_names}, 'parquet_filename': parquet.name, 'parquet_row_count': len(result.policy_table), 'parquet_size_bytes': parquet.stat().st_size, 'parquet_sha256': sha256(parquet.read_bytes()).hexdigest(), 'policy_table_schema_signature': deterministic_frame_schema_signature(result.policy_table)}`.
-
-**Algorithm**
-
-1. Computes `scalar_names` from `tuple((field.name for field in fields(BessPlanningFeaturePolicyResult) if field.name != 'policy_table'))`.
-2. Returns `{'schema_version': 2, 'artifact_kind': ARTIFACT_KIND, **{name: getattr(result, name) for name in scalar_names}, 'parquet_filename': parquet.name, 'parquet_row_count': len(result.policy_table), 'parquet_size_bytes': parquet.stat().st_size, 'parquet_sha256': sha256(parquet.read_bytes()).hexdigest(), 'policy_table_schema_signature': deterministic_frame_schema_…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `parquet.read_bytes`, `sha256(parquet.read_bytes()).hexdigest`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: `parquet.read_bytes`, `parquet.stat`, `sha256(parquet.read_bytes()).hexdigest`.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `sha256`, `sha256(parquet.read_bytes()).hexdigest`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `deterministic_frame_schema_signature`, `fields`, `getattr`, `len`, `parquet.read_bytes`, `parquet.stat`, `sha256`, `sha256(parquet.read_bytes()).hexdigest`, `tuple`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_write_artifacts` via `_artifact_manifest`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_bess_planning_feature_policy.py` — `_write_artifacts`
+```python
+def _artifact_manifest(
+    result: BessPlanningFeaturePolicyResult,
+    parquet: Path,
+) -> dict[str, object]:
+    scalar_names = tuple(
+        field.name
+        for field in fields(BessPlanningFeaturePolicyResult)
+        if field.name != "policy_table"
+    )
+    return {
+        "schema_version": 2,
+        "artifact_kind": ARTIFACT_KIND,
+        **{name: getattr(result, name) for name in scalar_names},
+        "parquet_filename": parquet.name,
+        "parquet_row_count": len(result.policy_table),
+        "parquet_size_bytes": parquet.stat().st_size,
+        "parquet_sha256": sha256(parquet.read_bytes()).hexdigest(),
+        "policy_table_schema_signature": deterministic_frame_schema_signature(
+            result.policy_table
+        ),
+    }
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_write_artifacts`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _write_artifacts(
@@ -558,77 +720,84 @@ def _write_artifacts(
 
 **Purpose**
 
-Writes artifacts according to the exact implementation and guards in this file.
+Serializes artifacts; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `tmp_path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `result` (`BessPlanningFeaturePolicyResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[Path, Path, dict[str, object]]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(parquet, manifest_path, manifest)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[Path, Path, dict[str, object]]`. Observed return expression(s): `(parquet, manifest_path, manifest)`.
-
-**Algorithm**
-
-1. Computes `parquet` from `tmp_path / 'policy.parquet'`.
-2. Computes `manifest_path` from `tmp_path / 'policy.json'`.
-3. Calls `result.policy_table.to_parquet(parquet, index=True)` for its validation or side effect.
-4. Computes `manifest` from `_artifact_manifest(result, parquet)`.
-5. Calls `manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + '\n', encoding='utf-8')` for its validation or side effect.
-6. Returns `(parquet, manifest_path, manifest)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `manifest_path.write_text`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: `manifest_path.write_text`, `result.policy_table.to_parquet`.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_artifact_manifest`, `json.dumps`, `manifest_path.write_text`, `result.policy_table.to_parquet`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_relation_identity_artifact_corruption_fails_locally` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_controlling_relation_cannot_be_relabelled_contextual_in_artifact` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_valid_two_file_verified_byte_artifacts_and_source_readback` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_artifact_manifest_corruption_is_rejected` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_json_and_physical_replacement_are_rejected` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_verified_bytes_are_the_bytes_parsed` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_self_consistent_parcel_area_artifact_is_rejected` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_accepts_only_supplied_upstreams` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_manifest_filenames_are_casefold_unique` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_manifest_rejects_nonportable_filename` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_persisted_parquet_and_json_readback_is_source_complete` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_manifest_model_is_strict_and_frozen` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_manifest_mismatch` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_duplicate_json_key` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_parquet_replacement` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_parses_the_exact_verified_parquet_bytes` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_manifest_rejects_nonportable_parquet_filename` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_manifest_rejects_unsupported_cnig_source_schema` via `_write_artifacts`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_artifact_loader_rejects_source_schema_before_parquet_read` via `_write_artifacts`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_artifact_loader_parses_the_exact_verified_parquet_bytes`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_artifact_loader_rejects_duplicate_json_key`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_artifact_loader_rejects_manifest_mismatch`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_artifact_loader_rejects_parquet_replacement`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_artifact_manifest_model_is_strict_and_frozen`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_persisted_parquet_and_json_readback_is_source_complete`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_artifact_loader_rejects_source_schema_before_parquet_read`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_manifest_rejects_nonportable_parquet_filename`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_manifest_rejects_unsupported_cnig_source_schema`
+```python
+def _write_artifacts(
+    tmp_path: Path,
+    result: BessPlanningFeaturePolicyResult,
+) -> tuple[Path, Path, dict[str, object]]:
+    parquet = tmp_path / "policy.parquet"
+    manifest_path = tmp_path / "policy.json"
+    result.policy_table.to_parquet(parquet, index=True)
+    manifest = _artifact_manifest(result, parquet)
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return parquet, manifest_path, manifest
+```
 
-**Tests**
-
-- `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_parses_the_exact_verified_parquet_bytes`
-- `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_duplicate_json_key`
-- `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_manifest_mismatch`
-- `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_parquet_replacement`
-- `tests/unit/test_bess_planning_feature_policy.py::test_artifact_manifest_model_is_strict_and_frozen`
-- `tests/unit/test_bess_planning_feature_policy.py::test_persisted_parquet_and_json_readback_is_source_complete`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_artifact_loader_rejects_source_schema_before_parquet_read`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_manifest_rejects_nonportable_parquet_filename`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_manifest_rejects_unsupported_cnig_source_schema`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_checked_in_policy_result`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _checked_in_policy_result() -> BessPlanningFeaturePolicyResult:
@@ -636,70 +805,2147 @@ def _checked_in_policy_result() -> BessPlanningFeaturePolicyResult:
 
 **Purpose**
 
-Implements checked in policy result according to the exact implementation and guards in this file.
+Private `test` helper for checked in policy result; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- No parameters.
+- Declared return annotation: `BessPlanningFeaturePolicyResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+policy_module._build_result(config, locked_coded)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessPlanningFeaturePolicyResult`. Observed return expression(s): `policy_module._build_result(config, locked_coded)`.
-
-**Algorithm**
-
-1. Computes `inputs` from `_integration_inputs()`.
-2. Computes `coded` from `resolve_planning_feature_codes(*inputs)`.
-3. Computes `config` from `load_bess_planning_feature_policy_config(POLICY_PATH)`.
-4. Computes `cnig_profile` from `load_cnig_feature_code_profile(Path('configs/planning/cnig_plu_2017_feature_codes.yaml'))`.
-5. Computes `cnig_module` from `importlib.import_module('landscout.stages.resolve_planning_feature_codes')`.
-6. Computes `policy_module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-7. Computes `locked_coded` from `replace(coded, profile=config.source_lock.cnig_profile, profile_schema_version=config.source_lock.cnig_profile_schema_version, profile_sha256=config.source_lock.cnig_profile_sha256, source_document_id=config.source_lock.document_id, source_archive_sha256=config.source_lock.archive_sha256, result_hash_schema_version=co…`.
-8. Returns `policy_module._build_result(config, locked_coded)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `load_bess_planning_feature_policy_config`, `load_cnig_feature_code_profile`, `replace`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `Path`, `_integration_inputs`, `cnig_module._dictionary`, `importlib.import_module`, `load_bess_planning_feature_policy_config`, `load_cnig_feature_code_profile`, `policy_module._build_result`, `replace`, `resolve_planning_feature_codes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_exact_pair_identity_keeps_family_subtype_and_leading_zeroes_distinct` via `_checked_in_policy_result`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_pair_remains_present_with_true_null_decision_fields` via `_checked_in_policy_result`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_inconsistent_official_status_and_policy_match_is_rejected` via `_checked_in_policy_result`.
+- import/re-export: `tests/unit/test_apply_bess_planning_feature_policy.py::<module>` via `from test_bess_planning_feature_policy import (
+    _canonical_empty_policy_result,
+    _checked_in_policy_result,
+    _compiled_fixture,
+)`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_compiled_policy_result_hashes_are_pinned` via `_checked_in_policy_result`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_accepts_current_twelve_row_snapshot` via `_checked_in_policy_result`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_apply_bess_planning_feature_policy.py` — `test_exact_pair_identity_keeps_family_subtype_and_leading_zeroes_distinct`
-- `tests/unit/test_apply_bess_planning_feature_policy.py` — `test_inconsistent_official_status_and_policy_match_is_rejected`
-- `tests/unit/test_apply_bess_planning_feature_policy.py` — `test_unknown_pair_remains_present_with_true_null_decision_fields`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_checked_in_compiled_policy_result_hashes_are_pinned`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_envelope_accepts_current_twelve_row_snapshot`
+```python
+def _checked_in_policy_result() -> BessPlanningFeaturePolicyResult:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    config = load_bess_planning_feature_policy_config(POLICY_PATH)
+    cnig_profile = load_cnig_feature_code_profile(
+        Path("configs/planning/cnig_plu_2017_feature_codes.yaml")
+    )
+    cnig_module = importlib.import_module(
+        "landscout.stages.resolve_planning_feature_codes"
+    )
+    policy_module = importlib.import_module(
+        "landscout.stages.bess_planning_feature_policy"
+    )
+    locked_coded = replace(
+        coded,
+        profile=config.source_lock.cnig_profile,
+        profile_schema_version=config.source_lock.cnig_profile_schema_version,
+        profile_sha256=config.source_lock.cnig_profile_sha256,
+        source_document_id=config.source_lock.document_id,
+        source_archive_sha256=config.source_lock.archive_sha256,
+        result_hash_schema_version=(config.source_lock.cnig_result_hash_schema_version),
+        complete_result_content_sha256=(
+            config.source_lock.cnig_complete_result_content_sha256
+        ),
+        code_dictionary=cnig_module._dictionary(
+            cnig_profile, config.source_lock.cnig_profile_sha256
+        ),
+    )
+    return policy_module._build_result(config, locked_coded)
+```
 
-**Tests**
-
-- `tests/unit/test_apply_bess_planning_feature_policy.py::test_exact_pair_identity_keeps_family_subtype_and_leading_zeroes_distinct`
-- `tests/unit/test_apply_bess_planning_feature_policy.py::test_inconsistent_official_status_and_policy_match_is_rejected`
-- `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_pair_remains_present_with_true_null_decision_fields`
-- `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_compiled_policy_result_hashes_are_pinned`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_accepts_current_twelve_row_snapshot`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
+### `test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs, coded, config, result = _compiled_fixture()
+```
+
+**Action**
+
+```python
+validate_bess_planning_feature_policy_result(*inputs, coded, config, result)
+```
+
+**Expected result**
+
+```python
+assert result.policy_schema_version == 1
+assert result.result_hash_schema_version == 1
+assert result.policy_scope == POLICY_SCOPE
+assert len(result.policy_table) == len(coded.code_dictionary)
+assert not any(
+        column in result.policy_table.columns
+        for column in ("parcel_id", "planning_feature_id", "relation_type")
+    )
+assert result.policy_table["local_feature_text_interpreted"].eq(False).all()
+assert result.policy_table["local_regulation_content_interpreted"].eq(False).all()
+assert result.policy_table["legal_conclusion_produced"].eq(False).all()
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status() -> (
+    None
+):
+    inputs, coded, config, result = _compiled_fixture()
+    validate_bess_planning_feature_policy_result(*inputs, coded, config, result)
+    assert result.policy_schema_version == 1
+    assert result.result_hash_schema_version == 1
+    assert result.policy_scope == POLICY_SCOPE
+    assert len(result.policy_table) == len(coded.code_dictionary)
+    assert not any(
+        column in result.policy_table.columns
+        for column in ("parcel_id", "planning_feature_id", "relation_type")
+    )
+    assert result.policy_table["local_feature_text_interpreted"].eq(False).all()
+    assert result.policy_table["local_regulation_content_interpreted"].eq(False).all()
+    assert result.policy_table["legal_conclusion_produced"].eq(False).all()
+```
+
+### `test_checked_in_policy_pins_all_twelve_exact_muret_decisions`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+actual = {
+        (entry.feature_family, entry.type_code, entry.subtype_code): (
+            entry.precheck_status,
+            entry.confidence,
+        )
+        for entry in config.entries
+    }
+```
+
+**Action**
+
+```python
+config = load_bess_planning_feature_policy_config(POLICY_PATH)
+```
+
+**Expected result**
+
+```python
+assert actual == EXPECTED_MURET_DECISIONS
+assert config.status_priority == STATUS_PRIORITIES
+assert config.policy_scope == POLICY_SCOPE
+assert config.local_feature_text_interpreted is False
+assert config.local_regulation_content_interpreted is False
+assert config.legal_conclusion_produced is False
+assert len(config.entries) == 12
+assert ("PRESCRIPTION", "15", "00") in actual
+assert ("PRESCRIPTION", "15", "01") in actual
+assert all(len(key[1]) == len(key[2]) == 2 for key in actual)
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_checked_in_policy_pins_all_twelve_exact_muret_decisions() -> None:
+    config = load_bess_planning_feature_policy_config(POLICY_PATH)
+    actual = {
+        (entry.feature_family, entry.type_code, entry.subtype_code): (
+            entry.precheck_status,
+            entry.confidence,
+        )
+        for entry in config.entries
+    }
+    assert actual == EXPECTED_MURET_DECISIONS
+    assert config.status_priority == STATUS_PRIORITIES
+    assert config.policy_scope == POLICY_SCOPE
+    assert config.local_feature_text_interpreted is False
+    assert config.local_regulation_content_interpreted is False
+    assert config.legal_conclusion_produced is False
+    assert len(config.entries) == 12
+    assert ("PRESCRIPTION", "15", "00") in actual
+    assert ("PRESCRIPTION", "15", "01") in actual
+    assert all(len(key[1]) == len(key[2]) == 2 for key in actual)
+```
+
+### `test_checked_in_policy_complete_snapshot_is_immutable`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+config = load_bess_planning_feature_policy_config(POLICY_PATH)
+```
+
+**Expected result**
+
+```python
+assert config.schema_version == 1
+assert config.profile == "muret_bess_cnig_feature_policy_v1"
+assert config.policy_scope == POLICY_SCOPE
+assert config.local_feature_text_interpreted is False
+assert config.local_regulation_content_interpreted is False
+assert config.legal_conclusion_produced is False
+assert config.source_lock.model_dump(mode="json") == EXPECTED_SOURCE_LOCK
+assert config.status_priority == STATUS_PRIORITIES
+assert config.canonical_policy_entries_sha256 == EXPECTED_POLICY_ENTRIES_SHA256
+assert (
+        _canonical_sha256([entry.model_dump(mode="json") for entry in config.entries])
+        == EXPECTED_POLICY_ENTRIES_SHA256
+    )
+assert _canonical_sha256(config.model_dump(mode="json")) == EXPECTED_POLICY_SHA256
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_checked_in_policy_complete_snapshot_is_immutable() -> None:
+    config = load_bess_planning_feature_policy_config(POLICY_PATH)
+    assert config.schema_version == 1
+    assert config.profile == "muret_bess_cnig_feature_policy_v1"
+    assert config.policy_scope == POLICY_SCOPE
+    assert config.local_feature_text_interpreted is False
+    assert config.local_regulation_content_interpreted is False
+    assert config.legal_conclusion_produced is False
+    assert config.source_lock.model_dump(mode="json") == EXPECTED_SOURCE_LOCK
+    assert config.status_priority == STATUS_PRIORITIES
+    assert config.canonical_policy_entries_sha256 == EXPECTED_POLICY_ENTRIES_SHA256
+    assert (
+        _canonical_sha256([entry.model_dump(mode="json") for entry in config.entries])
+        == EXPECTED_POLICY_ENTRIES_SHA256
+    )
+    assert _canonical_sha256(config.model_dump(mode="json")) == EXPECTED_POLICY_SHA256
+```
+
+### `test_checked_in_compiled_policy_result_hashes_are_pinned`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+result = _checked_in_policy_result()
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert result.policy_table_content_sha256 == EXPECTED_POLICY_TABLE_SHA256
+assert result.complete_result_content_sha256 == EXPECTED_COMPLETE_RESULT_SHA256
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_checked_in_compiled_policy_result_hashes_are_pinned() -> None:
+    result = _checked_in_policy_result()
+    assert result.policy_table_content_sha256 == EXPECTED_POLICY_TABLE_SHA256
+    assert result.complete_result_content_sha256 == EXPECTED_COMPLETE_RESULT_SHA256
+```
+
+### `test_profile_v1_snapshot_detects_policy_text_drift`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `field`.
+
+**Setup**
+
+```python
+payload = config.model_dump(mode="json")
+entries = payload["entries"]
+entries[0][field] = f"{entries[0][field]} Changed."
+payload["canonical_policy_entries_sha256"] = _canonical_sha256(entries)
+changed = BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+**Action**
+
+```python
+config = load_bess_planning_feature_policy_config(POLICY_PATH)
+```
+
+**Expected result**
+
+```python
+assert isinstance(entries, list)
+assert changed.profile == "muret_bess_cnig_feature_policy_v1"
+assert _canonical_sha256(changed.model_dump(mode="json")) != EXPECTED_POLICY_SHA256
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_profile_v1_snapshot_detects_policy_text_drift(field: str) -> None:
+    config = load_bess_planning_feature_policy_config(POLICY_PATH)
+    payload = config.model_dump(mode="json")
+    entries = payload["entries"]
+    assert isinstance(entries, list)
+    entries[0][field] = f"{entries[0][field]} Changed."
+    payload["canonical_policy_entries_sha256"] = _canonical_sha256(entries)
+    changed = BessPlanningFeaturePolicyConfig.model_validate(payload)
+    assert changed.profile == "muret_bess_cnig_feature_policy_v1"
+    assert _canonical_sha256(changed.model_dump(mode="json")) != EXPECTED_POLICY_SHA256
+```
+
+### `test_profile_v1_snapshot_detects_source_lock_drift`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+payload = config.model_dump(mode="json")
+source_lock = payload["source_lock"]
+source_lock["document_id"] = "another-document"
+changed = BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+**Action**
+
+```python
+config = load_bess_planning_feature_policy_config(POLICY_PATH)
+```
+
+**Expected result**
+
+```python
+assert isinstance(source_lock, dict)
+assert changed.profile == "muret_bess_cnig_feature_policy_v1"
+assert _canonical_sha256(changed.model_dump(mode="json")) != EXPECTED_POLICY_SHA256
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_profile_v1_snapshot_detects_source_lock_drift() -> None:
+    config = load_bess_planning_feature_policy_config(POLICY_PATH)
+    payload = config.model_dump(mode="json")
+    source_lock = payload["source_lock"]
+    assert isinstance(source_lock, dict)
+    source_lock["document_id"] = "another-document"
+    changed = BessPlanningFeaturePolicyConfig.model_validate(payload)
+    assert changed.profile == "muret_bess_cnig_feature_policy_v1"
+    assert _canonical_sha256(changed.model_dump(mode="json")) != EXPECTED_POLICY_SHA256
+```
+
+### `test_pandas_is_a_direct_bounded_runtime_dependency`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+project = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))[
+        "project"
+    ]
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert "pandas>=3.0,<4" in project["dependencies"]
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_pandas_is_a_direct_bounded_runtime_dependency() -> None:
+    project = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))[
+        "project"
+    ]
+    assert "pandas>=3.0,<4" in project["dependencies"]
+```
+
+### `test_information_9900_official_references_remain_missing`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+_, _, _, result = _compiled_fixture()
+row = result.policy_table.loc[
+        (result.policy_table["feature_family"] == "INFORMATION")
+        & (result.policy_table["type_code"] == "99")
+        & (result.policy_table["subtype_code"] == "00")
+    ].iloc[0]
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert pd.isna(row["official_legal_reference"])
+assert pd.isna(row["official_regulation_reference"])
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_information_9900_official_references_remain_missing() -> None:
+    _, _, _, result = _compiled_fixture()
+    row = result.policy_table.loc[
+        (result.policy_table["feature_family"] == "INFORMATION")
+        & (result.policy_table["type_code"] == "99")
+        & (result.policy_table["subtype_code"] == "00")
+    ].iloc[0]
+    assert pd.isna(row["official_legal_reference"])
+    assert pd.isna(row["official_regulation_reference"])
+```
+
+### `test_null_reference_literal_is_rejected_by_local_envelope`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `column`, `literal`.
+
+**Setup**
+
+```python
+_, _, _, result = _compiled_fixture()
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+table = result.policy_table.copy(deep=True)
+row = table.index[
+        (table["feature_family"] == "INFORMATION")
+        & (table["type_code"] == "99")
+        & (table["subtype_code"] == "00")
+    ][0]
+table.loc[row, column] = literal
+coordinated = module._result_with_hashes(replace(result, policy_table=table))
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(BessPlanningFeaturePolicyError, match="reference|null|missing"):
+        module._validate_result_envelope(coordinated)
+```
+
+**Regression protected**
+
+Pins true-null handling and prevents textual or malformed null-like values from changing the contract.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_null_reference_literal_is_rejected_by_local_envelope(
+    column: str,
+    literal: str,
+) -> None:
+    _, _, _, result = _compiled_fixture()
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    table = result.policy_table.copy(deep=True)
+    row = table.index[
+        (table["feature_family"] == "INFORMATION")
+        & (table["type_code"] == "99")
+        & (table["subtype_code"] == "00")
+    ][0]
+    table.loc[row, column] = literal
+    coordinated = module._result_with_hashes(replace(result, policy_table=table))
+    with pytest.raises(BessPlanningFeaturePolicyError, match="reference|null|missing"):
+        module._validate_result_envelope(coordinated)
+```
+
+### `test_source_lock_mismatch_is_rejected`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `field`, `value`.
+
+**Setup**
+
+```python
+inputs, coded, config, _ = _compiled_fixture()
+changed_lock = config.source_lock.model_copy(update={field: value})
+changed = config.model_copy(update={"source_lock": changed_lock})
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(BessPlanningFeaturePolicyError, match="lock|source|CNIG"):
+        compile_bess_planning_feature_policy(*inputs, coded, changed)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_source_lock_mismatch_is_rejected(field: str, value: object) -> None:
+    inputs, coded, config, _ = _compiled_fixture()
+    changed_lock = config.source_lock.model_copy(update={field: value})
+    changed = config.model_copy(update={"source_lock": changed_lock})
+    with pytest.raises(BessPlanningFeaturePolicyError, match="lock|source|CNIG"):
+        compile_bess_planning_feature_policy(*inputs, coded, changed)
+```
+
+### `test_missing_policy_pair_is_rejected`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs = _integration_inputs()
+payload = _policy_payload(inputs, coded)
+entries = payload["entries"]
+entries.pop()
+config = _validated_config(payload)
+```
+
+**Action**
+
+```python
+coded = resolve_planning_feature_codes(*inputs)
+```
+
+**Expected result**
+
+```python
+assert isinstance(entries, list)
+with pytest.raises(BessPlanningFeaturePolicyError, match="missing|pair"):
+        compile_bess_planning_feature_policy(*inputs, coded, config)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_missing_policy_pair_is_rejected() -> None:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    payload = _policy_payload(inputs, coded)
+    entries = payload["entries"]
+    assert isinstance(entries, list)
+    entries.pop()
+    config = _validated_config(payload)
+    with pytest.raises(BessPlanningFeaturePolicyError, match="missing|pair"):
+        compile_bess_planning_feature_policy(*inputs, coded, config)
+```
+
+### `test_extra_policy_pair_is_rejected_without_type_fallback`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs = _integration_inputs()
+payload = _policy_payload(inputs, coded)
+entries = payload["entries"]
+extra = dict(entries[-1])
+extra.update(
+        {
+            "feature_family": "INFORMATION",
+            "type_code": "98",
+            "subtype_code": "00",
+            "expected_official_label": "Synthetic extra official pair",
+            "expected_legal_reference": None,
+            "expected_regulation_reference": None,
+        }
+    )
+entries.append(extra)
+entries.sort(
+        key=lambda row: (row["feature_family"], row["type_code"], row["subtype_code"])
+    )
+config = _validated_config(payload)
+```
+
+**Action**
+
+```python
+coded = resolve_planning_feature_codes(*inputs)
+```
+
+**Expected result**
+
+```python
+assert isinstance(entries, list)
+with pytest.raises(BessPlanningFeaturePolicyError, match="extra|pair"):
+        compile_bess_planning_feature_policy(*inputs, coded, config)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_extra_policy_pair_is_rejected_without_type_fallback() -> None:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    payload = _policy_payload(inputs, coded)
+    entries = payload["entries"]
+    assert isinstance(entries, list)
+    extra = dict(entries[-1])
+    extra.update(
+        {
+            "feature_family": "INFORMATION",
+            "type_code": "98",
+            "subtype_code": "00",
+            "expected_official_label": "Synthetic extra official pair",
+            "expected_legal_reference": None,
+            "expected_regulation_reference": None,
+        }
+    )
+    entries.append(extra)
+    entries.sort(
+        key=lambda row: (row["feature_family"], row["type_code"], row["subtype_code"])
+    )
+    config = _validated_config(payload)
+    with pytest.raises(BessPlanningFeaturePolicyError, match="extra|pair"):
+        compile_bess_planning_feature_policy(*inputs, coded, config)
+```
+
+### `test_duplicate_policy_pair_is_rejected`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs = _integration_inputs()
+payload = _policy_payload(inputs, coded)
+entries = payload["entries"]
+entries.append(dict(entries[0]))
+payload["canonical_policy_entries_sha256"] = _canonical_sha256(entries)
+```
+
+**Action**
+
+```python
+coded = resolve_planning_feature_codes(*inputs)
+```
+
+**Expected result**
+
+```python
+assert isinstance(entries, list)
+with pytest.raises(ValidationError, match="duplicate|pair"):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_duplicate_policy_pair_is_rejected() -> None:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    payload = _policy_payload(inputs, coded)
+    entries = payload["entries"]
+    assert isinstance(entries, list)
+    entries.append(dict(entries[0]))
+    payload["canonical_policy_entries_sha256"] = _canonical_sha256(entries)
+    with pytest.raises(ValidationError, match="duplicate|pair"):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+### `test_prescription_information_code_spaces_remain_separate`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs = _integration_inputs()
+payload = _policy_payload(inputs, coded)
+entries = payload["entries"]
+entries[0]["feature_family"] = "PRESCRIPTION"
+entries.sort(
+        key=lambda row: (row["feature_family"], row["type_code"], row["subtype_code"])
+    )
+config = _validated_config(payload)
+```
+
+**Action**
+
+```python
+coded = resolve_planning_feature_codes(*inputs)
+```
+
+**Expected result**
+
+```python
+assert isinstance(entries, list)
+with pytest.raises(BessPlanningFeaturePolicyError, match="missing|extra|pair"):
+        compile_bess_planning_feature_policy(*inputs, coded, config)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_prescription_information_code_spaces_remain_separate() -> None:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    payload = _policy_payload(inputs, coded)
+    entries = payload["entries"]
+    assert isinstance(entries, list)
+    entries[0]["feature_family"] = "PRESCRIPTION"
+    entries.sort(
+        key=lambda row: (row["feature_family"], row["type_code"], row["subtype_code"])
+    )
+    config = _validated_config(payload)
+    with pytest.raises(BessPlanningFeaturePolicyError, match="missing|extra|pair"):
+        compile_bess_planning_feature_policy(*inputs, coded, config)
+```
+
+### `test_official_meaning_mismatch_is_rejected`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `field`, `message`, `value`.
+
+**Setup**
+
+```python
+inputs = _integration_inputs()
+payload = _policy_payload(inputs, coded)
+entries = payload["entries"]
+entries[0][field] = value
+config = _validated_config(payload)
+```
+
+**Action**
+
+```python
+coded = resolve_planning_feature_codes(*inputs)
+```
+
+**Expected result**
+
+```python
+assert isinstance(entries, list)
+with pytest.raises(BessPlanningFeaturePolicyError, match=message):
+        compile_bess_planning_feature_policy(*inputs, coded, config)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_official_meaning_mismatch_is_rejected(
+    field: str,
+    value: object,
+    message: str,
+) -> None:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    payload = _policy_payload(inputs, coded)
+    entries = payload["entries"]
+    assert isinstance(entries, list)
+    entries[0][field] = value
+    config = _validated_config(payload)
+    with pytest.raises(BessPlanningFeaturePolicyError, match=message):
+        compile_bess_planning_feature_policy(*inputs, coded, config)
+```
+
+### `test_invalid_or_legal_conclusion_status_is_rejected`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `status`.
+
+**Setup**
+
+```python
+inputs = _integration_inputs()
+payload = _policy_payload(inputs, coded)
+entries = payload["entries"]
+entries[0]["precheck_status"] = status
+payload["canonical_policy_entries_sha256"] = _canonical_sha256(entries)
+```
+
+**Action**
+
+```python
+coded = resolve_planning_feature_codes(*inputs)
+```
+
+**Expected result**
+
+```python
+assert isinstance(entries, list)
+with pytest.raises(ValidationError):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_invalid_or_legal_conclusion_status_is_rejected(status: str) -> None:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    payload = _policy_payload(inputs, coded)
+    entries = payload["entries"]
+    assert isinstance(entries, list)
+    entries[0]["precheck_status"] = status
+    payload["canonical_policy_entries_sha256"] = _canonical_sha256(entries)
+    with pytest.raises(ValidationError):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+### `test_invalid_confidence_is_rejected`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs = _integration_inputs()
+payload = _policy_payload(inputs, coded)
+entries = payload["entries"]
+entries[0]["confidence"] = "CERTAIN"
+payload["canonical_policy_entries_sha256"] = _canonical_sha256(entries)
+```
+
+**Action**
+
+```python
+coded = resolve_planning_feature_codes(*inputs)
+```
+
+**Expected result**
+
+```python
+assert isinstance(entries, list)
+with pytest.raises(ValidationError):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_invalid_confidence_is_rejected() -> None:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    payload = _policy_payload(inputs, coded)
+    entries = payload["entries"]
+    assert isinstance(entries, list)
+    entries[0]["confidence"] = "CERTAIN"
+    payload["canonical_policy_entries_sha256"] = _canonical_sha256(entries)
+    with pytest.raises(ValidationError):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+### `test_status_priority_contract_is_strict`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `mutation`.
+
+**Setup**
+
+```python
+inputs = _integration_inputs()
+payload = _policy_payload(inputs, coded)
+priorities = payload["status_priority"]
+if mutation == "duplicate":
+        priorities["UNKNOWN"] = priorities["LIKELY_MATERIAL_CONSTRAINT"]
+    elif mutation == "missing":
+        priorities.pop("UNKNOWN")
+    elif mutation == "zero":
+        priorities["UNKNOWN"] = 0
+    elif mutation == "bool":
+        priorities["UNKNOWN"] = True
+    else:
+        priorities["UNKNOWN"] = "40"
+```
+
+**Action**
+
+```python
+coded = resolve_planning_feature_codes(*inputs)
+```
+
+**Expected result**
+
+```python
+assert isinstance(priorities, dict)
+with pytest.raises(ValidationError, match="priority|integer"):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_status_priority_contract_is_strict(mutation: str) -> None:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    payload = _policy_payload(inputs, coded)
+    priorities = payload["status_priority"]
+    assert isinstance(priorities, dict)
+    if mutation == "duplicate":
+        priorities["UNKNOWN"] = priorities["LIKELY_MATERIAL_CONSTRAINT"]
+    elif mutation == "missing":
+        priorities.pop("UNKNOWN")
+    elif mutation == "zero":
+        priorities["UNKNOWN"] = 0
+    elif mutation == "bool":
+        priorities["UNKNOWN"] = True
+    else:
+        priorities["UNKNOWN"] = "40"
+    with pytest.raises(ValidationError, match="priority|integer"):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+### `test_duplicate_yaml_key_is_rejected`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+path = tmp_path / "duplicate.yaml"
+path.write_text("schema_version: 1\nschema_version: 1\n", encoding="utf-8")
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(BessPlanningFeaturePolicyError, match="Duplicate YAML"):
+        load_bess_planning_feature_policy_config(path)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
+
+```python
+def test_duplicate_yaml_key_is_rejected(tmp_path: Path) -> None:
+    path = tmp_path / "duplicate.yaml"
+    path.write_text("schema_version: 1\nschema_version: 1\n", encoding="utf-8")
+    with pytest.raises(BessPlanningFeaturePolicyError, match="Duplicate YAML"):
+        load_bess_planning_feature_policy_config(path)
+```
+
+### `test_unknown_yaml_field_is_rejected`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs = _integration_inputs()
+payload = _policy_payload(inputs, coded)
+payload["unknown_field"] = "not allowed"
+```
+
+**Action**
+
+```python
+coded = resolve_planning_feature_codes(*inputs)
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ValidationError):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_unknown_yaml_field_is_rejected() -> None:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    payload = _policy_payload(inputs, coded)
+    payload["unknown_field"] = "not allowed"
+    with pytest.raises(ValidationError):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+### `test_noncanonical_whitespace_is_rejected`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs = _integration_inputs()
+payload = _policy_payload(inputs, coded)
+entries = payload["entries"]
+entries[0]["rationale"] = " leading whitespace"
+payload["canonical_policy_entries_sha256"] = _canonical_sha256(entries)
+```
+
+**Action**
+
+```python
+coded = resolve_planning_feature_codes(*inputs)
+```
+
+**Expected result**
+
+```python
+assert isinstance(entries, list)
+with pytest.raises(ValidationError, match="whitespace|exact"):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_noncanonical_whitespace_is_rejected() -> None:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    payload = _policy_payload(inputs, coded)
+    entries = payload["entries"]
+    assert isinstance(entries, list)
+    entries[0]["rationale"] = " leading whitespace"
+    payload["canonical_policy_entries_sha256"] = _canonical_sha256(entries)
+    with pytest.raises(ValidationError, match="whitespace|exact"):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+### `test_malformed_sha256_is_rejected`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs = _integration_inputs()
+payload = _policy_payload(inputs, coded)
+payload["canonical_policy_entries_sha256"] = "NOT-A-SHA"
+```
+
+**Action**
+
+```python
+coded = resolve_planning_feature_codes(*inputs)
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ValidationError, match="SHA256"):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_malformed_sha256_is_rejected() -> None:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    payload = _policy_payload(inputs, coded)
+    payload["canonical_policy_entries_sha256"] = "NOT-A-SHA"
+    with pytest.raises(ValidationError, match="SHA256"):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+### `test_in_memory_config_is_revalidated_before_compilation`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs, coded, config, _ = _compiled_fixture()
+corrupted = config.model_copy(update={"canonical_policy_entries_sha256": "f" * 64})
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(BessPlanningFeaturePolicyError, match="in-memory|canonical"):
+        compile_bess_planning_feature_policy(*inputs, coded, corrupted)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_in_memory_config_is_revalidated_before_compilation() -> None:
+    inputs, coded, config, _ = _compiled_fixture()
+    corrupted = config.model_copy(update={"canonical_policy_entries_sha256": "f" * 64})
+    with pytest.raises(BessPlanningFeaturePolicyError, match="in-memory|canonical"):
+        compile_bess_planning_feature_policy(*inputs, coded, corrupted)
+```
+
+### `test_policy_entries_require_deterministic_order`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs = _integration_inputs()
+payload = _policy_payload(inputs, coded)
+entries = payload["entries"]
+entries.reverse()
+payload["canonical_policy_entries_sha256"] = _canonical_sha256(entries)
+```
+
+**Action**
+
+```python
+coded = resolve_planning_feature_codes(*inputs)
+```
+
+**Expected result**
+
+```python
+assert isinstance(entries, list)
+with pytest.raises(ValidationError, match="order"):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_policy_entries_require_deterministic_order() -> None:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    payload = _policy_payload(inputs, coded)
+    entries = payload["entries"]
+    assert isinstance(entries, list)
+    entries.reverse()
+    payload["canonical_policy_entries_sha256"] = _canonical_sha256(entries)
+    with pytest.raises(ValidationError, match="order"):
+        BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
+
+### `test_policy_table_is_sorted_and_preserves_leading_zero_codes`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+_, _, _, result = _compiled_fixture()
+keys = list(
+        result.policy_table[["feature_family", "type_code", "subtype_code"]].itertuples(
+            index=False, name=None
+        )
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert keys == sorted(keys)
+assert all(
+        len(type_code) == len(subtype_code) == 2 for _, type_code, subtype_code in keys
+    )
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_policy_table_is_sorted_and_preserves_leading_zero_codes() -> None:
+    _, _, _, result = _compiled_fixture()
+    keys = list(
+        result.policy_table[["feature_family", "type_code", "subtype_code"]].itertuples(
+            index=False, name=None
+        )
+    )
+    assert keys == sorted(keys)
+    assert all(
+        len(type_code) == len(subtype_code) == 2 for _, type_code, subtype_code in keys
+    )
+```
+
+### `test_policy_table_mutation_is_rejected`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs, coded, config, result = _compiled_fixture()
+table = result.policy_table.copy(deep=True)
+table.loc[table.index[0], "precheck_status"] = "UNKNOWN"
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(BessPlanningFeaturePolicyError, match="hash|table|rebuilt"):
+        validate_bess_planning_feature_policy_result(
+            *inputs, coded, config, replace(result, policy_table=table)
+        )
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_policy_table_mutation_is_rejected() -> None:
+    inputs, coded, config, result = _compiled_fixture()
+    table = result.policy_table.copy(deep=True)
+    table.loc[table.index[0], "precheck_status"] = "UNKNOWN"
+    with pytest.raises(BessPlanningFeaturePolicyError, match="hash|table|rebuilt"):
+        validate_bess_planning_feature_policy_result(
+            *inputs, coded, config, replace(result, policy_table=table)
+        )
+```
+
+### `test_coordinated_policy_table_and_hash_mutation_is_rejected`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs, coded, config, result = _compiled_fixture()
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+table = result.policy_table.copy(deep=True)
+table.loc[table.index[0], "rationale"] = "Coordinated but false rationale."
+coordinated = module._result_with_hashes(replace(result, policy_table=table))
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(BessPlanningFeaturePolicyError, match="table|rebuilt"):
+        validate_bess_planning_feature_policy_result(
+            *inputs, coded, config, coordinated
+        )
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_coordinated_policy_table_and_hash_mutation_is_rejected() -> None:
+    inputs, coded, config, result = _compiled_fixture()
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    table = result.policy_table.copy(deep=True)
+    table.loc[table.index[0], "rationale"] = "Coordinated but false rationale."
+    coordinated = module._result_with_hashes(replace(result, policy_table=table))
+    with pytest.raises(BessPlanningFeaturePolicyError, match="table|rebuilt"):
+        validate_bess_planning_feature_policy_result(
+            *inputs, coded, config, coordinated
+        )
+```
+
+### `test_persisted_parquet_and_json_readback_is_source_complete`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs, coded, config, result = _compiled_fixture()
+parquet, manifest_path, _ = _write_artifacts(tmp_path, result)
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+persisted = module.load_bess_planning_feature_policy_artifacts(
+        parquet, manifest_path
+    )
+assert_frame_equal(result.policy_table, persisted.policy_table, check_dtype=True)
+row = persisted.policy_table.loc[
+        (persisted.policy_table["feature_family"] == "INFORMATION")
+        & (persisted.policy_table["type_code"] == "99")
+        & (persisted.policy_table["subtype_code"] == "00")
+    ].iloc[0]
+```
+
+**Action**
+
+```python
+validate_bess_planning_feature_policy_result(*inputs, coded, config, persisted)
+```
+
+**Expected result**
+
+```python
+assert pd.isna(row["official_legal_reference"])
+assert pd.isna(row["official_regulation_reference"])
+```
+
+**Regression protected**
+
+Prevents a self-consistent but forged local object from bypassing the independent source-complete revalidation boundary.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
+
+```python
+def test_persisted_parquet_and_json_readback_is_source_complete(
+    tmp_path: Path,
+) -> None:
+    inputs, coded, config, result = _compiled_fixture()
+    parquet, manifest_path, _ = _write_artifacts(tmp_path, result)
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    persisted = module.load_bess_planning_feature_policy_artifacts(
+        parquet, manifest_path
+    )
+    assert_frame_equal(result.policy_table, persisted.policy_table, check_dtype=True)
+    row = persisted.policy_table.loc[
+        (persisted.policy_table["feature_family"] == "INFORMATION")
+        & (persisted.policy_table["type_code"] == "99")
+        & (persisted.policy_table["subtype_code"] == "00")
+    ].iloc[0]
+    assert pd.isna(row["official_legal_reference"])
+    assert pd.isna(row["official_regulation_reference"])
+    validate_bess_planning_feature_policy_result(*inputs, coded, config, persisted)
+```
+
+### `test_artifact_manifest_model_is_strict_and_frozen`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+_, _, _, result = _compiled_fixture()
+parquet, _, manifest = _write_artifacts(tmp_path, result)
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+validated = module.BessPlanningFeaturePolicyArtifactManifest.model_validate(
+        manifest
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert validated.schema_version == 2
+assert validated.artifact_kind == ARTIFACT_KIND
+assert validated.cnig_profile_schema_version == 2
+assert validated.cnig_result_hash_schema_version == 5
+assert validated.parquet_filename == parquet.name
+with pytest.raises(ValidationError):
+        validated.parquet_row_count = 0
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
+
+```python
+def test_artifact_manifest_model_is_strict_and_frozen(tmp_path: Path) -> None:
+    _, _, _, result = _compiled_fixture()
+    parquet, _, manifest = _write_artifacts(tmp_path, result)
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    validated = module.BessPlanningFeaturePolicyArtifactManifest.model_validate(
+        manifest
+    )
+    assert validated.schema_version == 2
+    assert validated.artifact_kind == ARTIFACT_KIND
+    assert validated.cnig_profile_schema_version == 2
+    assert validated.cnig_result_hash_schema_version == 5
+    assert validated.parquet_filename == parquet.name
+    with pytest.raises(ValidationError):
+        validated.parquet_row_count = 0
+```
+
+### `test_artifact_loader_rejects_manifest_mismatch`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `message`, `mutation`.
+
+**Setup**
+
+```python
+_, _, _, result = _compiled_fixture()
+parquet, manifest_path, manifest = _write_artifacts(tmp_path, result)
+mutation(manifest)
+manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8",
+    )
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert callable(mutation)
+with pytest.raises(BessPlanningFeaturePolicyError, match=message):
+        module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+```
+
+**Regression protected**
+
+Prevents coordinated metadata/content mutation from being accepted without agreement with the authoritative byte or result envelope.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
+
+```python
+def test_artifact_loader_rejects_manifest_mismatch(
+    tmp_path: Path,
+    mutation: object,
+    message: str,
+) -> None:
+    _, _, _, result = _compiled_fixture()
+    parquet, manifest_path, manifest = _write_artifacts(tmp_path, result)
+    assert callable(mutation)
+    mutation(manifest)
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    with pytest.raises(BessPlanningFeaturePolicyError, match=message):
+        module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+```
+
+### `test_artifact_loader_rejects_duplicate_json_key`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+_, _, _, result = _compiled_fixture()
+parquet, manifest_path, _ = _write_artifacts(tmp_path, result)
+manifest_path.write_text(
+        '{"schema_version": 2, "schema_version": 2}\n', encoding="utf-8"
+    )
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(BessPlanningFeaturePolicyError, match="Duplicate JSON"):
+        module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
+
+```python
+def test_artifact_loader_rejects_duplicate_json_key(tmp_path: Path) -> None:
+    _, _, _, result = _compiled_fixture()
+    parquet, manifest_path, _ = _write_artifacts(tmp_path, result)
+    manifest_path.write_text(
+        '{"schema_version": 2, "schema_version": 2}\n', encoding="utf-8"
+    )
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    with pytest.raises(BessPlanningFeaturePolicyError, match="Duplicate JSON"):
+        module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+```
+
+### `test_artifact_loader_rejects_parquet_replacement`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+_, _, _, result = _compiled_fixture()
+parquet, manifest_path, _ = _write_artifacts(tmp_path, result)
+parquet.write_bytes(parquet.read_bytes() + b"changed-after-manifest")
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(BessPlanningFeaturePolicyError, match="size|SHA|hash"):
+        module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
+
+```python
+def test_artifact_loader_rejects_parquet_replacement(tmp_path: Path) -> None:
+    _, _, _, result = _compiled_fixture()
+    parquet, manifest_path, _ = _write_artifacts(tmp_path, result)
+    parquet.write_bytes(parquet.read_bytes() + b"changed-after-manifest")
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    with pytest.raises(BessPlanningFeaturePolicyError, match="size|SHA|hash"):
+        module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+```
+
+### `test_artifact_loader_parses_the_exact_verified_parquet_bytes`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+_, _, _, result = _compiled_fixture()
+parquet, manifest_path, _ = _write_artifacts(tmp_path, result)
+replacement = tmp_path / "replacement.parquet"
+result.policy_table.to_parquet(replacement, index=True, compression="gzip")
+original_read_bytes = Path.read_bytes
+verified_bytes = original_read_bytes(parquet)
+replacement_bytes = original_read_bytes(replacement)
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+original_read_parquet = module.pd.read_parquet
+replacement_performed = False
+parsed_payloads: list[tuple[str, bytes]] = []
+def replace_after_byte_read(path: Path) -> bytes:
+        nonlocal replacement_performed
+        payload = original_read_bytes(path)
+        if path == parquet and not replacement_performed:
+            path.write_bytes(replacement_bytes)
+            replacement_performed = True
+        return payload
+def old_hash_then_replace(path: Path) -> str:
+        nonlocal replacement_performed
+        payload = original_read_bytes(path)
+        if path == parquet and not replacement_performed:
+            path.write_bytes(replacement_bytes)
+            replacement_performed = True
+        return sha256(payload).hexdigest()
+def observed_read_parquet(
+        source: object, *args: object, **kwargs: object
+    ) -> object:
+        if isinstance(source, BytesIO):
+            parsed_payloads.append(("buffer", source.getvalue()))
+        else:
+            path = Path(source)
+            parsed_payloads.append(("path", original_read_bytes(path)))
+        return original_read_parquet(source, *args, **kwargs)
+monkeypatch.setattr(Path, "read_bytes", replace_after_byte_read)
+monkeypatch.setattr(module, "_file_sha256", old_hash_then_replace, raising=False)
+monkeypatch.setattr(module.pd, "read_parquet", observed_read_parquet)
+loaded = module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+assert_frame_equal(result.policy_table, loaded.policy_table, check_dtype=True)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert replacement_bytes != verified_bytes
+assert replacement_performed
+assert parsed_payloads == [("buffer", verified_bytes)]
+```
+
+**Regression protected**
+
+Prevents a schema-compatible-looking frame from replacing the canonical dtype contract with an object/category/other representation.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
+
+```python
+def test_artifact_loader_parses_the_exact_verified_parquet_bytes(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _, _, _, result = _compiled_fixture()
+    parquet, manifest_path, _ = _write_artifacts(tmp_path, result)
+    replacement = tmp_path / "replacement.parquet"
+    result.policy_table.to_parquet(replacement, index=True, compression="gzip")
+    original_read_bytes = Path.read_bytes
+    verified_bytes = original_read_bytes(parquet)
+    replacement_bytes = original_read_bytes(replacement)
+    assert replacement_bytes != verified_bytes
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    original_read_parquet = module.pd.read_parquet
+    replacement_performed = False
+    parsed_payloads: list[tuple[str, bytes]] = []
+
+    def replace_after_byte_read(path: Path) -> bytes:
+        nonlocal replacement_performed
+        payload = original_read_bytes(path)
+        if path == parquet and not replacement_performed:
+            path.write_bytes(replacement_bytes)
+            replacement_performed = True
+        return payload
+
+    def old_hash_then_replace(path: Path) -> str:
+        nonlocal replacement_performed
+        payload = original_read_bytes(path)
+        if path == parquet and not replacement_performed:
+            path.write_bytes(replacement_bytes)
+            replacement_performed = True
+        return sha256(payload).hexdigest()
+
+    def observed_read_parquet(
+        source: object, *args: object, **kwargs: object
+    ) -> object:
+        if isinstance(source, BytesIO):
+            parsed_payloads.append(("buffer", source.getvalue()))
+        else:
+            path = Path(source)
+            parsed_payloads.append(("path", original_read_bytes(path)))
+        return original_read_parquet(source, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_bytes", replace_after_byte_read)
+    monkeypatch.setattr(module, "_file_sha256", old_hash_then_replace, raising=False)
+    monkeypatch.setattr(module.pd, "read_parquet", observed_read_parquet)
+    loaded = module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+    assert replacement_performed
+    assert parsed_payloads == [("buffer", verified_bytes)]
+    assert_frame_equal(result.policy_table, loaded.policy_table, check_dtype=True)
+```
+
 ### `test_artifact_loader_parses_the_exact_verified_parquet_bytes.replace_after_byte_read`
 
-**Signature**
+**Exact signature**
 
 ```python
 def replace_after_byte_read(path: Path) -> bytes:
@@ -707,58 +2953,55 @@ def replace_after_byte_read(path: Path) -> bytes:
 
 **Purpose**
 
-Implements replace after byte read according to the exact implementation and guards in this file.
+Private `test` helper for replace after byte read; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `bytes`.
+- Every observed return expression is reproduced without truncation:
+```python
+payload
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `bytes`. Observed return expression(s): `payload`.
-
-**Algorithm**
-
-1. Executes `nonlocal replacement_performed`.
-2. Computes `payload` from `original_read_bytes(path)`.
-3. Checks `path == parquet and (not replacement_performed)`. When true: Calls `path.write_bytes(replacement_bytes)` for its validation or side effect. Computes `replacement_performed` from `True`.
-4. Returns `payload`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `original_read_bytes`, `path.write_bytes`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: `original_read_bytes`.
+- Filesystem write: `path.write_bytes`.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `original_read_bytes`, `path.write_bytes`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_parses_the_exact_verified_parquet_bytes` via `monkeypatch.setattr(Path, 'read_bytes', replace_after_byte_read)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def replace_after_byte_read(path: Path) -> bytes:
+        nonlocal replacement_performed
+        payload = original_read_bytes(path)
+        if path == parquet and not replacement_performed:
+            path.write_bytes(replacement_bytes)
+            replacement_performed = True
+        return payload
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_artifact_loader_parses_the_exact_verified_parquet_bytes.old_hash_then_replace`
 
-**Signature**
+**Exact signature**
 
 ```python
 def old_hash_then_replace(path: Path) -> str:
@@ -766,58 +3009,55 @@ def old_hash_then_replace(path: Path) -> str:
 
 **Purpose**
 
-Implements old hash then replace according to the exact implementation and guards in this file.
+Private `test` helper for old hash then replace; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+sha256(payload).hexdigest()
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `sha256(payload).hexdigest()`.
-
-**Algorithm**
-
-1. Executes `nonlocal replacement_performed`.
-2. Computes `payload` from `original_read_bytes(path)`.
-3. Checks `path == parquet and (not replacement_performed)`. When true: Calls `path.write_bytes(replacement_bytes)` for its validation or side effect. Computes `replacement_performed` from `True`.
-4. Returns `sha256(payload).hexdigest()`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `original_read_bytes`, `path.write_bytes`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: `original_read_bytes`.
+- Filesystem write: `path.write_bytes`.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `sha256`, `sha256(payload).hexdigest`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `original_read_bytes`, `path.write_bytes`, `sha256`, `sha256(payload).hexdigest`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_parses_the_exact_verified_parquet_bytes` via `monkeypatch.setattr(module, '_file_sha256', old_hash_then_replace, raising=False)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def old_hash_then_replace(path: Path) -> str:
+        nonlocal replacement_performed
+        payload = original_read_bytes(path)
+        if path == parquet and not replacement_performed:
+            path.write_bytes(replacement_bytes)
+            replacement_performed = True
+        return sha256(payload).hexdigest()
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_artifact_loader_parses_the_exact_verified_parquet_bytes.observed_read_parquet`
 
-**Signature**
+**Exact signature**
 
 ```python
 def observed_read_parquet(
@@ -827,58 +3067,148 @@ def observed_read_parquet(
 
 **Purpose**
 
-Implements observed read parquet according to the exact implementation and guards in this file.
+Private `test` helper for observed read parquet; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `source` (`object`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `object`.
+- Every observed return expression is reproduced without truncation:
+```python
+original_read_parquet(source, *args, **kwargs)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `object`. Observed return expression(s): `original_read_parquet(source, *args, **kwargs)`.
-
-**Algorithm**
-
-1. Checks `isinstance(source, BytesIO)`. When true: Calls `parsed_payloads.append(('buffer', source.getvalue()))` for its validation or side effect. Otherwise: Computes `path` from `Path(source)`. Calls `parsed_payloads.append(('path', original_read_bytes(path)))` for its validation or side effect.
-2. Returns `original_read_parquet(source, *args, **kwargs)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `original_read_bytes`, `original_read_parquet`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: `original_read_bytes`, `original_read_parquet`.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `Path`, `isinstance`, `original_read_bytes`, `original_read_parquet`, `parsed_payloads.append`, `source.getvalue`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_parses_the_exact_verified_parquet_bytes` via `monkeypatch.setattr(module.pd, 'read_parquet', observed_read_parquet)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def observed_read_parquet(
+        source: object, *args: object, **kwargs: object
+    ) -> object:
+        if isinstance(source, BytesIO):
+            parsed_payloads.append(("buffer", source.getvalue()))
+        else:
+            path = Path(source)
+            parsed_payloads.append(("path", original_read_bytes(path)))
+        return original_read_parquet(source, *args, **kwargs)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+
+### `test_locally_invalid_result_fast_fails_before_source_validation`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs, coded, config, result = _compiled_fixture()
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+calls = 0
+def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+monkeypatch.setattr(module, "validate_planning_feature_code_result", counted)
+wrong_table = result.policy_table.drop(columns="confidence")
+invalid_results = (
+        object(),
+        replace(result, policy_schema_version=2),
+        replace(result, policy_table=wrong_table),
+        replace(result, policy_table_content_sha256="f" * 64),
+        replace(result, complete_result_content_sha256="f" * 64),
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+for invalid in invalid_results:
+        with pytest.raises(
+            BessPlanningFeaturePolicyError, match="type|schema|hash|result"
+        ):
+            module.validate_bess_planning_feature_policy_result(
+                *inputs, coded, config, invalid
+            )
+assert calls == 0
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+
+**Complete test implementation**
+
+```python
+def test_locally_invalid_result_fast_fails_before_source_validation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inputs, coded, config, result = _compiled_fixture()
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    calls = 0
+
+    def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+
+    monkeypatch.setattr(module, "validate_planning_feature_code_result", counted)
+    wrong_table = result.policy_table.drop(columns="confidence")
+    invalid_results = (
+        object(),
+        replace(result, policy_schema_version=2),
+        replace(result, policy_table=wrong_table),
+        replace(result, policy_table_content_sha256="f" * 64),
+        replace(result, complete_result_content_sha256="f" * 64),
+    )
+    for invalid in invalid_results:
+        with pytest.raises(
+            BessPlanningFeaturePolicyError, match="type|schema|hash|result"
+        ):
+            module.validate_bess_planning_feature_policy_result(
+                *inputs, coded, config, invalid
+            )
+    assert calls == 0
+```
 
 ### `test_locally_invalid_result_fast_fails_before_source_validation.counted`
 
-**Signature**
+**Exact signature**
 
 ```python
 def counted(*args: object, **kwargs: object) -> None:
@@ -886,57 +3216,141 @@ def counted(*args: object, **kwargs: object) -> None:
 
 **Purpose**
 
-Implements counted according to the exact implementation and guards in this file.
+Private `test` helper for counted; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Executes `nonlocal calls`.
-2. Updates `calls` using `` and `1`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- No function calls.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_one_aggregation_and_one_public_validation_each_call_heavy_once` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_every_non_2d_application_geometry_kind_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_malformed_local_result_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_lineage_defect_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', counted)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+
+### `test_compiler_wrong_source_lock_fast_fails_before_source_validation`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs, coded, config, _ = _compiled_fixture()
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+calls = 0
+def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+wrong_lock = config.source_lock.model_copy(
+        update={"document_id": "another-document"}
+    )
+wrong_config = config.model_copy(update={"source_lock": wrong_lock})
+monkeypatch.setattr(module, "validate_planning_feature_code_result", counted)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(BessPlanningFeaturePolicyError, match="lock|document"):
+        module.compile_bess_planning_feature_policy(*inputs, coded, wrong_config)
+assert calls == 0
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+
+**Complete test implementation**
+
+```python
+def test_compiler_wrong_source_lock_fast_fails_before_source_validation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inputs, coded, config, _ = _compiled_fixture()
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    calls = 0
+
+    def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+
+    wrong_lock = config.source_lock.model_copy(
+        update={"document_id": "another-document"}
+    )
+    wrong_config = config.model_copy(update={"source_lock": wrong_lock})
+    monkeypatch.setattr(module, "validate_planning_feature_code_result", counted)
+    with pytest.raises(BessPlanningFeaturePolicyError, match="lock|document"):
+        module.compile_bess_planning_feature_policy(*inputs, coded, wrong_config)
+    assert calls == 0
+```
 
 ### `test_compiler_wrong_source_lock_fast_fails_before_source_validation.counted`
 
-**Signature**
+**Exact signature**
 
 ```python
 def counted(*args: object, **kwargs: object) -> None:
@@ -944,57 +3358,151 @@ def counted(*args: object, **kwargs: object) -> None:
 
 **Purpose**
 
-Implements counted according to the exact implementation and guards in this file.
+Private `test` helper for counted; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Executes `nonlocal calls`.
-2. Updates `calls` using `` and `1`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- No function calls.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_one_aggregation_and_one_public_validation_each_call_heavy_once` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_every_non_2d_application_geometry_kind_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_malformed_local_result_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_lineage_defect_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', counted)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+
+### `test_forged_matching_lock_still_runs_source_complete_validation`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs, coded, config, _ = _compiled_fixture()
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+actual = module.validate_planning_feature_code_result
+calls = 0
+def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+        actual(*args, **kwargs)
+forged_coded = replace(coded, source_document_id="forged-document")
+forged_lock = config.source_lock.model_copy(
+        update={"document_id": "forged-document"}
+    )
+forged_config = config.model_copy(update={"source_lock": forged_lock})
+monkeypatch.setattr(module, "validate_planning_feature_code_result", counted)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(BessPlanningFeaturePolicyError, match="Source-complete|source"):
+        module.compile_bess_planning_feature_policy(
+            *inputs, forged_coded, forged_config
+        )
+assert calls == 1
+```
+
+**Regression protected**
+
+Prevents a self-consistent but forged local object from bypassing the independent source-complete revalidation boundary.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+
+**Complete test implementation**
+
+```python
+def test_forged_matching_lock_still_runs_source_complete_validation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inputs, coded, config, _ = _compiled_fixture()
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    actual = module.validate_planning_feature_code_result
+    calls = 0
+
+    def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+        actual(*args, **kwargs)
+
+    forged_coded = replace(coded, source_document_id="forged-document")
+    forged_lock = config.source_lock.model_copy(
+        update={"document_id": "forged-document"}
+    )
+    forged_config = config.model_copy(update={"source_lock": forged_lock})
+    monkeypatch.setattr(module, "validate_planning_feature_code_result", counted)
+    with pytest.raises(BessPlanningFeaturePolicyError, match="Source-complete|source"):
+        module.compile_bess_planning_feature_policy(
+            *inputs, forged_coded, forged_config
+        )
+    assert calls == 1
+```
 
 ### `test_forged_matching_lock_still_runs_source_complete_validation.counted`
 
-**Signature**
+**Exact signature**
 
 ```python
 def counted(*args: object, **kwargs: object) -> None:
@@ -1002,58 +3510,147 @@ def counted(*args: object, **kwargs: object) -> None:
 
 **Purpose**
 
-Implements counted according to the exact implementation and guards in this file.
+Private `test` helper for counted; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Executes `nonlocal calls`.
-2. Updates `calls` using `` and `1`.
-3. Calls `actual(*args, **kwargs)` for its validation or side effect.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `actual`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_one_aggregation_and_one_public_validation_each_call_heavy_once` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_every_non_2d_application_geometry_kind_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_malformed_local_result_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_lineage_defect_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', counted)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+        actual(*args, **kwargs)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+
+### `test_compiler_and_public_validator_invoke_source_complete_coding_validation`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+inputs = _integration_inputs()
+config = BessPlanningFeaturePolicyConfig.model_validate(
+        _policy_payload(inputs, coded)
+    )
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+actual = module.validate_planning_feature_code_result
+calls = 0
+def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+        actual(*args, **kwargs)
+monkeypatch.setattr(module, "validate_planning_feature_code_result", counted)
+```
+
+**Action**
+
+```python
+coded = resolve_planning_feature_codes(*inputs)
+result = module.compile_bess_planning_feature_policy(*inputs, coded, config)
+module.validate_bess_planning_feature_policy_result(*inputs, coded, config, result)
+```
+
+**Expected result**
+
+```python
+assert calls == 1
+assert calls == 2
+```
+
+**Regression protected**
+
+Prevents a self-consistent but forged local object from bypassing the independent source-complete revalidation boundary.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+
+**Complete test implementation**
+
+```python
+def test_compiler_and_public_validator_invoke_source_complete_coding_validation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    inputs = _integration_inputs()
+    coded = resolve_planning_feature_codes(*inputs)
+    config = BessPlanningFeaturePolicyConfig.model_validate(
+        _policy_payload(inputs, coded)
+    )
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    actual = module.validate_planning_feature_code_result
+    calls = 0
+
+    def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+        actual(*args, **kwargs)
+
+    monkeypatch.setattr(module, "validate_planning_feature_code_result", counted)
+    result = module.compile_bess_planning_feature_policy(*inputs, coded, config)
+    assert calls == 1
+    module.validate_bess_planning_feature_policy_result(*inputs, coded, config, result)
+    assert calls == 2
+```
 
 ### `test_compiler_and_public_validator_invoke_source_complete_coding_validation.counted`
 
-**Signature**
+**Exact signature**
 
 ```python
 def counted(*args: object, **kwargs: object) -> None:
@@ -1061,58 +3658,453 @@ def counted(*args: object, **kwargs: object) -> None:
 
 **Purpose**
 
-Implements counted according to the exact implementation and guards in this file.
+Private `test` helper for counted; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Executes `nonlocal calls`.
-2. Updates `calls` using `` and `1`.
-3. Calls `actual(*args, **kwargs)` for its validation or side effect.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `actual`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_identity_and_global_mapping_fail_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_semantic_failure_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_one_aggregation_and_one_public_validation_each_call_heavy_once` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_defect_fast_fails_before_application_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_application_result', counted)`.
+- callback/function object: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_aggregation_loader_rejects_bad_application_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_every_non_2d_application_geometry_kind_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_malformed_local_result_fast_fails_before_heavy_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_lineage_defect_fast_fails_before_policy_source_validation` via `monkeypatch.setattr(module, 'validate_bess_planning_feature_policy_result', counted)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `monkeypatch.setattr(Path, 'read_bytes', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `monkeypatch.setattr(module, 'validate_planning_feature_code_result', counted)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `monkeypatch.setattr(interpret_module, 'validate_normalized_planning_zoning_inputs', counted)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `monkeypatch.setattr(interpret_module, 'validate_planning_regulation_structure_with_fragments', counted)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def counted(*args: object, **kwargs: object) -> None:
+        nonlocal calls
+        calls += 1
+        actual(*args, **kwargs)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
+### `test_public_policy_api_exports_only_stable_symbols`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+required = {
+        "BessPlanningFeaturePolicyArtifactManifest",
+        "BessPlanningFeaturePolicyConfig",
+        "BessPlanningFeaturePolicyError",
+        "BessPlanningFeaturePolicyResult",
+        "load_bess_planning_feature_policy_artifacts",
+        "load_bess_planning_feature_policy_config",
+        "compile_bess_planning_feature_policy",
+        "validate_bess_planning_feature_policy_result",
+        "validate_bess_planning_feature_policy_result_envelope",
+    }
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert set(module.__all__) == required
+assert required.issubset(set(stages.__all__))
+assert all(getattr(stages, name) is getattr(module, name) for name in required)
+assert not any(name in module.__all__ for name in ("_canonical_sha256", "_lookup"))
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_public_policy_api_exports_only_stable_symbols() -> None:
+    required = {
+        "BessPlanningFeaturePolicyArtifactManifest",
+        "BessPlanningFeaturePolicyConfig",
+        "BessPlanningFeaturePolicyError",
+        "BessPlanningFeaturePolicyResult",
+        "load_bess_planning_feature_policy_artifacts",
+        "load_bess_planning_feature_policy_config",
+        "compile_bess_planning_feature_policy",
+        "validate_bess_planning_feature_policy_result",
+        "validate_bess_planning_feature_policy_result_envelope",
+    }
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    assert set(module.__all__) == required
+    assert required.issubset(set(stages.__all__))
+    assert all(getattr(stages, name) is getattr(module, name) for name in required)
+    assert not any(name in module.__all__ for name in ("_canonical_sha256", "_lookup"))
+```
+
+### `test_step_7d_5b_2b_5_exposes_lightweight_policy_result_validator`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+_, _, _, result = _compiled_fixture()
+module.validate_bess_planning_feature_policy_result_envelope(result)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert hasattr(module, "validate_bess_planning_feature_policy_result_envelope")
+with pytest.raises(BessPlanningFeaturePolicyError, match="hash"):
+        module.validate_bess_planning_feature_policy_result_envelope(
+            replace(result, complete_result_content_sha256="0" * 64)
+        )
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_step_7d_5b_2b_5_exposes_lightweight_policy_result_validator() -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    assert hasattr(module, "validate_bess_planning_feature_policy_result_envelope")
+    _, _, _, result = _compiled_fixture()
+    module.validate_bess_planning_feature_policy_result_envelope(result)
+    with pytest.raises(BessPlanningFeaturePolicyError, match="hash"):
+        module.validate_bess_planning_feature_policy_result_envelope(
+            replace(result, complete_result_content_sha256="0" * 64)
+        )
+```
+
+### `test_policy_manifest_rejects_nonportable_parquet_filename`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `filename`.
+
+**Setup**
+
+```python
+_, _, _, result = _compiled_fixture()
+_, _, manifest = _write_artifacts(tmp_path, result)
+manifest["parquet_filename"] = filename
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ValueError, match="filename|basename|portable"):
+        module.BessPlanningFeaturePolicyArtifactManifest.model_validate(manifest)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
+
+```python
+def test_policy_manifest_rejects_nonportable_parquet_filename(
+    tmp_path: Path, filename: str
+) -> None:
+    _, _, _, result = _compiled_fixture()
+    _, _, manifest = _write_artifacts(tmp_path, result)
+    manifest["parquet_filename"] = filename
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    with pytest.raises(ValueError, match="filename|basename|portable"):
+        module.BessPlanningFeaturePolicyArtifactManifest.model_validate(manifest)
+```
+
+### `test_shared_filename_contract_rejects_superscript_windows_devices`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `filename`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ValueError, match="reserved|basename|portable"):
+        validate_portable_parquet_filename(filename, "artifact filename")
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_shared_filename_contract_rejects_superscript_windows_devices(
+    filename: str,
+) -> None:
+    with pytest.raises(ValueError, match="reserved|basename|portable"):
+        validate_portable_parquet_filename(filename, "artifact filename")
+```
+
+### `test_policy_manifest_rejects_unsupported_cnig_source_schema`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `field`, `version`.
+
+**Setup**
+
+```python
+_, _, _, result = _compiled_fixture()
+_, _, manifest = _write_artifacts(tmp_path, result)
+manifest[field] = version
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ValidationError, match="CNIG|cnig|schema|version"):
+        module.BessPlanningFeaturePolicyArtifactManifest.model_validate(manifest)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
+
+```python
+def test_policy_manifest_rejects_unsupported_cnig_source_schema(
+    tmp_path: Path,
+    field: str,
+    version: int,
+) -> None:
+    _, _, _, result = _compiled_fixture()
+    _, _, manifest = _write_artifacts(tmp_path, result)
+    manifest[field] = version
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    with pytest.raises(ValidationError, match="CNIG|cnig|schema|version"):
+        module.BessPlanningFeaturePolicyArtifactManifest.model_validate(manifest)
+```
+
+### `test_policy_artifact_loader_rejects_source_schema_before_parquet_read`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `field`, `version`.
+
+**Setup**
+
+```python
+_, _, _, result = _compiled_fixture()
+parquet, manifest_path, manifest = _write_artifacts(tmp_path, result)
+manifest[field] = version
+manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8",
+    )
+calls = {"bytes": 0, "parse": 0}
+def byte_read(*args: object, **kwargs: object) -> bytes:
+        calls["bytes"] += 1
+        raise AssertionError("Parquet bytes must not be read")
+def parse(*args: object, **kwargs: object) -> pd.DataFrame:
+        calls["parse"] += 1
+        raise AssertionError("Parquet must not be parsed")
+monkeypatch.setattr(Path, "read_bytes", byte_read)
+monkeypatch.setattr(pd, "read_parquet", parse)
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(
+        BessPlanningFeaturePolicyError, match="CNIG|cnig|schema|version"
+    ):
+        module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+assert calls == {"bytes": 0, "parse": 0}
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
+
+```python
+def test_policy_artifact_loader_rejects_source_schema_before_parquet_read(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    field: str,
+    version: int,
+) -> None:
+    _, _, _, result = _compiled_fixture()
+    parquet, manifest_path, manifest = _write_artifacts(tmp_path, result)
+    manifest[field] = version
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    calls = {"bytes": 0, "parse": 0}
+
+    def byte_read(*args: object, **kwargs: object) -> bytes:
+        calls["bytes"] += 1
+        raise AssertionError("Parquet bytes must not be read")
+
+    def parse(*args: object, **kwargs: object) -> pd.DataFrame:
+        calls["parse"] += 1
+        raise AssertionError("Parquet must not be parsed")
+
+    monkeypatch.setattr(Path, "read_bytes", byte_read)
+    monkeypatch.setattr(pd, "read_parquet", parse)
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    with pytest.raises(
+        BessPlanningFeaturePolicyError, match="CNIG|cnig|schema|version"
+    ):
+        module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)
+    assert calls == {"bytes": 0, "parse": 0}
+```
+
 ### `test_policy_artifact_loader_rejects_source_schema_before_parquet_read.byte_read`
 
-**Signature**
+**Exact signature**
 
 ```python
 def byte_read(*args: object, **kwargs: object) -> bytes:
@@ -1120,57 +4112,48 @@ def byte_read(*args: object, **kwargs: object) -> bytes:
 
 **Purpose**
 
-Implements byte read according to the exact implementation and guards in this file.
+Private `test` helper for byte read; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `bytes`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `bytes`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Updates `calls['bytes']` using `` and `1`.
-2. Raises `AssertionError('Parquet bytes must not be read')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `AssertionError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `AssertionError('Parquet bytes must not be read')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `AssertionError`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_policy_artifact_loader_rejects_source_schema_before_parquet_read` via `monkeypatch.setattr(Path, 'read_bytes', byte_read)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def byte_read(*args: object, **kwargs: object) -> bytes:
+        calls["bytes"] += 1
+        raise AssertionError("Parquet bytes must not be read")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_policy_artifact_loader_rejects_source_schema_before_parquet_read.parse`
 
-**Signature**
+**Exact signature**
 
 ```python
 def parse(*args: object, **kwargs: object) -> pd.DataFrame:
@@ -1178,57 +4161,50 @@ def parse(*args: object, **kwargs: object) -> pd.DataFrame:
 
 **Purpose**
 
-Parses parse according to the exact implementation and guards in this file.
+Parses parse; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.DataFrame`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Updates `calls['parse']` using `` and `1`.
-2. Raises `AssertionError('Parquet must not be parsed')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `AssertionError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `AssertionError('Parquet must not be parsed')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `AssertionError`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_discover_standard_models` via `ElementTree.parse`.
+- property/attribute access: `src/landscout/sources/gpu_fr.py::_discover_standard_models` via `ElementTree.parse`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_policy_artifact_loader_rejects_source_schema_before_parquet_read` via `monkeypatch.setattr(pd, 'read_parquet', parse)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def parse(*args: object, **kwargs: object) -> pd.DataFrame:
+        calls["parse"] += 1
+        raise AssertionError("Parquet must not be parsed")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_rehash_policy_table`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _rehash_policy_table(
@@ -1238,60 +4214,55 @@ def _rehash_policy_table(
 
 **Purpose**
 
-Implements rehash policy table according to the exact implementation and guards in this file.
+Private `test` helper for rehash policy table; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `result` (`BessPlanningFeaturePolicyResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `table` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessPlanningFeaturePolicyResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+module._result_with_hashes(replace(result, policy_table=table))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessPlanningFeaturePolicyResult`. Observed return expression(s): `module._result_with_hashes(replace(result, policy_table=table))`.
-
-**Algorithm**
-
-1. Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-2. Returns `module._result_with_hashes(replace(result, policy_table=table))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `replace`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `module._result_with_hashes`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `importlib.import_module`, `module._result_with_hashes`, `replace`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_canonical_empty_policy_result` via `_rehash_policy_table`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_accepts_one_exact_policy_row` via `_rehash_policy_table`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_validates_every_intrinsic_row_contract` via `_rehash_policy_table`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_bess_planning_feature_policy.py` — `_canonical_empty_policy_result`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_envelope_accepts_one_exact_policy_row`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_envelope_validates_every_intrinsic_row_contract`
+```python
+def _rehash_policy_table(
+    result: BessPlanningFeaturePolicyResult, table: pd.DataFrame
+) -> BessPlanningFeaturePolicyResult:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    return module._result_with_hashes(replace(result, policy_table=table))
+```
 
-**Tests**
-
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_accepts_one_exact_policy_row`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_validates_every_intrinsic_row_contract`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_canonical_empty_policy_result`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _canonical_empty_policy_result(
@@ -1301,2538 +4272,613 @@ def _canonical_empty_policy_result(
 
 **Purpose**
 
-Implements canonical empty policy result according to the exact implementation and guards in this file.
+Private `test` helper for canonical empty policy result; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `result` (`BessPlanningFeaturePolicyResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessPlanningFeaturePolicyResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+_rehash_policy_table(result, table)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessPlanningFeaturePolicyResult`. Observed return expression(s): `_rehash_policy_table(result, table)`.
-
-**Algorithm**
-
-1. Computes `table` from `result.policy_table.iloc[0:0].copy(deep=True)`.
-2. Computes `table.index` from `pd.Index([], dtype='int64')`.
-3. Returns `_rehash_policy_table(result, table)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `result.policy_table.iloc[0:0].copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_rehash_policy_table`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `table.index`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_rehash_policy_table`, `pd.Index`, `result.policy_table.iloc[0:0].copy`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_empty_upstreams_before_any_io_or_rebuild` via `_canonical_empty_policy_result`.
+- import/re-export: `tests/unit/test_apply_bess_planning_feature_policy.py::<module>` via `from test_bess_planning_feature_policy import (
+    _canonical_empty_policy_result,
+    _checked_in_policy_result,
+    _compiled_fixture,
+)`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_rejects_canonical_empty_policy_table` via `_canonical_empty_policy_result`.
 
-**Known repository callers**
-
-- `tests/unit/test_apply_bess_planning_feature_policy.py` — `test_application_loader_rejects_empty_upstreams_before_any_io_or_rebuild`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_envelope_rejects_canonical_empty_policy_table`
-
-**Tests**
-
-- `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_empty_upstreams_before_any_io_or_rebuild`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_rejects_canonical_empty_policy_table`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status`
-
-**Signature**
+**Complete source-ordered implementation**
 
 ```python
-def test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status() -> (
-    None
-):
+def _canonical_empty_policy_result(
+    result: BessPlanningFeaturePolicyResult,
+) -> BessPlanningFeaturePolicyResult:
+    table = result.policy_table.iloc[0:0].copy(deep=True)
+    table.index = pd.Index([], dtype="int64")
+    return _rehash_policy_table(result, table)
 ```
 
-**Purpose**
-
-Protects the `valid exact policy compiles without applying feature or parcel status` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 1 explicit setup/context statement(s).
-- Computes `(inputs, coded, config, result)` from `_compiled_fixture()`.
-
-**Action**
-
-- Calls `_compiled_fixture`, `any`, `result.policy_table['legal_conclusion_produced'].eq`, `result.policy_table['legal_conclusion_produced'].eq(False).all`, `result.policy_table['local_feature_text_interpreted'].eq`, `result.policy_table['local_feature_text_interpreted'].eq(False).all`, `result.policy_table['local_regulation_content_interpreted'].eq`, `result.policy_table['local_regulation_content_interpreted'].eq(False).all`, `validate_bess_planning_feature_policy_result`.
-
-**Expected result**
-
-- Direct assertions: `assert result.policy_schema_version == 1`; `assert result.result_hash_schema_version == 1`; `assert result.policy_scope == POLICY_SCOPE`; `assert len(result.policy_table) == len(coded.code_dictionary)`; `assert not any((column in result.policy_table.columns for column in ('parcel_id', 'planning_feature_id', 'relation_type')))`; `assert result.policy_table['local_feature_text_interpreted'].eq(False).all()`; `assert result.policy_table['local_regulation_content_interpreted'].eq(False).all()`; `assert result.policy_table['legal_conclusion_produced'].eq(False).all()`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `valid exact policy compiles without applying feature or parcel status` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `any`, `len`, `result.policy_table['legal_conclusion_produced'].eq`, `result.policy_table['legal_conclusion_produced'].eq(False).all`, `result.policy_table['local_feature_text_interpreted'].eq`, `result.policy_table['local_feature_text_interpreted'].eq(False).all`, `result.policy_table['local_regulation_content_interpreted'].eq`, `result.policy_table['local_regulation_content_interpreted'].eq(False).all`, `validate_bess_planning_feature_policy_result`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_checked_in_policy_pins_all_twelve_exact_muret_decisions`
-
-**Signature**
-
-```python
-def test_checked_in_policy_pins_all_twelve_exact_muret_decisions() -> None:
-```
-
-**Purpose**
-
-Protects the `checked in policy pins all twelve exact muret decisions` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `config` from `load_bess_planning_feature_policy_config(POLICY_PATH)`.
-- Computes `actual` from `{(entry.feature_family, entry.type_code, entry.subtype_code): (entry.precheck_status, entry.confidence) for entry in config.entries}`.
-
-**Action**
-
-- Calls `all`, `load_bess_planning_feature_policy_config`.
-
-**Expected result**
-
-- Direct assertions: `assert actual == EXPECTED_MURET_DECISIONS`; `assert config.status_priority == STATUS_PRIORITIES`; `assert config.policy_scope == POLICY_SCOPE`; `assert config.local_feature_text_interpreted is False`; `assert config.local_regulation_content_interpreted is False`; `assert config.legal_conclusion_produced is False`; `assert len(config.entries) == 12`; `assert ('PRESCRIPTION', '15', '00') in actual`; `assert ('PRESCRIPTION', '15', '01') in actual`; `assert all((len(key[1]) == len(key[2]) == 2 for key in actual))`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `checked in policy pins all twelve exact muret decisions` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `all`, `len`, `load_bess_planning_feature_policy_config`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_checked_in_policy_complete_snapshot_is_immutable`
-
-**Signature**
-
-```python
-def test_checked_in_policy_complete_snapshot_is_immutable() -> None:
-```
-
-**Purpose**
-
-Protects the `checked in policy complete snapshot is immutable` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 1 explicit setup/context statement(s).
-- Computes `config` from `load_bess_planning_feature_policy_config(POLICY_PATH)`.
-
-**Action**
-
-- Calls `_canonical_sha256`, `config.model_dump`, `config.source_lock.model_dump`, `entry.model_dump`, `load_bess_planning_feature_policy_config`.
-
-**Expected result**
-
-- Direct assertions: `assert config.schema_version == 1`; `assert config.profile == 'muret_bess_cnig_feature_policy_v1'`; `assert config.policy_scope == POLICY_SCOPE`; `assert config.local_feature_text_interpreted is False`; `assert config.local_regulation_content_interpreted is False`; `assert config.legal_conclusion_produced is False`; `assert config.source_lock.model_dump(mode='json') == EXPECTED_SOURCE_LOCK`; `assert config.status_priority == STATUS_PRIORITIES`; `assert config.canonical_policy_entries_sha256 == EXPECTED_POLICY_ENTRIES_SHA256`; `assert _canonical_sha256([entry.model_dump(mode='json') for entry in config.entries]) == EXPECTED_POLICY_ENTRIES_SHA256`; `assert _canonical_sha256(config.model_dump(mode='json')) == EXPECTED_POLICY_SHA256`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `checked in policy complete snapshot is immutable` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_canonical_sha256`, `config.model_dump`, `config.source_lock.model_dump`, `entry.model_dump`, `load_bess_planning_feature_policy_config`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_checked_in_compiled_policy_result_hashes_are_pinned`
-
-**Signature**
-
-```python
-def test_checked_in_compiled_policy_result_hashes_are_pinned() -> None:
-```
-
-**Purpose**
-
-Protects the `checked in compiled policy result hashes are pinned` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 1 explicit setup/context statement(s).
-- Computes `result` from `_checked_in_policy_result()`.
-
-**Action**
-
-- Calls `_checked_in_policy_result`.
-
-**Expected result**
-
-- Direct assertions: `assert result.policy_table_content_sha256 == EXPECTED_POLICY_TABLE_SHA256`; `assert result.complete_result_content_sha256 == EXPECTED_COMPLETE_RESULT_SHA256`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `checked in compiled policy result hashes are pinned` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_checked_in_policy_result`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_profile_v1_snapshot_detects_policy_text_drift`
-
-**Signature**
-
-```python
-def test_profile_v1_snapshot_detects_policy_text_drift(field: str) -> None:
-```
-
-**Purpose**
-
-Protects the `profile v1 snapshot detects policy text drift` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `field`.
-- Contains 6 explicit setup/context statement(s).
-- Computes `config` from `load_bess_planning_feature_policy_config(POLICY_PATH)`.
-- Computes `payload` from `config.model_dump(mode='json')`.
-- Computes `entries` from `payload['entries']`.
-- Computes `entries[0][field]` from `f'{entries[0][field]} Changed.'`.
-- Computes `payload['canonical_policy_entries_sha256']` from `_canonical_sha256(entries)`.
-- Computes `changed` from `BessPlanningFeaturePolicyConfig.model_validate(payload)`.
-
-**Action**
-
-- Calls `BessPlanningFeaturePolicyConfig.model_validate`, `_canonical_sha256`, `changed.model_dump`, `config.model_dump`, `isinstance`, `load_bess_planning_feature_policy_config`.
-
-**Expected result**
-
-- Direct assertions: `assert isinstance(entries, list)`; `assert changed.profile == 'muret_bess_cnig_feature_policy_v1'`; `assert _canonical_sha256(changed.model_dump(mode='json')) != EXPECTED_POLICY_SHA256`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `profile v1 snapshot detects policy text drift` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `BessPlanningFeaturePolicyConfig.model_validate`, `_canonical_sha256`, `changed.model_dump`, `config.model_dump`, `isinstance`, `load_bess_planning_feature_policy_config`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_profile_v1_snapshot_detects_source_lock_drift`
-
-**Signature**
-
-```python
-def test_profile_v1_snapshot_detects_source_lock_drift() -> None:
-```
-
-**Purpose**
-
-Protects the `profile v1 snapshot detects source lock drift` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 5 explicit setup/context statement(s).
-- Computes `config` from `load_bess_planning_feature_policy_config(POLICY_PATH)`.
-- Computes `payload` from `config.model_dump(mode='json')`.
-- Computes `source_lock` from `payload['source_lock']`.
-- Computes `source_lock['document_id']` from `'another-document'`.
-- Computes `changed` from `BessPlanningFeaturePolicyConfig.model_validate(payload)`.
-
-**Action**
-
-- Calls `BessPlanningFeaturePolicyConfig.model_validate`, `_canonical_sha256`, `changed.model_dump`, `config.model_dump`, `isinstance`, `load_bess_planning_feature_policy_config`.
-
-**Expected result**
-
-- Direct assertions: `assert isinstance(source_lock, dict)`; `assert changed.profile == 'muret_bess_cnig_feature_policy_v1'`; `assert _canonical_sha256(changed.model_dump(mode='json')) != EXPECTED_POLICY_SHA256`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `profile v1 snapshot detects source lock drift` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `BessPlanningFeaturePolicyConfig.model_validate`, `_canonical_sha256`, `changed.model_dump`, `config.model_dump`, `isinstance`, `load_bess_planning_feature_policy_config`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_pandas_is_a_direct_bounded_runtime_dependency`
-
-**Signature**
-
-```python
-def test_pandas_is_a_direct_bounded_runtime_dependency() -> None:
-```
-
-**Purpose**
-
-Protects the `pandas is a direct bounded runtime dependency` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 1 explicit setup/context statement(s).
-- Computes `project` from `tomllib.loads(Path('pyproject.toml').read_text(encoding='utf-8'))['project']`.
-
-**Action**
-
-- Calls `Path`, `Path('pyproject.toml').read_text`, `tomllib.loads`.
-
-**Expected result**
-
-- Direct assertions: `assert 'pandas>=3.0,<4' in project['dependencies']`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `pandas is a direct bounded runtime dependency` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `Path`, `Path('pyproject.toml').read_text`, `tomllib.loads`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_information_9900_official_references_remain_missing`
-
-**Signature**
-
-```python
-def test_information_9900_official_references_remain_missing() -> None:
-```
-
-**Purpose**
-
-Protects the `information 9900 official references remain missing` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `row` from `result.policy_table.loc[(result.policy_table['feature_family'] == 'INFORMATION') & (result.policy_table['type_code'] == '99') & (result.policy_table['subtype_code'] == '00')].iloc[0]`.
-
-**Action**
-
-- Calls `_compiled_fixture`, `pd.isna`.
-
-**Expected result**
-
-- Direct assertions: `assert pd.isna(row['official_legal_reference'])`; `assert pd.isna(row['official_regulation_reference'])`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `information 9900 official references remain missing` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `pd.isna`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_null_reference_literal_is_rejected_by_local_envelope`
-
-**Signature**
-
-```python
-def test_null_reference_literal_is_rejected_by_local_envelope(
-    column: str,
-    literal: str,
-) -> None:
-```
-
-**Purpose**
-
-Protects the `null reference literal is rejected by local envelope` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `column`, `literal`.
-- Contains 7 explicit setup/context statement(s).
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `table` from `result.policy_table.copy(deep=True)`.
-- Computes `row` from `table.index[(table['feature_family'] == 'INFORMATION') & (table['type_code'] == '99') & (table['subtype_code'] == '00')][0]`.
-- Computes `table.loc[row, column]` from `literal`.
-- Computes `coordinated` from `module._result_with_hashes(replace(result, policy_table=table))`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='reference|null|missing')` and executes: Calls `module._validate_result_envelope(coordinated)` for its validation or side effect.
-
-**Action**
-
-- Calls `_compiled_fixture`, `importlib.import_module`, `module._result_with_hashes`, `module._validate_result_envelope`, `replace`, `result.policy_table.copy`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='reference|null|missing'): module._validate_result_envelope(coordinated)`.
-
-**Regression protected**
-
-- Protects the exact `null reference literal is rejected by local envelope` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `importlib.import_module`, `module._result_with_hashes`, `module._validate_result_envelope`, `pytest.mark.parametrize`, `pytest.raises`, `replace`, `result.policy_table.copy`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_source_lock_mismatch_is_rejected`
-
-**Signature**
-
-```python
-def test_source_lock_mismatch_is_rejected(field: str, value: object) -> None:
-```
-
-**Purpose**
-
-Protects the `source lock mismatch is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `field`, `value`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `(inputs, coded, config, _)` from `_compiled_fixture()`.
-- Computes `changed_lock` from `config.source_lock.model_copy(update={field: value})`.
-- Computes `changed` from `config.model_copy(update={'source_lock': changed_lock})`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='lock|source|CNIG')` and executes: Calls `compile_bess_planning_feature_policy(*inputs, coded, changed)` for its validation or side effect.
-
-**Action**
-
-- Calls `_compiled_fixture`, `compile_bess_planning_feature_policy`, `config.model_copy`, `config.source_lock.model_copy`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='lock|source|CNIG'): compile_bess_planning_feature_policy(*inputs, coded, changed)`.
-
-**Regression protected**
-
-- Protects the exact `source lock mismatch is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `compile_bess_planning_feature_policy`, `config.model_copy`, `config.source_lock.model_copy`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_missing_policy_pair_is_rejected`
-
-**Signature**
-
-```python
-def test_missing_policy_pair_is_rejected() -> None:
-```
-
-**Purpose**
-
-Protects the `missing policy pair is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 6 explicit setup/context statement(s).
-- Computes `inputs` from `_integration_inputs()`.
-- Computes `coded` from `resolve_planning_feature_codes(*inputs)`.
-- Computes `payload` from `_policy_payload(inputs, coded)`.
-- Computes `entries` from `payload['entries']`.
-- Computes `config` from `_validated_config(payload)`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='missing|pair')` and executes: Calls `compile_bess_planning_feature_policy(*inputs, coded, config)` for its validation or side effect.
-
-**Action**
-
-- Calls `_integration_inputs`, `_policy_payload`, `_validated_config`, `compile_bess_planning_feature_policy`, `entries.pop`, `isinstance`, `resolve_planning_feature_codes`.
-
-**Expected result**
-
-- Direct assertions: `assert isinstance(entries, list)`.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='missing|pair'): compile_bess_planning_feature_policy(*inputs, coded, config)`.
-
-**Regression protected**
-
-- Protects the exact `missing policy pair is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_integration_inputs`, `_policy_payload`, `_validated_config`, `compile_bess_planning_feature_policy`, `entries.pop`, `isinstance`, `pytest.raises`, `resolve_planning_feature_codes`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_extra_policy_pair_is_rejected_without_type_fallback`
-
-**Signature**
-
-```python
-def test_extra_policy_pair_is_rejected_without_type_fallback() -> None:
-```
-
-**Purpose**
-
-Protects the `extra policy pair is rejected without type fallback` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 7 explicit setup/context statement(s).
-- Computes `inputs` from `_integration_inputs()`.
-- Computes `coded` from `resolve_planning_feature_codes(*inputs)`.
-- Computes `payload` from `_policy_payload(inputs, coded)`.
-- Computes `entries` from `payload['entries']`.
-- Computes `extra` from `dict(entries[-1])`.
-- Computes `config` from `_validated_config(payload)`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='extra|pair')` and executes: Calls `compile_bess_planning_feature_policy(*inputs, coded, config)` for its validation or side effect.
-
-**Action**
-
-- Calls `_integration_inputs`, `_policy_payload`, `_validated_config`, `compile_bess_planning_feature_policy`, `entries.append`, `entries.sort`, `extra.update`, `isinstance`, `resolve_planning_feature_codes`.
-
-**Expected result**
-
-- Direct assertions: `assert isinstance(entries, list)`.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='extra|pair'): compile_bess_planning_feature_policy(*inputs, coded, config)`.
-
-**Regression protected**
-
-- Protects the exact `extra policy pair is rejected without type fallback` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_integration_inputs`, `_policy_payload`, `_validated_config`, `compile_bess_planning_feature_policy`, `dict`, `entries.append`, `entries.sort`, `extra.update`, `isinstance`, `pytest.raises`, `resolve_planning_feature_codes`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_duplicate_policy_pair_is_rejected`
-
-**Signature**
-
-```python
-def test_duplicate_policy_pair_is_rejected() -> None:
-```
-
-**Purpose**
-
-Protects the `duplicate policy pair is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 6 explicit setup/context statement(s).
-- Computes `inputs` from `_integration_inputs()`.
-- Computes `coded` from `resolve_planning_feature_codes(*inputs)`.
-- Computes `payload` from `_policy_payload(inputs, coded)`.
-- Computes `entries` from `payload['entries']`.
-- Computes `payload['canonical_policy_entries_sha256']` from `_canonical_sha256(entries)`.
-- Enters managed context(s) `pytest.raises(ValidationError, match='duplicate|pair')` and executes: Calls `BessPlanningFeaturePolicyConfig.model_validate(payload)` for its validation or side effect.
-
-**Action**
-
-- Calls `BessPlanningFeaturePolicyConfig.model_validate`, `_canonical_sha256`, `_integration_inputs`, `_policy_payload`, `entries.append`, `isinstance`, `resolve_planning_feature_codes`.
-
-**Expected result**
-
-- Direct assertions: `assert isinstance(entries, list)`.
-- Expected exception contexts: `with pytest.raises(ValidationError, match='duplicate|pair'): BessPlanningFeaturePolicyConfig.model_validate(payload)`.
-
-**Regression protected**
-
-- Protects the exact `duplicate policy pair is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `BessPlanningFeaturePolicyConfig.model_validate`, `_canonical_sha256`, `_integration_inputs`, `_policy_payload`, `dict`, `entries.append`, `isinstance`, `pytest.raises`, `resolve_planning_feature_codes`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_prescription_information_code_spaces_remain_separate`
-
-**Signature**
-
-```python
-def test_prescription_information_code_spaces_remain_separate() -> None:
-```
-
-**Purpose**
-
-Protects the `prescription information code spaces remain separate` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 7 explicit setup/context statement(s).
-- Computes `inputs` from `_integration_inputs()`.
-- Computes `coded` from `resolve_planning_feature_codes(*inputs)`.
-- Computes `payload` from `_policy_payload(inputs, coded)`.
-- Computes `entries` from `payload['entries']`.
-- Computes `entries[0]['feature_family']` from `'PRESCRIPTION'`.
-- Computes `config` from `_validated_config(payload)`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='missing|extra|pair')` and executes: Calls `compile_bess_planning_feature_policy(*inputs, coded, config)` for its validation or side effect.
-
-**Action**
-
-- Calls `_integration_inputs`, `_policy_payload`, `_validated_config`, `compile_bess_planning_feature_policy`, `entries.sort`, `isinstance`, `resolve_planning_feature_codes`.
-
-**Expected result**
-
-- Direct assertions: `assert isinstance(entries, list)`.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='missing|extra|pair'): compile_bess_planning_feature_policy(*inputs, coded, config)`.
-
-**Regression protected**
-
-- Protects the exact `prescription information code spaces remain separate` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_integration_inputs`, `_policy_payload`, `_validated_config`, `compile_bess_planning_feature_policy`, `entries.sort`, `isinstance`, `pytest.raises`, `resolve_planning_feature_codes`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_official_meaning_mismatch_is_rejected`
-
-**Signature**
-
-```python
-def test_official_meaning_mismatch_is_rejected(
-    field: str,
-    value: object,
-    message: str,
-) -> None:
-```
-
-**Purpose**
-
-Protects the `official meaning mismatch is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `field`, `value`, `message`.
-- Contains 7 explicit setup/context statement(s).
-- Computes `inputs` from `_integration_inputs()`.
-- Computes `coded` from `resolve_planning_feature_codes(*inputs)`.
-- Computes `payload` from `_policy_payload(inputs, coded)`.
-- Computes `entries` from `payload['entries']`.
-- Computes `entries[0][field]` from `value`.
-- Computes `config` from `_validated_config(payload)`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match=message)` and executes: Calls `compile_bess_planning_feature_policy(*inputs, coded, config)` for its validation or side effect.
-
-**Action**
-
-- Calls `_integration_inputs`, `_policy_payload`, `_validated_config`, `compile_bess_planning_feature_policy`, `isinstance`, `resolve_planning_feature_codes`.
-
-**Expected result**
-
-- Direct assertions: `assert isinstance(entries, list)`.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match=message): compile_bess_planning_feature_policy(*inputs, coded, config)`.
-
-**Regression protected**
-
-- Protects the exact `official meaning mismatch is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_integration_inputs`, `_policy_payload`, `_validated_config`, `compile_bess_planning_feature_policy`, `isinstance`, `pytest.mark.parametrize`, `pytest.raises`, `resolve_planning_feature_codes`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_invalid_or_legal_conclusion_status_is_rejected`
-
-**Signature**
-
-```python
-def test_invalid_or_legal_conclusion_status_is_rejected(status: str) -> None:
-```
-
-**Purpose**
-
-Protects the `invalid or legal conclusion status is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `status`.
-- Contains 7 explicit setup/context statement(s).
-- Computes `inputs` from `_integration_inputs()`.
-- Computes `coded` from `resolve_planning_feature_codes(*inputs)`.
-- Computes `payload` from `_policy_payload(inputs, coded)`.
-- Computes `entries` from `payload['entries']`.
-- Computes `entries[0]['precheck_status']` from `status`.
-- Computes `payload['canonical_policy_entries_sha256']` from `_canonical_sha256(entries)`.
-- Enters managed context(s) `pytest.raises(ValidationError)` and executes: Calls `BessPlanningFeaturePolicyConfig.model_validate(payload)` for its validation or side effect.
-
-**Action**
-
-- Calls `BessPlanningFeaturePolicyConfig.model_validate`, `_canonical_sha256`, `_integration_inputs`, `_policy_payload`, `isinstance`, `resolve_planning_feature_codes`.
-
-**Expected result**
-
-- Direct assertions: `assert isinstance(entries, list)`.
-- Expected exception contexts: `with pytest.raises(ValidationError): BessPlanningFeaturePolicyConfig.model_validate(payload)`.
-
-**Regression protected**
-
-- Protects the exact `invalid or legal conclusion status is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `BessPlanningFeaturePolicyConfig.model_validate`, `_canonical_sha256`, `_integration_inputs`, `_policy_payload`, `isinstance`, `pytest.mark.parametrize`, `pytest.raises`, `resolve_planning_feature_codes`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_invalid_confidence_is_rejected`
-
-**Signature**
-
-```python
-def test_invalid_confidence_is_rejected() -> None:
-```
-
-**Purpose**
-
-Protects the `invalid confidence is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 7 explicit setup/context statement(s).
-- Computes `inputs` from `_integration_inputs()`.
-- Computes `coded` from `resolve_planning_feature_codes(*inputs)`.
-- Computes `payload` from `_policy_payload(inputs, coded)`.
-- Computes `entries` from `payload['entries']`.
-- Computes `entries[0]['confidence']` from `'CERTAIN'`.
-- Computes `payload['canonical_policy_entries_sha256']` from `_canonical_sha256(entries)`.
-- Enters managed context(s) `pytest.raises(ValidationError)` and executes: Calls `BessPlanningFeaturePolicyConfig.model_validate(payload)` for its validation or side effect.
-
-**Action**
-
-- Calls `BessPlanningFeaturePolicyConfig.model_validate`, `_canonical_sha256`, `_integration_inputs`, `_policy_payload`, `isinstance`, `resolve_planning_feature_codes`.
-
-**Expected result**
-
-- Direct assertions: `assert isinstance(entries, list)`.
-- Expected exception contexts: `with pytest.raises(ValidationError): BessPlanningFeaturePolicyConfig.model_validate(payload)`.
-
-**Regression protected**
-
-- Protects the exact `invalid confidence is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `BessPlanningFeaturePolicyConfig.model_validate`, `_canonical_sha256`, `_integration_inputs`, `_policy_payload`, `isinstance`, `pytest.raises`, `resolve_planning_feature_codes`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_status_priority_contract_is_strict`
-
-**Signature**
-
-```python
-def test_status_priority_contract_is_strict(mutation: str) -> None:
-```
-
-**Purpose**
-
-Protects the `status priority contract is strict` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `mutation`.
-- Contains 5 explicit setup/context statement(s).
-- Computes `inputs` from `_integration_inputs()`.
-- Computes `coded` from `resolve_planning_feature_codes(*inputs)`.
-- Computes `payload` from `_policy_payload(inputs, coded)`.
-- Computes `priorities` from `payload['status_priority']`.
-- Enters managed context(s) `pytest.raises(ValidationError, match='priority|integer')` and executes: Calls `BessPlanningFeaturePolicyConfig.model_validate(payload)` for its validation or side effect.
-
-**Action**
-
-- Calls `BessPlanningFeaturePolicyConfig.model_validate`, `_integration_inputs`, `_policy_payload`, `isinstance`, `priorities.pop`, `resolve_planning_feature_codes`.
-
-**Expected result**
-
-- Direct assertions: `assert isinstance(priorities, dict)`.
-- Expected exception contexts: `with pytest.raises(ValidationError, match='priority|integer'): BessPlanningFeaturePolicyConfig.model_validate(payload)`.
-
-**Regression protected**
-
-- Protects the exact `status priority contract is strict` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `BessPlanningFeaturePolicyConfig.model_validate`, `_integration_inputs`, `_policy_payload`, `isinstance`, `priorities.pop`, `pytest.mark.parametrize`, `pytest.raises`, `resolve_planning_feature_codes`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_duplicate_yaml_key_is_rejected`
-
-**Signature**
-
-```python
-def test_duplicate_yaml_key_is_rejected(tmp_path: Path) -> None:
-```
-
-**Purpose**
-
-Protects the `duplicate yaml key is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `path` from `tmp_path / 'duplicate.yaml'`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='Duplicate YAML')` and executes: Calls `load_bess_planning_feature_policy_config(path)` for its validation or side effect.
-
-**Action**
-
-- Calls `load_bess_planning_feature_policy_config`, `path.write_text`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='Duplicate YAML'): load_bess_planning_feature_policy_config(path)`.
-
-**Regression protected**
-
-- Protects the exact `duplicate yaml key is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `load_bess_planning_feature_policy_config`, `path.write_text`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_unknown_yaml_field_is_rejected`
-
-**Signature**
-
-```python
-def test_unknown_yaml_field_is_rejected() -> None:
-```
-
-**Purpose**
-
-Protects the `unknown yaml field is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 5 explicit setup/context statement(s).
-- Computes `inputs` from `_integration_inputs()`.
-- Computes `coded` from `resolve_planning_feature_codes(*inputs)`.
-- Computes `payload` from `_policy_payload(inputs, coded)`.
-- Computes `payload['unknown_field']` from `'not allowed'`.
-- Enters managed context(s) `pytest.raises(ValidationError)` and executes: Calls `BessPlanningFeaturePolicyConfig.model_validate(payload)` for its validation or side effect.
-
-**Action**
-
-- Calls `BessPlanningFeaturePolicyConfig.model_validate`, `_integration_inputs`, `_policy_payload`, `resolve_planning_feature_codes`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ValidationError): BessPlanningFeaturePolicyConfig.model_validate(payload)`.
-
-**Regression protected**
-
-- Protects the exact `unknown yaml field is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `BessPlanningFeaturePolicyConfig.model_validate`, `_integration_inputs`, `_policy_payload`, `pytest.raises`, `resolve_planning_feature_codes`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_noncanonical_whitespace_is_rejected`
-
-**Signature**
-
-```python
-def test_noncanonical_whitespace_is_rejected() -> None:
-```
-
-**Purpose**
-
-Protects the `noncanonical whitespace is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 7 explicit setup/context statement(s).
-- Computes `inputs` from `_integration_inputs()`.
-- Computes `coded` from `resolve_planning_feature_codes(*inputs)`.
-- Computes `payload` from `_policy_payload(inputs, coded)`.
-- Computes `entries` from `payload['entries']`.
-- Computes `entries[0]['rationale']` from `' leading whitespace'`.
-- Computes `payload['canonical_policy_entries_sha256']` from `_canonical_sha256(entries)`.
-- Enters managed context(s) `pytest.raises(ValidationError, match='whitespace|exact')` and executes: Calls `BessPlanningFeaturePolicyConfig.model_validate(payload)` for its validation or side effect.
-
-**Action**
-
-- Calls `BessPlanningFeaturePolicyConfig.model_validate`, `_canonical_sha256`, `_integration_inputs`, `_policy_payload`, `isinstance`, `resolve_planning_feature_codes`.
-
-**Expected result**
-
-- Direct assertions: `assert isinstance(entries, list)`.
-- Expected exception contexts: `with pytest.raises(ValidationError, match='whitespace|exact'): BessPlanningFeaturePolicyConfig.model_validate(payload)`.
-
-**Regression protected**
-
-- Protects the exact `noncanonical whitespace is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `BessPlanningFeaturePolicyConfig.model_validate`, `_canonical_sha256`, `_integration_inputs`, `_policy_payload`, `isinstance`, `pytest.raises`, `resolve_planning_feature_codes`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_malformed_sha256_is_rejected`
-
-**Signature**
-
-```python
-def test_malformed_sha256_is_rejected() -> None:
-```
-
-**Purpose**
-
-Protects the `malformed sha256 is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 5 explicit setup/context statement(s).
-- Computes `inputs` from `_integration_inputs()`.
-- Computes `coded` from `resolve_planning_feature_codes(*inputs)`.
-- Computes `payload` from `_policy_payload(inputs, coded)`.
-- Computes `payload['canonical_policy_entries_sha256']` from `'NOT-A-SHA'`.
-- Enters managed context(s) `pytest.raises(ValidationError, match='SHA256')` and executes: Calls `BessPlanningFeaturePolicyConfig.model_validate(payload)` for its validation or side effect.
-
-**Action**
-
-- Calls `BessPlanningFeaturePolicyConfig.model_validate`, `_integration_inputs`, `_policy_payload`, `resolve_planning_feature_codes`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ValidationError, match='SHA256'): BessPlanningFeaturePolicyConfig.model_validate(payload)`.
-
-**Regression protected**
-
-- Protects the exact `malformed sha256 is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `BessPlanningFeaturePolicyConfig.model_validate`, `_integration_inputs`, `_policy_payload`, `pytest.raises`, `resolve_planning_feature_codes`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_in_memory_config_is_revalidated_before_compilation`
-
-**Signature**
-
-```python
-def test_in_memory_config_is_revalidated_before_compilation() -> None:
-```
-
-**Purpose**
-
-Protects the `in memory config is revalidated before compilation` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `(inputs, coded, config, _)` from `_compiled_fixture()`.
-- Computes `corrupted` from `config.model_copy(update={'canonical_policy_entries_sha256': 'f' * 64})`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='in-memory|canonical')` and executes: Calls `compile_bess_planning_feature_policy(*inputs, coded, corrupted)` for its validation or side effect.
-
-**Action**
-
-- Calls `_compiled_fixture`, `compile_bess_planning_feature_policy`, `config.model_copy`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='in-memory|canonical'): compile_bess_planning_feature_policy(*inputs, coded, corrupted)`.
-
-**Regression protected**
-
-- Protects the exact `in memory config is revalidated before compilation` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `compile_bess_planning_feature_policy`, `config.model_copy`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_policy_entries_require_deterministic_order`
-
-**Signature**
-
-```python
-def test_policy_entries_require_deterministic_order() -> None:
-```
-
-**Purpose**
-
-Protects the `policy entries require deterministic order` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 6 explicit setup/context statement(s).
-- Computes `inputs` from `_integration_inputs()`.
-- Computes `coded` from `resolve_planning_feature_codes(*inputs)`.
-- Computes `payload` from `_policy_payload(inputs, coded)`.
-- Computes `entries` from `payload['entries']`.
-- Computes `payload['canonical_policy_entries_sha256']` from `_canonical_sha256(entries)`.
-- Enters managed context(s) `pytest.raises(ValidationError, match='order')` and executes: Calls `BessPlanningFeaturePolicyConfig.model_validate(payload)` for its validation or side effect.
-
-**Action**
-
-- Calls `BessPlanningFeaturePolicyConfig.model_validate`, `_canonical_sha256`, `_integration_inputs`, `_policy_payload`, `entries.reverse`, `isinstance`, `resolve_planning_feature_codes`.
-
-**Expected result**
-
-- Direct assertions: `assert isinstance(entries, list)`.
-- Expected exception contexts: `with pytest.raises(ValidationError, match='order'): BessPlanningFeaturePolicyConfig.model_validate(payload)`.
-
-**Regression protected**
-
-- Protects the exact `policy entries require deterministic order` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `BessPlanningFeaturePolicyConfig.model_validate`, `_canonical_sha256`, `_integration_inputs`, `_policy_payload`, `entries.reverse`, `isinstance`, `pytest.raises`, `resolve_planning_feature_codes`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_policy_table_is_sorted_and_preserves_leading_zero_codes`
-
-**Signature**
-
-```python
-def test_policy_table_is_sorted_and_preserves_leading_zero_codes() -> None:
-```
-
-**Purpose**
-
-Protects the `policy table is sorted and preserves leading zero codes` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `keys` from `list(result.policy_table[['feature_family', 'type_code', 'subtype_code']].itertuples(index=False, name=None))`.
-
-**Action**
-
-- Calls `_compiled_fixture`, `all`, `result.policy_table[['feature_family', 'type_code', 'subtype_code']].itertuples`, `sorted`.
-
-**Expected result**
-
-- Direct assertions: `assert keys == sorted(keys)`; `assert all((len(type_code) == len(subtype_code) == 2 for _, type_code, subtype_code in keys))`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `policy table is sorted and preserves leading zero codes` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `all`, `len`, `list`, `result.policy_table[['feature_family', 'type_code', 'subtype_code']].itertuples`, `sorted`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_policy_table_mutation_is_rejected`
-
-**Signature**
-
-```python
-def test_policy_table_mutation_is_rejected() -> None:
-```
-
-**Purpose**
-
-Protects the `policy table mutation is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 4 explicit setup/context statement(s).
-- Computes `(inputs, coded, config, result)` from `_compiled_fixture()`.
-- Computes `table` from `result.policy_table.copy(deep=True)`.
-- Computes `table.loc[table.index[0], 'precheck_status']` from `'UNKNOWN'`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='hash|table|rebuilt')` and executes: Calls `validate_bess_planning_feature_policy_result(*inputs, coded, config, replace(result, policy_table=table))` for its validation or side effect.
-
-**Action**
-
-- Calls `_compiled_fixture`, `replace`, `result.policy_table.copy`, `validate_bess_planning_feature_policy_result`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='hash|table|rebuilt'): validate_bess_planning_feature_policy_result(*inputs, coded, config, replace(result, policy_table=table))`.
-
-**Regression protected**
-
-- Protects the exact `policy table mutation is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `pytest.raises`, `replace`, `result.policy_table.copy`, `validate_bess_planning_feature_policy_result`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_coordinated_policy_table_and_hash_mutation_is_rejected`
-
-**Signature**
-
-```python
-def test_coordinated_policy_table_and_hash_mutation_is_rejected() -> None:
-```
-
-**Purpose**
-
-Protects the `coordinated policy table and hash mutation is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 6 explicit setup/context statement(s).
-- Computes `(inputs, coded, config, result)` from `_compiled_fixture()`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `table` from `result.policy_table.copy(deep=True)`.
-- Computes `table.loc[table.index[0], 'rationale']` from `'Coordinated but false rationale.'`.
-- Computes `coordinated` from `module._result_with_hashes(replace(result, policy_table=table))`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='table|rebuilt')` and executes: Calls `validate_bess_planning_feature_policy_result(*inputs, coded, config, coordinated)` for its validation or side effect.
-
-**Action**
-
-- Calls `_compiled_fixture`, `importlib.import_module`, `module._result_with_hashes`, `replace`, `result.policy_table.copy`, `validate_bess_planning_feature_policy_result`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='table|rebuilt'): validate_bess_planning_feature_policy_result(*inputs, coded, config, coordinated)`.
-
-**Regression protected**
-
-- Protects the exact `coordinated policy table and hash mutation is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `importlib.import_module`, `module._result_with_hashes`, `pytest.raises`, `replace`, `result.policy_table.copy`, `validate_bess_planning_feature_policy_result`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_persisted_parquet_and_json_readback_is_source_complete`
-
-**Signature**
-
-```python
-def test_persisted_parquet_and_json_readback_is_source_complete(
-    tmp_path: Path,
-) -> None:
-```
-
-**Purpose**
-
-Protects the `persisted parquet and json readback is source complete` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 5 explicit setup/context statement(s).
-- Computes `(inputs, coded, config, result)` from `_compiled_fixture()`.
-- Computes `(parquet, manifest_path, _)` from `_write_artifacts(tmp_path, result)`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `persisted` from `module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)`.
-- Computes `row` from `persisted.policy_table.loc[(persisted.policy_table['feature_family'] == 'INFORMATION') & (persisted.policy_table['type_code'] == '99') & (persisted.policy_table['subtype_code'] == '00')].iloc[0]`.
-
-**Action**
-
-- Calls `_compiled_fixture`, `_write_artifacts`, `importlib.import_module`, `module.load_bess_planning_feature_policy_artifacts`, `pd.isna`, `validate_bess_planning_feature_policy_result`.
-
-**Expected result**
-
-- Direct assertions: `assert pd.isna(row['official_legal_reference'])`; `assert pd.isna(row['official_regulation_reference'])`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `persisted parquet and json readback is source complete` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `_write_artifacts`, `assert_frame_equal`, `importlib.import_module`, `module.load_bess_planning_feature_policy_artifacts`, `pd.isna`, `validate_bess_planning_feature_policy_result`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_artifact_manifest_model_is_strict_and_frozen`
-
-**Signature**
-
-```python
-def test_artifact_manifest_model_is_strict_and_frozen(tmp_path: Path) -> None:
-```
-
-**Purpose**
-
-Protects the `artifact manifest model is strict and frozen` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 5 explicit setup/context statement(s).
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `(parquet, _, manifest)` from `_write_artifacts(tmp_path, result)`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `validated` from `module.BessPlanningFeaturePolicyArtifactManifest.model_validate(manifest)`.
-- Enters managed context(s) `pytest.raises(ValidationError)` and executes: Computes `validated.parquet_row_count` from `0`.
-
-**Action**
-
-- Calls `_compiled_fixture`, `_write_artifacts`, `importlib.import_module`, `module.BessPlanningFeaturePolicyArtifactManifest.model_validate`.
-
-**Expected result**
-
-- Direct assertions: `assert validated.schema_version == 2`; `assert validated.artifact_kind == ARTIFACT_KIND`; `assert validated.cnig_profile_schema_version == 2`; `assert validated.cnig_result_hash_schema_version == 5`; `assert validated.parquet_filename == parquet.name`.
-- Expected exception contexts: `with pytest.raises(ValidationError): validated.parquet_row_count = 0`.
-
-**Regression protected**
-
-- Protects the exact `artifact manifest model is strict and frozen` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `_write_artifacts`, `importlib.import_module`, `module.BessPlanningFeaturePolicyArtifactManifest.model_validate`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_artifact_loader_rejects_manifest_mismatch`
-
-**Signature**
-
-```python
-def test_artifact_loader_rejects_manifest_mismatch(
-    tmp_path: Path,
-    mutation: object,
-    message: str,
-) -> None:
-```
-
-**Purpose**
-
-Protects the `artifact loader rejects manifest mismatch` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `mutation`, `message`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `(parquet, manifest_path, manifest)` from `_write_artifacts(tmp_path, result)`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match=message)` and executes: Calls `module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)` for its validation or side effect.
-
-**Action**
-
-- Calls `_compiled_fixture`, `_write_artifacts`, `callable`, `importlib.import_module`, `json.dumps`, `manifest_path.write_text`, `module.load_bess_planning_feature_policy_artifacts`, `mutation`, `value.pop`, `value.update`, `value['policy_table_schema_signature'].update`.
-
-**Expected result**
-
-- Direct assertions: `assert callable(mutation)`.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match=message): module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)`.
-
-**Regression protected**
-
-- Protects the exact `artifact loader rejects manifest mismatch` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `_write_artifacts`, `callable`, `importlib.import_module`, `json.dumps`, `manifest_path.write_text`, `module.load_bess_planning_feature_policy_artifacts`, `mutation`, `pytest.mark.parametrize`, `pytest.raises`, `value.pop`, `value.update`, `value['policy_table_schema_signature'].update`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_artifact_loader_rejects_duplicate_json_key`
-
-**Signature**
-
-```python
-def test_artifact_loader_rejects_duplicate_json_key(tmp_path: Path) -> None:
-```
-
-**Purpose**
-
-Protects the `artifact loader rejects duplicate json key` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `(parquet, manifest_path, _)` from `_write_artifacts(tmp_path, result)`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='Duplicate JSON')` and executes: Calls `module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)` for its validation or side effect.
-
-**Action**
-
-- Calls `_compiled_fixture`, `_write_artifacts`, `importlib.import_module`, `manifest_path.write_text`, `module.load_bess_planning_feature_policy_artifacts`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='Duplicate JSON'): module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)`.
-
-**Regression protected**
-
-- Protects the exact `artifact loader rejects duplicate json key` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `_write_artifacts`, `importlib.import_module`, `manifest_path.write_text`, `module.load_bess_planning_feature_policy_artifacts`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_artifact_loader_rejects_parquet_replacement`
-
-**Signature**
-
-```python
-def test_artifact_loader_rejects_parquet_replacement(tmp_path: Path) -> None:
-```
-
-**Purpose**
-
-Protects the `artifact loader rejects parquet replacement` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `(parquet, manifest_path, _)` from `_write_artifacts(tmp_path, result)`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='size|SHA|hash')` and executes: Calls `module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)` for its validation or side effect.
-
-**Action**
-
-- Calls `_compiled_fixture`, `_write_artifacts`, `importlib.import_module`, `module.load_bess_planning_feature_policy_artifacts`, `parquet.read_bytes`, `parquet.write_bytes`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='size|SHA|hash'): module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)`.
-
-**Regression protected**
-
-- Protects the exact `artifact loader rejects parquet replacement` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `_write_artifacts`, `importlib.import_module`, `module.load_bess_planning_feature_policy_artifacts`, `parquet.read_bytes`, `parquet.write_bytes`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_artifact_loader_parses_the_exact_verified_parquet_bytes`
-
-**Signature**
-
-```python
-def test_artifact_loader_parses_the_exact_verified_parquet_bytes(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-```
-
-**Purpose**
-
-Protects the `artifact loader parses the exact verified parquet bytes` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 11 explicit setup/context statement(s).
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `(parquet, manifest_path, _)` from `_write_artifacts(tmp_path, result)`.
-- Computes `replacement` from `tmp_path / 'replacement.parquet'`.
-- Computes `original_read_bytes` from `Path.read_bytes`.
-- Computes `verified_bytes` from `original_read_bytes(parquet)`.
-- Computes `replacement_bytes` from `original_read_bytes(replacement)`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `original_read_parquet` from `module.pd.read_parquet`.
-- Computes `replacement_performed` from `False`.
-- Defines `parsed_payloads` with annotation `list[tuple[str, bytes]]` from `[]`.
-- Computes `loaded` from `module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)`.
-
-**Action**
-
-- Calls `Path`, `_compiled_fixture`, `_write_artifacts`, `importlib.import_module`, `isinstance`, `module.load_bess_planning_feature_policy_artifacts`, `monkeypatch.setattr`, `original_read_bytes`, `original_read_parquet`, `parsed_payloads.append`, `path.write_bytes`, `result.policy_table.to_parquet`, `sha256`, `sha256(payload).hexdigest`, `source.getvalue`.
-
-**Expected result**
-
-- Direct assertions: `assert replacement_bytes != verified_bytes`; `assert replacement_performed`; `assert parsed_payloads == [('buffer', verified_bytes)]`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `artifact loader parses the exact verified parquet bytes` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `Path`, `_compiled_fixture`, `_write_artifacts`, `assert_frame_equal`, `importlib.import_module`, `isinstance`, `module.load_bess_planning_feature_policy_artifacts`, `monkeypatch.setattr`, `original_read_bytes`, `original_read_parquet`, `parsed_payloads.append`, `path.write_bytes`, `result.policy_table.to_parquet`, `sha256`, `sha256(payload).hexdigest`, `source.getvalue`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_locally_invalid_result_fast_fails_before_source_validation`
-
-**Signature**
-
-```python
-def test_locally_invalid_result_fast_fails_before_source_validation(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-```
-
-**Purpose**
-
-Protects the `locally invalid result fast fails before source validation` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `monkeypatch`.
-- Contains 5 explicit setup/context statement(s).
-- Computes `(inputs, coded, config, result)` from `_compiled_fixture()`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `calls` from `0`.
-- Computes `wrong_table` from `result.policy_table.drop(columns='confidence')`.
-- Computes `invalid_results` from `(object(), replace(result, policy_schema_version=2), replace(result, policy_table=wrong_table), replace(result, policy_table_content_sha256='f' * 64), replace(result, complete_result_content_sha256='f' * 64))`.
-
-**Action**
-
-- Calls `_compiled_fixture`, `importlib.import_module`, `module.validate_bess_planning_feature_policy_result`, `monkeypatch.setattr`, `object`, `replace`, `result.policy_table.drop`.
-
-**Expected result**
-
-- Direct assertions: `assert calls == 0`.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='type|schema|hash|result'): module.validate_bess_planning_feature_policy_result(*inputs, coded, config, invalid)`.
-
-**Regression protected**
-
-- Protects the exact `locally invalid result fast fails before source validation` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `importlib.import_module`, `module.validate_bess_planning_feature_policy_result`, `monkeypatch.setattr`, `object`, `pytest.raises`, `replace`, `result.policy_table.drop`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_compiler_wrong_source_lock_fast_fails_before_source_validation`
-
-**Signature**
-
-```python
-def test_compiler_wrong_source_lock_fast_fails_before_source_validation(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-```
-
-**Purpose**
-
-Protects the `compiler wrong source lock fast fails before source validation` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `monkeypatch`.
-- Contains 6 explicit setup/context statement(s).
-- Computes `(inputs, coded, config, _)` from `_compiled_fixture()`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `calls` from `0`.
-- Computes `wrong_lock` from `config.source_lock.model_copy(update={'document_id': 'another-document'})`.
-- Computes `wrong_config` from `config.model_copy(update={'source_lock': wrong_lock})`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='lock|document')` and executes: Calls `module.compile_bess_planning_feature_policy(*inputs, coded, wrong_config)` for its validation or side effect.
-
-**Action**
-
-- Calls `_compiled_fixture`, `config.model_copy`, `config.source_lock.model_copy`, `importlib.import_module`, `module.compile_bess_planning_feature_policy`, `monkeypatch.setattr`.
-
-**Expected result**
-
-- Direct assertions: `assert calls == 0`.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='lock|document'): module.compile_bess_planning_feature_policy(*inputs, coded, wrong_config)`.
-
-**Regression protected**
-
-- Protects the exact `compiler wrong source lock fast fails before source validation` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `config.model_copy`, `config.source_lock.model_copy`, `importlib.import_module`, `module.compile_bess_planning_feature_policy`, `monkeypatch.setattr`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_forged_matching_lock_still_runs_source_complete_validation`
-
-**Signature**
-
-```python
-def test_forged_matching_lock_still_runs_source_complete_validation(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-```
-
-**Purpose**
-
-Protects the `forged matching lock still runs source complete validation` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `monkeypatch`.
-- Contains 8 explicit setup/context statement(s).
-- Computes `(inputs, coded, config, _)` from `_compiled_fixture()`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `actual` from `module.validate_planning_feature_code_result`.
-- Computes `calls` from `0`.
-- Computes `forged_coded` from `replace(coded, source_document_id='forged-document')`.
-- Computes `forged_lock` from `config.source_lock.model_copy(update={'document_id': 'forged-document'})`.
-- Computes `forged_config` from `config.model_copy(update={'source_lock': forged_lock})`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='Source-complete|source')` and executes: Calls `module.compile_bess_planning_feature_policy(*inputs, forged_coded, forged_config)` for its validation or side effect.
-
-**Action**
-
-- Calls `_compiled_fixture`, `actual`, `config.model_copy`, `config.source_lock.model_copy`, `importlib.import_module`, `module.compile_bess_planning_feature_policy`, `monkeypatch.setattr`, `replace`.
-
-**Expected result**
-
-- Direct assertions: `assert calls == 1`.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='Source-complete|source'): module.compile_bess_planning_feature_policy(*inputs, forged_coded, forged_config)`.
-
-**Regression protected**
-
-- Protects the exact `forged matching lock still runs source complete validation` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `actual`, `config.model_copy`, `config.source_lock.model_copy`, `importlib.import_module`, `module.compile_bess_planning_feature_policy`, `monkeypatch.setattr`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_compiler_and_public_validator_invoke_source_complete_coding_validation`
-
-**Signature**
-
-```python
-def test_compiler_and_public_validator_invoke_source_complete_coding_validation(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-```
-
-**Purpose**
-
-Protects the `compiler and public validator invoke source complete coding validation` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `monkeypatch`.
-- Contains 7 explicit setup/context statement(s).
-- Computes `inputs` from `_integration_inputs()`.
-- Computes `coded` from `resolve_planning_feature_codes(*inputs)`.
-- Computes `config` from `BessPlanningFeaturePolicyConfig.model_validate(_policy_payload(inputs, coded))`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `actual` from `module.validate_planning_feature_code_result`.
-- Computes `calls` from `0`.
-- Computes `result` from `module.compile_bess_planning_feature_policy(*inputs, coded, config)`.
-
-**Action**
-
-- Calls `BessPlanningFeaturePolicyConfig.model_validate`, `_integration_inputs`, `_policy_payload`, `actual`, `importlib.import_module`, `module.compile_bess_planning_feature_policy`, `module.validate_bess_planning_feature_policy_result`, `monkeypatch.setattr`, `resolve_planning_feature_codes`.
-
-**Expected result**
-
-- Direct assertions: `assert calls == 1`; `assert calls == 2`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `compiler and public validator invoke source complete coding validation` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `BessPlanningFeaturePolicyConfig.model_validate`, `_integration_inputs`, `_policy_payload`, `actual`, `importlib.import_module`, `module.compile_bess_planning_feature_policy`, `module.validate_bess_planning_feature_policy_result`, `monkeypatch.setattr`, `resolve_planning_feature_codes`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_public_policy_api_exports_only_stable_symbols`
-
-**Signature**
-
-```python
-def test_public_policy_api_exports_only_stable_symbols() -> None:
-```
-
-**Purpose**
-
-Protects the `public policy api exports only stable symbols` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `required` from `{'BessPlanningFeaturePolicyArtifactManifest', 'BessPlanningFeaturePolicyConfig', 'BessPlanningFeaturePolicyError', 'BessPlanningFeaturePolicyResult', 'load_bess_planning_feature_policy_artifacts', 'load_bess_planning_feature_policy_config', 'compile_bess_planning_feature_policy', 'validate_bess_planning_feature_policy…`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-
-**Action**
-
-- Calls `all`, `any`, `getattr`, `importlib.import_module`, `required.issubset`.
-
-**Expected result**
-
-- Direct assertions: `assert set(module.__all__) == required`; `assert required.issubset(set(stages.__all__))`; `assert all((getattr(stages, name) is getattr(module, name) for name in required))`; `assert not any((name in module.__all__ for name in ('_canonical_sha256', '_lookup')))`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `public policy api exports only stable symbols` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `all`, `any`, `getattr`, `importlib.import_module`, `required.issubset`, `set`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_step_7d_5b_2b_5_exposes_lightweight_policy_result_validator`
-
-**Signature**
-
-```python
-def test_step_7d_5b_2b_5_exposes_lightweight_policy_result_validator() -> None:
-```
-
-**Purpose**
-
-Protects the `step 7d 5b 2b 5 exposes lightweight policy result validator` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='hash')` and executes: Calls `module.validate_bess_planning_feature_policy_result_envelope(replace(result, complete_result_content_sha256='0' * 64))` for its validation or side effect.
-
-**Action**
-
-- Calls `_compiled_fixture`, `hasattr`, `importlib.import_module`, `module.validate_bess_planning_feature_policy_result_envelope`, `replace`.
-
-**Expected result**
-
-- Direct assertions: `assert hasattr(module, 'validate_bess_planning_feature_policy_result_envelope')`.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='hash'): module.validate_bess_planning_feature_policy_result_envelope(replace(result, complete_result_content_sha256='0' * 64))`.
-
-**Regression protected**
-
-- Protects the exact `step 7d 5b 2b 5 exposes lightweight policy result validator` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `hasattr`, `importlib.import_module`, `module.validate_bess_planning_feature_policy_result_envelope`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_policy_manifest_rejects_nonportable_parquet_filename`
-
-**Signature**
-
-```python
-def test_policy_manifest_rejects_nonportable_parquet_filename(
-    tmp_path: Path, filename: str
-) -> None:
-```
-
-**Purpose**
-
-Protects the `policy manifest rejects nonportable parquet filename` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `filename`.
-- Contains 5 explicit setup/context statement(s).
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `(_, _, manifest)` from `_write_artifacts(tmp_path, result)`.
-- Computes `manifest['parquet_filename']` from `filename`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Enters managed context(s) `pytest.raises(ValueError, match='filename|basename|portable')` and executes: Calls `module.BessPlanningFeaturePolicyArtifactManifest.model_validate(manifest)` for its validation or side effect.
-
-**Action**
-
-- Calls `_compiled_fixture`, `_write_artifacts`, `importlib.import_module`, `module.BessPlanningFeaturePolicyArtifactManifest.model_validate`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ValueError, match='filename|basename|portable'): module.BessPlanningFeaturePolicyArtifactManifest.model_validate(manifest)`.
-
-**Regression protected**
-
-- Protects the exact `policy manifest rejects nonportable parquet filename` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `_write_artifacts`, `importlib.import_module`, `module.BessPlanningFeaturePolicyArtifactManifest.model_validate`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_shared_filename_contract_rejects_superscript_windows_devices`
-
-**Signature**
-
-```python
-def test_shared_filename_contract_rejects_superscript_windows_devices(
-    filename: str,
-) -> None:
-```
-
-**Purpose**
-
-Protects the `shared filename contract rejects superscript windows devices` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `filename`.
-- Contains 1 explicit setup/context statement(s).
-- Enters managed context(s) `pytest.raises(ValueError, match='reserved|basename|portable')` and executes: Calls `validate_portable_parquet_filename(filename, 'artifact filename')` for its validation or side effect.
-
-**Action**
-
-- Calls `validate_portable_parquet_filename`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ValueError, match='reserved|basename|portable'): validate_portable_parquet_filename(filename, 'artifact filename')`.
-
-**Regression protected**
-
-- Protects the exact `shared filename contract rejects superscript windows devices` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `pytest.mark.parametrize`, `pytest.raises`, `validate_portable_parquet_filename`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_policy_manifest_rejects_unsupported_cnig_source_schema`
-
-**Signature**
-
-```python
-def test_policy_manifest_rejects_unsupported_cnig_source_schema(
-    tmp_path: Path,
-    field: str,
-    version: int,
-) -> None:
-```
-
-**Purpose**
-
-Protects the `policy manifest rejects unsupported cnig source schema` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `field`, `version`.
-- Contains 5 explicit setup/context statement(s).
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `(_, _, manifest)` from `_write_artifacts(tmp_path, result)`.
-- Computes `manifest[field]` from `version`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Enters managed context(s) `pytest.raises(ValidationError, match='CNIG|cnig|schema|version')` and executes: Calls `module.BessPlanningFeaturePolicyArtifactManifest.model_validate(manifest)` for its validation or side effect.
-
-**Action**
-
-- Calls `_compiled_fixture`, `_write_artifacts`, `importlib.import_module`, `module.BessPlanningFeaturePolicyArtifactManifest.model_validate`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ValidationError, match='CNIG|cnig|schema|version'): module.BessPlanningFeaturePolicyArtifactManifest.model_validate(manifest)`.
-
-**Regression protected**
-
-- Protects the exact `policy manifest rejects unsupported cnig source schema` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `_write_artifacts`, `importlib.import_module`, `module.BessPlanningFeaturePolicyArtifactManifest.model_validate`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_policy_artifact_loader_rejects_source_schema_before_parquet_read`
-
-**Signature**
-
-```python
-def test_policy_artifact_loader_rejects_source_schema_before_parquet_read(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    field: str,
-    version: int,
-) -> None:
-```
-
-**Purpose**
-
-Protects the `policy artifact loader rejects source schema before parquet read` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`, `field`, `version`.
-- Contains 6 explicit setup/context statement(s).
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `(parquet, manifest_path, manifest)` from `_write_artifacts(tmp_path, result)`.
-- Computes `manifest[field]` from `version`.
-- Computes `calls` from `{'bytes': 0, 'parse': 0}`.
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='CNIG|cnig|schema|version')` and executes: Calls `module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)` for its validation or side effect.
-
-**Action**
-
-- Calls `AssertionError`, `_compiled_fixture`, `_write_artifacts`, `importlib.import_module`, `json.dumps`, `manifest_path.write_text`, `module.load_bess_planning_feature_policy_artifacts`, `monkeypatch.setattr`.
-
-**Expected result**
-
-- Direct assertions: `assert calls == {'bytes': 0, 'parse': 0}`.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='CNIG|cnig|schema|version'): module.load_bess_planning_feature_policy_artifacts(parquet, manifest_path)`.
-
-**Regression protected**
-
-- Protects the exact `policy artifact loader rejects source schema before parquet read` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `AssertionError`, `_compiled_fixture`, `_write_artifacts`, `importlib.import_module`, `json.dumps`, `manifest_path.write_text`, `module.load_bess_planning_feature_policy_artifacts`, `monkeypatch.setattr`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_policy_envelope_rejects_canonical_empty_policy_table`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+_, _, _, result = _compiled_fixture()
+empty = _canonical_empty_policy_result(result)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(
+        BessPlanningFeaturePolicyError, match="policy|table|empty|entry"
+    ):
+        module.validate_bess_planning_feature_policy_result_envelope(empty)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_policy_envelope_rejects_canonical_empty_policy_table() -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    _, _, _, result = _compiled_fixture()
+    empty = _canonical_empty_policy_result(result)
+    with pytest.raises(
+        BessPlanningFeaturePolicyError, match="policy|table|empty|entry"
+    ):
+        module.validate_bess_planning_feature_policy_result_envelope(empty)
 ```
-
-**Purpose**
-
-Protects the `policy envelope rejects canonical empty policy table` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 4 explicit setup/context statement(s).
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `empty` from `_canonical_empty_policy_result(result)`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='policy|table|empty|entry')` and executes: Calls `module.validate_bess_planning_feature_policy_result_envelope(empty)` for its validation or side effect.
-
-**Action**
-
-- Calls `_canonical_empty_policy_result`, `_compiled_fixture`, `importlib.import_module`, `module.validate_bess_planning_feature_policy_result_envelope`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='policy|table|empty|entry'): module.validate_bess_planning_feature_policy_result_envelope(empty)`.
-
-**Regression protected**
-
-- Protects the exact `policy envelope rejects canonical empty policy table` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_canonical_empty_policy_result`, `_compiled_fixture`, `importlib.import_module`, `module.validate_bess_planning_feature_policy_result_envelope`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_policy_envelope_accepts_one_exact_policy_row`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+_, _, _, result = _compiled_fixture()
+table = result.policy_table.iloc[[0]].copy(deep=True)
+table.index = pd.Index([0], dtype="int64")
+one_row = _rehash_policy_table(result, table)
+module.validate_bess_planning_feature_policy_result_envelope(one_row)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+# Completion without an exception is the asserted outcome.
+```
+
+**Regression protected**
+
+Prevents a schema-compatible-looking frame from replacing the canonical dtype contract with an object/category/other representation.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_policy_envelope_accepts_one_exact_policy_row() -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    _, _, _, result = _compiled_fixture()
+    table = result.policy_table.iloc[[0]].copy(deep=True)
+    table.index = pd.Index([0], dtype="int64")
+    one_row = _rehash_policy_table(result, table)
+    module.validate_bess_planning_feature_policy_result_envelope(one_row)
 ```
-
-**Purpose**
-
-Protects the `policy envelope accepts one exact policy row` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 5 explicit setup/context statement(s).
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `table` from `result.policy_table.iloc[[0]].copy(deep=True)`.
-- Computes `table.index` from `pd.Index([0], dtype='int64')`.
-- Computes `one_row` from `_rehash_policy_table(result, table)`.
-
-**Action**
-
-- Calls `_compiled_fixture`, `_rehash_policy_table`, `importlib.import_module`, `module.validate_bess_planning_feature_policy_result_envelope`, `pd.Index`, `result.policy_table.iloc[[0]].copy`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `policy envelope accepts one exact policy row` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `_rehash_policy_table`, `importlib.import_module`, `module.validate_bess_planning_feature_policy_result_envelope`, `pd.Index`, `result.policy_table.iloc[[0]].copy`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_policy_envelope_accepts_current_twelve_row_snapshot`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+result = _checked_in_policy_result()
+module.validate_bess_planning_feature_policy_result_envelope(result)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert len(result.policy_table) == 12
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_policy_envelope_accepts_current_twelve_row_snapshot() -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    result = _checked_in_policy_result()
+    assert len(result.policy_table) == 12
+    module.validate_bess_planning_feature_policy_result_envelope(result)
 ```
-
-**Purpose**
-
-Protects the `policy envelope accepts current twelve row snapshot` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `result` from `_checked_in_policy_result()`.
-
-**Action**
-
-- Calls `_checked_in_policy_result`, `importlib.import_module`, `module.validate_bess_planning_feature_policy_result_envelope`.
-
-**Expected result**
-
-- Direct assertions: `assert len(result.policy_table) == 12`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `policy envelope accepts current twelve row snapshot` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_checked_in_policy_result`, `importlib.import_module`, `len`, `module.validate_bess_planning_feature_policy_result_envelope`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_policy_envelope_requires_cnig_profile_schema_two`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `version`.
+
+**Setup**
+
+```python
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+_, _, _, result = _compiled_fixture()
+changed = module._result_with_hashes(
+        replace(result, cnig_profile_schema_version=version)
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(BessPlanningFeaturePolicyError, match="profile schema|schema"):
+        module.validate_bess_planning_feature_policy_result_envelope(changed)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_policy_envelope_requires_cnig_profile_schema_two(version: int) -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    _, _, _, result = _compiled_fixture()
+    changed = module._result_with_hashes(
+        replace(result, cnig_profile_schema_version=version)
+    )
+    with pytest.raises(BessPlanningFeaturePolicyError, match="profile schema|schema"):
+        module.validate_bess_planning_feature_policy_result_envelope(changed)
 ```
-
-**Purpose**
-
-Protects the `policy envelope requires cnig profile schema two` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `version`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `changed` from `module._result_with_hashes(replace(result, cnig_profile_schema_version=version))`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='profile schema|schema')` and executes: Calls `module.validate_bess_planning_feature_policy_result_envelope(changed)` for its validation or side effect.
-
-**Action**
-
-- Calls `_compiled_fixture`, `importlib.import_module`, `module._result_with_hashes`, `module.validate_bess_planning_feature_policy_result_envelope`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='profile schema|schema'): module.validate_bess_planning_feature_policy_result_envelope(changed)`.
-
-**Regression protected**
-
-- Protects the exact `policy envelope requires cnig profile schema two` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `importlib.import_module`, `module._result_with_hashes`, `module.validate_bess_planning_feature_policy_result_envelope`, `pytest.mark.parametrize`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_policy_envelope_requires_cnig_result_schema_five`
 
-**Signature**
-
-```python
-def test_policy_envelope_requires_cnig_result_schema_five(version: int) -> None:
-```
-
 **Purpose**
 
-Protects the `policy envelope requires cnig result schema five` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `version`.
 
 **Setup**
 
-- Uses parameters/fixtures: `version`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `changed` from `module._result_with_hashes(replace(result, cnig_result_hash_schema_version=version))`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='CNIG result|schema')` and executes: Calls `module.validate_bess_planning_feature_policy_result_envelope(changed)` for its validation or side effect.
+```python
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+_, _, _, result = _compiled_fixture()
+changed = module._result_with_hashes(
+        replace(result, cnig_result_hash_schema_version=version)
+    )
+```
 
 **Action**
 
-- Calls `_compiled_fixture`, `importlib.import_module`, `module._result_with_hashes`, `module.validate_bess_planning_feature_policy_result_envelope`, `replace`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='CNIG result|schema'): module.validate_bess_planning_feature_policy_result_envelope(changed)`.
+```python
+with pytest.raises(BessPlanningFeaturePolicyError, match="CNIG result|schema"):
+        module.validate_bess_planning_feature_policy_result_envelope(changed)
+```
 
 **Regression protected**
 
-- Protects the exact `policy envelope requires cnig result schema five` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- In-memory/local unit boundary defined entirely by the reproduced setup.
 
-**Calls**
+**Complete test implementation**
 
-- `_compiled_fixture`, `importlib.import_module`, `module._result_with_hashes`, `module.validate_bess_planning_feature_policy_result_envelope`, `pytest.mark.parametrize`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+```python
+def test_policy_envelope_requires_cnig_result_schema_five(version: int) -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    _, _, _, result = _compiled_fixture()
+    changed = module._result_with_hashes(
+        replace(result, cnig_result_hash_schema_version=version)
+    )
+    with pytest.raises(BessPlanningFeaturePolicyError, match="CNIG result|schema"):
+        module.validate_bess_planning_feature_policy_result_envelope(changed)
+```
 
 ### `test_policy_envelope_validates_every_intrinsic_row_contract`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `mutation`.
+
+**Setup**
+
+```python
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+_, _, _, result = _compiled_fixture()
+table = result.policy_table.copy(deep=True)
+first, second = table.index[:2]
+if mutation == "duplicate-pair":
+        table.loc[second, ["feature_family", "type_code", "subtype_code"]] = table.loc[
+            first, ["feature_family", "type_code", "subtype_code"]
+        ].tolist()
+    elif mutation == "reordered-pairs":
+        table = table.iloc[::-1].copy(deep=True)
+    elif mutation == "malformed-code":
+        table.loc[first, "type_code"] = "1"
+    elif mutation == "invalid-status":
+        table.loc[first, "precheck_status"] = "AUTHORIZED"
+    elif mutation == "invalid-confidence":
+        table.loc[first, "confidence"] = "CERTAIN"
+    elif mutation == "zero-priority":
+        table.loc[first, "status_priority"] = 0
+    elif mutation == "negative-priority":
+        table.loc[first, "status_priority"] = -1
+    elif mutation == "bool-priority":
+        values = table["status_priority"].astype("object")
+        values.loc[first] = True
+        table["status_priority"] = values
+    elif mutation == "status-two-priorities":
+        table.loc[second, "precheck_status"] = table.loc[first, "precheck_status"]
+        table.loc[second, "status_priority"] = table.loc[first, "status_priority"] + 1
+    elif mutation == "priority-two-statuses":
+        different = table.index[
+            table["precheck_status"] != table.loc[first, "precheck_status"]
+        ][0]
+        table.loc[different, "status_priority"] = table.loc[first, "status_priority"]
+    elif mutation == "row-scope":
+        table.loc[first, "policy_scope"] = "OTHER_SCOPE"
+    elif mutation == "row-flag":
+        table.loc[first, "local_feature_text_interpreted"] = True
+    elif mutation == "row-policy-sha":
+        table.loc[first, "policy_sha256"] = "a" * 64
+    elif mutation == "row-cnig-profile":
+        table.loc[first, "cnig_profile"] = "other-cnig-profile"
+    elif mutation == "row-cnig-sha":
+        table.loc[first, "cnig_profile_sha256"] = "a" * 64
+    elif mutation == "row-cnig-result-sha":
+        table.loc[first, "cnig_complete_result_content_sha256"] = "a" * 64
+    else:
+        table.loc[first, "official_legal_reference"] = "None"
+changed = _rehash_policy_table(result, table)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(
+        BessPlanningFeaturePolicyError,
+        match="policy|pair|order|code|status|confidence|priority|scope|flag|CNIG|null|schema",
+    ):
+        module.validate_bess_planning_feature_policy_result_envelope(changed)
+```
+
+**Regression protected**
+
+Prevents coordinated metadata/content mutation from being accepted without agreement with the authoritative byte or result envelope.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_policy_envelope_validates_every_intrinsic_row_contract(
     mutation: str,
 ) -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    _, _, _, result = _compiled_fixture()
+    table = result.policy_table.copy(deep=True)
+    first, second = table.index[:2]
+    if mutation == "duplicate-pair":
+        table.loc[second, ["feature_family", "type_code", "subtype_code"]] = table.loc[
+            first, ["feature_family", "type_code", "subtype_code"]
+        ].tolist()
+    elif mutation == "reordered-pairs":
+        table = table.iloc[::-1].copy(deep=True)
+    elif mutation == "malformed-code":
+        table.loc[first, "type_code"] = "1"
+    elif mutation == "invalid-status":
+        table.loc[first, "precheck_status"] = "AUTHORIZED"
+    elif mutation == "invalid-confidence":
+        table.loc[first, "confidence"] = "CERTAIN"
+    elif mutation == "zero-priority":
+        table.loc[first, "status_priority"] = 0
+    elif mutation == "negative-priority":
+        table.loc[first, "status_priority"] = -1
+    elif mutation == "bool-priority":
+        values = table["status_priority"].astype("object")
+        values.loc[first] = True
+        table["status_priority"] = values
+    elif mutation == "status-two-priorities":
+        table.loc[second, "precheck_status"] = table.loc[first, "precheck_status"]
+        table.loc[second, "status_priority"] = table.loc[first, "status_priority"] + 1
+    elif mutation == "priority-two-statuses":
+        different = table.index[
+            table["precheck_status"] != table.loc[first, "precheck_status"]
+        ][0]
+        table.loc[different, "status_priority"] = table.loc[first, "status_priority"]
+    elif mutation == "row-scope":
+        table.loc[first, "policy_scope"] = "OTHER_SCOPE"
+    elif mutation == "row-flag":
+        table.loc[first, "local_feature_text_interpreted"] = True
+    elif mutation == "row-policy-sha":
+        table.loc[first, "policy_sha256"] = "a" * 64
+    elif mutation == "row-cnig-profile":
+        table.loc[first, "cnig_profile"] = "other-cnig-profile"
+    elif mutation == "row-cnig-sha":
+        table.loc[first, "cnig_profile_sha256"] = "a" * 64
+    elif mutation == "row-cnig-result-sha":
+        table.loc[first, "cnig_complete_result_content_sha256"] = "a" * 64
+    else:
+        table.loc[first, "official_legal_reference"] = "None"
+    changed = _rehash_policy_table(result, table)
+    with pytest.raises(
+        BessPlanningFeaturePolicyError,
+        match="policy|pair|order|code|status|confidence|priority|scope|flag|CNIG|null|schema",
+    ):
+        module.validate_bess_planning_feature_policy_result_envelope(changed)
 ```
-
-**Purpose**
-
-Protects the `policy envelope validates every intrinsic row contract` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `mutation`.
-- Contains 6 explicit setup/context statement(s).
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `table` from `result.policy_table.copy(deep=True)`.
-- Computes `(first, second)` from `table.index[:2]`.
-- Computes `changed` from `_rehash_policy_table(result, table)`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='policy|pair|order|code|status|confidence|priority|scope|flag|CNIG|null|schema')` and executes: Calls `module.validate_bess_planning_feature_policy_result_envelope(changed)` for its validation or side effect.
-
-**Action**
-
-- Calls `_compiled_fixture`, `_rehash_policy_table`, `importlib.import_module`, `module.validate_bess_planning_feature_policy_result_envelope`, `result.policy_table.copy`, `table.iloc[::-1].copy`, `table.loc[first, ['feature_family', 'type_code', 'subtype_code']].tolist`, `table['status_priority'].astype`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='policy|pair|order|code|status|confidence|priority|scope|flag|CNIG|null|schema'): module.validate_bess_planning_feature_policy_result_envelope(changed)`.
-
-**Regression protected**
-
-- Protects the exact `policy envelope validates every intrinsic row contract` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_compiled_fixture`, `_rehash_policy_table`, `importlib.import_module`, `module.validate_bess_planning_feature_policy_result_envelope`, `pytest.mark.parametrize`, `pytest.raises`, `result.policy_table.copy`, `table.iloc[::-1].copy`, `table.loc[first, ['feature_family', 'type_code', 'subtype_code']].tolist`, `table['status_priority'].astype`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_policy_envelope_requires_exact_type_and_accepts_valid_schema_v1`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+_, _, _, result = _compiled_fixture()
+class DerivedPolicyResult(BessPlanningFeaturePolicyResult):
+        pass
+derived = DerivedPolicyResult(**result.__dict__)
+module.validate_bess_planning_feature_policy_result_envelope(result)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(BessPlanningFeaturePolicyError, match="type|result"):
+        module.validate_bess_planning_feature_policy_result_envelope(derived)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_policy_envelope_requires_exact_type_and_accepts_valid_schema_v1() -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    _, _, _, result = _compiled_fixture()
+
+    class DerivedPolicyResult(BessPlanningFeaturePolicyResult):
+        pass
+
+    derived = DerivedPolicyResult(**result.__dict__)
+    with pytest.raises(BessPlanningFeaturePolicyError, match="type|result"):
+        module.validate_bess_planning_feature_policy_result_envelope(derived)
+    module.validate_bess_planning_feature_policy_result_envelope(result)
 ```
-
-**Purpose**
-
-Protects the `policy envelope requires exact type and accepts valid schema v1` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 4 explicit setup/context statement(s).
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Computes `(_, _, _, result)` from `_compiled_fixture()`.
-- Computes `derived` from `DerivedPolicyResult(**result.__dict__)`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError, match='type|result')` and executes: Calls `module.validate_bess_planning_feature_policy_result_envelope(derived)` for its validation or side effect.
-
-**Action**
-
-- Calls `DerivedPolicyResult`, `_compiled_fixture`, `importlib.import_module`, `module.validate_bess_planning_feature_policy_result_envelope`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError, match='type|result'): module.validate_bess_planning_feature_policy_result_envelope(derived)`.
-
-**Regression protected**
-
-- Protects the exact `policy envelope requires exact type and accepts valid schema v1` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `DerivedPolicyResult`, `_compiled_fixture`, `importlib.import_module`, `module.validate_bess_planning_feature_policy_result_envelope`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_policy_envelope_controls_malformed_result_type`
 
-**Signature**
-
-```python
-def test_policy_envelope_controls_malformed_result_type(malformed: object) -> None:
-```
-
 **Purpose**
 
-Protects the `policy envelope controls malformed result type` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `malformed`.
 
 **Setup**
 
-- Uses parameters/fixtures: `malformed`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `module` from `importlib.import_module('landscout.stages.bess_planning_feature_policy')`.
-- Enters managed context(s) `pytest.raises(BessPlanningFeaturePolicyError)` and executes: Calls `module.validate_bess_planning_feature_policy_result_envelope(malformed)` for its validation or side effect.
+```python
+module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+```
 
 **Action**
 
-- Calls `importlib.import_module`, `module.validate_bess_planning_feature_policy_result_envelope`, `object`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(BessPlanningFeaturePolicyError): module.validate_bess_planning_feature_policy_result_envelope(malformed)`.
+```python
+with pytest.raises(BessPlanningFeaturePolicyError):
+        module.validate_bess_planning_feature_policy_result_envelope(malformed)
+```
 
 **Regression protected**
 
-- Protects the exact `policy envelope controls malformed result type` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- In-memory/local unit boundary defined entirely by the reproduced setup.
 
-**Calls**
+**Complete test implementation**
 
-- `importlib.import_module`, `module.validate_bess_planning_feature_policy_result_envelope`, `object`, `pytest.mark.parametrize`, `pytest.raises`.
+```python
+def test_policy_envelope_controls_malformed_result_type(malformed: object) -> None:
+    module = importlib.import_module("landscout.stages.bess_planning_feature_policy")
+    with pytest.raises(BessPlanningFeaturePolicyError):
+        module.validate_bess_planning_feature_policy_result_envelope(malformed)
+```
 
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `LIKELY_MATERIAL_CONSTRAINT` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `UNKNOWN` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `bytes` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `canonical_policy_entries_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `cnig_complete_result_content_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `cnig_profile` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `cnig_profile_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `columns` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `confidence` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `dependencies` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `document_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `entries` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `feature_family` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `legal_conclusion_produced` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `local_feature_text_interpreted` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `local_regulation_content_interpreted` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `official_legal_reference` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `official_regulation_reference` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `parquet_filename` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `parse` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `policy_scope` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `policy_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `policy_table_schema_signature` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `precheck_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `project` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `rationale` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_lock` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `status_priority` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `subtype_code` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `type_code` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `unknown_field` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `test` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the test flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -3840,8 +4886,8 @@ This file contributes to LandScout's `test` evidence flow as described by its pu
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

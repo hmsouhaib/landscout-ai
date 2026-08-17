@@ -4,9 +4,9 @@
 
 - Repository path: `src/landscout/stages/enrich_planning_features.py`
 - File type: Python source
-- Primary responsibility: Normalizes GPU planning feature catalogs and constructs validated factual parcel-feature relations.
-- Layer / domain: `stage` / `planning`
-- Public or internal role: Contains an explicit module/package export surface; helpers prefixed with `_` remain internal unless re-exported elsewhere.
+- Layer: processing/policy stage
+- Domain: planning
+- Responsibility: Normalizes GPU planning feature catalogs and constructs validated factual parcel-feature relations.
 - Source SHA256: `01a56b482a3c956d1f8a7069b94c69518758ea3937c3d98ef8ae5d74615d6148`
 
 ## 1. Purpose
@@ -15,175 +15,703 @@ Normalizes GPU planning feature catalogs and constructs validated factual parcel
 
 ## 2. Position in LandScout architecture
 
-This file is a `stage` artifact in the `planning` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **processing/policy stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from __future__ import annotations` — required by the implementation paths and symbols documented below.
-- `import json` — required by the implementation paths and symbols documented below.
-- `from dataclasses import dataclass, replace` — required by the implementation paths and symbols documented below.
-- `from datetime import date, datetime` — required by the implementation paths and symbols documented below.
-- `from hashlib import sha256` — required by the implementation paths and symbols documented below.
-- `from math import isfinite` — required by the implementation paths and symbols documented below.
-- `from numbers import Integral, Real` — required by the implementation paths and symbols documented below.
-- `from typing import Literal, NamedTuple` — required by the implementation paths and symbols documented below.
+- `from __future__ import annotations`
+- `import json`
+- `from dataclasses import dataclass, replace`
+- `from datetime import date, datetime`
+- `from hashlib import sha256`
+- `from math import isfinite`
+- `from numbers import Integral, Real`
+- `from typing import Literal, NamedTuple`
 
-### Third-party
+### Third-party packages
 
-- `import geopandas as gpd` — required by the implementation paths and symbols documented below.
-- `import numpy as np` — required by the implementation paths and symbols documented below.
-- `import pandas as pd` — required by the implementation paths and symbols documented below.
-- `from pyproj import CRS` — required by the implementation paths and symbols documented below.
-- `from shapely import ( # type: ignore[import-untyped] area as shapely_area, )` — required by the implementation paths and symbols documented below.
-- `from shapely import ( contains, covers, force_2d, get_coordinate_dimension, get_parts, intersection, union_all, )` — required by the implementation paths and symbols documented below.
-- `from shapely import ( length as shapely_length, )` — required by the implementation paths and symbols documented below.
+- `import geopandas as gpd`
+- `import numpy as np`
+- `import pandas as pd`
+- `from pyproj import CRS`
+- `from shapely import (  # type: ignore[import-untyped]
+    area as shapely_area,
+)`
+- `from shapely import (
+    contains,
+    covers,
+    force_2d,
+    get_coordinate_dimension,
+    get_parts,
+    intersection,
+    union_all,
+)`
+- `from shapely import (
+    length as shapely_length,
+)`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout.common.frame_integrity import deterministic_frame_schema_signature` — required by the implementation paths and symbols documented below.
-- `from landscout.common.planning_feature_contract import ( validate_intrinsic_planning_feature_relations, )` — required by the implementation paths and symbols documented below.
-- `from landscout.common.planning_feature_schema import ( NORMALIZED_FEATURE_COLUMNS, NORMALIZED_FEATURE_DTYPES, NORMALIZED_RELATION_DTYPES, RELATION_COLUMNS, RELATION_COUNT_COLUMNS, RELATION_FLOAT_COLUMNS, RELATION_STRING_COLUMNS, normalized_feature_dtypes, validate_canonical_frame_schema, )` — required by the implementation paths and symbols documented below.
-- `from landscout.common.planning_overlay import technical_overlay_tolerance` — required by the implementation paths and symbols documented below.
-- `from landscout.sources.gpu_fr import ( GpuInspectedLayer, GpuPlanningDocument, GpuSpatialInspectionError, GpuValidatedSpatialLayerSource, revalidate_gpu_spatial_layer_sources, )` — required by the implementation paths and symbols documented below.
+- `from landscout.common.frame_integrity import deterministic_frame_schema_signature`
+- `from landscout.common.planning_feature_contract import (
+    validate_intrinsic_planning_feature_relations,
+)`
+- `from landscout.common.planning_feature_schema import (
+    NORMALIZED_FEATURE_COLUMNS,
+    NORMALIZED_FEATURE_DTYPES,
+    NORMALIZED_RELATION_DTYPES,
+    RELATION_COLUMNS,
+    RELATION_COUNT_COLUMNS,
+    RELATION_FLOAT_COLUMNS,
+    RELATION_STRING_COLUMNS,
+    normalized_feature_dtypes,
+    validate_canonical_frame_schema,
+)`
+- `from landscout.common.planning_overlay import technical_overlay_tolerance`
+- `from landscout.sources.gpu_fr import (
+    GpuInspectedLayer,
+    GpuPlanningDocument,
+    GpuSpatialInspectionError,
+    GpuValidatedSpatialLayerSource,
+    revalidate_gpu_spatial_layer_sources,
+)`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `CALCULATION_CRS` | `"EPSG:2154"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `PARCEL_REQUIRED_COLUMNS` | `frozenset({"parcel_id", "geometry"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `SOURCE_IDENTITY_KINDS` | `frozenset({"CNIG_ATTRIBUTE", "ARCHIVE_SCOPED_OGR_FID"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `SURFACE_TYPES` | `frozenset({"Polygon", "MultiPolygon"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `LINE_TYPES` | `frozenset({"LineString", "MultiLineString"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `POINT_TYPES` | `frozenset({"Point", "MultiPoint"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `LAYER_SPECS` | `{ "prescription_surface": _LayerSpec( "prescription_surface", "PRESCRIPTION", "SURFACE", "LIB_IDPSC", "TYPEPSC", "STYPEPSC", SURFACE_TYPES, ), "prescription_line": _LayerSpec( "prescription_line", "PRESCRIPTION", "LINE", "LIB_IDPSC", "TYPEPSC", "STYPEPSC", LINE_TYPES, ), "prescription_point": _LayerSpec( "prescription_point", "PRESCRIPTION", "POINT", "LIB_IDPSC", "TYPEPSC", "STYPEPSC", POINT_TYPES, ), "information_surface": _LayerSpec( "information_surface", "INFORMATION", "SURFACE", "LIB_IDINFO", "TYPEINF", "STYPEINF", SURFACE_TYPES, ), "information_line": _LayerSpec( "information_line", "INFORMATION", "LINE", "LIB_IDINFO", "TYPEINF", "STYPEINF", LINE_TYPES, ), "information_point": _LayerSpec( "information_point", "INFORMATION", "POINT", "LIB_IDINFO", "TYPEINF", "STYPEINF", POINT_TYPES, ), }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `COMMON_SOURCE_FIELDS` | `{ "label_raw": "LIBELLE", "text_raw": "TXT", "regulation_filename_raw": "NOMFIC", "regulation_url_raw": "URLFIC", "source_document_reference_raw": "IDURBA", "source_validity_date_raw": "DATVALID", }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `OPTIONAL_SOURCE_FIELDS` | `frozenset( { "LIBELLE", "TXT", "NOMFIC", "URLFIC", "DATVALID", } )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_CATALOG_GEOMETRY_TYPES` | `{ "SURFACE": SURFACE_TYPES, "LINE": LINE_TYPES, "POINT": POINT_TYPES, }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_CATALOG_REQUIRED_EXACT_STRING_COLUMNS` | `( "planning_feature_id", "source_feature_id", "source_identity_kind", "source_identity_field", "logical_layer", "feature_family", "geometry_kind", "type_code_raw", "subtype_code_raw", "source_document_reference_raw", "source_provider", "source_portal", "source_commune_code", "source_document_id", "source_document_type", "source_archive_name", "source_archive_sha256", "source_layer", "source_crs", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_CATALOG_OPTIONAL_EXACT_STRING_COLUMNS` | `( "label_raw", "text_raw", "regulation_filename_raw", "regulation_url_raw", "source_validity_date_raw", "source_standard_model", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `PARCEL_OUTPUT_COLUMNS` | `frozenset( { "planning_surface_relation_count", "planning_surface_area_overlap_count", "planning_surface_touch_count", "planning_surface_intersection_area_sum_m2", "planning_surface_covered_union_area_m2", "planning_surface_covered_pct", "prescription_surface_relation_count", "prescription_surface_covered_union_area_m2", "prescription_surface_covered_pct", "information_surface_relation_count", "information_surface_covered_union_area_m2", "information_surface_covered_pct", "planning_line_relation_count", "planning_line_length_overlap_count", "planning_line_touch_count", "planning_line_intersection_length_sum_m", "planning_point_relation_count", "planning_point_inside_count", "planning_point_boundary_count", "planning_feature_document_id", "planning_feature_archive_sha256", } )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `PARCEL_COUNT_COLUMNS` | `frozenset( { "planning_surface_relation_count", "planning_surface_area_overlap_count", "planning_surface_touch_count", "prescription_surface_relation_count", "information_surface_relation_count", "planning_line_relation_count", "planning_line_length_overlap_count", "planning_line_touch_count", "planning_point_relation_count", "planning_point_inside_count", "planning_point_boundary_count", } )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_RELATION_CATALOG_FIELDS` | `( "source_feature_id", "source_identity_kind", "source_identity_field", "logical_layer", "feature_family", "geometry_kind", "type_code_raw", "subtype_code_raw", "label_raw", "text_raw", "source_document_id", "source_archive_sha256", "source_layer", "source_validity_date_raw", "regulation_filename_raw", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `CALCULATION_CRS`
+
+```python
+CALCULATION_CRS = "EPSG:2154"
+```
+
+Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` (value argument/reference), `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_normalize_layer` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_metric_parcels` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_relation_base` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_project_geometries` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_metric_parcels` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` (value argument/reference).
+
+#### `PARCEL_REQUIRED_COLUMNS`
+
+```python
+PARCEL_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry"})
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+
+#### `SOURCE_IDENTITY_KINDS`
+
+```python
+SOURCE_IDENTITY_KINDS = frozenset({"CNIG_ATTRIBUTE", "ARCHIVE_SCOPED_OGR_FID"})
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+
+#### `SURFACE_TYPES`
+
+```python
+SURFACE_TYPES = frozenset({"Polygon", "MultiPolygon"})
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::<module>` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_validate_parcels` (value argument/reference).
+
+#### `LINE_TYPES`
+
+```python
+LINE_TYPES = frozenset({"LineString", "MultiLineString"})
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::<module>` (value argument/reference).
+
+#### `POINT_TYPES`
+
+```python
+POINT_TYPES = frozenset({"Point", "MultiPoint"})
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::<module>` (value argument/reference).
+
+#### `LAYER_SPECS`
+
+```python
+LAYER_SPECS = {
+    "prescription_surface": _LayerSpec(
+        "prescription_surface",
+        "PRESCRIPTION",
+        "SURFACE",
+        "LIB_IDPSC",
+        "TYPEPSC",
+        "STYPEPSC",
+        SURFACE_TYPES,
+    ),
+    "prescription_line": _LayerSpec(
+        "prescription_line",
+        "PRESCRIPTION",
+        "LINE",
+        "LIB_IDPSC",
+        "TYPEPSC",
+        "STYPEPSC",
+        LINE_TYPES,
+    ),
+    "prescription_point": _LayerSpec(
+        "prescription_point",
+        "PRESCRIPTION",
+        "POINT",
+        "LIB_IDPSC",
+        "TYPEPSC",
+        "STYPEPSC",
+        POINT_TYPES,
+    ),
+    "information_surface": _LayerSpec(
+        "information_surface",
+        "INFORMATION",
+        "SURFACE",
+        "LIB_IDINFO",
+        "TYPEINF",
+        "STYPEINF",
+        SURFACE_TYPES,
+    ),
+    "information_line": _LayerSpec(
+        "information_line",
+        "INFORMATION",
+        "LINE",
+        "LIB_IDINFO",
+        "TYPEINF",
+        "STYPEINF",
+        LINE_TYPES,
+    ),
+    "information_point": _LayerSpec(
+        "information_point",
+        "INFORMATION",
+        "POINT",
+        "LIB_IDINFO",
+        "TYPEINF",
+        "STYPEINF",
+        POINT_TYPES,
+    ),
+}
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `COMMON_SOURCE_FIELDS`
+
+```python
+COMMON_SOURCE_FIELDS = {
+    "label_raw": "LIBELLE",
+    "text_raw": "TXT",
+    "regulation_filename_raw": "NOMFIC",
+    "regulation_url_raw": "URLFIC",
+    "source_document_reference_raw": "IDURBA",
+    "source_validity_date_raw": "DATVALID",
+}
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+
+#### `OPTIONAL_SOURCE_FIELDS`
+
+```python
+OPTIONAL_SOURCE_FIELDS = frozenset(
+    {
+        "LIBELLE",
+        "TXT",
+        "NOMFIC",
+        "URLFIC",
+        "DATVALID",
+    }
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+
+#### `_CATALOG_GEOMETRY_TYPES`
+
+```python
+_CATALOG_GEOMETRY_TYPES = {
+    "SURFACE": SURFACE_TYPES,
+    "LINE": LINE_TYPES,
+    "POINT": POINT_TYPES,
+}
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+
+#### `_CATALOG_REQUIRED_EXACT_STRING_COLUMNS`
+
+```python
+_CATALOG_REQUIRED_EXACT_STRING_COLUMNS = (
+    "planning_feature_id",
+    "source_feature_id",
+    "source_identity_kind",
+    "source_identity_field",
+    "logical_layer",
+    "feature_family",
+    "geometry_kind",
+    "type_code_raw",
+    "subtype_code_raw",
+    "source_document_reference_raw",
+    "source_provider",
+    "source_portal",
+    "source_commune_code",
+    "source_document_id",
+    "source_document_type",
+    "source_archive_name",
+    "source_archive_sha256",
+    "source_layer",
+    "source_crs",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+
+#### `_CATALOG_OPTIONAL_EXACT_STRING_COLUMNS`
+
+```python
+_CATALOG_OPTIONAL_EXACT_STRING_COLUMNS = (
+    "label_raw",
+    "text_raw",
+    "regulation_filename_raw",
+    "regulation_url_raw",
+    "source_validity_date_raw",
+    "source_standard_model",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+
+#### `PARCEL_OUTPUT_COLUMNS`
+
+```python
+PARCEL_OUTPUT_COLUMNS = frozenset(
+    {
+        "planning_surface_relation_count",
+        "planning_surface_area_overlap_count",
+        "planning_surface_touch_count",
+        "planning_surface_intersection_area_sum_m2",
+        "planning_surface_covered_union_area_m2",
+        "planning_surface_covered_pct",
+        "prescription_surface_relation_count",
+        "prescription_surface_covered_union_area_m2",
+        "prescription_surface_covered_pct",
+        "information_surface_relation_count",
+        "information_surface_covered_union_area_m2",
+        "information_surface_covered_pct",
+        "planning_line_relation_count",
+        "planning_line_length_overlap_count",
+        "planning_line_touch_count",
+        "planning_line_intersection_length_sum_m",
+        "planning_point_relation_count",
+        "planning_point_inside_count",
+        "planning_point_boundary_count",
+        "planning_feature_document_id",
+        "planning_feature_archive_sha256",
+    }
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` (value argument/reference).
+
+#### `PARCEL_COUNT_COLUMNS`
+
+```python
+PARCEL_COUNT_COLUMNS = frozenset(
+    {
+        "planning_surface_relation_count",
+        "planning_surface_area_overlap_count",
+        "planning_surface_touch_count",
+        "prescription_surface_relation_count",
+        "information_surface_relation_count",
+        "planning_line_relation_count",
+        "planning_line_length_overlap_count",
+        "planning_line_touch_count",
+        "planning_point_relation_count",
+        "planning_point_inside_count",
+        "planning_point_boundary_count",
+    }
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` (value argument/reference).
+
+#### `_RELATION_CATALOG_FIELDS`
+
+```python
+_RELATION_CATALOG_FIELDS = (
+    "source_feature_id",
+    "source_identity_kind",
+    "source_identity_field",
+    "logical_layer",
+    "feature_family",
+    "geometry_kind",
+    "type_code_raw",
+    "subtype_code_raw",
+    "label_raw",
+    "text_raw",
+    "source_document_id",
+    "source_archive_sha256",
+    "source_layer",
+    "source_validity_date_raw",
+    "regulation_filename_raw",
+)
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+
+### B. Type aliases and closed domains
+
+#### `FeatureFamily`
+
+```python
+FeatureFamily = Literal["PRESCRIPTION", "INFORMATION"]
+```
+
+Official planning-feature family domain: PRESCRIPTION or INFORMATION. It is consumed by annotations or Pydantic validation in this module.
+
+#### `GeometryKind`
+
+```python
+GeometryKind = Literal["SURFACE", "LINE", "POINT"]
+```
+
+Closed planning-feature geometry-family domain: SURFACE, LINE, or POINT. Enforced/consumed by `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` (callback/function object), `src/landscout/common/bess_application_contract.py::<module>` (import/re-export), `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` (callback/function object), `src/landscout/stages/resolve_planning_feature_codes.py::<module>` (import/re-export).
+
+#### `SourceIdentityKind`
+
+```python
+SourceIdentityKind = Literal["CNIG_ATTRIBUTE", "ARCHIVE_SCOPED_OGR_FID"]
+```
+
+Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+
+
+### C. Meaningful dunder contracts
+
+- `__all__` — explicit public export allow-list.
+```python
+__all__ = [
+    "ParcelPlanningFeaturesResult",
+    "PlanningFeatureInputValidation",
+    "PlanningFeaturesError",
+    "intersect_parcels_with_gpu_planning_features",
+    "validate_normalized_planning_feature_inputs",
+]
+```
+
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
 ### `_LayerSpec`
 
-**Purpose:** Groups the `LayerSpec` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Immutable named tuple defining one GPU planning-feature logical layer's family, geometry kind, source fields, identity field, and allowed geometry types.
+
+**Kind:** immutable named tuple.
 
 **Inheritance:** `NamedTuple`.
 
-**Model form and mutability:** class inheriting from `NamedTuple`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `logical_layer` | `str` | `required` | `str` state used by `src/landscout/stages/enrich_planning_features.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `feature_family` | `FeatureFamily` | `required` | `FeatureFamily` state used by `src/landscout/stages/enrich_planning_features.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `geometry_kind` | `GeometryKind` | `required` | `GeometryKind` state used by `src/landscout/stages/enrich_planning_features.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `identity_field` | `str` | `required` | `str` state used by `src/landscout/stages/enrich_planning_features.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `type_field` | `str` | `required` | `str` state used by `src/landscout/stages/enrich_planning_features.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `subtype_field` | `str` | `required` | `str` state used by `src/landscout/stages/enrich_planning_features.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `allowed_geometry_types` | `frozenset[str]` | `required` | `frozenset[str]` state used by `src/landscout/stages/enrich_planning_features.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `logical_layer` | `logical_layer: str` | Stores `_LayerSpec`'s `logical layer` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `feature_family` | `feature_family: FeatureFamily` | Closed or validated `feature family` classification on `_LayerSpec`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `geometry_kind` | `geometry_kind: GeometryKind` | Closed or validated `geometry kind` classification on `_LayerSpec`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `identity_field` | `identity_field: str` | Stores `_LayerSpec`'s `identity field` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `type_field` | `type_field: str` | Closed or validated `type field` classification on `_LayerSpec`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `subtype_field` | `subtype_field: str` | Closed or validated `subtype field` classification on `_LayerSpec`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `allowed_geometry_types` | `allowed_geometry_types: frozenset[str]` | Closed or validated `allowed geometry types` classification on `_LayerSpec`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
 
-**Validators and methods:**
+**Interface consumers**
 
-- None.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::<module>` via `_LayerSpec`.
+
+**Exact class source**
+
+```python
+class _LayerSpec(NamedTuple):
+    logical_layer: str
+    feature_family: FeatureFamily
+    geometry_kind: GeometryKind
+    identity_field: str
+    type_field: str
+    subtype_field: str
+    allowed_geometry_types: frozenset[str]
+```
 
 ### `PlanningFeaturesError`
 
 **Purpose:** Raised when factual GPU feature measurement cannot be completed safely.
 
+**Kind:** controlled exception.
+
 **Inheritance:** `ValueError`.
 
-**Model form and mutability:** class inheriting from `ValueError`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields:** none declared directly on this class.
 
-- No annotated instance fields are declared directly on this class.
+**Interface consumers**
 
-**Validators and methods:**
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
+    ParcelPlanningFeaturesResult,
+    PlanningFeatureInputValidation,
+    PlanningFeaturesError,
+    intersect_parcels_with_gpu_planning_features,
+    validate_normalized_planning_feature_inputs,
+)`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_strict_string` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_strict_nonnegative_integer` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_ids` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_exact_strings` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_crs` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_active_geometry` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_geometries` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_two_dimensional_geometry` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_standard_model` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_project_geometry` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_source_feature_ids` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_metric_parcels` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_relation_base` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_surface_relations` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_line_relations` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_point_relations` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_canonical_integrity_value` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_canonical_integrity_sha256` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_surface_union_summary` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_numeric_values` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_integer_values` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_require_close` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_normalized_catalog` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_relation_catalog_consistency` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_relation_semantics` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::validate_normalized_planning_feature_inputs` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `PlanningFeaturesError`.
+- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_only_high_level_api_is_exported` via `stages.PlanningFeaturesError`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_invalid_parcel_ids_are_rejected` via `pytest.raises(PlanningFeaturesError, match='parcel_id')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_duplicate_parcel_ids_are_rejected` via `pytest.raises(PlanningFeaturesError, match='unique')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_duplicate_source_ids_are_rejected` via `pytest.raises(PlanningFeaturesError, match='unique')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_idurba_mismatch_is_rejected` via `pytest.raises(PlanningFeaturesError, match='IDURBA')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_missing_required_source_fields_fail` via `pytest.raises(PlanningFeaturesError, match=missing)`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_wrong_geometry_kind_is_rejected` via `pytest.raises(PlanningFeaturesError, match='geometry')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_invalid_surface_geometry_is_rejected_without_repair` via `pytest.raises(PlanningFeaturesError, match='valid')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_null_or_empty_source_geometry_is_rejected` via `pytest.raises(PlanningFeaturesError, match='geometry')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_missing_crs_is_rejected` via `pytest.raises(PlanningFeaturesError, match='CRS|physical revalidation')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_unusable_source_crs_is_rejected` via `pytest.raises(PlanningFeaturesError, match='CRS')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `pytest.raises(PlanningFeaturesError, match='summary|physical revalidation')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `pytest.raises(PlanningFeaturesError, match='integer count|non-negative|summary|physical revalidation')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_reserved_output_column_collision_is_rejected` via `pytest.raises(PlanningFeaturesError, match='output columns')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_wraps_malformed_document_context` via `pytest.raises(PlanningFeaturesError)`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_binds_inspected_spatial_inventory` via `pytest.raises(PlanningFeaturesError, match='inventory|reference')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_rejects_stripped_catalog` via `pytest.raises(PlanningFeaturesError, match='schema|label_raw')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_strict_relation_integer_counts_are_enforced` via `pytest.raises(PlanningFeaturesError, match='integer count|non-negative|dtype|schema')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_strict_parcel_summary_integer_counts_are_enforced` via `pytest.raises(PlanningFeaturesError, match='integer count|non-negative')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_corrupted_relation_semantics_are_rejected` via `pytest.raises(PlanningFeaturesError)`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_point_member_relation_semantics_are_exact` via `pytest.raises(PlanningFeaturesError, match='relation type')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_relation_must_match_feature_catalog` via `pytest.raises(PlanningFeaturesError, match='catalog|geometry kind|LINE relation|unrelated metric')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_feature_ids_are_globally_unique_across_catalogs` via `pytest.raises(PlanningFeaturesError, match='globally unique|deterministic')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_corrupted_parcel_summary_is_rejected` via `pytest.raises(PlanningFeaturesError, match='inconsistent with relations')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_corrupted_surface_union_contract_is_rejected` via `pytest.raises(PlanningFeaturesError, match='union')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_geospatial_operation_failure_is_controlled_and_chained` via `pytest.raises(PlanningFeaturesError, match='spatial join')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_unknown_relation_parcel` via `pytest.raises(PlanningFeaturesError, match='parcel|source')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_parcel_metric_mutation` via `pytest.raises(PlanningFeaturesError, match='parcel|metric|source')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_same_area_wrong_parcel_relation` via `pytest.raises(PlanningFeaturesError, match='relation|parcel|rebuilt|source')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_missing_expected_relation` via `pytest.raises(PlanningFeaturesError, match='relation|rebuilt|source')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_extra_geometrically_false_relation` via `pytest.raises(PlanningFeaturesError, match='relation|rebuilt|source')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_relations` via `pytest.raises(PlanningFeaturesError, match='relation|order|rebuilt')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_relation_dtype` via `pytest.raises(PlanningFeaturesError, match='schema|dtype|relation')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_name_change` via `pytest.raises(PlanningFeaturesError, match='schema|index|relation')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_dtype_change` via `pytest.raises(PlanningFeaturesError, match='schema|index|relation')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_class_change` via `pytest.raises(PlanningFeaturesError, match='schema|index|relation')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_coherent_but_wrong_line_metric` via `pytest.raises(PlanningFeaturesError, match='relation|metric|rebuilt')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_partial_parcel_output_columns` via `pytest.raises(PlanningFeaturesError, match='[Pp]arcel|output|summary|columns')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_corrupted_complete_parcel_summaries` via `pytest.raises(PlanningFeaturesError, match='parcel|summary|relation')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_noncanonical_parcel_summary_dtype` via `pytest.raises(PlanningFeaturesError, match='parcel|schema|dtype|summary')`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_each_corrupted_parcel_summary_fact` via `pytest.raises(PlanningFeaturesError, match='parcel|summary|relation|lineage|document|archive|union|percentage')`.
 
-- None.
+**Exact class source**
+
+```python
+class PlanningFeaturesError(ValueError):
+    """Raised when factual GPU feature measurement cannot be completed safely."""
+```
 
 ### `ParcelPlanningFeaturesResult`
 
 **Purpose:** Normalized feature catalogs, parcel enrichment, and factual relations.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `parcels` | `gpd.GeoDataFrame` | `required` | Tabular/spatial evidence carried with the schema, dtype, index, geometry, and preservation contract documented in this module. |
-| `surface_features` | `gpd.GeoDataFrame` | `required` | Tabular/spatial evidence carried with the schema, dtype, index, geometry, and preservation contract documented in this module. |
-| `line_features` | `gpd.GeoDataFrame` | `required` | Tabular/spatial evidence carried with the schema, dtype, index, geometry, and preservation contract documented in this module. |
-| `point_features` | `gpd.GeoDataFrame` | `required` | Tabular/spatial evidence carried with the schema, dtype, index, geometry, and preservation contract documented in this module. |
-| `relations` | `pd.DataFrame` | `required` | Tabular/spatial evidence carried with the schema, dtype, index, geometry, and preservation contract documented in this module. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `parcels` | `parcels: gpd.GeoDataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
+| `surface_features` | `surface_features: gpd.GeoDataFrame` | Stores `ParcelPlanningFeaturesResult`'s `surface features` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `line_features` | `line_features: gpd.GeoDataFrame` | Stores `ParcelPlanningFeaturesResult`'s `line features` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `point_features` | `point_features: gpd.GeoDataFrame` | Stores `ParcelPlanningFeaturesResult`'s `point features` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `relations` | `relations: pd.DataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
 
-- None.
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
+    ParcelPlanningFeaturesResult,
+    PlanningFeatureInputValidation,
+    PlanningFeaturesError,
+    intersect_parcels_with_gpu_planning_features,
+    validate_normalized_planning_feature_inputs,
+)`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `ParcelPlanningFeaturesResult`.
+- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_only_high_level_api_is_exported` via `stages.ParcelPlanningFeaturesResult`.
+- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
+    ParcelPlanningFeaturesResult,
+    PlanningFeatureInputValidation,
+    PlanningFeaturesError,
+    _validate_result,
+    intersect_parcels_with_gpu_planning_features,
+    validate_normalized_planning_feature_inputs,
+)`.
+
+**Exact class source**
+
+```python
+class ParcelPlanningFeaturesResult:
+    """Normalized feature catalogs, parcel enrichment, and factual relations."""
+
+    parcels: gpd.GeoDataFrame
+    surface_features: gpd.GeoDataFrame
+    line_features: gpd.GeoDataFrame
+    point_features: gpd.GeoDataFrame
+    relations: pd.DataFrame
+```
 
 ### `PlanningFeatureInputValidation`
 
 **Purpose:** Immutable source-completeness evidence for normalized planning facts.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `gpu_related_source_files_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `expected_relations_content_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `related_source_layer_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `related_source_file_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `expected_relation_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `gpu_related_source_files_sha256` | `gpu_related_source_files_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `expected_relations_content_sha256` | `expected_relations_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `related_source_layer_count` | `related_source_layer_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `related_source_file_count` | `related_source_file_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `expected_relation_count` | `expected_relation_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 
-- None.
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
+    ParcelPlanningFeaturesResult,
+    PlanningFeatureInputValidation,
+    PlanningFeaturesError,
+    intersect_parcels_with_gpu_planning_features,
+    validate_normalized_planning_feature_inputs,
+)`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `PlanningFeatureInputValidation`.
+- import/re-export: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.stages.enrich_planning_features import (
+    PlanningFeatureInputValidation,
+    validate_normalized_planning_feature_inputs,
+)`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_validates_step_7d_3_1_result` via `isinstance(validation, PlanningFeatureInputValidation)`.
+- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_is_exported` via `stages.PlanningFeatureInputValidation`.
+- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
+    ParcelPlanningFeaturesResult,
+    PlanningFeatureInputValidation,
+    PlanningFeaturesError,
+    _validate_result,
+    intersect_parcels_with_gpu_planning_features,
+    validate_normalized_planning_feature_inputs,
+)`.
+
+**Exact class source**
+
+```python
+class PlanningFeatureInputValidation:
+    """Immutable source-completeness evidence for normalized planning facts."""
+
+    gpu_related_source_files_sha256: str
+    expected_relations_content_sha256: str
+    related_source_layer_count: int
+    related_source_file_count: int
+    expected_relation_count: int
+```
 
 ### `_PlanningContext`
 
-**Purpose:** Groups the `PlanningContext` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Immutable result/value envelope carrying `provider`, `portal`, `commune_code`, `document_id`, `document_type`, `archive_name`, `archive_sha256`, `standard_model`.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `provider` | `str` | `required` | `str` state used by `src/landscout/stages/enrich_planning_features.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `portal` | `str` | `required` | `str` state used by `src/landscout/stages/enrich_planning_features.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `commune_code` | `str` | `required` | Exact configured or source code whose vocabulary/format is enforced by the owning validator. |
-| `document_id` | `str` | `required` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `document_type` | `str` | `required` | Categorical source, feature, or relation type constrained by the owning model or validator. |
-| `archive_name` | `str` | `required` | `str` state used by `src/landscout/stages/enrich_planning_features.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `archive_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `standard_model` | `str | None` | `required` | `str | None` state used by `src/landscout/stages/enrich_planning_features.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `provider` | `provider: str` | Stores `_PlanningContext`'s `provider` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `portal` | `portal: str` | Stores `_PlanningContext`'s `portal` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `commune_code` | `commune_code: str` | Stores `_PlanningContext`'s `commune code` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `document_id` | `document_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
+| `document_type` | `document_type: str` | Closed or validated `document type` classification on `_PlanningContext`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `archive_name` | `archive_name: str` | Stores `_PlanningContext`'s `archive name` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `archive_sha256` | `archive_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `standard_model` | `standard_model: str \| None` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
 
-- None.
+**Interface consumers**
+
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_PlanningContext`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_PlanningContext`.
+
+**Exact class source**
+
+```python
+class _PlanningContext:
+    provider: str
+    portal: str
+    commune_code: str
+    document_id: str
+    document_type: str
+    archive_name: str
+    archive_sha256: str
+    standard_model: str | None
+```
+
 
 ## 6. Functions and methods
 
 ### `_strict_string`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _strict_string(value: object, label: str) -> str:
@@ -191,62 +719,89 @@ def _strict_string(value: object, label: str) -> str:
 
 **Purpose**
 
-Implements strict string according to the exact implementation and guards in this file.
+Private `planning` helper for strict string; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+value
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `value`.
-
-**Algorithm**
-
-1. Checks `not isinstance(value, str) or not value or value != value.strip()`. When true: Raises `PlanningFeaturesError(f'{label} must be a non-empty exact string')`.
-2. Returns `value`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(value, str) or not value or value != value.strip()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(value, str) or not value or value != value.strip()`.
+- Explicit raise expressions: `PlanningFeaturesError(f'{label} must be a non-empty exact string')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `isinstance`, `value.strip`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_exact_strings` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_optional_exact_strings` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_standard_model` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_sha256` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_relative_path` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_pdf_basename` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_written_file_matches` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_terms` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validated_sha256` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_exact_id_series` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_zones` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_chapter_rows` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_standard` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_coded_relations` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_inspected_layer_payload` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validated_sha256` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_chapter_label` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_source_label_values` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_build_zone_mapping` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_strict_string`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_normalize_layer`
-- `src/landscout/stages/enrich_planning_features.py` — `_planning_context`
-- `src/landscout/stages/enrich_planning_features.py` — `_standard_model`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_catalog_identity`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_exact_strings`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_optional_exact_strings`
+```python
+def _strict_string(value: object, label: str) -> str:
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise PlanningFeaturesError(f"{label} must be a non-empty exact string")
+    return value
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_strict_nonnegative_integer`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _strict_nonnegative_integer(value: object, label: str) -> int:
@@ -254,60 +809,68 @@ def _strict_nonnegative_integer(value: object, label: str) -> int:
 
 **Purpose**
 
-Implements strict nonnegative integer according to the exact implementation and guards in this file.
+Private `planning` helper for strict nonnegative integer; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `int`.
+- Every observed return expression is reproduced without truncation:
+```python
+int(value)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `int`. Observed return expression(s): `int(value)`.
-
-**Algorithm**
-
-1. Checks `isinstance(value, bool) or not isinstance(value, Integral)`. When true: Raises `PlanningFeaturesError(f'{label} must be an integer count')`.
-2. Checks `value < 0`. When true: Raises `PlanningFeaturesError(f'{label} must be non-negative')`.
-3. Returns `int(value)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `isinstance(value, bool) or not isinstance(value, Integral)` is true.
-- Rejects or diverts the path when `value < 0` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `isinstance(value, bool) or not isinstance(value, Integral)`.
+- Guard with a raise path: `value < 0`.
+- Explicit raise expressions: `PlanningFeaturesError(f'{label} must be an integer count')`, `PlanningFeaturesError(f'{label} must be non-negative')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `int`, `isinstance`.
+- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_coverage_summary` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_integer_values` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_nonnegative_integer`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_integer_values`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_layer_summary`
+```python
+def _strict_nonnegative_integer(value: object, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, Integral):
+        raise PlanningFeaturesError(f"{label} must be an integer count")
+    if value < 0:
+        raise PlanningFeaturesError(f"{label} must be non-negative")
+    return int(value)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_ids`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_ids(values: pd.Series, label: str) -> None:
@@ -315,60 +878,52 @@ def _validate_ids(values: pd.Series, label: str) -> None:
 
 **Purpose**
 
-Validates and rejects malformed ids according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent ids; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `values` (`pd.Series`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Calls `_validate_exact_strings(values, label)` for its validation or side effect.
-2. Checks `values.duplicated().any()`. When true: Raises `PlanningFeaturesError(f'{label} values must be unique')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `values.duplicated().any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `values.duplicated().any()`.
+- Explicit raise expressions: `PlanningFeaturesError(f'{label} values must be unique')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_validate_exact_strings`, `values.duplicated`, `values.duplicated().any`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_validate_ids`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_source_feature_ids` via `_validate_ids`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` via `_validate_ids`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_validate_ids`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_combine_catalogs`
-- `src/landscout/stages/enrich_planning_features.py` — `_source_feature_ids`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_catalog_identity`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_parcels`
+```python
+def _validate_ids(values: pd.Series, label: str) -> None:
+    _validate_exact_strings(values, label)
+    if values.duplicated().any():
+        raise PlanningFeaturesError(f"{label} values must be unique")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_exact_strings`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_exact_strings(values: pd.Series, label: str) -> None:
@@ -376,60 +931,53 @@ def _validate_exact_strings(values: pd.Series, label: str) -> None:
 
 **Purpose**
 
-Validates and rejects malformed exact strings according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent exact strings; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `values` (`pd.Series`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `values.isna().any()`. When true: Raises `PlanningFeaturesError(f'{label} values must not be null')`.
-2. Iterates `value` over `values.tolist()`. For each value: Calls `_strict_string(value, label)` for its validation or side effect.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `values.isna().any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `values.isna().any()`.
+- Explicit raise expressions: `PlanningFeaturesError(f'{label} values must not be null')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_strict_string`, `values.isna`, `values.isna().any`, `values.tolist`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_ids` via `_validate_exact_strings`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_validate_exact_strings`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_exact_strings`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `_validate_exact_strings`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_catalog_identity`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_ids`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_result`
+```python
+def _validate_exact_strings(values: pd.Series, label: str) -> None:
+    if values.isna().any():
+        raise PlanningFeaturesError(f"{label} values must not be null")
+    for value in values.tolist():
+        _strict_string(value, label)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_optional_exact_strings`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_optional_exact_strings(values: pd.Series, label: str) -> None:
@@ -437,56 +985,50 @@ def _validate_optional_exact_strings(values: pd.Series, label: str) -> None:
 
 **Purpose**
 
-Validates and rejects malformed optional exact strings according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent optional exact strings; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `values` (`pd.Series`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Iterates `value` over `values.tolist()`. For each value: Checks `pd.isna(value)`. When true: Executes `continue` control flow. Calls `_strict_string(value, label)` for its validation or side effect.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_strict_string`, `pd.isna`, `values.tolist`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_validate_optional_exact_strings`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_catalog_identity`
+```python
+def _validate_optional_exact_strings(values: pd.Series, label: str) -> None:
+    for value in values.tolist():
+        if pd.isna(value):
+            continue
+        _strict_string(value, label)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_crs`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _crs(value: object, label: str) -> CRS:
@@ -494,61 +1036,59 @@ def _crs(value: object, label: str) -> CRS:
 
 **Purpose**
 
-Implements crs according to the exact implementation and guards in this file.
+Private `planning` helper for crs; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `CRS`.
+- Every observed return expression is reproduced without truncation:
+```python
+CRS.from_user_input(value)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `CRS`. Observed return expression(s): `CRS.from_user_input(value)`.
-
-**Algorithm**
-
-1. Checks `value is None`. When true: Raises `PlanningFeaturesError(f'{label} CRS is required')`.
-2. Runs guarded operation: Returns `CRS.from_user_input(value)`. Handles `Exception`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `value is None` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `value is None`.
+- Explicit raise expressions: `PlanningFeaturesError(f'{label} CRS is required')`, `PlanningFeaturesError(f'{label} CRS is unreadable')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `CRS.from_user_input`, `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_crs`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_crs`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_project_geometry` via `_crs`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_normalized_catalog` via `_crs`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` via `_crs`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_compare_normalized_catalog`
-- `src/landscout/stages/enrich_planning_features.py` — `_compare_rebuilt_parcel_output`
-- `src/landscout/stages/enrich_planning_features.py` — `_project_geometry`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_layer_summary`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_parcels`
+```python
+def _crs(value: object, label: str) -> CRS:
+    if value is None:
+        raise PlanningFeaturesError(f"{label} CRS is required")
+    try:
+        return CRS.from_user_input(value)
+    except Exception as error:
+        raise PlanningFeaturesError(f"{label} CRS is unreadable") from error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_active_geometry`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
@@ -556,61 +1096,59 @@ def _active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
 
 **Purpose**
 
-Implements active geometry according to the exact implementation and guards in this file.
+Private `planning` helper for active geometry; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `'geometry' not in frame.columns`. When true: Raises `PlanningFeaturesError(f'{label} geometry column is required')`.
-2. Runs guarded operation: Computes `active` from `frame.active_geometry_name`. Handles `AttributeError`.
-3. Checks `active != 'geometry'`. When true: Raises `PlanningFeaturesError(f'{label} geometry must be active')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `'geometry' not in frame.columns` is true.
-- Rejects or diverts the path when `active != 'geometry'` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `'geometry' not in frame.columns`.
+- Guard with a raise path: `active != 'geometry'`.
+- Explicit raise expressions: `PlanningFeaturesError(f'{label} geometry column is required')`, `PlanningFeaturesError(f'{label} geometry must be active')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_active_geometry`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_active_geometry`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_active_geometry`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `_active_geometry`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_active_geometry`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_normalize_layer`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_catalog_contract`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_parcels`
+```python
+def _active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
+    if "geometry" not in frame.columns:
+        raise PlanningFeaturesError(f"{label} geometry column is required")
+    try:
+        active = frame.active_geometry_name
+    except AttributeError as error:
+        raise PlanningFeaturesError(f"{label} geometry must be active") from error
+    if active != "geometry":
+        raise PlanningFeaturesError(f"{label} geometry must be active")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_geometries`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_geometries(
@@ -622,67 +1160,68 @@ def _validate_geometries(
 
 **Purpose**
 
-Validates and rejects malformed geometries according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent geometries; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `allowed` (`frozenset[str]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `geometry` from `frame.geometry`.
-2. Checks `geometry.isna().any()`. When true: Raises `PlanningFeaturesError(f'{label} geometry must not be null')`.
-3. Checks `geometry.is_empty.any()`. When true: Raises `PlanningFeaturesError(f'{label} geometry must not be empty')`.
-4. Checks `not geometry.is_valid.all()`. When true: Raises `PlanningFeaturesError(f'{label} geometry must be valid')`.
-5. Computes `found` from `set(geometry.geom_type)`.
-6. Checks `not found.issubset(allowed)`. When true: Raises `PlanningFeaturesError(f'{label} has unsupported geometry types: ' + ', '.join(sorted(found - allowed)))`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `geometry.isna().any()` is true.
-- Rejects or diverts the path when `geometry.is_empty.any()` is true.
-- Rejects or diverts the path when `not geometry.is_valid.all()` is true.
-- Rejects or diverts the path when `not found.issubset(allowed)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `geometry.isna().any()`.
+- Guard with a raise path: `geometry.is_empty.any()`.
+- Guard with a raise path: `not geometry.is_valid.all()`.
+- Guard with a raise path: `not found.issubset(allowed)`.
+- Explicit raise expressions: `PlanningFeaturesError(f'{label} geometry must be valid')`, `PlanningFeaturesError(f'{label} geometry must not be empty')`, `PlanningFeaturesError(f'{label} geometry must not be null')`, `PlanningFeaturesError(f'{label} has unsupported geometry types: ' + ', '.join(sorted(found - allowed)))`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `geometry.is_empty.any`, `geometry.is_valid.all`, `geometry.isna`, `geometry.isna().any`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `PlanningFeaturesError`, `found.issubset`, `geometry.is_empty.any`, `geometry.is_valid.all`, `geometry.isna`, `geometry.isna().any`, `set`, `sorted`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_validate_geometries`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_validate_geometries`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_validate_geometries`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_normalize_layer`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_catalog_contract`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_parcels`
+```python
+def _validate_geometries(
+    frame: gpd.GeoDataFrame,
+    allowed: frozenset[str],
+    label: str,
+) -> None:
+    geometry = frame.geometry
+    if geometry.isna().any():
+        raise PlanningFeaturesError(f"{label} geometry must not be null")
+    if geometry.is_empty.any():
+        raise PlanningFeaturesError(f"{label} geometry must not be empty")
+    if not geometry.is_valid.all():
+        raise PlanningFeaturesError(f"{label} geometry must be valid")
+    found = set(geometry.geom_type)
+    if not found.issubset(allowed):
+        raise PlanningFeaturesError(
+            f"{label} has unsupported geometry types: "
+            + ", ".join(sorted(found - allowed))
+        )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_two_dimensional_geometry`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_two_dimensional_geometry(
@@ -693,56 +1232,61 @@ def _validate_two_dimensional_geometry(
 
 **Purpose**
 
-Validates and rejects malformed two dimensional geometry according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent two dimensional geometry; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Runs guarded operation: Computes `dimensions` from `np.asarray(get_coordinate_dimension(frame.geometry.array), dtype='int64')`. Checks `(dimensions != 2).any()`. When true: Raises `PlanningFeaturesError(f'{label} geometry must be canonical 2D')`. Handles `PlanningFeaturesError`, `Exception`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `(dimensions != 2).any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `(dimensions != 2).any()`.
+- Explicit raise expressions: `PlanningFeaturesError(f'{label} geometry dimensionality cannot be validated')`, `PlanningFeaturesError(f'{label} geometry must be canonical 2D')`, `re-raise`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(dimensions != 2).any`, `PlanningFeaturesError`, `get_coordinate_dimension`, `np.asarray`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_validate_two_dimensional_geometry`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_catalog_contract`
+```python
+def _validate_two_dimensional_geometry(
+    frame: gpd.GeoDataFrame,
+    label: str,
+) -> None:
+    try:
+        dimensions = np.asarray(
+            get_coordinate_dimension(frame.geometry.array), dtype="int64"
+        )
+        if (dimensions != 2).any():
+            raise PlanningFeaturesError(f"{label} geometry must be canonical 2D")
+    except PlanningFeaturesError:
+        raise
+    except Exception as error:
+        raise PlanningFeaturesError(
+            f"{label} geometry dimensionality cannot be validated"
+        ) from error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_parcels`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_parcels(
@@ -754,70 +1298,83 @@ def _validate_parcels(
 
 **Purpose**
 
-Validates and rejects malformed parcels according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent parcels; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `allow_output_columns` (`bool`; optional/default `False`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `CRS`.
+- Every observed return expression is reproduced without truncation:
+```python
+source_crs
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `CRS`. Observed return expression(s): `source_crs`.
-
-**Algorithm**
-
-1. Checks `not isinstance(parcels, gpd.GeoDataFrame)`. When true: Raises `PlanningFeaturesError('Parcels must be a GeoDataFrame')`.
-2. Checks `parcels.columns.duplicated().any()`. When true: Raises `PlanningFeaturesError('Parcels contain duplicate columns')`.
-3. Computes `missing` from `sorted(PARCEL_REQUIRED_COLUMNS - set(parcels.columns))`.
-4. Checks `missing`. When true: Raises `PlanningFeaturesError('Parcels are missing required columns: ' + ', '.join(missing))`.
-5. Computes `collisions` from `sorted(PARCEL_OUTPUT_COLUMNS & set(parcels.columns))`.
-6. Checks `collisions and (not allow_output_columns)`. When true: Raises `PlanningFeaturesError('Parcels already contain planning-feature output columns: ' + ', '.join(collisions))`.
-7. Calls `_active_geometry(parcels, 'Parcel')` for its validation or side effect.
-8. Computes `source_crs` from `_crs(parcels.crs, 'Parcel')`.
-9. Calls `_validate_ids(parcels['parcel_id'], 'parcel_id')` for its validation or side effect.
-10. Calls `_validate_geometries(parcels, SURFACE_TYPES, 'Parcel')` for its validation or side effect.
-11. Returns `source_crs`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(parcels, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `parcels.columns.duplicated().any()` is true.
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `collisions and (not allow_output_columns)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(parcels, gpd.GeoDataFrame)`.
+- Guard with a raise path: `parcels.columns.duplicated().any()`.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `collisions and (not allow_output_columns)`.
+- Explicit raise expressions: `PlanningFeaturesError('Parcels already contain planning-feature output columns: ' + ', '.join(collisions))`, `PlanningFeaturesError('Parcels are missing required columns: ' + ', '.join(missing))`, `PlanningFeaturesError('Parcels contain duplicate columns')`, `PlanningFeaturesError('Parcels must be a GeoDataFrame')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `_active_geometry`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `PlanningFeaturesError`, `_active_geometry`, `_crs`, `_validate_geometries`, `_validate_ids`, `isinstance`, `parcels.columns.duplicated`, `parcels.columns.duplicated().any`, `set`, `sorted`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_parcels`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
-- `src/landscout/stages/enrich_planning_features.py` — `intersect_parcels_with_gpu_planning_features`
+```python
+def _validate_parcels(
+    parcels: gpd.GeoDataFrame,
+    *,
+    allow_output_columns: bool = False,
+) -> CRS:
+    if not isinstance(parcels, gpd.GeoDataFrame):
+        raise PlanningFeaturesError("Parcels must be a GeoDataFrame")
+    if parcels.columns.duplicated().any():
+        raise PlanningFeaturesError("Parcels contain duplicate columns")
+    missing = sorted(PARCEL_REQUIRED_COLUMNS - set(parcels.columns))
+    if missing:
+        raise PlanningFeaturesError(
+            "Parcels are missing required columns: " + ", ".join(missing)
+        )
+    collisions = sorted(PARCEL_OUTPUT_COLUMNS & set(parcels.columns))
+    if collisions and not allow_output_columns:
+        raise PlanningFeaturesError(
+            "Parcels already contain planning-feature output columns: "
+            + ", ".join(collisions)
+        )
+    _active_geometry(parcels, "Parcel")
+    source_crs = _crs(parcels.crs, "Parcel")
+    _validate_ids(parcels["parcel_id"], "parcel_id")
+    _validate_geometries(parcels, SURFACE_TYPES, "Parcel")
+    return source_crs
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_standard_model`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _standard_model(document: GpuPlanningDocument) -> str | None:
@@ -825,60 +1382,61 @@ def _standard_model(document: GpuPlanningDocument) -> str | None:
 
 **Purpose**
 
-Implements standard model according to the exact implementation and guards in this file.
+Private `planning` helper for standard model; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str | None`.
+- Every observed return expression is reproduced without truncation:
+```python
+values[0] if values else None
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str | None`. Observed return expression(s): `values[0] if values else None`.
-
-**Algorithm**
-
-1. Defines `values` with annotation `list[str]` from `[]`.
-2. Computes `model` from `document.extraction.archive.document.standard_model`.
-3. Checks `model is not None`. When true: Calls `values.append(_strict_string(model, 'GPU standard model'))` for its validation or side effect.
-4. Iterates `value` over `document.extraction.standard_models`. For each value: Computes `validated` from `_strict_string(value, 'GPU extracted standard model')`. Checks `validated not in values`. When true: Calls `values.append(validated)` for its validation or side effect.
-5. Checks `len(values) > 1`. When true: Raises `PlanningFeaturesError('GPU standard-model lineage is ambiguous')`.
-6. Returns `values[0] if values else None`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(values) > 1` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(values) > 1`.
+- Explicit raise expressions: `PlanningFeaturesError('GPU standard-model lineage is ambiguous')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_strict_string`, `len`, `values.append`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_standard_model`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_standard_model`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_planning_context`
+```python
+def _standard_model(document: GpuPlanningDocument) -> str | None:
+    values: list[str] = []
+    model = document.extraction.archive.document.standard_model
+    if model is not None:
+        values.append(_strict_string(model, "GPU standard model"))
+    for value in document.extraction.standard_models:
+        validated = _strict_string(value, "GPU extracted standard model")
+        if validated not in values:
+            values.append(validated)
+    if len(values) > 1:
+        raise PlanningFeaturesError("GPU standard-model lineage is ambiguous")
+    return values[0] if values else None
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_planning_context`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _planning_context(document: GpuPlanningDocument) -> _PlanningContext:
@@ -886,63 +1444,69 @@ def _planning_context(document: GpuPlanningDocument) -> _PlanningContext:
 
 **Purpose**
 
-Implements planning context according to the exact implementation and guards in this file.
+Private `planning` helper for planning context; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `_PlanningContext`.
+- Every observed return expression is reproduced without truncation:
+```python
+_PlanningContext(provider=_strict_string(metadata.provider, 'GPU provider'), portal=_strict_string(metadata.portal, 'GPU portal'), commune_code=_strict_string(metadata.commune_code, 'GPU commune code'), document_id=_strict_string(metadata.document_id, 'GPU document ID'), document_type=_strict_string(metadata.document_type, 'GPU document type'), archive_name=_strict_string(metadata.archive_name, 'GPU archive name'), archive_sha256=sha, standard_model=_standard_model(document))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `_PlanningContext`. Observed return expression(s): `_PlanningContext(provider=_strict_string(metadata.provider, 'GPU provider'), portal=_strict_string(metadata.portal, 'GPU portal'), commune_code=_strict_string(metadata.commune_code, 'GPU commune code'), document_id=_strict_string(metadata.document_id, 'GPU document ID'), document_type=_strict_string(metadata.document_type, 'GPU document type'), archive_name=_strict_string(metadata.archive_name, '…`.
-
-**Algorithm**
-
-1. Checks `not isinstance(document, GpuPlanningDocument)`. When true: Raises `PlanningFeaturesError('planning_document must be a GpuPlanningDocument')`.
-2. Computes `archive` from `document.extraction.archive`.
-3. Computes `metadata` from `archive.document`.
-4. Computes `sha` from `_strict_string(archive.sha256, 'GPU archive SHA256')`.
-5. Checks `len(sha) != 64 or any((c not in '0123456789abcdefABCDEF' for c in sha))`. When true: Raises `PlanningFeaturesError('GPU archive SHA256 must contain 64 hex chars')`.
-6. Returns `_PlanningContext(provider=_strict_string(metadata.provider, 'GPU provider'), portal=_strict_string(metadata.portal, 'GPU portal'), commune_code=_strict_string(metadata.commune_code, 'GPU commune code'), document_id=_strict_string(metadata.document_id, 'GPU document ID'), document_type=_strict_string(metadata.document_type, 'GPU document type'), archive_name…`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(document, GpuPlanningDocument)` is true.
-- Rejects or diverts the path when `len(sha) != 64 or any((c not in '0123456789abcdefABCDEF' for c in sha))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(document, GpuPlanningDocument)`.
+- Guard with a raise path: `len(sha) != 64 or any((c not in '0123456789abcdefABCDEF' for c in sha))`.
+- Explicit raise expressions: `PlanningFeaturesError('GPU archive SHA256 must contain 64 hex chars')`, `PlanningFeaturesError('planning_document must be a GpuPlanningDocument')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_PlanningContext`, `_standard_model`, `_strict_string`, `any`, `isinstance`, `len`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `_planning_context`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_planning_context`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_planning_context`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_normalized_catalogs`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
-- `src/landscout/stages/enrich_planning_features.py` — `intersect_parcels_with_gpu_planning_features`
+```python
+def _planning_context(document: GpuPlanningDocument) -> _PlanningContext:
+    if not isinstance(document, GpuPlanningDocument):
+        raise PlanningFeaturesError("planning_document must be a GpuPlanningDocument")
+    archive = document.extraction.archive
+    metadata = archive.document
+    sha = _strict_string(archive.sha256, "GPU archive SHA256")
+    if len(sha) != 64 or any(c not in "0123456789abcdefABCDEF" for c in sha):
+        raise PlanningFeaturesError("GPU archive SHA256 must contain 64 hex chars")
+    return _PlanningContext(
+        provider=_strict_string(metadata.provider, "GPU provider"),
+        portal=_strict_string(metadata.portal, "GPU portal"),
+        commune_code=_strict_string(metadata.commune_code, "GPU commune code"),
+        document_id=_strict_string(metadata.document_id, "GPU document ID"),
+        document_type=_strict_string(metadata.document_type, "GPU document type"),
+        archive_name=_strict_string(metadata.archive_name, "GPU archive name"),
+        archive_sha256=sha,
+        standard_model=_standard_model(document),
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_summary_geometry_types`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _summary_geometry_types(frame: gpd.GeoDataFrame) -> tuple[tuple[str, int], ...]:
@@ -950,56 +1514,51 @@ def _summary_geometry_types(frame: gpd.GeoDataFrame) -> tuple[tuple[str, int], .
 
 **Purpose**
 
-Implements summary geometry types according to the exact implementation and guards in this file.
+Private `planning` helper for summary geometry types; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[tuple[str, int], ...]`.
+- Every observed return expression is reproduced without truncation:
+```python
+tuple(((str(key), int(value)) for key, value in counts.items()))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[tuple[str, int], ...]`. Observed return expression(s): `tuple(((str(key), int(value)) for key, value in counts.items()))`.
-
-**Algorithm**
-
-1. Computes `counts` from `frame.geometry.geom_type.value_counts().sort_index()`.
-2. Returns `tuple(((str(key), int(value)) for key, value in counts.items()))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `frame.geometry.geom_type.value_counts`, `frame.geometry.geom_type.value_counts().sort_index`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `counts.items`, `frame.geometry.geom_type.value_counts`, `frame.geometry.geom_type.value_counts().sort_index`, `int`, `str`, `tuple`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_summary_geometry_types`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_layer_summary`
+```python
+def _summary_geometry_types(frame: gpd.GeoDataFrame) -> tuple[tuple[str, int], ...]:
+    counts = frame.geometry.geom_type.value_counts().sort_index()
+    return tuple((str(key), int(value)) for key, value in counts.items())
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_layer_summary`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_layer_summary(
@@ -1010,71 +1569,95 @@ def _validate_layer_summary(
 
 **Purpose**
 
-Validates and rejects malformed layer summary according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent layer summary; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `layer` (`GpuInspectedLayer`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `context` (`_PlanningContext`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `frame` from `layer.data`.
-2. Computes `summary` from `layer.summary`.
-3. Computes `actual_crs` from `_crs(frame.crs, f'{layer.logical_name} source')`.
-4. Computes `summary_crs` from `_crs(summary.crs, f'{layer.logical_name} summary')`.
-5. Computes `expected_nulls` from `tuple(((str(column), int(frame[column].isna().sum())) for column in frame.columns))`.
-6. Computes `expected_dtypes` from `tuple(((str(column), str(dtype)) for column, dtype in frame.dtypes.items()))`.
-7. Computes `geometry` from `frame.geometry`.
-8. Computes `non_null` from `geometry.notna()`.
-9. Computes `non_empty` from `non_null & ~geometry.is_empty`.
-10. Calls `_strict_nonnegative_integer(summary.feature_count, 'summary feature_count')` for its validation or side effect.
-11. Calls `_strict_nonnegative_integer(summary.null_geometry_count, 'summary null_geometry_count')` for its validation or side effect.
-12. Calls `_strict_nonnegative_integer(summary.empty_geometry_count, 'summary empty_geometry_count')` for its validation or side effect.
-13. Calls `_strict_nonnegative_integer(summary.invalid_geometry_count, 'summary invalid_geometry_count')` for its validation or side effect.
-14. Iterates `(column, value)` over `summary.null_counts`. For each value: Calls `_strict_nonnegative_integer(value, f'summary {column} null count')` for its validation or side effect.
-15. Iterates `(geometry_type, value)` over `summary.geometry_types`. For each value: Calls `_strict_nonnegative_integer(value, f'summary {geometry_type} count')` for its validation or side effect.
-16. Checks `summary.source_document_id != context.document_id or summary.source_archive_sha256 != context.archive_sha256 or summary.source_layer != layer.reference.source_layer or (summary.feature_count != len(frame)) or (not actual_crs.equals(summary_crs)) or (summary.columns != tuple((str(column) for column in frame.columns))) or (summary.dtypes != expected_dtypes) o…`. When true: Raises `PlanningFeaturesError(f'{layer.logical_name} source summary is inconsistent with loaded data')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `summary.source_document_id != context.document_id or summary.source_archive_sha256 != context.archive_sha256 or summary.source_layer != layer.reference.source_layer or (summary.feature_count != len(frame)) or (not actual_crs.equals(summary_crs)) or (summary.columns != tuple((str(column) for column in frame.columns))) or (summary.dtypes != expected_dtypes) or (summary.null_counts != expected_nulls…` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `summary.source_document_id != context.document_id or summary.source_archive_sha256 != context.archive_sha256 or summary.source_layer != layer.reference.source_layer or (summary.feature_count != len(frame)) or (not actual_crs.equals(summary_crs)) or (summary.columns != tuple((str(column) for column in frame.columns))) or (summary.dtypes != expected_dtypes) or (summary.null_counts != expected_nulls) or (summary.geometry_types != _summary_geometry_types(frame)) or (summary.null_geometry_count != int((~non_null).sum())) or (summary.empty_geometry_count != int((non_null & geometry.is_empty).sum())) or (summary.invalid_geometry_count != int((non_empty & ~geometry.is_valid).sum()))`.
+- Explicit raise expressions: `PlanningFeaturesError(f'{layer.logical_name} source summary is inconsistent with loaded data')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `(non_empty & ~geometry.is_valid).sum`, `(non_null & geometry.is_empty).sum`, `_summary_geometry_types`, `geometry.notna`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(non_empty & ~geometry.is_valid).sum`, `(non_null & geometry.is_empty).sum`, `(~non_null).sum`, `PlanningFeaturesError`, `_crs`, `_strict_nonnegative_integer`, `_summary_geometry_types`, `actual_crs.equals`, `frame.dtypes.items`, `frame[column].isna`, `frame[column].isna().sum`, `geometry.notna`, `int`, `len`, `str`, `tuple`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_validate_layer_summary`.
+- direct call or construction: `src/landscout/stages/normalize_access_ign.py::_validate_source_bundle` via `_validate_layer_summary`.
+- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_validate_source_bundle` via `_validate_layer_summary`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_normalize_layer`
+```python
+def _validate_layer_summary(
+    layer: GpuInspectedLayer,
+    context: _PlanningContext,
+) -> None:
+    frame = layer.data
+    summary = layer.summary
+    actual_crs = _crs(frame.crs, f"{layer.logical_name} source")
+    summary_crs = _crs(summary.crs, f"{layer.logical_name} summary")
+    expected_nulls = tuple(
+        (str(column), int(frame[column].isna().sum())) for column in frame.columns
+    )
+    expected_dtypes = tuple(
+        (str(column), str(dtype)) for column, dtype in frame.dtypes.items()
+    )
+    geometry = frame.geometry
+    non_null = geometry.notna()
+    non_empty = non_null & ~geometry.is_empty
+    _strict_nonnegative_integer(summary.feature_count, "summary feature_count")
+    _strict_nonnegative_integer(
+        summary.null_geometry_count, "summary null_geometry_count"
+    )
+    _strict_nonnegative_integer(
+        summary.empty_geometry_count, "summary empty_geometry_count"
+    )
+    _strict_nonnegative_integer(
+        summary.invalid_geometry_count, "summary invalid_geometry_count"
+    )
+    for column, value in summary.null_counts:
+        _strict_nonnegative_integer(value, f"summary {column} null count")
+    for geometry_type, value in summary.geometry_types:
+        _strict_nonnegative_integer(value, f"summary {geometry_type} count")
+    if (
+        summary.source_document_id != context.document_id
+        or summary.source_archive_sha256 != context.archive_sha256
+        or summary.source_layer != layer.reference.source_layer
+        or summary.feature_count != len(frame)
+        or not actual_crs.equals(summary_crs)
+        or summary.columns != tuple(str(column) for column in frame.columns)
+        or summary.dtypes != expected_dtypes
+        or summary.null_counts != expected_nulls
+        or summary.geometry_types != _summary_geometry_types(frame)
+        or summary.null_geometry_count != int((~non_null).sum())
+        or summary.empty_geometry_count != int((non_null & geometry.is_empty).sum())
+        or summary.invalid_geometry_count != int((non_empty & ~geometry.is_valid).sum())
+    ):
+        raise PlanningFeaturesError(
+            f"{layer.logical_name} source summary is inconsistent with loaded data"
+        )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_project_geometry`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _project_geometry(frame: gpd.GeoDataFrame, label: str) -> gpd.GeoSeries:
@@ -1082,59 +1665,63 @@ def _project_geometry(frame: gpd.GeoDataFrame, label: str) -> gpd.GeoSeries:
 
 **Purpose**
 
-Implements project geometry according to the exact implementation and guards in this file.
+Private `planning` helper for project geometry; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoSeries`.
+- Every observed return expression is reproduced without truncation:
+```python
+gpd.GeoSeries(force_2d(projected.array), crs=target)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoSeries`. Observed return expression(s): `gpd.GeoSeries(force_2d(projected.array), crs=target)`.
-
-**Algorithm**
-
-1. Computes `source` from `_crs(frame.crs, label)`.
-2. Computes `target` from `CRS.from_epsg(2154)`.
-3. Runs guarded operation: Computes `projected` from `frame.geometry.copy() if source.equals(target) else frame.to_crs(target).geometry`. Returns `gpd.GeoSeries(force_2d(projected.array), crs=target)`. Handles `Exception`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `PlanningFeaturesError(f'{label} CRS cannot be transformed safely to EPSG:2154')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `frame.geometry.copy`, `frame.to_crs`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `force_2d`, `frame.geometry.copy`, `frame.to_crs`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `CRS.from_epsg`, `PlanningFeaturesError`, `_crs`, `force_2d`, `frame.geometry.copy`, `frame.to_crs`, `gpd.GeoSeries`, `source.equals`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_project_geometry`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_metric_parcels` via `_project_geometry`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_metric_parcels`
-- `src/landscout/stages/enrich_planning_features.py` — `_normalize_layer`
+```python
+def _project_geometry(frame: gpd.GeoDataFrame, label: str) -> gpd.GeoSeries:
+    source = _crs(frame.crs, label)
+    target = CRS.from_epsg(2154)
+    try:
+        projected = (
+            frame.geometry.copy()
+            if source.equals(target)
+            else frame.to_crs(target).geometry
+        )
+        return gpd.GeoSeries(force_2d(projected.array), crs=target)
+    except Exception as error:
+        raise PlanningFeaturesError(
+            f"{label} CRS cannot be transformed safely to EPSG:2154"
+        ) from error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_source_feature_ids`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _source_feature_ids(
@@ -1146,60 +1733,82 @@ def _source_feature_ids(
 
 **Purpose**
 
-Implements source feature ids according to the exact implementation and guards in this file.
+Private `planning` helper for source feature ids; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `layer` (`GpuInspectedLayer`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `spec` (`_LayerSpec`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `validated_source` (`GpuValidatedSpatialLayerSource`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[pd.Series, SourceIdentityKind, str]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(result, 'CNIG_ATTRIBUTE', spec.identity_field)
 
-**Returns**
+(values, 'ARCHIVE_SCOPED_OGR_FID', 'OGR_FID')
 
-- Declared return type: `tuple[pd.Series, SourceIdentityKind, str]`. Observed return expression(s): `(result, 'CNIG_ATTRIBUTE', spec.identity_field)`; `(values, 'ARCHIVE_SCOPED_OGR_FID', 'OGR_FID')`; `(pd.Series(dtype='object'), 'ARCHIVE_SCOPED_OGR_FID', 'OGR_FID')`.
+(pd.Series(dtype='object'), 'ARCHIVE_SCOPED_OGR_FID', 'OGR_FID')
+```
 
-**Algorithm**
+**Validation and exceptions**
 
-1. Checks `spec.identity_field in layer.data.columns`. When true: Computes `result` from `layer.data[spec.identity_field].reset_index(drop=True).copy()`. Calls `_validate_ids(result, spec.identity_field)` for its validation or side effect. Returns `(result, 'CNIG_ATTRIBUTE', spec.identity_field)`.
-2. Checks `spec.logical_layer == 'prescription_surface'`. When true: Checks `layer.data.empty`. When true: Returns `(pd.Series(dtype='object'), 'ARCHIVE_SCOPED_OGR_FID', 'OGR_FID')`. Checks `len(validated_source.ogr_fids) != len(layer.data)`. When true: Raises `PlanningFeaturesError(f'{layer.logical_name} verified source FIDs are unavailable')`. Computes `values` from `pd.Series([f'OGR_FID:{value}' for value in validated_source.ogr_fids], dtype='object')`. Executes 2 additional source-ordered statement(s).
-3. Raises `PlanningFeaturesError(f'{spec.logical_layer} is missing required identity field {spec.identity_field}')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `spec.logical_layer == 'prescription_surface'` is true.
-- Rejects or diverts the path when `len(validated_source.ogr_fids) != len(layer.data)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `spec.logical_layer == 'prescription_surface'`.
+- Guard with a raise path: `len(validated_source.ogr_fids) != len(layer.data)`.
+- Explicit raise expressions: `PlanningFeaturesError(f'{layer.logical_name} verified source FIDs are unavailable')`, `PlanningFeaturesError(f'{spec.logical_layer} is missing required identity field {spec.identity_field}')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `layer.data[spec.identity_field].reset_index(drop=True).copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_validate_ids`, `layer.data[spec.identity_field].reset_index`, `layer.data[spec.identity_field].reset_index(drop=True).copy`, `len`, `pd.Series`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_source_feature_ids`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_normalize_layer`
+```python
+def _source_feature_ids(
+    layer: GpuInspectedLayer,
+    spec: _LayerSpec,
+    validated_source: GpuValidatedSpatialLayerSource,
+) -> tuple[pd.Series, SourceIdentityKind, str]:
+    if spec.identity_field in layer.data.columns:
+        result = layer.data[spec.identity_field].reset_index(drop=True).copy()
+        _validate_ids(result, spec.identity_field)
+        return result, "CNIG_ATTRIBUTE", spec.identity_field
+    if spec.logical_layer == "prescription_surface":
+        if layer.data.empty:
+            return (
+                pd.Series(dtype="object"),
+                "ARCHIVE_SCOPED_OGR_FID",
+                "OGR_FID",
+            )
+        if len(validated_source.ogr_fids) != len(layer.data):
+            raise PlanningFeaturesError(
+                f"{layer.logical_name} verified source FIDs are unavailable"
+            )
+        values = pd.Series(
+            [f"OGR_FID:{value}" for value in validated_source.ogr_fids],
+            dtype="object",
+        )
+        _validate_ids(values, f"{layer.logical_name} OGR FID")
+        return values, "ARCHIVE_SCOPED_OGR_FID", "OGR_FID"
+    raise PlanningFeaturesError(
+        f"{spec.logical_layer} is missing required identity field {spec.identity_field}"
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_optional_values`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _optional_values(frame: gpd.GeoDataFrame, source_field: str) -> np.ndarray:
@@ -1207,57 +1816,54 @@ def _optional_values(frame: gpd.GeoDataFrame, source_field: str) -> np.ndarray:
 
 **Purpose**
 
-Implements optional values according to the exact implementation and guards in this file.
+Private `planning` helper for optional values; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_field` (`str`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `np.ndarray`.
+- Every observed return expression is reproduced without truncation:
+```python
+frame[source_field].to_numpy(copy=True)
 
-**Returns**
+np.full(len(frame), None, dtype='object')
+```
 
-- Declared return type: `np.ndarray`. Observed return expression(s): `frame[source_field].to_numpy(copy=True)`; `np.full(len(frame), None, dtype='object')`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Checks `source_field not in frame.columns`. When true: Returns `np.full(len(frame), None, dtype='object')`.
-2. Returns `frame[source_field].to_numpy(copy=True)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `frame[source_field].to_numpy`, `len`, `np.full`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_optional_values`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_normalize_layer`
+```python
+def _optional_values(frame: gpd.GeoDataFrame, source_field: str) -> np.ndarray:
+    if source_field not in frame.columns:
+        return np.full(len(frame), None, dtype="object")
+    return frame[source_field].to_numpy(copy=True)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_normalize_layer`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _normalize_layer(
@@ -1270,81 +1876,163 @@ def _normalize_layer(
 
 **Purpose**
 
-Normalizes layer according to the exact implementation and guards in this file.
+Projects validated source facts into layer; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `layer` (`GpuInspectedLayer`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `spec` (`_LayerSpec`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `context` (`_PlanningContext`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `validated_source` (`GpuValidatedSpatialLayerSource`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+projected
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `projected`.
-
-**Algorithm**
-
-1. Computes `frame` from `layer.data`.
-2. Checks `not isinstance(frame, gpd.GeoDataFrame)`. When true: Raises `PlanningFeaturesError(f'{spec.logical_layer} must be a GeoDataFrame')`.
-3. Calls `_active_geometry(frame, spec.logical_layer)` for its validation or side effect.
-4. Computes `required` from `{spec.type_field, spec.subtype_field, 'IDURBA', 'geometry'}`.
-5. Computes `missing` from `sorted(required - set(frame.columns))`.
-6. Checks `missing`. When true: Raises `PlanningFeaturesError(f'{spec.logical_layer} is missing required source fields: ' + ', '.join(missing))`.
-7. Iterates `field` over `(spec.type_field, spec.subtype_field, 'IDURBA')`. For each value: Checks `frame[field].isna().any()`. When true: Raises `PlanningFeaturesError(f'{spec.logical_layer} {field} must not be null')`. Iterates `value` over `frame[field].tolist()`. For each value: Calls `_strict_string(value, f'{spec.logical_layer} {field}')` for its validation or side effect.
-8. Calls `_validate_geometries(frame, spec.allowed_geometry_types, spec.logical_layer)` for its validation or side effect.
-9. Calls `_validate_layer_summary(layer, context)` for its validation or side effect.
-10. Computes `expected_reference` from `context.archive_name[:-4] if context.archive_name.casefold().endswith('.zip') else context.archive_name`.
-11. Checks `not frame['IDURBA'].eq(expected_reference).all()`. When true: Raises `PlanningFeaturesError(f'{spec.logical_layer} IDURBA does not match planning archive identity')`.
-12. Computes `(source_ids, identity_kind, identity_field)` from `_source_feature_ids(layer, spec, validated_source)`.
-13. Computes `planning_ids` from `source_ids.map(lambda value: f'GPU:{context.document_id}:{spec.logical_layer}:{value}')`.
-14. Computes `geometry` from `_project_geometry(frame, spec.logical_layer)`.
-15. Computes `projected` from `gpd.GeoDataFrame({'planning_feature_id': planning_ids.to_numpy(copy=True), 'source_feature_id': source_ids.to_numpy(copy=True), 'source_identity_kind': np.repeat(identity_kind, len(frame)), 'source_identity_field': np.repeat(identity_field, len(frame)), 'logical_layer': np.repeat(spec.logical_layer, len(frame)), 'feat…`.
-16. Calls `_validate_geometries(projected, spec.allowed_geometry_types, spec.logical_layer)` for its validation or side effect.
-17. Checks `spec.geometry_kind == 'SURFACE'`. When true: Runs guarded operation: Computes `values` from `projected.geometry.area.to_numpy(dtype='float64')`. Handles `Exception`. Checks `not np.isfinite(values).all() or (values <= 0).any()`. When true: Raises `PlanningFeaturesError(f'{spec.logical_layer} areas must be positive')`. Computes `projected['feature_area_m2']` from `values`. Otherwise: Checks `spec.geometry_kind == 'LINE'`. When true: Runs guarded operation: Computes `values` from `projected.geometry.length.to_numpy(dtype='float64')`. Handles `Exception`. Checks `not np.isfinite(values).all() or (values <= 0).any()`. When true: Raises `PlanningFeaturesError(f'{spec.logical_layer} lengths must be positive')`. Computes `projected['feature_length_m']` from `values`. Otherwise: Runs guarded operation: Computes `projected['point_member_count']` from `[len(get_parts(value)) for value in projected.geometry.array]`. Handles `Exception`.
-18. Returns `projected`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(frame, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `not frame['IDURBA'].eq(expected_reference).all()` is true.
-- Rejects or diverts the path when `spec.geometry_kind == 'SURFACE'` is true.
-- Rejects or diverts the path when `frame[field].isna().any()` is true.
-- Rejects or diverts the path when `not np.isfinite(values).all() or (values <= 0).any()` is true.
-- Rejects or diverts the path when `spec.geometry_kind == 'LINE'` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(frame, gpd.GeoDataFrame)`.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `not frame['IDURBA'].eq(expected_reference).all()`.
+- Guard with a raise path: `spec.geometry_kind == 'SURFACE'`.
+- Guard with a raise path: `frame[field].isna().any()`.
+- Guard with a raise path: `not np.isfinite(values).all() or (values <= 0).any()`.
+- Guard with a raise path: `spec.geometry_kind == 'LINE'`.
+- Guard with a raise path: `not np.isfinite(values).all() or (values <= 0).any()`.
+- Explicit raise expressions: `PlanningFeaturesError(f'{spec.logical_layer} IDURBA does not match planning archive identity')`, `PlanningFeaturesError(f'{spec.logical_layer} area calculation failed')`, `PlanningFeaturesError(f'{spec.logical_layer} areas must be positive')`, `PlanningFeaturesError(f'{spec.logical_layer} is missing required source fields: ' + ', '.join(missing))`, `PlanningFeaturesError(f'{spec.logical_layer} length calculation failed')`, `PlanningFeaturesError(f'{spec.logical_layer} lengths must be positive')`, `PlanningFeaturesError(f'{spec.logical_layer} must be a GeoDataFrame')`, `PlanningFeaturesError(f'{spec.logical_layer} point-member calculation failed')`, `PlanningFeaturesError(f'{spec.logical_layer} {field} must not be null')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `gpd.GeoDataFrame({'planning_feature_id': planning_ids.to_numpy(copy=True), 'source_feature_id': source_ids.to_numpy(copy=True), 'source_identity_kind': np.repeat(identity_kind, len(frame)), 'source_identity_field': np.repeat(identity_field, len(frame)), 'logical_layer': np.repeat(spec.logical_layer, len(frame)), 'feature_family': np.repeat(spec.feature_family, len(frame)), 'geometry_kind': np.repeat(spec.geometry_kind, len(frame)), 'type_code_raw': frame[spec.type_field].to_numpy(copy=True), 'subtype_code_raw': frame[spec.subtype_field].to_numpy(copy=True), **{normalized: _optional_values(frame, source) for normalized, source in COMMON_SOURCE_FIELDS.items()}, 'source_provider': np.repeat(context.provider, len(frame)), 'source_portal': np.repeat(context.portal, len(frame)), 'source_commune_code': np.repeat(context.commune_code, len(frame)), 'source_document_id': np.repeat(context.document_id, len(frame)), 'source_document_type': np.repeat(context.document_type, len(frame)), 'source_archive_name': np.repeat(context.archive_name, len(frame)), 'source_archive_sha256': np.repeat(context.archive_sha256, len(frame)), 'source_layer': np.repeat(layer.reference.source_layer, len(frame)), 'source_standard_model': np.full(len(frame), context.standard_model, dtype='object'), 'source_crs': np.repeat(layer.summary.crs, len(frame))}, geometry=geometry.to_numpy(copy=True), crs=CALCULATION_CRS).reset_index`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `_active_geometry`, `_project_geometry`, `geometry.to_numpy`, `gpd.GeoDataFrame({'planning_feature_id': planning_ids.to_numpy(copy=True), 'source_feature_id': source_ids.to_numpy(copy=True), 'source_identity_kind': np.repeat(identity_kind, len(frame)), 'source_identity_field': np.repeat(identity_field, len(frame)), 'logical_layer': np.repeat(spec.logical_layer, len(frame)), 'feature_family': np.repeat(spec.feature_family, len(frame)), 'geometry_kind': np.repeat(spec.geometry_kind, len(frame)), 'type_code_raw': frame[spec.type_field].to_numpy(copy=True), 'subtype_code_raw': frame[spec.subtype_field].to_numpy(copy=True), **{normalized: _optional_values(frame, source) for normalized, source in COMMON_SOURCE_FIELDS.items()}, 'source_provider': np.repeat(context.provider, len(frame)), 'source_portal': np.repeat(context.portal, len(frame)), 'source_commune_code': np.repeat(context.commune_code, len(frame)), 'source_document_id': np.repeat(context.document_id, len(frame)), 'source_document_type': np.repeat(context.document_type, len(frame)), 'source_archive_name': np.repeat(context.archive_name, len(frame)), 'source_archive_sha256': np.repeat(context.archive_sha256, len(frame)), 'source_layer': np.repeat(layer.reference.source_layer, len(frame)), 'source_standard_model': np.full(len(frame), context.standard_model, dtype='object'), 'source_crs': np.repeat(layer.summary.crs, len(frame))}, geometry=geometry.to_numpy(copy=True), crs=CALCULATION_CRS).reset_index`, `projected.geometry.area.to_numpy`, `projected.geometry.length.to_numpy`.
+- Hashing: `gpd.GeoDataFrame({'planning_feature_id': planning_ids.to_numpy(copy=True), 'source_feature_id': source_ids.to_numpy(copy=True), 'source_identity_kind': np.repeat(identity_kind, len(frame)), 'source_identity_field': np.repeat(identity_field, len(frame)), 'logical_layer': np.repeat(spec.logical_layer, len(frame)), 'feature_family': np.repeat(spec.feature_family, len(frame)), 'geometry_kind': np.repeat(spec.geometry_kind, len(frame)), 'type_code_raw': frame[spec.type_field].to_numpy(copy=True), 'subtype_code_raw': frame[spec.subtype_field].to_numpy(copy=True), **{normalized: _optional_values(frame, source) for normalized, source in COMMON_SOURCE_FIELDS.items()}, 'source_provider': np.repeat(context.provider, len(frame)), 'source_portal': np.repeat(context.portal, len(frame)), 'source_commune_code': np.repeat(context.commune_code, len(frame)), 'source_document_id': np.repeat(context.document_id, len(frame)), 'source_document_type': np.repeat(context.document_type, len(frame)), 'source_archive_name': np.repeat(context.archive_name, len(frame)), 'source_archive_sha256': np.repeat(context.archive_sha256, len(frame)), 'source_layer': np.repeat(layer.reference.source_layer, len(frame)), 'source_standard_model': np.full(len(frame), context.standard_model, dtype='object'), 'source_crs': np.repeat(layer.summary.crs, len(frame))}, geometry=geometry.to_numpy(copy=True), crs=CALCULATION_CRS).reset_index`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `projected['feature_area_m2']`, `projected['feature_length_m']`, `projected['point_member_count']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `(values <= 0).any`, `COMMON_SOURCE_FIELDS.items`, `PlanningFeaturesError`, `_active_geometry`, `_optional_values`, `_project_geometry`, `_source_feature_ids`, `_strict_string`, `_validate_geometries`, `_validate_layer_summary`, `context.archive_name.casefold`, `context.archive_name.casefold().endswith`, `frame['IDURBA'].eq`, `frame['IDURBA'].eq(expected_reference).all`, `frame[field].isna`, `frame[field].isna().any`, `frame[field].tolist`, `frame[spec.subtype_field].to_numpy`, `frame[spec.type_field].to_numpy`, `geometry.to_numpy`, `get_parts`, `gpd.GeoDataFrame`, `gpd.GeoDataFrame({'planning_feature_id': planning_ids.to_numpy(copy=True), 'source_feature_id': source_ids.to_numpy(copy=True), 'source_identity_kind': np.repeat(identity_kind, len(frame)), 'source_identity_field': np.repeat(identity_field, len(frame)), 'logical_layer': np.repeat(spec.logical_layer, len(frame)), 'feature_family': np.repeat(spec.feature_family, len(frame)), 'geometry_kind': np.repeat(spec.geometry_kind, len(frame)), 'type_code_raw': frame[spec.type_field].to_numpy(copy=True), 'subtype_code_raw': frame[spec.subtype_field].to_numpy(copy=True), **{normalized: _optional_values(frame, source) for normalized, source in COMMON_SOURCE_FIELDS.items()}, 'source_provider': np.repeat(context.provider, len(frame)), 'source_portal': np.repeat(context.portal, len(frame)), 'source_commune_code': np.repeat(context.commune_code, len(frame)), 'source_document_id': np.repeat(context.document_id, len(frame)), 'source_document_type': np.repeat(context.document_type, len(frame)), 'source_archive_name': np.repeat(context.archive_name, len(frame)), 'source_archive_sha256': np.repeat(context.archive_sha256, len(frame)), 'source_layer': np.repeat(layer.reference.source_layer, len(frame)), 'source_standard_model': np.full(len(frame), context.standard_model, dtype='object'), 'source_crs': np.repeat(layer.summary.crs, len(frame))}, geometry=geometry.to_numpy(copy=True), crs=CALCULATION_CRS).reset_index`, `isinstance`, `len`, `np.full`, `np.isfinite`, `np.isfinite(values).all`, `np.repeat`, `planning_ids.to_numpy`, `projected.geometry.area.to_numpy`, `projected.geometry.length.to_numpy`, `set`, `sorted`, `source_ids.map`, `source_ids.to_numpy`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `_normalize_layer`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_normalized_catalogs`
+```python
+def _normalize_layer(
+    layer: GpuInspectedLayer,
+    spec: _LayerSpec,
+    context: _PlanningContext,
+    validated_source: GpuValidatedSpatialLayerSource,
+) -> gpd.GeoDataFrame:
+    frame = layer.data
+    if not isinstance(frame, gpd.GeoDataFrame):
+        raise PlanningFeaturesError(f"{spec.logical_layer} must be a GeoDataFrame")
+    _active_geometry(frame, spec.logical_layer)
+    required = {spec.type_field, spec.subtype_field, "IDURBA", "geometry"}
+    missing = sorted(required - set(frame.columns))
+    if missing:
+        raise PlanningFeaturesError(
+            f"{spec.logical_layer} is missing required source fields: "
+            + ", ".join(missing)
+        )
+    # Raw classification codes may repeat; validate hygiene without uniqueness.
+    for field in (spec.type_field, spec.subtype_field, "IDURBA"):
+        if frame[field].isna().any():
+            raise PlanningFeaturesError(
+                f"{spec.logical_layer} {field} must not be null"
+            )
+        for value in frame[field].tolist():
+            _strict_string(value, f"{spec.logical_layer} {field}")
+    _validate_geometries(frame, spec.allowed_geometry_types, spec.logical_layer)
+    _validate_layer_summary(layer, context)
+    expected_reference = (
+        context.archive_name[:-4]
+        if context.archive_name.casefold().endswith(".zip")
+        else context.archive_name
+    )
+    if not frame["IDURBA"].eq(expected_reference).all():
+        raise PlanningFeaturesError(
+            f"{spec.logical_layer} IDURBA does not match planning archive identity"
+        )
 
-**Tests**
+    source_ids, identity_kind, identity_field = _source_feature_ids(
+        layer, spec, validated_source
+    )
+    planning_ids = source_ids.map(
+        lambda value: f"GPU:{context.document_id}:{spec.logical_layer}:{value}"
+    )
+    geometry = _project_geometry(frame, spec.logical_layer)
+    projected = gpd.GeoDataFrame(
+        {
+            "planning_feature_id": planning_ids.to_numpy(copy=True),
+            "source_feature_id": source_ids.to_numpy(copy=True),
+            "source_identity_kind": np.repeat(identity_kind, len(frame)),
+            "source_identity_field": np.repeat(identity_field, len(frame)),
+            "logical_layer": np.repeat(spec.logical_layer, len(frame)),
+            "feature_family": np.repeat(spec.feature_family, len(frame)),
+            "geometry_kind": np.repeat(spec.geometry_kind, len(frame)),
+            "type_code_raw": frame[spec.type_field].to_numpy(copy=True),
+            "subtype_code_raw": frame[spec.subtype_field].to_numpy(copy=True),
+            **{
+                normalized: _optional_values(frame, source)
+                for normalized, source in COMMON_SOURCE_FIELDS.items()
+            },
+            "source_provider": np.repeat(context.provider, len(frame)),
+            "source_portal": np.repeat(context.portal, len(frame)),
+            "source_commune_code": np.repeat(context.commune_code, len(frame)),
+            "source_document_id": np.repeat(context.document_id, len(frame)),
+            "source_document_type": np.repeat(context.document_type, len(frame)),
+            "source_archive_name": np.repeat(context.archive_name, len(frame)),
+            "source_archive_sha256": np.repeat(context.archive_sha256, len(frame)),
+            "source_layer": np.repeat(layer.reference.source_layer, len(frame)),
+            "source_standard_model": np.full(
+                len(frame), context.standard_model, dtype="object"
+            ),
+            "source_crs": np.repeat(layer.summary.crs, len(frame)),
+        },
+        geometry=geometry.to_numpy(copy=True),
+        crs=CALCULATION_CRS,
+    ).reset_index(drop=True)
+    _validate_geometries(projected, spec.allowed_geometry_types, spec.logical_layer)
+    if spec.geometry_kind == "SURFACE":
+        try:
+            values = projected.geometry.area.to_numpy(dtype="float64")
+        except Exception as error:
+            raise PlanningFeaturesError(
+                f"{spec.logical_layer} area calculation failed"
+            ) from error
+        if not np.isfinite(values).all() or (values <= 0).any():
+            raise PlanningFeaturesError(f"{spec.logical_layer} areas must be positive")
+        projected["feature_area_m2"] = values
+    elif spec.geometry_kind == "LINE":
+        try:
+            values = projected.geometry.length.to_numpy(dtype="float64")
+        except Exception as error:
+            raise PlanningFeaturesError(
+                f"{spec.logical_layer} length calculation failed"
+            ) from error
+        if not np.isfinite(values).all() or (values <= 0).any():
+            raise PlanningFeaturesError(
+                f"{spec.logical_layer} lengths must be positive"
+            )
+        projected["feature_length_m"] = values
+    else:
+        try:
+            projected["point_member_count"] = [
+                len(get_parts(value)) for value in projected.geometry.array
+            ]
+        except Exception as error:
+            raise PlanningFeaturesError(
+                f"{spec.logical_layer} point-member calculation failed"
+            ) from error
+    return projected
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_canonical_catalog_dtypes`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _canonical_catalog_dtypes(
@@ -1355,59 +2043,65 @@ def _canonical_catalog_dtypes(
 
 **Purpose**
 
-Implements canonical catalog dtypes according to the exact implementation and guards in this file.
+Private `planning` helper for canonical catalog dtypes; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `catalog` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `kind` (`GeometryKind`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+catalog
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `catalog`.
-
-**Algorithm**
-
-1. Iterates `(column, dtype)` over `zip(NORMALIZED_FEATURE_COLUMNS[kind], normalized_feature_dtypes(kind, catalog), strict=True)`. For each value: Checks `column == 'geometry'`. When true: Executes `continue` control flow. Computes `catalog[column]` from `pd.Series(catalog[column].tolist(), index=catalog.index, dtype=dtype)`.
-2. Computes `catalog.index` from `pd.RangeIndex(len(catalog))`.
-3. Returns `catalog`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `catalog.index`, `catalog[column]`.
+- Input mutation: `catalog.index`, `catalog[column]`.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `catalog[column].tolist`, `len`, `normalized_feature_dtypes`, `pd.RangeIndex`, `pd.Series`, `zip`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_empty_catalog` via `_canonical_catalog_dtypes`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` via `_canonical_catalog_dtypes`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_combine_catalogs`
-- `src/landscout/stages/enrich_planning_features.py` — `_empty_catalog`
+```python
+def _canonical_catalog_dtypes(
+    catalog: gpd.GeoDataFrame,
+    kind: GeometryKind,
+) -> gpd.GeoDataFrame:
+    for column, dtype in zip(
+        NORMALIZED_FEATURE_COLUMNS[kind],
+        normalized_feature_dtypes(kind, catalog),
+        strict=True,
+    ):
+        if column == "geometry":
+            continue
+        catalog[column] = pd.Series(
+            catalog[column].tolist(), index=catalog.index, dtype=dtype
+        )
+    catalog.index = pd.RangeIndex(len(catalog))
+    return catalog
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_empty_catalog`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _empty_catalog(kind: GeometryKind) -> gpd.GeoDataFrame:
@@ -1415,58 +2109,62 @@ def _empty_catalog(kind: GeometryKind) -> gpd.GeoDataFrame:
 
 **Purpose**
 
-Implements empty catalog according to the exact implementation and guards in this file.
+Private `planning` helper for empty catalog; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `kind` (`GeometryKind`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+_canonical_catalog_dtypes(output, kind)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `_canonical_catalog_dtypes(output, kind)`.
-
-**Algorithm**
-
-1. Defines `data` with annotation `dict[str, object]` from `{}`.
-2. Iterates `(column, dtype)` over `zip(NORMALIZED_FEATURE_COLUMNS[kind], NORMALIZED_FEATURE_DTYPES[kind], strict=True)`. For each value: Computes `data[column]` from `gpd.GeoSeries([], crs=CALCULATION_CRS) if column == 'geometry' else pd.Series(dtype=dtype)`.
-3. Computes `output` from `gpd.GeoDataFrame(data, geometry='geometry', crs=CALCULATION_CRS)`.
-4. Returns `_canonical_catalog_dtypes(output, kind)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `data[column]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_catalog_dtypes`, `gpd.GeoDataFrame`, `gpd.GeoSeries`, `pd.Series`, `zip`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` via `_empty_catalog`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_combine_catalogs`
+```python
+def _empty_catalog(kind: GeometryKind) -> gpd.GeoDataFrame:
+    data: dict[str, object] = {}
+    for column, dtype in zip(
+        NORMALIZED_FEATURE_COLUMNS[kind],
+        NORMALIZED_FEATURE_DTYPES[kind],
+        strict=True,
+    ):
+        data[column] = (
+            gpd.GeoSeries([], crs=CALCULATION_CRS)
+            if column == "geometry"
+            else pd.Series(dtype=dtype)
+        )
+    output = gpd.GeoDataFrame(data, geometry="geometry", crs=CALCULATION_CRS)
+    return _canonical_catalog_dtypes(output, kind)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_combine_catalogs`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _combine_catalogs(
@@ -1476,60 +2174,60 @@ def _combine_catalogs(
 
 **Purpose**
 
-Implements combine catalogs according to the exact implementation and guards in this file.
+Private `planning` helper for combine catalogs; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frames` (`list[gpd.GeoDataFrame]`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `kind` (`GeometryKind`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+_canonical_catalog_dtypes(combined, kind)
 
-**Returns**
+_empty_catalog(kind)
+```
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `_canonical_catalog_dtypes(combined, kind)`; `_empty_catalog(kind)`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Checks `not frames`. When true: Returns `_empty_catalog(kind)`.
-2. Computes `combined` from `gpd.GeoDataFrame(pd.concat(frames, ignore_index=True), geometry='geometry', crs=CALCULATION_CRS)`.
-3. Calls `_validate_ids(combined['planning_feature_id'], 'planning_feature_id')` for its validation or side effect.
-4. Returns `_canonical_catalog_dtypes(combined, kind)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_catalog_dtypes`, `_empty_catalog`, `_validate_ids`, `gpd.GeoDataFrame`, `pd.concat`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs.combined` via `_combine_catalogs`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_normalized_catalogs.combined`
-- `src/landscout/stages/enrich_planning_features.py` — `_normalized_catalogs`
+```python
+def _combine_catalogs(
+    frames: list[gpd.GeoDataFrame], kind: GeometryKind
+) -> gpd.GeoDataFrame:
+    if not frames:
+        return _empty_catalog(kind)
+    combined = gpd.GeoDataFrame(
+        pd.concat(frames, ignore_index=True), geometry="geometry", crs=CALCULATION_CRS
+    )
+    _validate_ids(combined["planning_feature_id"], "planning_feature_id")
+    return _canonical_catalog_dtypes(combined, kind)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_normalized_catalogs`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _normalized_catalogs(
@@ -1546,71 +2244,117 @@ def _normalized_catalogs(
 
 Rebuild canonical catalogs from the inspected GPU related layers only.
 
-**Inputs**
+**Return contract**
 
-- `planning_document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame, tuple[GpuValidatedSpatialLayerSource, ...]]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(combined('SURFACE'), combined('LINE'), combined('POINT'), validated_sources)
 
-**Returns**
+_combine_catalogs([normalized[logical] for logical, spec in LAYER_SPECS.items() if spec.geometry_kind == kind and logical in normalized], kind)
+```
 
-- Declared return type: `tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame, tuple[GpuValidatedSpatialLayerSource, ...]]`. Observed return expression(s): `(combined('SURFACE'), combined('LINE'), combined('POINT'), validated_sources)`; `_combine_catalogs([normalized[logical] for logical, spec in LAYER_SPECS.items() if spec.geometry_kind == kind and logical in normalized], kind)`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Computes `context` from `_planning_context(planning_document)`.
-2. Computes `spatial_inventory` from `tuple(planning_document.all_spatial_layers)`.
-3. Computes `inspected_layers` from `(planning_document.zoning, *planning_document.related_layers)`.
-4. Iterates `layer` over `inspected_layers`. For each value: Checks `sum((reference == layer.reference for reference in spatial_inventory)) != 1`. When true: Raises `PlanningFeaturesError(f'{layer.logical_name} inspected reference must occur exactly once in the GPU spatial-layer inventory')`.
-5. Defines `layer_map` with annotation `dict[str, GpuInspectedLayer]` from `{}`.
-6. Iterates `inspected_layer` over `planning_document.related_layers`. For each value: Computes `logical` from `str(inspected_layer.logical_name)`. Checks `logical not in LAYER_SPECS`. When true: Raises `PlanningFeaturesError(f'Unsupported related layer: {logical}')`. Checks `logical in layer_map`. When true: Raises `PlanningFeaturesError(f'Duplicate related layer: {logical}')`. Executes 1 additional source-ordered statement(s).
-7. Runs guarded operation: Computes `validated_sources` from `revalidate_gpu_spatial_layer_sources(planning_document, tuple((layer_map[logical] for logical in LAYER_SPECS if logical in layer_map)))`. Handles `GpuSpatialInspectionError`.
-8. Defines `source_by_logical` with annotation `dict[str, GpuValidatedSpatialLayerSource]` from `{source.logical_name: source for source in validated_sources}`.
-9. Defines `normalized` with annotation `dict[str, gpd.GeoDataFrame]` from `{}`.
-10. Iterates `(logical, layer)` over `layer_map.items()`. For each value: Computes `source` from `source_by_logical[logical]`. Computes `fresh_layer` from `replace(layer, data=source.data)`. Computes `normalized[logical]` from `_normalize_layer(fresh_layer, LAYER_SPECS[logical], context, source)`.
-11. Defines the local helper `combined`; its behavior is documented with the parent function's nested helpers.
-12. Returns `(combined('SURFACE'), combined('LINE'), combined('POINT'), validated_sources)`.
-
-**Meaningful nested/local helpers**
-
-- `combined` — `def combined(kind: GeometryKind) -> gpd.GeoDataFrame:`. It executes 1 top-level statement(s), uses `LAYER_SPECS.items`, `_combine_catalogs`, and has no explicit raises. Trivial test callbacks are intentionally grouped here with their parent.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `sum((reference == layer.reference for reference in spatial_inventory)) != 1` is true.
-- Rejects or diverts the path when `logical not in LAYER_SPECS` is true.
-- Rejects or diverts the path when `logical in layer_map` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `sum((reference == layer.reference for reference in spatial_inventory)) != 1`.
+- Guard with a raise path: `logical not in LAYER_SPECS`.
+- Guard with a raise path: `logical in layer_map`.
+- Explicit raise expressions: `PlanningFeaturesError('Related GPU spatial sources failed physical revalidation')`, `PlanningFeaturesError(f'Duplicate related layer: {logical}')`, `PlanningFeaturesError(f'Unsupported related layer: {logical}')`, `PlanningFeaturesError(f'{layer.logical_name} inspected reference must occur exactly once in the GPU spatial-layer inventory')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `replace`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `layer_map[logical]`, `normalized[logical]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `LAYER_SPECS.items`, `PlanningFeaturesError`, `_combine_catalogs`, `_normalize_layer`, `_planning_context`, `combined`, `layer_map.items`, `replace`, `revalidate_gpu_spatial_layer_sources`, `str`, `sum`, `tuple`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_normalized_catalogs`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_normalized_catalogs`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
-- `src/landscout/stages/enrich_planning_features.py` — `intersect_parcels_with_gpu_planning_features`
+```python
+def _normalized_catalogs(
+    planning_document: GpuPlanningDocument,
+) -> tuple[
+    gpd.GeoDataFrame,
+    gpd.GeoDataFrame,
+    gpd.GeoDataFrame,
+    tuple[GpuValidatedSpatialLayerSource, ...],
+]:
+    """Rebuild canonical catalogs from the inspected GPU related layers only."""
 
-**Tests**
+    context = _planning_context(planning_document)
+    spatial_inventory = tuple(planning_document.all_spatial_layers)
+    inspected_layers = (planning_document.zoning, *planning_document.related_layers)
+    for layer in inspected_layers:
+        if sum(reference == layer.reference for reference in spatial_inventory) != 1:
+            raise PlanningFeaturesError(
+                f"{layer.logical_name} inspected reference must occur exactly once "
+                "in the GPU spatial-layer inventory"
+            )
+    layer_map: dict[str, GpuInspectedLayer] = {}
+    for inspected_layer in planning_document.related_layers:
+        logical = str(inspected_layer.logical_name)
+        if logical not in LAYER_SPECS:
+            raise PlanningFeaturesError(f"Unsupported related layer: {logical}")
+        if logical in layer_map:
+            raise PlanningFeaturesError(f"Duplicate related layer: {logical}")
+        layer_map[logical] = inspected_layer
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    try:
+        validated_sources = revalidate_gpu_spatial_layer_sources(
+            planning_document,
+            tuple(
+                layer_map[logical] for logical in LAYER_SPECS if logical in layer_map
+            ),
+        )
+    except GpuSpatialInspectionError as error:
+        raise PlanningFeaturesError(
+            "Related GPU spatial sources failed physical revalidation"
+        ) from error
+    source_by_logical: dict[str, GpuValidatedSpatialLayerSource] = {
+        source.logical_name: source for source in validated_sources
+    }
+    normalized: dict[str, gpd.GeoDataFrame] = {}
+    for logical, layer in layer_map.items():
+        source = source_by_logical[logical]
+        fresh_layer = replace(layer, data=source.data)
+        normalized[logical] = _normalize_layer(
+            fresh_layer, LAYER_SPECS[logical], context, source
+        )
 
-**Business interpretation**
+    def combined(kind: GeometryKind) -> gpd.GeoDataFrame:
+        return _combine_catalogs(
+            [
+                normalized[logical]
+                for logical, spec in LAYER_SPECS.items()
+                if spec.geometry_kind == kind and logical in normalized
+            ],
+            kind,
+        )
 
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
+    return (
+        combined("SURFACE"),
+        combined("LINE"),
+        combined("POINT"),
+        validated_sources,
+    )
+```
 
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_normalized_catalogs.combined`
 
-**Signature**
+**Exact signature**
 
 ```python
 def combined(kind: GeometryKind) -> gpd.GeoDataFrame:
@@ -1618,55 +2362,61 @@ def combined(kind: GeometryKind) -> gpd.GeoDataFrame:
 
 **Purpose**
 
-Implements combined according to the exact implementation and guards in this file.
+Private `planning` helper for combined; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `kind` (`GeometryKind`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+_combine_catalogs([normalized[logical] for logical, spec in LAYER_SPECS.items() if spec.geometry_kind == kind and logical in normalized], kind)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `_combine_catalogs([normalized[logical] for logical, spec in LAYER_SPECS.items() if spec.geometry_kind == kind and logical in normalized], kind)`.
-
-**Algorithm**
-
-1. Returns `_combine_catalogs([normalized[logical] for logical, spec in LAYER_SPECS.items() if spec.geometry_kind == kind and logical in normalized], kind)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `LAYER_SPECS.items`, `_combine_catalogs`.
+- callback/function object: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_status_priority_mapping(combined, 'feature document-wide')`.
+- callback/function object: `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` via `_canonical_catalog_dtypes(combined, kind)`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalized_catalogs` via `combined`.
+- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::RouteAssessment._validate_route_shape` via `set(combined)`.
+- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::RouteAssessment._validate_route_shape` via `len(combined)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def combined(kind: GeometryKind) -> gpd.GeoDataFrame:
+        return _combine_catalogs(
+            [
+                normalized[logical]
+                for logical, spec in LAYER_SPECS.items()
+                if spec.geometry_kind == kind and logical in normalized
+            ],
+            kind,
+        )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_metric_parcels`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -1674,62 +2424,72 @@ def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 **Purpose**
 
-Implements metric parcels according to the exact implementation and guards in this file.
+Private `planning` helper for metric parcels; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Computes `geometry` from `_project_geometry(parcels, 'Parcel')`.
-2. Computes `result` from `gpd.GeoDataFrame({'_parcel_position': np.arange(len(parcels), dtype='int64'), 'parcel_id': parcels['parcel_id'].to_numpy(copy=True)}, geometry=geometry.to_numpy(copy=True), crs=CALCULATION_CRS)`.
-3. Runs guarded operation: Computes `areas` from `result.geometry.area.to_numpy(dtype='float64')`. Handles `Exception`.
-4. Checks `not np.isfinite(areas).all() or (areas <= 0).any()`. When true: Raises `PlanningFeaturesError('Parcel metric areas must be finite and positive')`.
-5. Computes `result['_parcel_area_m2']` from `areas`.
-6. Returns `result`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not np.isfinite(areas).all() or (areas <= 0).any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not np.isfinite(areas).all() or (areas <= 0).any()`.
+- Explicit raise expressions: `PlanningFeaturesError('Parcel metric areas must be finite and positive')`, `PlanningFeaturesError('Parcel metric-area calculation failed')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `(areas <= 0).any`, `_project_geometry`, `geometry.to_numpy`, `np.isfinite(areas).all`, `result.geometry.area.to_numpy`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `result['_parcel_area_m2']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(areas <= 0).any`, `PlanningFeaturesError`, `_project_geometry`, `geometry.to_numpy`, `gpd.GeoDataFrame`, `len`, `np.arange`, `np.isfinite`, `np.isfinite(areas).all`, `parcels['parcel_id'].to_numpy`, `result.geometry.area.to_numpy`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_metric_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_metric_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_metric_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_metric_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_parcels` via `_metric_parcels`.
+- direct call or construction: `tests/unit/test_enrich_road_proximity.py::_parcels` via `_metric_parcels`.
+- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_missing_or_wrong_storage_crs_is_rejected` via `_metric_parcels`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_parcel_summaries`
-- `src/landscout/stages/enrich_planning_features.py` — `intersect_parcels_with_gpu_planning_features`
+```python
+def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    geometry = _project_geometry(parcels, "Parcel")
+    result = gpd.GeoDataFrame(
+        {
+            "_parcel_position": np.arange(len(parcels), dtype="int64"),
+            "parcel_id": parcels["parcel_id"].to_numpy(copy=True),
+        },
+        geometry=geometry.to_numpy(copy=True),
+        crs=CALCULATION_CRS,
+    )
+    try:
+        areas = result.geometry.area.to_numpy(dtype="float64")
+    except Exception as error:
+        raise PlanningFeaturesError("Parcel metric-area calculation failed") from error
+    if not np.isfinite(areas).all() or (areas <= 0).any():
+        raise PlanningFeaturesError("Parcel metric areas must be finite and positive")
+    result["_parcel_area_m2"] = areas
+    return result
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_relation_base`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _relation_base(
@@ -1740,65 +2500,116 @@ def _relation_base(
 
 **Purpose**
 
-Implements relation base according to the exact implementation and guards in this file.
+Private `planning` helper for relation base; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `metric` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `catalog` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[pd.DataFrame, np.ndarray, np.ndarray]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(base, parcel_positions, feature_positions)
 
-**Returns**
+(pd.DataFrame(), np.array([], dtype='int64'), np.array([], dtype='int64'))
 
-- Declared return type: `tuple[pd.DataFrame, np.ndarray, np.ndarray]`. Observed return expression(s): `(base, parcel_positions, feature_positions)`; `(pd.DataFrame(), np.array([], dtype='int64'), np.array([], dtype='int64'))`.
+(pd.DataFrame(), np.array([], dtype='int64'), np.array([], dtype='int64'))
+```
 
-**Algorithm**
+**Validation and exceptions**
 
-1. Checks `catalog.empty or metric.empty`. When true: Returns `(pd.DataFrame(), np.array([], dtype='int64'), np.array([], dtype='int64'))`.
-2. Runs guarded operation: Computes `candidates` from `gpd.sjoin(metric[['_parcel_position', 'parcel_id', 'geometry']], gpd.GeoDataFrame({'_feature_position': np.arange(len(catalog), dtype='int64')}, geometry=catalog.geometry.to_numpy(copy=True), crs=CALCULATION_CRS), how='inner', predicate='intersects')`. Handles `Exception`.
-3. Checks `candidates.empty`. When true: Returns `(pd.DataFrame(), np.array([], dtype='int64'), np.array([], dtype='int64'))`.
-4. Computes `parcel_positions` from `candidates['_parcel_position'].to_numpy(dtype='int64')`.
-5. Computes `feature_positions` from `candidates['_feature_position'].to_numpy(dtype='int64')`.
-6. Computes `selected` from `catalog.iloc[feature_positions]`.
-7. Computes `base` from `pd.DataFrame({'_parcel_position': parcel_positions, '_feature_position': feature_positions, 'parcel_id': metric['parcel_id'].to_numpy()[parcel_positions], **{column: selected[column].to_numpy(copy=True) for column in ('planning_feature_id', 'source_feature_id', 'source_identity_kind', 'source_identity_field', 'logical…`.
-8. Returns `(base, parcel_positions, feature_positions)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `PlanningFeaturesError('Planning-feature spatial join failed')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `catalog.geometry.to_numpy`, `metric['_parcel_area_m2'].to_numpy`.
+- Hashing: `selected['source_archive_sha256'].to_numpy`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `candidates['_feature_position'].to_numpy`, `candidates['_parcel_position'].to_numpy`, `catalog.geometry.to_numpy`, `gpd.GeoDataFrame`, `gpd.sjoin`, `len`, `metric['_parcel_area_m2'].to_numpy`, `metric['parcel_id'].to_numpy`, `np.arange`, `np.array`, `pd.DataFrame`, `selected['regulation_filename_raw'].to_numpy`, `selected['source_archive_sha256'].to_numpy`, `selected['source_document_id'].to_numpy`, `selected['source_layer'].to_numpy`, `selected['source_validity_date_raw'].to_numpy`, `selected[column].to_numpy`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_surface_relations` via `_relation_base`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_line_relations` via `_relation_base`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_point_relations` via `_relation_base`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_line_relations`
-- `src/landscout/stages/enrich_planning_features.py` — `_point_relations`
-- `src/landscout/stages/enrich_planning_features.py` — `_surface_relations`
+```python
+def _relation_base(
+    metric: gpd.GeoDataFrame,
+    catalog: gpd.GeoDataFrame,
+) -> tuple[pd.DataFrame, np.ndarray, np.ndarray]:
+    if catalog.empty or metric.empty:
+        return pd.DataFrame(), np.array([], dtype="int64"), np.array([], dtype="int64")
+    try:
+        candidates = gpd.sjoin(
+            metric[["_parcel_position", "parcel_id", "geometry"]],
+            gpd.GeoDataFrame(
+                {"_feature_position": np.arange(len(catalog), dtype="int64")},
+                geometry=catalog.geometry.to_numpy(copy=True),
+                crs=CALCULATION_CRS,
+            ),
+            how="inner",
+            predicate="intersects",
+        )
+    except Exception as error:
+        raise PlanningFeaturesError("Planning-feature spatial join failed") from error
+    if candidates.empty:
+        return pd.DataFrame(), np.array([], dtype="int64"), np.array([], dtype="int64")
+    parcel_positions = candidates["_parcel_position"].to_numpy(dtype="int64")
+    feature_positions = candidates["_feature_position"].to_numpy(dtype="int64")
+    selected = catalog.iloc[feature_positions]
+    base = pd.DataFrame(
+        {
+            "_parcel_position": parcel_positions,
+            "_feature_position": feature_positions,
+            "parcel_id": metric["parcel_id"].to_numpy()[parcel_positions],
+            **{
+                column: selected[column].to_numpy(copy=True)
+                for column in (
+                    "planning_feature_id",
+                    "source_feature_id",
+                    "source_identity_kind",
+                    "source_identity_field",
+                    "logical_layer",
+                    "feature_family",
+                    "geometry_kind",
+                    "type_code_raw",
+                    "subtype_code_raw",
+                    "label_raw",
+                    "text_raw",
+                )
+            },
+            "parcel_metric_area_m2": metric["_parcel_area_m2"].to_numpy()[
+                parcel_positions
+            ],
+            "source_document_id": selected["source_document_id"].to_numpy(copy=True),
+            "source_archive_sha256": selected["source_archive_sha256"].to_numpy(
+                copy=True
+            ),
+            "source_layer": selected["source_layer"].to_numpy(copy=True),
+            "source_validity_date_raw": selected["source_validity_date_raw"].to_numpy(
+                copy=True
+            ),
+            "regulation_filename_raw": selected["regulation_filename_raw"].to_numpy(
+                copy=True
+            ),
+        }
+    )
+    return base, parcel_positions, feature_positions
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_surface_relations`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _surface_relations(
@@ -1809,69 +2620,81 @@ def _surface_relations(
 
 **Purpose**
 
-Implements surface relations according to the exact implementation and guards in this file.
+Private `planning` helper for surface relations; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `metric` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `catalog` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+base
 
-**Returns**
+base
+```
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `base`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Computes `(base, parcel_positions, feature_positions)` from `_relation_base(metric, catalog)`.
-2. Checks `base.empty`. When true: Returns `base`.
-3. Runs guarded operation: Computes `geometries` from `intersection(metric.geometry.iloc[parcel_positions].array, catalog.geometry.iloc[feature_positions].array)`. Computes `areas` from `np.asarray(shapely_area(geometries), dtype='float64')`. Handles `Exception`.
-4. Computes `feature_areas` from `catalog['feature_area_m2'].to_numpy(dtype='float64')[feature_positions]`.
-5. Computes `base['_intersection_geometry']` from `list(geometries)`.
-6. Computes `base['relation_type']` from `np.where(areas > 0, 'AREA_OVERLAP', 'TOUCH_ONLY')`.
-7. Computes `base['feature_area_m2']` from `feature_areas`.
-8. Computes `base['source_line_length_m']` from `np.nan`.
-9. Computes `base['intersection_area_m2']` from `areas`.
-10. Computes `base['intersection_length_m']` from `np.nan`.
-11. Computes `base['parcel_share_pct']` from `100.0 * areas / base['parcel_metric_area_m2']`.
-12. Computes `base['feature_share_pct']` from `100.0 * areas / feature_areas`.
-13. Iterates `column` over `RELATION_COUNT_COLUMNS`. For each value: Computes `base[column]` from `pd.array([pd.NA] * len(base), dtype='Int64')`.
-14. Returns `base`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `PlanningFeaturesError('Surface intersection calculation failed')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `catalog['feature_area_m2'].to_numpy`, `intersection`, `shapely_area`.
+- Hashing: `shapely_area`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `base['_intersection_geometry']`, `base['feature_area_m2']`, `base['feature_share_pct']`, `base['intersection_area_m2']`, `base['intersection_length_m']`, `base['parcel_share_pct']`, `base['relation_type']`, `base['source_line_length_m']`, `base[column]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_relation_base`, `catalog['feature_area_m2'].to_numpy`, `intersection`, `len`, `list`, `np.asarray`, `np.where`, `pd.array`, `shapely_area`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_surface_relations`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_build_relation_tables`
+```python
+def _surface_relations(
+    metric: gpd.GeoDataFrame,
+    catalog: gpd.GeoDataFrame,
+) -> pd.DataFrame:
+    base, parcel_positions, feature_positions = _relation_base(metric, catalog)
+    if base.empty:
+        return base
+    try:
+        geometries = intersection(
+            metric.geometry.iloc[parcel_positions].array,
+            catalog.geometry.iloc[feature_positions].array,
+        )
+        areas = np.asarray(shapely_area(geometries), dtype="float64")
+    except Exception as error:
+        raise PlanningFeaturesError(
+            "Surface intersection calculation failed"
+        ) from error
+    feature_areas = catalog["feature_area_m2"].to_numpy(dtype="float64")[
+        feature_positions
+    ]
+    base["_intersection_geometry"] = list(geometries)
+    base["relation_type"] = np.where(areas > 0, "AREA_OVERLAP", "TOUCH_ONLY")
+    base["feature_area_m2"] = feature_areas
+    base["source_line_length_m"] = np.nan
+    base["intersection_area_m2"] = areas
+    base["intersection_length_m"] = np.nan
+    base["parcel_share_pct"] = 100.0 * areas / base["parcel_metric_area_m2"]
+    base["feature_share_pct"] = 100.0 * areas / feature_areas
+    for column in RELATION_COUNT_COLUMNS:
+        base[column] = pd.array([pd.NA] * len(base), dtype="Int64")
+    return base
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_line_relations`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _line_relations(
@@ -1882,68 +2705,78 @@ def _line_relations(
 
 **Purpose**
 
-Implements line relations according to the exact implementation and guards in this file.
+Private `planning` helper for line relations; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `metric` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `catalog` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+base
 
-**Returns**
+base
+```
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `base`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Computes `(base, parcel_positions, feature_positions)` from `_relation_base(metric, catalog)`.
-2. Checks `base.empty`. When true: Returns `base`.
-3. Runs guarded operation: Computes `geometries` from `intersection(metric.geometry.iloc[parcel_positions].array, catalog.geometry.iloc[feature_positions].array)`. Computes `lengths` from `np.asarray(shapely_length(geometries), dtype='float64')`. Handles `Exception`.
-4. Computes `source_lengths` from `catalog['feature_length_m'].to_numpy(dtype='float64')[feature_positions]`.
-5. Computes `base['relation_type']` from `np.where(lengths > 0, 'LENGTH_OVERLAP', 'TOUCH_ONLY')`.
-6. Computes `base['feature_area_m2']` from `np.nan`.
-7. Computes `base['source_line_length_m']` from `source_lengths`.
-8. Computes `base['intersection_area_m2']` from `np.nan`.
-9. Computes `base['intersection_length_m']` from `lengths`.
-10. Computes `base['parcel_share_pct']` from `np.nan`.
-11. Computes `base['feature_share_pct']` from `np.nan`.
-12. Iterates `column` over `RELATION_COUNT_COLUMNS`. For each value: Computes `base[column]` from `pd.array([pd.NA] * len(base), dtype='Int64')`.
-13. Returns `base`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `PlanningFeaturesError('Line intersection calculation failed')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `intersection`.
+- Hashing: `shapely_length`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `base['feature_area_m2']`, `base['feature_share_pct']`, `base['intersection_area_m2']`, `base['intersection_length_m']`, `base['parcel_share_pct']`, `base['relation_type']`, `base['source_line_length_m']`, `base[column]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_relation_base`, `catalog['feature_length_m'].to_numpy`, `intersection`, `len`, `np.asarray`, `np.where`, `pd.array`, `shapely_length`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_line_relations`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_build_relation_tables`
+```python
+def _line_relations(
+    metric: gpd.GeoDataFrame,
+    catalog: gpd.GeoDataFrame,
+) -> pd.DataFrame:
+    base, parcel_positions, feature_positions = _relation_base(metric, catalog)
+    if base.empty:
+        return base
+    try:
+        geometries = intersection(
+            metric.geometry.iloc[parcel_positions].array,
+            catalog.geometry.iloc[feature_positions].array,
+        )
+        lengths = np.asarray(shapely_length(geometries), dtype="float64")
+    except Exception as error:
+        raise PlanningFeaturesError("Line intersection calculation failed") from error
+    source_lengths = catalog["feature_length_m"].to_numpy(dtype="float64")[
+        feature_positions
+    ]
+    base["relation_type"] = np.where(lengths > 0, "LENGTH_OVERLAP", "TOUCH_ONLY")
+    base["feature_area_m2"] = np.nan
+    base["source_line_length_m"] = source_lengths
+    base["intersection_area_m2"] = np.nan
+    base["intersection_length_m"] = lengths
+    base["parcel_share_pct"] = np.nan
+    base["feature_share_pct"] = np.nan
+    for column in RELATION_COUNT_COLUMNS:
+        base[column] = pd.array([pd.NA] * len(base), dtype="Int64")
+    return base
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_point_relations`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _point_relations(
@@ -1954,69 +2787,87 @@ def _point_relations(
 
 **Purpose**
 
-Implements point relations according to the exact implementation and guards in this file.
+Private `planning` helper for point relations; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `metric` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `catalog` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+base
 
-**Returns**
+base
+```
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `base`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Computes `(base, parcel_positions, feature_positions)` from `_relation_base(metric, catalog)`.
-2. Checks `base.empty`. When true: Returns `base`.
-3. Runs guarded operation: Computes `(members, relation_positions)` from `get_parts(catalog.geometry.iloc[feature_positions].array, return_index=True)`. Computes `relation_positions` from `np.asarray(relation_positions, dtype='int64')`. Computes `member_parcels` from `metric.geometry.iloc[parcel_positions[relation_positions]].array`. Computes `inside_mask` from `np.asarray(contains(member_parcels, members), dtype='bool')`. Executes 1 additional source-ordered statement(s). Handles `Exception`.
-4. Computes `member_counts` from `np.bincount(relation_positions, minlength=len(base))`.
-5. Computes `inside_counts` from `np.bincount(relation_positions, weights=inside_mask, minlength=len(base)).astype('int64')`.
-6. Computes `covered_counts` from `np.bincount(relation_positions, weights=covered_mask, minlength=len(base)).astype('int64')`.
-7. Computes `boundary_counts` from `covered_counts - inside_counts`.
-8. Checks `(inside_counts + boundary_counts <= 0).any()`. When true: Raises `PlanningFeaturesError('Point candidate has no covered source member')`.
-9. Computes `base['relation_type']` from `np.where(inside_counts > 0, 'INSIDE', 'BOUNDARY_TOUCH')`.
-10. Iterates `column` over `RELATION_FLOAT_COLUMNS - {'parcel_metric_area_m2'}`. For each value: Computes `base[column]` from `np.nan`.
-11. Computes `base['point_member_count']` from `pd.array(member_counts, dtype='Int64')`.
-12. Computes `base['point_members_inside_count']` from `pd.array(inside_counts, dtype='Int64')`.
-13. Computes `base['point_members_boundary_count']` from `pd.array(boundary_counts, dtype='Int64')`.
-14. Returns `base`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `(inside_counts + boundary_counts <= 0).any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `(inside_counts + boundary_counts <= 0).any()`.
+- Explicit raise expressions: `PlanningFeaturesError('Point candidate has no covered source member')`, `PlanningFeaturesError('Point intersection calculation failed')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `(inside_counts + boundary_counts <= 0).any`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `base['point_member_count']`, `base['point_members_boundary_count']`, `base['point_members_inside_count']`, `base['relation_type']`, `base[column]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(inside_counts + boundary_counts <= 0).any`, `PlanningFeaturesError`, `_relation_base`, `contains`, `covers`, `get_parts`, `len`, `np.asarray`, `np.bincount`, `np.bincount(relation_positions, weights=covered_mask, minlength=len(base)).astype`, `np.bincount(relation_positions, weights=inside_mask, minlength=len(base)).astype`, `np.where`, `pd.array`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_point_relations`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_build_relation_tables`
+```python
+def _point_relations(
+    metric: gpd.GeoDataFrame,
+    catalog: gpd.GeoDataFrame,
+) -> pd.DataFrame:
+    base, parcel_positions, feature_positions = _relation_base(metric, catalog)
+    if base.empty:
+        return base
+    try:
+        members, relation_positions = get_parts(
+            catalog.geometry.iloc[feature_positions].array,
+            return_index=True,
+        )
+        relation_positions = np.asarray(relation_positions, dtype="int64")
+        member_parcels = metric.geometry.iloc[
+            parcel_positions[relation_positions]
+        ].array
+        inside_mask = np.asarray(contains(member_parcels, members), dtype="bool")
+        covered_mask = np.asarray(covers(member_parcels, members), dtype="bool")
+    except Exception as error:
+        raise PlanningFeaturesError("Point intersection calculation failed") from error
+    member_counts = np.bincount(relation_positions, minlength=len(base))
+    inside_counts = np.bincount(
+        relation_positions, weights=inside_mask, minlength=len(base)
+    ).astype("int64")
+    covered_counts = np.bincount(
+        relation_positions, weights=covered_mask, minlength=len(base)
+    ).astype("int64")
+    boundary_counts = covered_counts - inside_counts
+    if ((inside_counts + boundary_counts) <= 0).any():
+        raise PlanningFeaturesError("Point candidate has no covered source member")
+    base["relation_type"] = np.where(inside_counts > 0, "INSIDE", "BOUNDARY_TOUCH")
+    for column in RELATION_FLOAT_COLUMNS - {"parcel_metric_area_m2"}:
+        base[column] = np.nan
+    base["point_member_count"] = pd.array(member_counts, dtype="Int64")
+    base["point_members_inside_count"] = pd.array(inside_counts, dtype="Int64")
+    base["point_members_boundary_count"] = pd.array(boundary_counts, dtype="Int64")
+    return base
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_empty_relations`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _empty_relations() -> pd.DataFrame:
@@ -2024,57 +2875,65 @@ def _empty_relations() -> pd.DataFrame:
 
 **Purpose**
 
-Implements empty relations according to the exact implementation and guards in this file.
+Private `planning` helper for empty relations; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- No parameters.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+output
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `output`.
-
-**Algorithm**
-
-1. Computes `output` from `pd.DataFrame({column: pd.Series(dtype='float64' if column in RELATION_FLOAT_COLUMNS else 'Int64' if column in RELATION_COUNT_COLUMNS else 'str') for column in RELATION_COLUMNS})`.
-2. Computes `output.index` from `pd.RangeIndex(0)`.
-3. Returns `output`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `output.index`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `pd.DataFrame`, `pd.RangeIndex`, `pd.Series`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_build_relation_tables` via `_empty_relations`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_build_relation_tables`
+```python
+def _empty_relations() -> pd.DataFrame:
+    output = pd.DataFrame(
+        {
+            column: pd.Series(
+                dtype=(
+                    "float64"
+                    if column in RELATION_FLOAT_COLUMNS
+                    else "Int64"
+                    if column in RELATION_COUNT_COLUMNS
+                    else "str"
+                )
+            )
+            for column in RELATION_COLUMNS
+        }
+    )
+    output.index = pd.RangeIndex(0)
+    return output
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_build_relation_tables`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _build_relation_tables(
@@ -2087,70 +2946,77 @@ def _build_relation_tables(
 
 **Purpose**
 
-Builds relation tables according to the exact implementation and guards in this file.
+Constructs relation tables; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `metric` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `surfaces` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `lines` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `points` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(surface_work, line_work, point_work, relations)
 
-**Returns**
+(surface_work, line_work, point_work, _empty_relations())
+```
 
-- Declared return type: `tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]`. Observed return expression(s): `(surface_work, line_work, point_work, relations)`; `(surface_work, line_work, point_work, _empty_relations())`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Computes `surface_work` from `_surface_relations(metric, surfaces)`.
-2. Computes `line_work` from `_line_relations(metric, lines)`.
-3. Computes `point_work` from `_point_relations(metric, points)`.
-4. Computes `work_frames` from `[frame for frame in (surface_work, line_work, point_work) if not frame.empty]`.
-5. Checks `not work_frames`. When true: Returns `(surface_work, line_work, point_work, _empty_relations())`.
-6. Computes `combined` from `pd.concat(work_frames, ignore_index=True)`.
-7. Computes `combined` from `combined.sort_values(['_parcel_position', 'planning_feature_id'], kind='stable').reset_index(drop=True)`.
-8. Computes `relations` from `combined.loc[:, RELATION_COLUMNS].copy()`.
-9. Iterates `column` over `RELATION_STRING_COLUMNS`. For each value: Computes `relations[column]` from `relations[column].astype('str')`.
-10. Iterates `column` over `RELATION_COUNT_COLUMNS`. For each value: Computes `relations[column]` from `pd.array(relations[column], dtype='Int64')`.
-11. Computes `relations.index` from `pd.RangeIndex(len(relations))`.
-12. Returns `(surface_work, line_work, point_work, relations)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `combined.loc[:, RELATION_COLUMNS].copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `relations.index`, `relations[column]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_empty_relations`, `_line_relations`, `_point_relations`, `_surface_relations`, `combined.loc[:, RELATION_COLUMNS].copy`, `combined.sort_values`, `combined.sort_values(['_parcel_position', 'planning_feature_id'], kind='stable').reset_index`, `len`, `pd.RangeIndex`, `pd.array`, `pd.concat`, `relations[column].astype`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_build_relation_tables`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_build_relation_tables`.
+- property/attribute access: `tests/unit/test_resolve_planning_feature_codes.py::test_resolver_runs_heavy_factual_validation_once_and_public_validator_repeats` via `enrich_module._build_relation_tables`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
-- `src/landscout/stages/enrich_planning_features.py` — `intersect_parcels_with_gpu_planning_features`
+```python
+def _build_relation_tables(
+    metric: gpd.GeoDataFrame,
+    surfaces: gpd.GeoDataFrame,
+    lines: gpd.GeoDataFrame,
+    points: gpd.GeoDataFrame,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    surface_work = _surface_relations(metric, surfaces)
+    line_work = _line_relations(metric, lines)
+    point_work = _point_relations(metric, points)
+    work_frames = [
+        frame for frame in (surface_work, line_work, point_work) if not frame.empty
+    ]
+    if not work_frames:
+        return surface_work, line_work, point_work, _empty_relations()
+    combined = pd.concat(work_frames, ignore_index=True)
+    combined = combined.sort_values(
+        ["_parcel_position", "planning_feature_id"], kind="stable"
+    ).reset_index(drop=True)
+    relations = combined.loc[:, RELATION_COLUMNS].copy()
+    for column in RELATION_STRING_COLUMNS:
+        relations[column] = relations[column].astype("str")
+    for column in RELATION_COUNT_COLUMNS:
+        relations[column] = pd.array(relations[column], dtype="Int64")
+    relations.index = pd.RangeIndex(len(relations))
+    return surface_work, line_work, point_work, relations
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_canonical_integrity_value`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _canonical_integrity_value(value: object) -> object:
@@ -2158,65 +3024,92 @@ def _canonical_integrity_value(value: object) -> object:
 
 **Purpose**
 
-Implements canonical integrity value according to the exact implementation and guards in this file.
+Private `planning` helper for canonical integrity value; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `object`.
+- Every observed return expression is reproduced without truncation:
+```python
+value.isoformat()
 
-**Returns**
+_canonical_integrity_value(value.item())
 
-- Declared return type: `object`. Observed return expression(s): `value.isoformat()`; `_canonical_integrity_value(value.item())`; `None`; `value`; `int(value)`; `number`.
+None
 
-**Algorithm**
+None
 
-1. Checks `isinstance(value, (datetime, date, pd.Timestamp))`. When true: Returns `value.isoformat()`.
-2. Checks `isinstance(value, np.generic)`. When true: Returns `_canonical_integrity_value(value.item())`.
-3. Checks `value is None or value is pd.NA`. When true: Returns `None`.
-4. Runs guarded operation: Computes `missing` from `pd.isna(value)`. Handles `(TypeError, ValueError)`.
-5. Checks `isinstance(missing, (bool, np.bool_)) and bool(missing)`. When true: Returns `None`.
-6. Checks `isinstance(value, bool)`. When true: Returns `value`.
-7. Checks `isinstance(value, Integral)`. When true: Returns `int(value)`.
-8. Checks `isinstance(value, Real)`. When true: Computes `number` from `float(value)`. Checks `not isfinite(number)`. When true: Raises `PlanningFeaturesError('Integrity payload contains non-finite numeric data')`. Returns `number`.
-9. Checks `isinstance(value, str)`. When true: Returns `value`.
-10. Raises `PlanningFeaturesError(f'Integrity payload contains unsupported value {type(value).__name__}')`.
+value
 
-**Validation and invariants**
+int(value)
 
-- Rejects or diverts the path when `isinstance(value, Real)` is true.
-- Rejects or diverts the path when `not isfinite(number)` is true.
+number
 
-**Exceptions**
+value
+```
 
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+**Validation and exceptions**
+
+- Guard with a raise path: `isinstance(value, Real)`.
+- Guard with a raise path: `not isfinite(number)`.
+- Explicit raise expressions: `PlanningFeaturesError('Integrity payload contains non-finite numeric data')`, `PlanningFeaturesError(f'Integrity payload contains unsupported value {type(value).__name__}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_canonical_integrity_value`, `bool`, `float`, `int`, `isfinite`, `isinstance`, `pd.isna`, `type`, `value.isoformat`, `value.item`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_expected_relations_content_sha256` via `_canonical_integrity_value`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_expected_relations_content_sha256`
+```python
+def _canonical_integrity_value(value: object) -> object:
+    if isinstance(value, (datetime, date, pd.Timestamp)):
+        return value.isoformat()
+    if isinstance(value, np.generic):
+        return _canonical_integrity_value(value.item())
+    if value is None or value is pd.NA:
+        return None
+    try:
+        missing = pd.isna(value)
+    except (TypeError, ValueError):
+        missing = False
+    if isinstance(missing, (bool, np.bool_)) and bool(missing):
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, Integral):
+        return int(value)
+    if isinstance(value, Real):
+        number = float(value)
+        if not isfinite(number):
+            raise PlanningFeaturesError(
+                "Integrity payload contains non-finite numeric data"
+            )
+        return number
+    if isinstance(value, str):
+        return value
+    raise PlanningFeaturesError(
+        f"Integrity payload contains unsupported value {type(value).__name__}"
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_canonical_integrity_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _canonical_integrity_sha256(payload: object) -> str:
@@ -2224,57 +3117,63 @@ def _canonical_integrity_sha256(payload: object) -> str:
 
 **Purpose**
 
-Implements canonical integrity sha256 according to the exact implementation and guards in this file.
+Private `planning` helper for canonical integrity sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `payload` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+sha256(encoded).hexdigest()
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `sha256(encoded).hexdigest()`.
-
-**Algorithm**
-
-1. Runs guarded operation: Computes `encoded` from `json.dumps(payload, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(',', ':')).encode('utf-8')`. Handles `Exception`.
-2. Returns `sha256(encoded).hexdigest()`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `PlanningFeaturesError('Planning-feature integrity payload cannot be serialized')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `sha256`, `sha256(encoded).hexdigest`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `json.dumps`, `json.dumps(payload, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(',', ':')).encode`, `sha256`, `sha256(encoded).hexdigest`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_gpu_related_source_files_sha256` via `_canonical_integrity_sha256`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_expected_relations_content_sha256` via `_canonical_integrity_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_expected_relations_content_sha256`
-- `src/landscout/stages/enrich_planning_features.py` — `_gpu_related_source_files_sha256`
+```python
+def _canonical_integrity_sha256(payload: object) -> str:
+    try:
+        encoded = json.dumps(
+            payload,
+            ensure_ascii=False,
+            allow_nan=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    except Exception as error:
+        raise PlanningFeaturesError(
+            "Planning-feature integrity payload cannot be serialized"
+        ) from error
+    return sha256(encoded).hexdigest()
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_gpu_related_source_files_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _gpu_related_source_files_sha256(
@@ -2285,56 +3184,82 @@ def _gpu_related_source_files_sha256(
 
 **Purpose**
 
-Implements gpu related source files sha256 according to the exact implementation and guards in this file.
+Private `planning` helper for gpu related source files sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `planning_document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `sources` (`tuple[GpuValidatedSpatialLayerSource, ...]`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+_canonical_integrity_sha256({'domain': 'landscout.planning_features.verified_gpu_sources.v1', 'source_archive_sha256': planning_document.extraction.archive.sha256, 'layers': [{'logical_layer': source.logical_name, 'driver': source.driver, 'source_layer': source.source_layer, 'dataset_relative_path': source.dataset_relative_path, 'source_feature_count': source.feature_count, 'source_crs': source.source_crs, 'ogr_fids': list(source.ogr_fids), 'files': [{'relative_path': item.relative_path, 'file_type': item.file_type, 'size_bytes': item.size_bytes, 'sha256': item.sha256, 'category': item.category} for item in sorted(source.files, key=lambda value: value.relative_path)]} for source in sorted(sources, key=lambda value: value.logical_name)]})
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `_canonical_integrity_sha256({'domain': 'landscout.planning_features.verified_gpu_sources.v1', 'source_archive_sha256': planning_document.extraction.archive.sha256, 'layers': [{'logical_layer': source.logical_name, 'driver': source.driver, 'source_layer': source.source_layer, 'dataset_relative_path': source.dataset_relative_path, 'source_feature_count': source.feature_count, 'source_crs': source.s…`.
-
-**Algorithm**
-
-1. Returns `_canonical_integrity_sha256({'domain': 'landscout.planning_features.verified_gpu_sources.v1', 'source_archive_sha256': planning_document.extraction.archive.sha256, 'layers': [{'logical_layer': source.logical_name, 'driver': source.driver, 'source_layer': source.source_layer, 'dataset_relative_path': source.dataset_relative_path, 'source_feature_count': sour…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_canonical_integrity_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_integrity_sha256`, `list`, `sorted`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_gpu_related_source_files_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
+```python
+def _gpu_related_source_files_sha256(
+    planning_document: GpuPlanningDocument,
+    sources: tuple[GpuValidatedSpatialLayerSource, ...],
+) -> str:
+    return _canonical_integrity_sha256(
+        {
+            "domain": "landscout.planning_features.verified_gpu_sources.v1",
+            "source_archive_sha256": planning_document.extraction.archive.sha256,
+            "layers": [
+                {
+                    "logical_layer": source.logical_name,
+                    "driver": source.driver,
+                    "source_layer": source.source_layer,
+                    "dataset_relative_path": source.dataset_relative_path,
+                    "source_feature_count": source.feature_count,
+                    "source_crs": source.source_crs,
+                    "ogr_fids": list(source.ogr_fids),
+                    "files": [
+                        {
+                            "relative_path": item.relative_path,
+                            "file_type": item.file_type,
+                            "size_bytes": item.size_bytes,
+                            "sha256": item.sha256,
+                            "category": item.category,
+                        }
+                        for item in sorted(
+                            source.files, key=lambda value: value.relative_path
+                        )
+                    ],
+                }
+                for source in sorted(sources, key=lambda value: value.logical_name)
+            ],
+        }
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_expected_relations_content_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _expected_relations_content_sha256(relations: pd.DataFrame) -> str:
@@ -2342,55 +3267,64 @@ def _expected_relations_content_sha256(relations: pd.DataFrame) -> str:
 
 **Purpose**
 
-Implements expected relations content sha256 according to the exact implementation and guards in this file.
+Private `planning` helper for expected relations content sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `relations` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+_canonical_integrity_sha256({'domain': 'landscout.planning_features.expected_relations.v2', 'schema': deterministic_frame_schema_signature(relations), 'index': [_canonical_integrity_value(value) for value in relations.index.tolist()], 'rows': [[_canonical_integrity_value(value) for value in row] for row in relations.itertuples(index=False, name=None)]})
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `_canonical_integrity_sha256({'domain': 'landscout.planning_features.expected_relations.v2', 'schema': deterministic_frame_schema_signature(relations), 'index': [_canonical_integrity_value(value) for value in relations.index.tolist()], 'rows': [[_canonical_integrity_value(value) for value in row] for row in relations.itertuples(index=False, name=None)]})`.
-
-**Algorithm**
-
-1. Returns `_canonical_integrity_sha256({'domain': 'landscout.planning_features.expected_relations.v2', 'schema': deterministic_frame_schema_signature(relations), 'index': [_canonical_integrity_value(value) for value in relations.index.tolist()], 'rows': [[_canonical_integrity_value(value) for value in row] for row in relations.itertuples(index=False, name=None)]})`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_canonical_integrity_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_integrity_sha256`, `_canonical_integrity_value`, `deterministic_frame_schema_signature`, `relations.index.tolist`, `relations.itertuples`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_expected_relations_content_sha256`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_expected_relation_hash_binds_dtype_and_index_metadata` via `planning_features_module._expected_relations_content_sha256`.
+- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_expected_relation_hash_binds_dtype_and_index_metadata` via `planning_features_module._expected_relations_content_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
+```python
+def _expected_relations_content_sha256(relations: pd.DataFrame) -> str:
+    return _canonical_integrity_sha256(
+        {
+            "domain": "landscout.planning_features.expected_relations.v2",
+            "schema": deterministic_frame_schema_signature(relations),
+            "index": [
+                _canonical_integrity_value(value) for value in relations.index.tolist()
+            ],
+            "rows": [
+                [_canonical_integrity_value(value) for value in row]
+                for row in relations.itertuples(index=False, name=None)
+            ],
+        }
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_technical_tolerance`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _technical_tolerance(parcel_area: float) -> float:
@@ -2398,55 +3332,50 @@ def _technical_tolerance(parcel_area: float) -> float:
 
 **Purpose**
 
-Implements technical tolerance according to the exact implementation and guards in this file.
+Private `planning` helper for technical tolerance; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parcel_area` (`float`; required) — area quantity, normally square metres where the name ends in `_m2`. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `float`.
+- Every observed return expression is reproduced without truncation:
+```python
+technical_overlay_tolerance(parcel_area)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `float`. Observed return expression(s): `technical_overlay_tolerance(parcel_area)`.
-
-**Algorithm**
-
-1. Returns `technical_overlay_tolerance(parcel_area)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `technical_overlay_tolerance`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_surface_union_summary` via `_technical_tolerance`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_surface_union_summary`
+```python
+def _technical_tolerance(parcel_area: float) -> float:
+    return technical_overlay_tolerance(parcel_area)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_surface_union_summary`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _surface_union_summary(
@@ -2458,63 +3387,82 @@ def _surface_union_summary(
 
 **Purpose**
 
-Implements surface union summary according to the exact implementation and guards in this file.
+Private `planning` helper for surface union summary; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `positive` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `parcel_areas` (`np.ndarray`; required) — area quantity, normally square metres where the name ends in `_m2`. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `count` (`int`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `np.ndarray`.
+- Every observed return expression is reproduced without truncation:
+```python
+output
 
-**Returns**
+output
+```
 
-- Declared return type: `np.ndarray`. Observed return expression(s): `output`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Computes `output` from `np.zeros(count, dtype='float64')`.
-2. Checks `positive.empty`. When true: Returns `output`.
-3. Iterates `(position_value, group)` over `positive.groupby('_parcel_position', sort=False)`. For each value: Computes `position` from `int(position_value)`. Runs guarded operation: Computes `value` from `float(shapely_area(union_all(group['_intersection_geometry'].to_numpy())))`. Handles `Exception`. Checks `not isfinite(value) or value < 0`. When true: Raises `PlanningFeaturesError('Surface covered-union area is invalid')`. Executes 3 additional source-ordered statement(s).
-4. Returns `output`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isfinite(value) or value < 0` is true.
-- Rejects or diverts the path when `value > area` is true.
-- Rejects or diverts the path when `value - area > _technical_tolerance(area)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isfinite(value) or value < 0`.
+- Guard with a raise path: `value > area`.
+- Guard with a raise path: `value - area > _technical_tolerance(area)`.
+- Explicit raise expressions: `PlanningFeaturesError('Surface covered-union area exceeds parcel area')`, `PlanningFeaturesError('Surface covered-union area is invalid')`, `PlanningFeaturesError('Surface covered-union calculation failed')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `group['_intersection_geometry'].to_numpy`, `shapely_area`.
+- Hashing: `shapely_area`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `output[position]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_technical_tolerance`, `float`, `group['_intersection_geometry'].to_numpy`, `int`, `isfinite`, `np.zeros`, `positive.groupby`, `shapely_area`, `union_all`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_attach_parcel_summaries` via `_surface_union_summary`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_surface_union_summary`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_attach_parcel_summaries`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_parcel_summaries`
+```python
+def _surface_union_summary(
+    positive: pd.DataFrame,
+    parcel_areas: np.ndarray,
+    count: int,
+) -> np.ndarray:
+    output = np.zeros(count, dtype="float64")
+    if positive.empty:
+        return output
+    for position_value, group in positive.groupby("_parcel_position", sort=False):
+        position = int(position_value)
+        try:
+            value = float(
+                shapely_area(union_all(group["_intersection_geometry"].to_numpy()))
+            )
+        except Exception as error:
+            raise PlanningFeaturesError(
+                "Surface covered-union calculation failed"
+            ) from error
+        if not isfinite(value) or value < 0:
+            raise PlanningFeaturesError("Surface covered-union area is invalid")
+        area = float(parcel_areas[position])
+        if value > area:
+            if value - area > _technical_tolerance(area):
+                raise PlanningFeaturesError(
+                    "Surface covered-union area exceeds parcel area"
+                )
+            value = area
+        output[position] = value
+    return output
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_attach_parcel_summaries`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _attach_parcel_summaries(
@@ -2529,90 +3477,163 @@ def _attach_parcel_summaries(
 
 **Purpose**
 
-Implements attach parcel summaries according to the exact implementation and guards in this file.
+Private `planning` helper for attach parcel summaries; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `metric` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `surface_work` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `line_work` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `point_work` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `context` (`_PlanningContext`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+output
 
-**Returns**
+result
+```
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `output`; `result`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Computes `count` from `len(parcels)`.
-2. Computes `areas` from `metric['_parcel_area_m2'].to_numpy(dtype='float64')`.
-3. Computes `output` from `parcels.copy(deep=True)`.
-4. Defines the local helper `relation_counts`; its behavior is documented with the parent function's nested helpers.
-5. Computes `surface_positive` from `surface_work.loc[surface_work['relation_type'] == 'AREA_OVERLAP'] if not surface_work.empty else surface_work`.
-6. Computes `surface_union` from `_surface_union_summary(surface_positive, areas, count)`.
-7. Computes `output['planning_surface_relation_count']` from `relation_counts(surface_work)`.
-8. Computes `output['planning_surface_area_overlap_count']` from `relation_counts(surface_work, surface_work['relation_type'].eq('AREA_OVERLAP') if not surface_work.empty else None)`.
-9. Computes `output['planning_surface_touch_count']` from `relation_counts(surface_work, surface_work['relation_type'].eq('TOUCH_ONLY') if not surface_work.empty else None)`.
-10. Computes `raw_sum` from `np.zeros(count, dtype='float64')`.
-11. Checks `not surface_positive.empty`. When true: Computes `sums` from `surface_positive.groupby('_parcel_position', sort=False)['intersection_area_m2'].sum()`. Computes `raw_sum[sums.index.to_numpy(dtype='int64')]` from `sums.to_numpy(dtype='float64')`.
-12. Computes `output['planning_surface_intersection_area_sum_m2']` from `raw_sum`.
-13. Computes `output['planning_surface_covered_union_area_m2']` from `surface_union`.
-14. Computes `output['planning_surface_covered_pct']` from `np.where(surface_union == areas, 100.0, 100.0 * surface_union / areas)`.
-15. Iterates `(family, prefix)` over `(('PRESCRIPTION', 'prescription'), ('INFORMATION', 'information'))`. For each value: Computes `family_work` from `surface_work.loc[surface_work['feature_family'] == family] if not surface_work.empty else surface_work`. Computes `family_positive` from `family_work.loc[family_work['relation_type'] == 'AREA_OVERLAP'] if not family_work.empty else family_work`. Computes `union` from `_surface_union_summary(family_positive, areas, count)`. Executes 3 additional source-ordered statement(s).
-16. Computes `output['planning_line_relation_count']` from `relation_counts(line_work)`.
-17. Computes `output['planning_line_length_overlap_count']` from `relation_counts(line_work, line_work['relation_type'].eq('LENGTH_OVERLAP') if not line_work.empty else None)`.
-18. Computes `output['planning_line_touch_count']` from `relation_counts(line_work, line_work['relation_type'].eq('TOUCH_ONLY') if not line_work.empty else None)`.
-19. Computes `line_sum` from `np.zeros(count, dtype='float64')`.
-20. Checks `not line_work.empty`. When true: Computes `values` from `line_work.groupby('_parcel_position', sort=False)['intersection_length_m'].sum()`. Computes `line_sum[values.index.to_numpy(dtype='int64')]` from `values.to_numpy(dtype='float64')`.
-21. Computes `output['planning_line_intersection_length_sum_m']` from `line_sum`.
-22. Computes `output['planning_point_relation_count']` from `relation_counts(point_work)`.
-23. Iterates `(source, target)` over `(('point_members_inside_count', 'planning_point_inside_count'), ('point_members_boundary_count', 'planning_point_boundary_count'))`. For each value: Computes `values` from `np.zeros(count, dtype='int64')`. Checks `not point_work.empty`. When true: Computes `grouped` from `point_work.groupby('_parcel_position', sort=False)[source].sum()`. Computes `values[grouped.index.to_numpy(dtype='int64')]` from `grouped.to_numpy(dtype='int64')`. Computes `output[target]` from `values`.
-24. Computes `output['planning_feature_document_id']` from `context.document_id`.
-25. Computes `output['planning_feature_archive_sha256']` from `context.archive_sha256`.
-26. Returns `output`.
-
-**Meaningful nested/local helpers**
-
-- `relation_counts` — `def relation_counts(         frame: pd.DataFrame, mask: pd.Series | None = None     ) -> np.ndarray:`. It executes 4 top-level statement(s), uses `counts.index.to_numpy`, `counts.to_numpy`, `np.zeros`, `selected.groupby`, `selected.groupby('_parcel_position', sort=False).size`, and has no explicit raises. Trivial test callbacks are intentionally grouped here with their parent.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `parcels.copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `line_work.groupby('_parcel_position', sort=False)['intersection_length_m'].sum`, `metric['_parcel_area_m2'].to_numpy`, `surface_positive.groupby('_parcel_position', sort=False)['intersection_area_m2'].sum`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `line_sum[values.index.to_numpy(dtype='int64')]`, `output['planning_feature_archive_sha256']`, `output['planning_feature_document_id']`, `output['planning_line_intersection_length_sum_m']`, `output['planning_line_length_overlap_count']`, `output['planning_line_relation_count']`, `output['planning_line_touch_count']`, `output['planning_point_relation_count']`, `output['planning_surface_area_overlap_count']`, `output['planning_surface_covered_pct']`, `output['planning_surface_covered_union_area_m2']`, `output['planning_surface_intersection_area_sum_m2']`, `output['planning_surface_relation_count']`, `output['planning_surface_touch_count']`, `output[f'{prefix}_surface_covered_pct']`, `output[f'{prefix}_surface_covered_union_area_m2']`, `output[f'{prefix}_surface_relation_count']`, `output[target]`, `raw_sum[sums.index.to_numpy(dtype='int64')]`, `result[counts.index.to_numpy(dtype='int64')]`, `values[grouped.index.to_numpy(dtype='int64')]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_surface_union_summary`, `counts.index.to_numpy`, `counts.to_numpy`, `grouped.index.to_numpy`, `grouped.to_numpy`, `len`, `line_work.groupby`, `line_work.groupby('_parcel_position', sort=False)['intersection_length_m'].sum`, `line_work['relation_type'].eq`, `metric['_parcel_area_m2'].to_numpy`, `np.where`, `np.zeros`, `parcels.copy`, `point_work.groupby`, `point_work.groupby('_parcel_position', sort=False)[source].sum`, `relation_counts`, `selected.groupby`, `selected.groupby('_parcel_position', sort=False).size`, `sums.index.to_numpy`, `sums.to_numpy`, `surface_positive.groupby`, `surface_positive.groupby('_parcel_position', sort=False)['intersection_area_m2'].sum`, `surface_work['relation_type'].eq`, `values.index.to_numpy`, `values.to_numpy`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_attach_parcel_summaries`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_attach_parcel_summaries`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
-- `src/landscout/stages/enrich_planning_features.py` — `intersect_parcels_with_gpu_planning_features`
+```python
+def _attach_parcel_summaries(
+    parcels: gpd.GeoDataFrame,
+    metric: gpd.GeoDataFrame,
+    surface_work: pd.DataFrame,
+    line_work: pd.DataFrame,
+    point_work: pd.DataFrame,
+    context: _PlanningContext,
+) -> gpd.GeoDataFrame:
+    count = len(parcels)
+    areas = metric["_parcel_area_m2"].to_numpy(dtype="float64")
+    output = parcels.copy(deep=True)
 
-**Tests**
+    def relation_counts(
+        frame: pd.DataFrame, mask: pd.Series | None = None
+    ) -> np.ndarray:
+        result = np.zeros(count, dtype="int64")
+        selected = frame if mask is None else frame.loc[mask]
+        if not selected.empty:
+            counts = selected.groupby("_parcel_position", sort=False).size()
+            result[counts.index.to_numpy(dtype="int64")] = counts.to_numpy(
+                dtype="int64"
+            )
+        return result
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    surface_positive = (
+        surface_work.loc[surface_work["relation_type"] == "AREA_OVERLAP"]
+        if not surface_work.empty
+        else surface_work
+    )
+    surface_union = _surface_union_summary(surface_positive, areas, count)
+    output["planning_surface_relation_count"] = relation_counts(surface_work)
+    output["planning_surface_area_overlap_count"] = relation_counts(
+        surface_work,
+        surface_work["relation_type"].eq("AREA_OVERLAP")
+        if not surface_work.empty
+        else None,
+    )
+    output["planning_surface_touch_count"] = relation_counts(
+        surface_work,
+        surface_work["relation_type"].eq("TOUCH_ONLY")
+        if not surface_work.empty
+        else None,
+    )
+    raw_sum = np.zeros(count, dtype="float64")
+    if not surface_positive.empty:
+        sums = surface_positive.groupby("_parcel_position", sort=False)[
+            "intersection_area_m2"
+        ].sum()
+        raw_sum[sums.index.to_numpy(dtype="int64")] = sums.to_numpy(dtype="float64")
+    output["planning_surface_intersection_area_sum_m2"] = raw_sum
+    output["planning_surface_covered_union_area_m2"] = surface_union
+    output["planning_surface_covered_pct"] = np.where(
+        surface_union == areas, 100.0, 100.0 * surface_union / areas
+    )
 
-**Business interpretation**
+    for family, prefix in (
+        ("PRESCRIPTION", "prescription"),
+        ("INFORMATION", "information"),
+    ):
+        family_work = (
+            surface_work.loc[surface_work["feature_family"] == family]
+            if not surface_work.empty
+            else surface_work
+        )
+        family_positive = (
+            family_work.loc[family_work["relation_type"] == "AREA_OVERLAP"]
+            if not family_work.empty
+            else family_work
+        )
+        union = _surface_union_summary(family_positive, areas, count)
+        output[f"{prefix}_surface_relation_count"] = relation_counts(family_work)
+        output[f"{prefix}_surface_covered_union_area_m2"] = union
+        output[f"{prefix}_surface_covered_pct"] = np.where(
+            union == areas, 100.0, 100.0 * union / areas
+        )
 
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
+    output["planning_line_relation_count"] = relation_counts(line_work)
+    output["planning_line_length_overlap_count"] = relation_counts(
+        line_work,
+        line_work["relation_type"].eq("LENGTH_OVERLAP")
+        if not line_work.empty
+        else None,
+    )
+    output["planning_line_touch_count"] = relation_counts(
+        line_work,
+        line_work["relation_type"].eq("TOUCH_ONLY") if not line_work.empty else None,
+    )
+    line_sum = np.zeros(count, dtype="float64")
+    if not line_work.empty:
+        values = line_work.groupby("_parcel_position", sort=False)[
+            "intersection_length_m"
+        ].sum()
+        line_sum[values.index.to_numpy(dtype="int64")] = values.to_numpy(
+            dtype="float64"
+        )
+    output["planning_line_intersection_length_sum_m"] = line_sum
 
-**Does NOT prove**
+    output["planning_point_relation_count"] = relation_counts(point_work)
+    for source, target in (
+        ("point_members_inside_count", "planning_point_inside_count"),
+        ("point_members_boundary_count", "planning_point_boundary_count"),
+    ):
+        values = np.zeros(count, dtype="int64")
+        if not point_work.empty:
+            grouped = point_work.groupby("_parcel_position", sort=False)[source].sum()
+            values[grouped.index.to_numpy(dtype="int64")] = grouped.to_numpy(
+                dtype="int64"
+            )
+        output[target] = values
+    output["planning_feature_document_id"] = context.document_id
+    output["planning_feature_archive_sha256"] = context.archive_sha256
+    return output
+```
+
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_attach_parcel_summaries.relation_counts`
 
-**Signature**
+**Exact signature**
 
 ```python
 def relation_counts(
@@ -2622,59 +3643,59 @@ def relation_counts(
 
 **Purpose**
 
-Implements relation counts according to the exact implementation and guards in this file.
+Private `planning` helper for relation counts; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `mask` (`pd.Series | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `np.ndarray`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `np.ndarray`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Computes `result` from `np.zeros(count, dtype='int64')`.
-2. Computes `selected` from `frame if mask is None else frame.loc[mask]`.
-3. Checks `not selected.empty`. When true: Computes `counts` from `selected.groupby('_parcel_position', sort=False).size()`. Computes `result[counts.index.to_numpy(dtype='int64')]` from `counts.to_numpy(dtype='int64')`.
-4. Returns `result`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `result[counts.index.to_numpy(dtype='int64')]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `counts.index.to_numpy`, `counts.to_numpy`, `np.zeros`, `selected.groupby`, `selected.groupby('_parcel_position', sort=False).size`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_attach_parcel_summaries` via `relation_counts`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def relation_counts(
+        frame: pd.DataFrame, mask: pd.Series | None = None
+    ) -> np.ndarray:
+        result = np.zeros(count, dtype="int64")
+        selected = frame if mask is None else frame.loc[mask]
+        if not selected.empty:
+            counts = selected.groupby("_parcel_position", sort=False).size()
+            result[counts.index.to_numpy(dtype="int64")] = counts.to_numpy(
+                dtype="int64"
+            )
+        return result
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_numeric_values`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _numeric_values(
@@ -2688,61 +3709,73 @@ def _numeric_values(
 
 **Purpose**
 
-Implements numeric values according to the exact implementation and guards in this file.
+Private `planning` helper for numeric values; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `columns` (`set[str] | frozenset[str] | tuple[str, ...]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `allow_null` (`bool`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Iterates `column` over `columns`. For each value: Iterates `value` over `frame[column].tolist()`. For each value: Checks `pd.isna(value)`. When true: Checks `allow_null`. When true: Executes `continue` control flow. Raises `PlanningFeaturesError(f'{label} {column} must not be null')`. Checks `isinstance(value, bool) or not isinstance(value, Real)`. When true: Raises `PlanningFeaturesError(f'{label} {column} must be numeric')`. Runs guarded operation: Computes `number` from `float(value)`. Handles `(TypeError, ValueError, OverflowError)`. Executes 1 additional source-ordered statement(s).
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `pd.isna(value)` is true.
-- Rejects or diverts the path when `isinstance(value, bool) or not isinstance(value, Real)` is true.
-- Rejects or diverts the path when `not isfinite(number) or number < 0` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `pd.isna(value)`.
+- Guard with a raise path: `isinstance(value, bool) or not isinstance(value, Real)`.
+- Guard with a raise path: `not isfinite(number) or number < 0`.
+- Explicit raise expressions: `PlanningFeaturesError(f'{label} {column} must be finite and non-negative')`, `PlanningFeaturesError(f'{label} {column} must be finite')`, `PlanningFeaturesError(f'{label} {column} must be numeric')`, `PlanningFeaturesError(f'{label} {column} must not be null')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `float`, `frame[column].tolist`, `isfinite`, `isinstance`, `pd.isna`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_numeric_values`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_numeric_values`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_catalog_contract`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_parcel_summaries`
+```python
+def _numeric_values(
+    frame: pd.DataFrame,
+    columns: set[str] | frozenset[str] | tuple[str, ...],
+    label: str,
+    *,
+    allow_null: bool,
+) -> None:
+    for column in columns:
+        for value in frame[column].tolist():
+            if pd.isna(value):
+                if allow_null:
+                    continue
+                raise PlanningFeaturesError(f"{label} {column} must not be null")
+            if isinstance(value, bool) or not isinstance(value, Real):
+                raise PlanningFeaturesError(f"{label} {column} must be numeric")
+            try:
+                number = float(value)
+            except (TypeError, ValueError, OverflowError) as error:
+                raise PlanningFeaturesError(
+                    f"{label} {column} must be finite"
+                ) from error
+            if not isfinite(number) or number < 0:
+                raise PlanningFeaturesError(
+                    f"{label} {column} must be finite and non-negative"
+                )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_integer_values`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _integer_values(
@@ -2756,59 +3789,60 @@ def _integer_values(
 
 **Purpose**
 
-Implements integer values according to the exact implementation and guards in this file.
+Private `planning` helper for integer values; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `columns` (`set[str] | frozenset[str] | tuple[str, ...]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `allow_null` (`bool`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Iterates `column` over `columns`. For each value: Iterates `value` over `frame[column].tolist()`. For each value: Checks `pd.isna(value)`. When true: Checks `allow_null`. When true: Executes `continue` control flow. Raises `PlanningFeaturesError(f'{label} {column} must not be null')`. Calls `_strict_nonnegative_integer(value, f'{label} {column}')` for its validation or side effect.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `pd.isna(value)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `pd.isna(value)`.
+- Explicit raise expressions: `PlanningFeaturesError(f'{label} {column} must not be null')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_strict_nonnegative_integer`, `frame[column].tolist`, `pd.isna`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_integer_values`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_integer_values`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_catalog_contract`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_parcel_summaries`
+```python
+def _integer_values(
+    frame: pd.DataFrame,
+    columns: set[str] | frozenset[str] | tuple[str, ...],
+    label: str,
+    *,
+    allow_null: bool,
+) -> None:
+    for column in columns:
+        for value in frame[column].tolist():
+            if pd.isna(value):
+                if allow_null:
+                    continue
+                raise PlanningFeaturesError(f"{label} {column} must not be null")
+            _strict_nonnegative_integer(value, f"{label} {column}")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_null_safe_equal`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _null_safe_equal(left: object, right: object) -> bool:
@@ -2816,62 +3850,81 @@ def _null_safe_equal(left: object, right: object) -> bool:
 
 **Purpose**
 
-Implements null safe equal according to the exact implementation and guards in this file.
+Private `planning` helper for null safe equal; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `left` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `right` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `bool`.
+- Every observed return expression is reproduced without truncation:
+```python
+False
 
-**Returns**
+left_null and right_null
 
-- Declared return type: `bool`. Observed return expression(s): `False`; `left_null and right_null`; `bool(left == right)`.
+bool(left == right)
 
-**Algorithm**
+False
 
-1. Runs guarded operation: Computes `left_missing` from `pd.isna(left)`. Computes `right_missing` from `pd.isna(right)`. Handles `(TypeError, ValueError)`.
-2. Checks `not isinstance(left_missing, (bool, np.bool_)) or not isinstance(right_missing, (bool, np.bool_))`. When true: Returns `False`.
-3. Computes `left_null` from `bool(left_missing)`.
-4. Computes `right_null` from `bool(right_missing)`.
-5. Checks `left_null or right_null`. When true: Returns `left_null and right_null`.
-6. Runs guarded operation: Returns `bool(left == right)`. Handles `(TypeError, ValueError)`.
+False
+```
 
-**Validation and invariants**
+**Validation and exceptions**
 
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `bool`, `isinstance`, `pd.isna`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_apply_relations` via `_null_safe_equal`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `_null_safe_equal`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_coded_policy_compatibility` via `_null_safe_equal`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_completeness` via `_null_safe_equal`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_relation_catalog_consistency` via `_null_safe_equal`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `_null_safe_equal`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_validate_selected_evidence` via `_null_safe_equal`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_coded_meaning_rows` via `_null_safe_equal`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_compare_rebuilt_relations`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_relation_catalog_consistency`
+```python
+def _null_safe_equal(left: object, right: object) -> bool:
+    try:
+        left_missing = pd.isna(left)
+        right_missing = pd.isna(right)
+    except (TypeError, ValueError):
+        return False
+    if not isinstance(left_missing, (bool, np.bool_)) or not isinstance(
+        right_missing, (bool, np.bool_)
+    ):
+        return False
+    left_null = bool(left_missing)
+    right_null = bool(right_missing)
+    if left_null or right_null:
+        return left_null and right_null
+    try:
+        return bool(left == right)
+    except (TypeError, ValueError):
+        return False
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_require_close`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _require_close(actual: object, expected: float, label: str) -> None:
@@ -2879,67 +3932,63 @@ def _require_close(actual: object, expected: float, label: str) -> None:
 
 **Purpose**
 
-Implements require close according to the exact implementation and guards in this file.
+Private `planning` helper for require close; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `actual` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `expected` (`float`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `isinstance(actual, bool) or not isinstance(actual, Real)`. When true: Raises `PlanningFeaturesError(f'{label} must be numeric')`.
-2. Runs guarded operation: Computes `number` from `float(actual)`. Handles `(TypeError, ValueError, OverflowError)`.
-3. Checks `not isfinite(number)`. When true: Raises `PlanningFeaturesError(f'{label} must be finite')`.
-4. Computes `reference` from `max(abs(number), abs(expected))`.
-5. Checks `abs(number - expected) > technical_overlay_tolerance(reference)`. When true: Raises `PlanningFeaturesError(f'{label} is inconsistent')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `isinstance(actual, bool) or not isinstance(actual, Real)` is true.
-- Rejects or diverts the path when `not isfinite(number)` is true.
-- Rejects or diverts the path when `abs(number - expected) > technical_overlay_tolerance(reference)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `isinstance(actual, bool) or not isinstance(actual, Real)`.
+- Guard with a raise path: `not isfinite(number)`.
+- Guard with a raise path: `abs(number - expected) > technical_overlay_tolerance(reference)`.
+- Explicit raise expressions: `PlanningFeaturesError(f'{label} is inconsistent')`, `PlanningFeaturesError(f'{label} must be finite')`, `PlanningFeaturesError(f'{label} must be numeric')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `abs`, `float`, `isfinite`, `isinstance`, `max`, `technical_overlay_tolerance`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_require_close`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `_require_close`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_parcel_output` via `_require_close`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_require_close`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_require_close`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_compare_rebuilt_parcel_output`
-- `src/landscout/stages/enrich_planning_features.py` — `_compare_rebuilt_relations`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_catalog_contract`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_parcel_summaries`
+```python
+def _require_close(actual: object, expected: float, label: str) -> None:
+    if isinstance(actual, bool) or not isinstance(actual, Real):
+        raise PlanningFeaturesError(f"{label} must be numeric")
+    try:
+        number = float(actual)
+    except (TypeError, ValueError, OverflowError) as error:
+        raise PlanningFeaturesError(f"{label} must be finite") from error
+    if not isfinite(number):
+        raise PlanningFeaturesError(f"{label} must be finite")
+    reference = max(abs(number), abs(expected))
+    if abs(number - expected) > technical_overlay_tolerance(reference):
+        raise PlanningFeaturesError(f"{label} is inconsistent")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_catalog_identity`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_catalog_identity(catalog: gpd.GeoDataFrame) -> None:
@@ -2947,66 +3996,99 @@ def _validate_catalog_identity(catalog: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Validates and rejects malformed catalog identity according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent catalog identity; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `catalog` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Iterates `column` over `_CATALOG_REQUIRED_EXACT_STRING_COLUMNS`. For each value: Calls `_validate_exact_strings(catalog[column], f"Feature catalog {column.replace('_', ' ')}")` for its validation or side effect.
-2. Iterates `column` over `_CATALOG_OPTIONAL_EXACT_STRING_COLUMNS`. For each value: Calls `_validate_optional_exact_strings(catalog[column], f"Feature catalog {column.replace('_', ' ')}")` for its validation or side effect.
-3. Calls `_validate_ids(catalog['planning_feature_id'], 'planning_feature_id')` for its validation or side effect.
-4. Iterates `(logical_layer, group)` over `catalog.groupby('logical_layer', sort=False)`. For each value: Calls `_validate_ids(group['source_feature_id'], f'{logical_layer} source_feature_id')` for its validation or side effect.
-5. Iterates `(_, row)` over `catalog.iterrows()`. For each value: Computes `logical` from `_strict_string(row['logical_layer'], 'logical_layer')`. Checks `logical not in LAYER_SPECS`. When true: Raises `PlanningFeaturesError('Feature catalog logical layer is invalid')`. Computes `spec` from `LAYER_SPECS[logical]`. Executes 8 additional source-ordered statement(s).
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `logical not in LAYER_SPECS` is true.
-- Rejects or diverts the path when `row['feature_family'] != spec.feature_family` is true.
-- Rejects or diverts the path when `row['geometry_kind'] != spec.geometry_kind` is true.
-- Rejects or diverts the path when `row['planning_feature_id'] != expected_planning_id` is true.
-- Rejects or diverts the path when `kind not in SOURCE_IDENTITY_KINDS` is true.
-- Rejects or diverts the path when `kind == 'CNIG_ATTRIBUTE'` is true.
-- Rejects or diverts the path when `field != spec.identity_field` is true.
-- Rejects or diverts the path when `logical != 'prescription_surface' or field != 'OGR_FID' or (not str(row['source_feature_id']).startswith('OGR_FID:'))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `logical not in LAYER_SPECS`.
+- Guard with a raise path: `row['feature_family'] != spec.feature_family`.
+- Guard with a raise path: `row['geometry_kind'] != spec.geometry_kind`.
+- Guard with a raise path: `row['planning_feature_id'] != expected_planning_id`.
+- Guard with a raise path: `kind not in SOURCE_IDENTITY_KINDS`.
+- Guard with a raise path: `kind == 'CNIG_ATTRIBUTE'`.
+- Guard with a raise path: `field != spec.identity_field`.
+- Guard with a raise path: `logical != 'prescription_surface' or field != 'OGR_FID' or (not str(row['source_feature_id']).startswith('OGR_FID:'))`.
+- Explicit raise expressions: `PlanningFeaturesError('Archive-scoped OGR FID provenance is inconsistent')`, `PlanningFeaturesError('CNIG source identity field is inconsistent')`, `PlanningFeaturesError('Feature catalog family is inconsistent')`, `PlanningFeaturesError('Feature catalog logical layer and geometry kind are inconsistent')`, `PlanningFeaturesError('Feature catalog logical layer is invalid')`, `PlanningFeaturesError('Feature source identity kind is invalid')`, `PlanningFeaturesError('planning_feature_id differs from deterministic GPU identity')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `column.replace`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_strict_string`, `_validate_exact_strings`, `_validate_ids`, `_validate_optional_exact_strings`, `catalog.groupby`, `catalog.iterrows`, `column.replace`, `str`, `str(row['source_feature_id']).startswith`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_validate_catalog_identity`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_catalog_contract`
+```python
+def _validate_catalog_identity(catalog: gpd.GeoDataFrame) -> None:
+    for column in _CATALOG_REQUIRED_EXACT_STRING_COLUMNS:
+        _validate_exact_strings(
+            catalog[column], f"Feature catalog {column.replace('_', ' ')}"
+        )
+    for column in _CATALOG_OPTIONAL_EXACT_STRING_COLUMNS:
+        _validate_optional_exact_strings(
+            catalog[column], f"Feature catalog {column.replace('_', ' ')}"
+        )
+    _validate_ids(catalog["planning_feature_id"], "planning_feature_id")
+    for logical_layer, group in catalog.groupby("logical_layer", sort=False):
+        _validate_ids(group["source_feature_id"], f"{logical_layer} source_feature_id")
+    for _, row in catalog.iterrows():
+        logical = _strict_string(row["logical_layer"], "logical_layer")
+        if logical not in LAYER_SPECS:
+            raise PlanningFeaturesError("Feature catalog logical layer is invalid")
+        spec = LAYER_SPECS[logical]
+        if row["feature_family"] != spec.feature_family:
+            raise PlanningFeaturesError("Feature catalog family is inconsistent")
+        if row["geometry_kind"] != spec.geometry_kind:
+            raise PlanningFeaturesError(
+                "Feature catalog logical layer and geometry kind are inconsistent"
+            )
+        expected_planning_id = (
+            f"GPU:{row['source_document_id']}:{logical}:{row['source_feature_id']}"
+        )
+        if row["planning_feature_id"] != expected_planning_id:
+            raise PlanningFeaturesError(
+                "planning_feature_id differs from deterministic GPU identity"
+            )
+        kind = row["source_identity_kind"]
+        field = row["source_identity_field"]
+        if kind not in SOURCE_IDENTITY_KINDS:
+            raise PlanningFeaturesError("Feature source identity kind is invalid")
+        if kind == "CNIG_ATTRIBUTE":
+            if field != spec.identity_field:
+                raise PlanningFeaturesError(
+                    "CNIG source identity field is inconsistent"
+                )
+        elif (
+            logical != "prescription_surface"
+            or field != "OGR_FID"
+            or not str(row["source_feature_id"]).startswith("OGR_FID:")
+        ):
+            raise PlanningFeaturesError(
+                "Archive-scoped OGR FID provenance is inconsistent"
+            )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_catalog_contract`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_catalog_contract(
@@ -3017,72 +4099,137 @@ def _validate_catalog_contract(
 
 **Purpose**
 
-Validates and rejects malformed catalog contract according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent catalog contract; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `catalog` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `geometry_kind` (`GeometryKind`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+catalog
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `catalog`.
-
-**Algorithm**
-
-1. Computes `label` from `f'{geometry_kind} feature catalog'`.
-2. Checks `not isinstance(catalog, gpd.GeoDataFrame)`. When true: Raises `PlanningFeaturesError(f'{label} must be a GeoDataFrame')`.
-3. Runs guarded operation: Calls `validate_canonical_frame_schema(catalog, columns=NORMALIZED_FEATURE_COLUMNS[geometry_kind], dtypes=normalized_feature_dtypes(geometry_kind, catalog), label=label, geospatial=True, index_class='RangeIndex')` for its validation or side effect. Handles `(TypeError, ValueError)`.
-4. Calls `_active_geometry(catalog, label)` for its validation or side effect.
-5. Calls `_validate_catalog_identity(catalog)` for its validation or side effect.
-6. Checks `not catalog.empty and (not catalog['geometry_kind'].eq(geometry_kind).all())`. When true: Raises `PlanningFeaturesError(f'{label} geometry kind is invalid')`.
-7. Calls `_validate_geometries(catalog, _CATALOG_GEOMETRY_TYPES[geometry_kind], label)` for its validation or side effect.
-8. Calls `_validate_two_dimensional_geometry(catalog, label)` for its validation or side effect.
-9. Checks `geometry_kind == 'SURFACE'`. When true: Calls `_numeric_values(catalog, ('feature_area_m2',), 'Surface feature', allow_null=False)` for its validation or side effect. Checks `(catalog['feature_area_m2'] <= 0).any()`. When true: Raises `PlanningFeaturesError('Surface feature areas must be positive')`. Runs guarded operation: Computes `measured` from `catalog.geometry.area.to_numpy(dtype='float64')`. Handles `Exception`. Executes 1 additional source-ordered statement(s). Otherwise: Checks `geometry_kind == 'LINE'`. When true: Calls `_numeric_values(catalog, ('feature_length_m',), 'Line feature', allow_null=False)` for its validation or side effect. Checks `(catalog['feature_length_m'] <= 0).any()`. When true: Raises `PlanningFeaturesError('Line feature lengths must be positive')`. Runs guarded operation: Computes `measured` from `catalog.geometry.length.to_numpy(dtype='float64')`. Handles `Exception`. Executes 1 additional source-ordered statement(s). Otherwise: Calls `_integer_values(catalog, ('point_member_count',), 'Point feature', allow_null=False)` for its validation or side effect. Checks `(catalog['point_member_count'] < 1).any()`. When true: Raises `PlanningFeaturesError('Point features must contain a member')`. Executes 2 additional source-ordered statement(s).
-10. Returns `catalog`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(catalog, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `not catalog.empty and (not catalog['geometry_kind'].eq(geometry_kind).all())` is true.
-- Rejects or diverts the path when `geometry_kind == 'SURFACE'` is true.
-- Rejects or diverts the path when `(catalog['feature_area_m2'] <= 0).any()` is true.
-- Rejects or diverts the path when `geometry_kind == 'LINE'` is true.
-- Rejects or diverts the path when `(catalog['feature_length_m'] <= 0).any()` is true.
-- Rejects or diverts the path when `(catalog['point_member_count'] < 1).any()` is true.
-- Rejects or diverts the path when `catalog['point_member_count'].tolist() != member_counts` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(catalog, gpd.GeoDataFrame)`.
+- Guard with a raise path: `not catalog.empty and (not catalog['geometry_kind'].eq(geometry_kind).all())`.
+- Guard with a raise path: `geometry_kind == 'SURFACE'`.
+- Guard with a raise path: `(catalog['feature_area_m2'] <= 0).any()`.
+- Guard with a raise path: `geometry_kind == 'LINE'`.
+- Guard with a raise path: `(catalog['feature_length_m'] <= 0).any()`.
+- Guard with a raise path: `(catalog['point_member_count'] < 1).any()`.
+- Guard with a raise path: `catalog['point_member_count'].tolist() != member_counts`.
+- Explicit raise expressions: `PlanningFeaturesError('Line feature lengths must be positive')`, `PlanningFeaturesError('Line feature metric validation failed')`, `PlanningFeaturesError('Point feature member count is inconsistent with geometry')`, `PlanningFeaturesError('Point feature member validation failed')`, `PlanningFeaturesError('Point features must contain a member')`, `PlanningFeaturesError('Surface feature areas must be positive')`, `PlanningFeaturesError('Surface feature metric validation failed')`, `PlanningFeaturesError(f'{label} geometry kind is invalid')`, `PlanningFeaturesError(f'{label} must be a GeoDataFrame')`, `PlanningFeaturesError(str(error))`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `(catalog['feature_area_m2'] <= 0).any`, `_active_geometry`, `_validate_two_dimensional_geometry`, `catalog.geometry.area.to_numpy`, `catalog.geometry.length.to_numpy`, `catalog['feature_area_m2'].tolist`, `catalog['geometry_kind'].eq`, `catalog['geometry_kind'].eq(geometry_kind).all`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(catalog['feature_area_m2'] <= 0).any`, `(catalog['feature_length_m'] <= 0).any`, `(catalog['point_member_count'] < 1).any`, `PlanningFeaturesError`, `_active_geometry`, `_integer_values`, `_numeric_values`, `_require_close`, `_validate_catalog_identity`, `_validate_geometries`, `_validate_two_dimensional_geometry`, `catalog.geometry.area.to_numpy`, `catalog.geometry.length.to_numpy`, `catalog['feature_area_m2'].tolist`, `catalog['feature_length_m'].tolist`, `catalog['geometry_kind'].eq`, `catalog['geometry_kind'].eq(geometry_kind).all`, `catalog['point_member_count'].tolist`, `float`, `get_parts`, `isinstance`, `len`, `normalized_feature_dtypes`, `str`, `validate_canonical_frame_schema`, `zip`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_catalog_contract`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
+```python
+def _validate_catalog_contract(
+    catalog: object,
+    geometry_kind: GeometryKind,
+) -> gpd.GeoDataFrame:
+    label = f"{geometry_kind} feature catalog"
+    if not isinstance(catalog, gpd.GeoDataFrame):
+        raise PlanningFeaturesError(f"{label} must be a GeoDataFrame")
+    try:
+        validate_canonical_frame_schema(
+            catalog,
+            columns=NORMALIZED_FEATURE_COLUMNS[geometry_kind],
+            dtypes=normalized_feature_dtypes(geometry_kind, catalog),
+            label=label,
+            geospatial=True,
+            index_class="RangeIndex",
+        )
+    except (TypeError, ValueError) as error:
+        raise PlanningFeaturesError(str(error)) from error
+    _active_geometry(catalog, label)
+    _validate_catalog_identity(catalog)
+    if not catalog.empty and not catalog["geometry_kind"].eq(geometry_kind).all():
+        raise PlanningFeaturesError(f"{label} geometry kind is invalid")
+    _validate_geometries(catalog, _CATALOG_GEOMETRY_TYPES[geometry_kind], label)
+    _validate_two_dimensional_geometry(catalog, label)
+    if geometry_kind == "SURFACE":
+        _numeric_values(
+            catalog,
+            ("feature_area_m2",),
+            "Surface feature",
+            allow_null=False,
+        )
+        if (catalog["feature_area_m2"] <= 0).any():
+            raise PlanningFeaturesError("Surface feature areas must be positive")
+        try:
+            measured = catalog.geometry.area.to_numpy(dtype="float64")
+        except Exception as error:
+            raise PlanningFeaturesError(
+                "Surface feature metric validation failed"
+            ) from error
+        for actual, expected in zip(
+            catalog["feature_area_m2"].tolist(), measured, strict=True
+        ):
+            _require_close(actual, float(expected), "feature_area_m2")
+    elif geometry_kind == "LINE":
+        _numeric_values(
+            catalog,
+            ("feature_length_m",),
+            "Line feature",
+            allow_null=False,
+        )
+        if (catalog["feature_length_m"] <= 0).any():
+            raise PlanningFeaturesError("Line feature lengths must be positive")
+        try:
+            measured = catalog.geometry.length.to_numpy(dtype="float64")
+        except Exception as error:
+            raise PlanningFeaturesError(
+                "Line feature metric validation failed"
+            ) from error
+        for actual, expected in zip(
+            catalog["feature_length_m"].tolist(), measured, strict=True
+        ):
+            _require_close(actual, float(expected), "feature_length_m")
+    else:
+        _integer_values(
+            catalog,
+            ("point_member_count",),
+            "Point feature",
+            allow_null=False,
+        )
+        if (catalog["point_member_count"] < 1).any():
+            raise PlanningFeaturesError("Point features must contain a member")
+        try:
+            member_counts = [len(get_parts(value)) for value in catalog.geometry.array]
+        except Exception as error:
+            raise PlanningFeaturesError(
+                "Point feature member validation failed"
+            ) from error
+        if catalog["point_member_count"].tolist() != member_counts:
+            raise PlanningFeaturesError(
+                "Point feature member count is inconsistent with geometry"
+            )
+    return catalog
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_compare_normalized_catalog`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _compare_normalized_catalog(
@@ -3094,60 +4241,78 @@ def _compare_normalized_catalog(
 
 **Purpose**
 
-Compares normalized catalog according to the exact implementation and guards in this file.
+Private `planning` helper for compare normalized catalog; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `supplied` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `expected` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `deterministic_frame_schema_signature(supplied) != deterministic_frame_schema_signature(expected)`. When true: Raises `PlanningFeaturesError(f'{label} schema differs from normalized GPU source')`.
-2. Runs guarded operation: Computes `supplied_crs` from `_crs(supplied.crs, label)`. Computes `expected_crs` from `_crs(expected.crs, f'expected {label}')`. Computes `geometry_equal` from `np.array_equal(supplied.geometry.to_wkb(), expected.geometry.to_wkb())`. Computes `attributes_equal` from `supplied.drop(columns='geometry').equals(expected.drop(columns='geometry'))`. Handles `PlanningFeaturesError`, `Exception`.
-3. Checks `not supplied_crs.equals(expected_crs) or not geometry_equal or (not attributes_equal)`. When true: Raises `PlanningFeaturesError(f'{label} differs from normalized GPU source')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `deterministic_frame_schema_signature(supplied) != deterministic_frame_schema_signature(expected)` is true.
-- Rejects or diverts the path when `not supplied_crs.equals(expected_crs) or not geometry_equal or (not attributes_equal)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `deterministic_frame_schema_signature(supplied) != deterministic_frame_schema_signature(expected)`.
+- Guard with a raise path: `not supplied_crs.equals(expected_crs) or not geometry_equal or (not attributes_equal)`.
+- Explicit raise expressions: `PlanningFeaturesError(f'{label} cannot be compared with normalized GPU source')`, `PlanningFeaturesError(f'{label} differs from normalized GPU source')`, `PlanningFeaturesError(f'{label} schema differs from normalized GPU source')`, `re-raise`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `expected.geometry.to_wkb`, `supplied.drop(columns='geometry').equals`, `supplied.geometry.to_wkb`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_crs`, `deterministic_frame_schema_signature`, `expected.drop`, `expected.geometry.to_wkb`, `np.array_equal`, `supplied.drop`, `supplied.drop(columns='geometry').equals`, `supplied.geometry.to_wkb`, `supplied_crs.equals`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_compare_normalized_catalog`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
+```python
+def _compare_normalized_catalog(
+    supplied: gpd.GeoDataFrame,
+    expected: gpd.GeoDataFrame,
+    label: str,
+) -> None:
+    if deterministic_frame_schema_signature(
+        supplied
+    ) != deterministic_frame_schema_signature(expected):
+        raise PlanningFeaturesError(
+            f"{label} schema differs from normalized GPU source"
+        )
+    try:
+        supplied_crs = _crs(supplied.crs, label)
+        expected_crs = _crs(expected.crs, f"expected {label}")
+        geometry_equal = np.array_equal(
+            supplied.geometry.to_wkb(), expected.geometry.to_wkb()
+        )
+        attributes_equal = supplied.drop(columns="geometry").equals(
+            expected.drop(columns="geometry")
+        )
+    except PlanningFeaturesError:
+        raise
+    except Exception as error:
+        raise PlanningFeaturesError(
+            f"{label} cannot be compared with normalized GPU source"
+        ) from error
+    if (
+        not supplied_crs.equals(expected_crs)
+        or not geometry_equal
+        or not attributes_equal
+    ):
+        raise PlanningFeaturesError(f"{label} differs from normalized GPU source")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_relation_catalog_consistency`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_relation_catalog_consistency(
@@ -3158,62 +4323,92 @@ def _validate_relation_catalog_consistency(
 
 **Purpose**
 
-Validates and rejects malformed relation catalog consistency according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent relation catalog consistency; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `relations` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `catalogs` (`tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `feature_rows` from `pd.concat([catalog.drop(columns='geometry') for catalog in catalogs], ignore_index=True)`.
-2. Checks `feature_rows['planning_feature_id'].duplicated().any()`. When true: Raises `PlanningFeaturesError('planning_feature_id values must be globally unique')`.
-3. Computes `indexed` from `feature_rows.set_index('planning_feature_id', drop=False)`.
-4. Iterates `(_, relation)` over `relations.iterrows()`. For each value: Computes `identifier` from `relation['planning_feature_id']`. Checks `identifier not in indexed.index`. When true: Raises `PlanningFeaturesError('Planning relation references an unknown feature')`. Computes `feature` from `indexed.loc[identifier]`. Executes 5 additional source-ordered statement(s).
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `feature_rows['planning_feature_id'].duplicated().any()` is true.
-- Rejects or diverts the path when `identifier not in indexed.index` is true.
-- Rejects or diverts the path when `metric_column is None or catalog_column is None or (not _null_safe_equal(relation[metric_column], feature[catalog_column]))` is true.
-- Rejects or diverts the path when `not _null_safe_equal(relation[column], feature[column])` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `feature_rows['planning_feature_id'].duplicated().any()`.
+- Guard with a raise path: `identifier not in indexed.index`.
+- Guard with a raise path: `metric_column is None or catalog_column is None or (not _null_safe_equal(relation[metric_column], feature[catalog_column]))`.
+- Guard with a raise path: `not _null_safe_equal(relation[column], feature[column])`.
+- Explicit raise expressions: `PlanningFeaturesError('Planning relation references an unknown feature')`, `PlanningFeaturesError('Relation feature metric is inconsistent with feature catalog')`, `PlanningFeaturesError('planning_feature_id values must be globally unique')`, `PlanningFeaturesError(f'Relation {column} is inconsistent with feature catalog')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `{'SURFACE': 'feature_area_m2', 'LINE': 'feature_length_m', 'POINT': 'point_member_count'}.get`, `{'SURFACE': 'feature_area_m2', 'LINE': 'source_line_length_m', 'POINT': 'point_member_count'}.get`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_null_safe_equal`, `catalog.drop`, `feature_rows.set_index`, `feature_rows['planning_feature_id'].duplicated`, `feature_rows['planning_feature_id'].duplicated().any`, `pd.concat`, `relations.iterrows`, `{'SURFACE': 'feature_area_m2', 'LINE': 'feature_length_m', 'POINT': 'point_member_count'}.get`, `{'SURFACE': 'feature_area_m2', 'LINE': 'source_line_length_m', 'POINT': 'point_member_count'}.get`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_relation_catalog_consistency`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
+```python
+def _validate_relation_catalog_consistency(
+    relations: pd.DataFrame,
+    catalogs: tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, gpd.GeoDataFrame],
+) -> None:
+    feature_rows = pd.concat(
+        [catalog.drop(columns="geometry") for catalog in catalogs],
+        ignore_index=True,
+    )
+    if feature_rows["planning_feature_id"].duplicated().any():
+        raise PlanningFeaturesError(
+            "planning_feature_id values must be globally unique"
+        )
+    indexed = feature_rows.set_index("planning_feature_id", drop=False)
+    for _, relation in relations.iterrows():
+        identifier = relation["planning_feature_id"]
+        if identifier not in indexed.index:
+            raise PlanningFeaturesError(
+                "Planning relation references an unknown feature"
+            )
+        feature = indexed.loc[identifier]
+        for column in _RELATION_CATALOG_FIELDS:
+            if not _null_safe_equal(relation[column], feature[column]):
+                raise PlanningFeaturesError(
+                    f"Relation {column} is inconsistent with feature catalog"
+                )
+        kind = relation["geometry_kind"]
+        metric_column = {
+            "SURFACE": "feature_area_m2",
+            "LINE": "source_line_length_m",
+            "POINT": "point_member_count",
+        }.get(kind)
+        catalog_column = {
+            "SURFACE": "feature_area_m2",
+            "LINE": "feature_length_m",
+            "POINT": "point_member_count",
+        }.get(kind)
+        if (
+            metric_column is None
+            or catalog_column is None
+            or not _null_safe_equal(relation[metric_column], feature[catalog_column])
+        ):
+            raise PlanningFeaturesError(
+                "Relation feature metric is inconsistent with feature catalog"
+            )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_relation_semantics`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_relation_semantics(relations: pd.DataFrame) -> None:
@@ -3221,55 +4416,50 @@ def _validate_relation_semantics(relations: pd.DataFrame) -> None:
 
 **Purpose**
 
-Validates and rejects malformed relation semantics according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent relation semantics; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `relations` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Runs guarded operation: Calls `validate_intrinsic_planning_feature_relations(relations)` for its validation or side effect. Handles `(TypeError, ValueError)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `PlanningFeaturesError(str(error))`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `str`, `validate_intrinsic_planning_feature_relations`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_relation_semantics`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
+```python
+def _validate_relation_semantics(relations: pd.DataFrame) -> None:
+    try:
+        validate_intrinsic_planning_feature_relations(relations)
+    except (TypeError, ValueError) as error:
+        raise PlanningFeaturesError(str(error)) from error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_compare_rebuilt_relations`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _compare_rebuilt_relations(
@@ -3280,65 +4470,90 @@ def _compare_rebuilt_relations(
 
 **Purpose**
 
-Compares rebuilt relations according to the exact implementation and guards in this file.
+Private `planning` helper for compare rebuilt relations; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `supplied` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `expected` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `deterministic_frame_schema_signature(supplied) != deterministic_frame_schema_signature(expected)`. When true: Raises `PlanningFeaturesError('Planning relation schema differs from the spatial reconstruction')`.
-2. Checks `not supplied.index.equals(expected.index)`. When true: Raises `PlanningFeaturesError('Planning relation index or row order differs from the spatial reconstruction')`.
-3. Checks `len(supplied) != len(expected)`. When true: Raises `PlanningFeaturesError('Planning relation count differs from the spatial reconstruction')`.
-4. Iterates `column` over `RELATION_COLUMNS`. For each value: Computes `actual_values` from `supplied[column].tolist()`. Computes `expected_values` from `expected[column].tolist()`. Iterates `(position, (actual, rebuilt))` over `enumerate(zip(actual_values, expected_values, strict=True))`. For each value: Computes `label` from `f'Planning relation {column} at row {position}'`. Checks `column in RELATION_FLOAT_COLUMNS`. When true: Computes `actual_missing` from `bool(pd.isna(actual))`. Computes `expected_missing` from `bool(pd.isna(rebuilt))`. Checks `actual_missing or expected_missing`. When true: Checks `actual_missing != expected_missing`. When true: Raises `PlanningFeaturesError(f'{label} null pattern differs from spatial reconstruction')`. Executes `continue` control flow. Executes 1 additional source-ordered statement(s). Otherwise: Checks `not _null_safe_equal(actual, rebuilt)`. When true: Raises `PlanningFeaturesError(f'{label} differs from the spatial reconstruction')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `deterministic_frame_schema_signature(supplied) != deterministic_frame_schema_signature(expected)` is true.
-- Rejects or diverts the path when `not supplied.index.equals(expected.index)` is true.
-- Rejects or diverts the path when `len(supplied) != len(expected)` is true.
-- Rejects or diverts the path when `column in RELATION_FLOAT_COLUMNS` is true.
-- Rejects or diverts the path when `actual_missing or expected_missing` is true.
-- Rejects or diverts the path when `not _null_safe_equal(actual, rebuilt)` is true.
-- Rejects or diverts the path when `actual_missing != expected_missing` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `deterministic_frame_schema_signature(supplied) != deterministic_frame_schema_signature(expected)`.
+- Guard with a raise path: `not supplied.index.equals(expected.index)`.
+- Guard with a raise path: `len(supplied) != len(expected)`.
+- Guard with a raise path: `column in RELATION_FLOAT_COLUMNS`.
+- Guard with a raise path: `actual_missing or expected_missing`.
+- Guard with a raise path: `not _null_safe_equal(actual, rebuilt)`.
+- Guard with a raise path: `actual_missing != expected_missing`.
+- Explicit raise expressions: `PlanningFeaturesError('Planning relation count differs from the spatial reconstruction')`, `PlanningFeaturesError('Planning relation index or row order differs from the spatial reconstruction')`, `PlanningFeaturesError('Planning relation schema differs from the spatial reconstruction')`, `PlanningFeaturesError(f'{label} differs from the spatial reconstruction')`, `PlanningFeaturesError(f'{label} null pattern differs from spatial reconstruction')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_null_safe_equal`, `_require_close`, `bool`, `deterministic_frame_schema_signature`, `enumerate`, `expected[column].tolist`, `float`, `len`, `pd.isna`, `supplied.index.equals`, `supplied[column].tolist`, `zip`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_compare_rebuilt_relations`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
+```python
+def _compare_rebuilt_relations(
+    supplied: pd.DataFrame,
+    expected: pd.DataFrame,
+) -> None:
+    if deterministic_frame_schema_signature(
+        supplied
+    ) != deterministic_frame_schema_signature(expected):
+        raise PlanningFeaturesError(
+            "Planning relation schema differs from the spatial reconstruction"
+        )
+    if not supplied.index.equals(expected.index):
+        raise PlanningFeaturesError(
+            "Planning relation index or row order differs from the spatial reconstruction"
+        )
+    if len(supplied) != len(expected):
+        raise PlanningFeaturesError(
+            "Planning relation count differs from the spatial reconstruction"
+        )
+    for column in RELATION_COLUMNS:
+        actual_values = supplied[column].tolist()
+        expected_values = expected[column].tolist()
+        for position, (actual, rebuilt) in enumerate(
+            zip(actual_values, expected_values, strict=True)
+        ):
+            label = f"Planning relation {column} at row {position}"
+            if column in RELATION_FLOAT_COLUMNS:
+                actual_missing = bool(pd.isna(actual))
+                expected_missing = bool(pd.isna(rebuilt))
+                if actual_missing or expected_missing:
+                    if actual_missing != expected_missing:
+                        raise PlanningFeaturesError(
+                            f"{label} null pattern differs from spatial reconstruction"
+                        )
+                    continue
+                _require_close(actual, float(rebuilt), label)
+            elif not _null_safe_equal(actual, rebuilt):
+                raise PlanningFeaturesError(
+                    f"{label} differs from the spatial reconstruction"
+                )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_compare_rebuilt_parcel_output`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _compare_rebuilt_parcel_output(
@@ -3349,63 +4564,93 @@ def _compare_rebuilt_parcel_output(
 
 **Purpose**
 
-Compares rebuilt parcel output according to the exact implementation and guards in this file.
+Private `planning` helper for compare rebuilt parcel output; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `supplied` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `expected` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `deterministic_frame_schema_signature(supplied) != deterministic_frame_schema_signature(expected)`. When true: Raises `PlanningFeaturesError('Planning-feature parcel output schema differs from reconstruction')`.
-2. Checks `not supplied.index.equals(expected.index)`. When true: Raises `PlanningFeaturesError('Planning-feature parcel output index differs from reconstruction')`.
-3. Checks `not _crs(supplied.crs, 'Parcel output').equals(_crs(expected.crs, 'Expected parcel output')) or not np.array_equal(supplied.geometry.to_wkb(), expected.geometry.to_wkb())`. When true: Raises `PlanningFeaturesError('Planning-feature parcel geometry or CRS differs from reconstruction')`.
-4. Computes `summary_float_columns` from `PARCEL_OUTPUT_COLUMNS - PARCEL_COUNT_COLUMNS - {'planning_feature_document_id', 'planning_feature_archive_sha256'}`.
-5. Iterates `column` over `supplied.columns`. For each value: Checks `column == 'geometry'`. When true: Executes `continue` control flow. Checks `column in summary_float_columns`. When true: Iterates `(position, (actual, rebuilt))` over `enumerate(zip(supplied[column].tolist(), expected[column].tolist(), strict=True))`. For each value: Calls `_require_close(actual, float(rebuilt), f'Parcel summary {column} at row {position}')` for its validation or side effect. Otherwise: Checks `not supplied[column].equals(expected[column])`. When true: Raises `PlanningFeaturesError(f'Planning-feature parcel column {column} differs from reconstruction')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `deterministic_frame_schema_signature(supplied) != deterministic_frame_schema_signature(expected)` is true.
-- Rejects or diverts the path when `not supplied.index.equals(expected.index)` is true.
-- Rejects or diverts the path when `not _crs(supplied.crs, 'Parcel output').equals(_crs(expected.crs, 'Expected parcel output')) or not np.array_equal(supplied.geometry.to_wkb(), expected.geometry.to_wkb())` is true.
-- Rejects or diverts the path when `not supplied[column].equals(expected[column])` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `deterministic_frame_schema_signature(supplied) != deterministic_frame_schema_signature(expected)`.
+- Guard with a raise path: `not supplied.index.equals(expected.index)`.
+- Guard with a raise path: `not _crs(supplied.crs, 'Parcel output').equals(_crs(expected.crs, 'Expected parcel output')) or not np.array_equal(supplied.geometry.to_wkb(), expected.geometry.to_wkb())`.
+- Guard with a raise path: `not supplied[column].equals(expected[column])`.
+- Explicit raise expressions: `PlanningFeaturesError('Planning-feature parcel geometry or CRS differs from reconstruction')`, `PlanningFeaturesError('Planning-feature parcel output index differs from reconstruction')`, `PlanningFeaturesError('Planning-feature parcel output schema differs from reconstruction')`, `PlanningFeaturesError(f'Planning-feature parcel column {column} differs from reconstruction')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `expected.geometry.to_wkb`, `supplied.geometry.to_wkb`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_crs`, `_crs(supplied.crs, 'Parcel output').equals`, `_require_close`, `deterministic_frame_schema_signature`, `enumerate`, `expected.geometry.to_wkb`, `expected[column].tolist`, `float`, `np.array_equal`, `supplied.geometry.to_wkb`, `supplied.index.equals`, `supplied[column].equals`, `supplied[column].tolist`, `zip`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_compare_rebuilt_parcel_output`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
+```python
+def _compare_rebuilt_parcel_output(
+    supplied: gpd.GeoDataFrame,
+    expected: gpd.GeoDataFrame,
+) -> None:
+    if deterministic_frame_schema_signature(
+        supplied
+    ) != deterministic_frame_schema_signature(expected):
+        raise PlanningFeaturesError(
+            "Planning-feature parcel output schema differs from reconstruction"
+        )
+    if not supplied.index.equals(expected.index):
+        raise PlanningFeaturesError(
+            "Planning-feature parcel output index differs from reconstruction"
+        )
+    if not _crs(supplied.crs, "Parcel output").equals(
+        _crs(expected.crs, "Expected parcel output")
+    ) or not np.array_equal(supplied.geometry.to_wkb(), expected.geometry.to_wkb()):
+        raise PlanningFeaturesError(
+            "Planning-feature parcel geometry or CRS differs from reconstruction"
+        )
+    summary_float_columns = (
+        PARCEL_OUTPUT_COLUMNS
+        - PARCEL_COUNT_COLUMNS
+        - {"planning_feature_document_id", "planning_feature_archive_sha256"}
+    )
+    for column in supplied.columns:
+        if column == "geometry":
+            continue
+        if column in summary_float_columns:
+            for position, (actual, rebuilt) in enumerate(
+                zip(
+                    supplied[column].tolist(),
+                    expected[column].tolist(),
+                    strict=True,
+                )
+            ):
+                _require_close(
+                    actual,
+                    float(rebuilt),
+                    f"Parcel summary {column} at row {position}",
+                )
+        elif not supplied[column].equals(expected[column]):
+            raise PlanningFeaturesError(
+                f"Planning-feature parcel column {column} differs from reconstruction"
+            )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_normalized_planning_feature_inputs`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_normalized_planning_feature_inputs(
@@ -3422,92 +4667,193 @@ def _validate_normalized_planning_feature_inputs(
 
 Validate exact STEP 7D.3.1 facts against their document and parcels.
 
-**Inputs**
+**Return contract**
 
-- `planning_document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `surface_features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `line_features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `point_features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `relations` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `PlanningFeatureInputValidation`.
+- Every observed return expression is reproduced without truncation:
+```python
+PlanningFeatureInputValidation(gpu_related_source_files_sha256=_gpu_related_source_files_sha256(planning_document, validated_sources), expected_relations_content_sha256=_expected_relations_content_sha256(expected_relations), related_source_layer_count=len(validated_sources), related_source_file_count=len(unique_files), expected_relation_count=len(expected_relations))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `PlanningFeatureInputValidation`. Observed return expression(s): `PlanningFeatureInputValidation(gpu_related_source_files_sha256=_gpu_related_source_files_sha256(planning_document, validated_sources), expected_relations_content_sha256=_expected_relations_content_sha256(expected_relations), related_source_layer_count=len(validated_sources), related_source_file_count=len(unique_files), expected_relation_count=len(expected_relations))`.
-
-**Algorithm**
-
-1. Computes `present_outputs` from `PARCEL_OUTPUT_COLUMNS & set(parcels.columns)`.
-2. Checks `present_outputs and present_outputs != PARCEL_OUTPUT_COLUMNS`. When true: Computes `missing` from `sorted(PARCEL_OUTPUT_COLUMNS - present_outputs)`. Raises `PlanningFeaturesError('Parcel planning-feature summaries are incomplete: ' + ', '.join(missing))`.
-3. Calls `_validate_parcels(parcels, allow_output_columns=True)` for its validation or side effect.
-4. Computes `source_parcels` from `parcels.drop(columns=list(PARCEL_OUTPUT_COLUMNS)) if present_outputs else parcels`.
-5. Calls `_validate_parcels(source_parcels)` for its validation or side effect.
-6. Computes `metric_parcels` from `_metric_parcels(source_parcels)`.
-7. Computes `(surfaces, lines, points, validated_sources)` from `_normalized_catalogs(planning_document)`.
-8. Computes `expected_catalogs` from `(surfaces, lines, points)`.
-9. Computes `catalogs` from `(_validate_catalog_contract(surface_features, 'SURFACE'), _validate_catalog_contract(line_features, 'LINE'), _validate_catalog_contract(point_features, 'POINT'))`.
-10. Iterates `(supplied, expected, label)` over `zip(catalogs, expected_catalogs, ('SURFACE feature catalog', 'LINE feature catalog', 'POINT feature catalog'), strict=True)`. For each value: Calls `_compare_normalized_catalog(supplied, expected, label)` for its validation or side effect.
-11. Computes `all_feature_ids` from `[identifier for catalog in catalogs for identifier in catalog['planning_feature_id'].tolist()]`.
-12. Checks `len(all_feature_ids) != len(set(all_feature_ids))`. When true: Raises `PlanningFeaturesError('planning_feature_id values must be globally unique')`.
-13. Checks `not isinstance(relations, pd.DataFrame) or isinstance(relations, gpd.GeoDataFrame)`. When true: Raises `PlanningFeaturesError('Planning relations must be a DataFrame')`.
-14. Runs guarded operation: Calls `validate_canonical_frame_schema(relations, columns=RELATION_COLUMNS, dtypes=NORMALIZED_RELATION_DTYPES, label='Planning relations', geospatial=False, index_class='RangeIndex')` for its validation or side effect. Handles `(TypeError, ValueError)`.
-15. Calls `_validate_exact_strings(relations['parcel_id'], 'planning relation parcel_id')` for its validation or side effect.
-16. Calls `_validate_exact_strings(relations['planning_feature_id'], 'planning relation planning_feature_id')` for its validation or side effect.
-17. Checks `relations.duplicated(['parcel_id', 'planning_feature_id']).any()`. When true: Raises `PlanningFeaturesError('Parcel/planning-feature relations must be unique')`.
-18. Checks `not set(relations['planning_feature_id']).issubset(set(all_feature_ids))`. When true: Raises `PlanningFeaturesError('Planning relation references an unknown feature')`.
-19. Computes `parcel_areas` from `dict(zip(metric_parcels['parcel_id'].tolist(), metric_parcels['_parcel_area_m2'].tolist(), strict=True))`.
-20. Iterates `(parcel_id, actual_area)` over `relations[['parcel_id', 'parcel_metric_area_m2']].itertuples(index=False, name=None)`. For each value: Checks `parcel_id not in parcel_areas`. When true: Raises `PlanningFeaturesError('Planning relation references an unknown source parcel')`. Calls `_require_close(actual_area, float(parcel_areas[parcel_id]), 'Relation parcel metric area')` for its validation or side effect.
-21. Calls `_validate_relation_semantics(relations)` for its validation or side effect.
-22. Calls `_validate_relation_catalog_consistency(relations, catalogs)` for its validation or side effect.
-23. Computes `(surface_work, line_work, point_work, expected_relations)` from `_build_relation_tables(metric_parcels, *expected_catalogs)`.
-24. Calls `_compare_rebuilt_relations(relations, expected_relations)` for its validation or side effect.
-25. Checks `present_outputs`. When true: Computes `context` from `_planning_context(planning_document)`. Computes `expected_output` from `_attach_parcel_summaries(source_parcels, metric_parcels, surface_work, line_work, point_work, context)`. Calls `_compare_rebuilt_parcel_output(parcels, expected_output)` for its validation or side effect. Executes 3 additional source-ordered statement(s).
-26. Computes `unique_files` from `{item.relative_path for source in validated_sources for item in source.files}`.
-27. Returns `PlanningFeatureInputValidation(gpu_related_source_files_sha256=_gpu_related_source_files_sha256(planning_document, validated_sources), expected_relations_content_sha256=_expected_relations_content_sha256(expected_relations), related_source_layer_count=len(validated_sources), related_source_file_count=len(unique_files), expected_relation_count=len(expected_r…`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `present_outputs and present_outputs != PARCEL_OUTPUT_COLUMNS` is true.
-- Rejects or diverts the path when `len(all_feature_ids) != len(set(all_feature_ids))` is true.
-- Rejects or diverts the path when `not isinstance(relations, pd.DataFrame) or isinstance(relations, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `relations.duplicated(['parcel_id', 'planning_feature_id']).any()` is true.
-- Rejects or diverts the path when `not set(relations['planning_feature_id']).issubset(set(all_feature_ids))` is true.
-- Rejects or diverts the path when `present_outputs` is true.
-- Rejects or diverts the path when `parcel_id not in parcel_areas` is true.
-- Rejects or diverts the path when `not parcels['planning_feature_document_id'].eq(context.document_id).all()` is true.
-- Rejects or diverts the path when `not parcels['planning_feature_archive_sha256'].eq(context.archive_sha256).all()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `present_outputs and present_outputs != PARCEL_OUTPUT_COLUMNS`.
+- Guard with a raise path: `len(all_feature_ids) != len(set(all_feature_ids))`.
+- Guard with a raise path: `not isinstance(relations, pd.DataFrame) or isinstance(relations, gpd.GeoDataFrame)`.
+- Guard with a raise path: `relations.duplicated(['parcel_id', 'planning_feature_id']).any()`.
+- Guard with a raise path: `not set(relations['planning_feature_id']).issubset(set(all_feature_ids))`.
+- Guard with a raise path: `present_outputs`.
+- Guard with a raise path: `parcel_id not in parcel_areas`.
+- Guard with a raise path: `not parcels['planning_feature_document_id'].eq(context.document_id).all()`.
+- Guard with a raise path: `not parcels['planning_feature_archive_sha256'].eq(context.archive_sha256).all()`.
+- Explicit raise expressions: `PlanningFeaturesError('Parcel planning-feature archive lineage differs')`, `PlanningFeaturesError('Parcel planning-feature document lineage differs')`, `PlanningFeaturesError('Parcel planning-feature summaries are incomplete: ' + ', '.join(missing))`, `PlanningFeaturesError('Parcel/planning-feature relations must be unique')`, `PlanningFeaturesError('Planning relation references an unknown feature')`, `PlanningFeaturesError('Planning relation references an unknown source parcel')`, `PlanningFeaturesError('Planning relations must be a DataFrame')`, `PlanningFeaturesError('planning_feature_id values must be globally unique')`, `PlanningFeaturesError(str(error))`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `metric_parcels['_parcel_area_m2'].tolist`, `relations[['parcel_id', 'parcel_metric_area_m2']].itertuples`.
+- Hashing: `_expected_relations_content_sha256`, `_gpu_related_source_files_sha256`, `parcels['planning_feature_archive_sha256'].eq`, `parcels['planning_feature_archive_sha256'].eq(context.archive_sha256).all`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `PlanningFeatureInputValidation`, `PlanningFeaturesError`, `_attach_parcel_summaries`, `_build_relation_tables`, `_compare_normalized_catalog`, `_compare_rebuilt_parcel_output`, `_compare_rebuilt_relations`, `_expected_relations_content_sha256`, `_gpu_related_source_files_sha256`, `_metric_parcels`, `_normalized_catalogs`, `_planning_context`, `_require_close`, `_validate_catalog_contract`, `_validate_exact_strings`, `_validate_parcel_summaries`, `_validate_parcels`, `_validate_relation_catalog_consistency`, `_validate_relation_semantics`, `catalog['planning_feature_id'].tolist`, `dict`, `float`, `isinstance`, `len`, `list`, `metric_parcels['_parcel_area_m2'].tolist`, `metric_parcels['parcel_id'].tolist`, `parcels.drop`, `parcels['planning_feature_archive_sha256'].eq`, `parcels['planning_feature_archive_sha256'].eq(context.archive_sha256).all`, `parcels['planning_feature_document_id'].eq`, `parcels['planning_feature_document_id'].eq(context.document_id).all`, `relations.duplicated`, `relations.duplicated(['parcel_id', 'planning_feature_id']).any`, `relations[['parcel_id', 'parcel_metric_area_m2']].itertuples`, `set`, `set(relations['planning_feature_id']).issubset`, `sorted`, `str`, `validate_canonical_frame_schema`, `zip`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::validate_normalized_planning_feature_inputs` via `_validate_normalized_planning_feature_inputs`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `validate_normalized_planning_feature_inputs`
+```python
+def _validate_normalized_planning_feature_inputs(
+    planning_document: GpuPlanningDocument,
+    parcels: gpd.GeoDataFrame,
+    surface_features: gpd.GeoDataFrame,
+    line_features: gpd.GeoDataFrame,
+    point_features: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+) -> PlanningFeatureInputValidation:
+    """Validate exact STEP 7D.3.1 facts against their document and parcels."""
 
-**Tests**
+    present_outputs = PARCEL_OUTPUT_COLUMNS & set(parcels.columns)
+    if present_outputs and present_outputs != PARCEL_OUTPUT_COLUMNS:
+        missing = sorted(PARCEL_OUTPUT_COLUMNS - present_outputs)
+        raise PlanningFeaturesError(
+            "Parcel planning-feature summaries are incomplete: " + ", ".join(missing)
+        )
+    _validate_parcels(parcels, allow_output_columns=True)
+    source_parcels = (
+        parcels.drop(columns=list(PARCEL_OUTPUT_COLUMNS))
+        if present_outputs
+        else parcels
+    )
+    _validate_parcels(source_parcels)
+    metric_parcels = _metric_parcels(source_parcels)
+    surfaces, lines, points, validated_sources = _normalized_catalogs(planning_document)
+    expected_catalogs = (surfaces, lines, points)
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    catalogs = (
+        _validate_catalog_contract(surface_features, "SURFACE"),
+        _validate_catalog_contract(line_features, "LINE"),
+        _validate_catalog_contract(point_features, "POINT"),
+    )
+    for supplied, expected, label in zip(
+        catalogs,
+        expected_catalogs,
+        ("SURFACE feature catalog", "LINE feature catalog", "POINT feature catalog"),
+        strict=True,
+    ):
+        _compare_normalized_catalog(supplied, expected, label)
+    all_feature_ids = [
+        identifier
+        for catalog in catalogs
+        for identifier in catalog["planning_feature_id"].tolist()
+    ]
+    if len(all_feature_ids) != len(set(all_feature_ids)):
+        raise PlanningFeaturesError(
+            "planning_feature_id values must be globally unique"
+        )
 
-**Business interpretation**
+    if not isinstance(relations, pd.DataFrame) or isinstance(
+        relations, gpd.GeoDataFrame
+    ):
+        raise PlanningFeaturesError("Planning relations must be a DataFrame")
+    try:
+        validate_canonical_frame_schema(
+            relations,
+            columns=RELATION_COLUMNS,
+            dtypes=NORMALIZED_RELATION_DTYPES,
+            label="Planning relations",
+            geospatial=False,
+            index_class="RangeIndex",
+        )
+    except (TypeError, ValueError) as error:
+        raise PlanningFeaturesError(str(error)) from error
+    _validate_exact_strings(relations["parcel_id"], "planning relation parcel_id")
+    _validate_exact_strings(
+        relations["planning_feature_id"], "planning relation planning_feature_id"
+    )
+    if relations.duplicated(["parcel_id", "planning_feature_id"]).any():
+        raise PlanningFeaturesError("Parcel/planning-feature relations must be unique")
+    if not set(relations["planning_feature_id"]).issubset(set(all_feature_ids)):
+        raise PlanningFeaturesError("Planning relation references an unknown feature")
+    parcel_areas = dict(
+        zip(
+            metric_parcels["parcel_id"].tolist(),
+            metric_parcels["_parcel_area_m2"].tolist(),
+            strict=True,
+        )
+    )
+    for parcel_id, actual_area in relations[
+        ["parcel_id", "parcel_metric_area_m2"]
+    ].itertuples(index=False, name=None):
+        if parcel_id not in parcel_areas:
+            raise PlanningFeaturesError(
+                "Planning relation references an unknown source parcel"
+            )
+        _require_close(
+            actual_area,
+            float(parcel_areas[parcel_id]),
+            "Relation parcel metric area",
+        )
+    _validate_relation_semantics(relations)
+    _validate_relation_catalog_consistency(relations, catalogs)
+    surface_work, line_work, point_work, expected_relations = _build_relation_tables(
+        metric_parcels, *expected_catalogs
+    )
+    _compare_rebuilt_relations(relations, expected_relations)
 
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
+    if present_outputs:
+        context = _planning_context(planning_document)
+        expected_output = _attach_parcel_summaries(
+            source_parcels,
+            metric_parcels,
+            surface_work,
+            line_work,
+            point_work,
+            context,
+        )
+        _compare_rebuilt_parcel_output(parcels, expected_output)
+        _validate_parcel_summaries(
+            source_parcels, parcels, expected_relations, surface_work
+        )
+        if not parcels["planning_feature_document_id"].eq(context.document_id).all():
+            raise PlanningFeaturesError(
+                "Parcel planning-feature document lineage differs"
+            )
+        if (
+            not parcels["planning_feature_archive_sha256"]
+            .eq(context.archive_sha256)
+            .all()
+        ):
+            raise PlanningFeaturesError(
+                "Parcel planning-feature archive lineage differs"
+            )
 
-**Does NOT prove**
+    unique_files = {
+        item.relative_path for source in validated_sources for item in source.files
+    }
+    return PlanningFeatureInputValidation(
+        gpu_related_source_files_sha256=_gpu_related_source_files_sha256(
+            planning_document, validated_sources
+        ),
+        expected_relations_content_sha256=(
+            _expected_relations_content_sha256(expected_relations)
+        ),
+        related_source_layer_count=len(validated_sources),
+        related_source_file_count=len(unique_files),
+        expected_relation_count=len(expected_relations),
+    )
+```
+
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `validate_normalized_planning_feature_inputs`
 
-**Signature**
+**Exact signature**
 
 ```python
 def validate_normalized_planning_feature_inputs(
@@ -3524,68 +4870,98 @@ def validate_normalized_planning_feature_inputs(
 
 Validate exact STEP 7D.3.1 facts against their document and parcels.
 
-**Inputs**
+**Return contract**
 
-- `planning_document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `surface_features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `line_features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `point_features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `relations` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `PlanningFeatureInputValidation`.
+- Every observed return expression is reproduced without truncation:
+```python
+_validate_normalized_planning_feature_inputs(planning_document, parcels, surface_features, line_features, point_features, relations)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `PlanningFeatureInputValidation`. Observed return expression(s): `_validate_normalized_planning_feature_inputs(planning_document, parcels, surface_features, line_features, point_features, relations)`.
-
-**Algorithm**
-
-1. Runs guarded operation: Returns `_validate_normalized_planning_feature_inputs(planning_document, parcels, surface_features, line_features, point_features, relations)`. Handles `PlanningFeaturesError`, `Exception`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `PlanningFeaturesError('Normalized planning-feature input validation failed safely')`, `re-raise`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_validate_normalized_planning_feature_inputs`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
+    ParcelPlanningFeaturesResult,
+    PlanningFeatureInputValidation,
+    PlanningFeaturesError,
+    intersect_parcels_with_gpu_planning_features,
+    validate_normalized_planning_feature_inputs,
+)`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `validate_normalized_planning_feature_inputs`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `validate_normalized_planning_feature_inputs`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `validate_normalized_planning_feature_inputs`.
+- import/re-export: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `from landscout.stages.enrich_planning_features import (
+    PlanningFeatureInputValidation,
+    validate_normalized_planning_feature_inputs,
+)`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_validate_source_complete` via `validate_normalized_planning_feature_inputs`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_validates_step_7d_3_1_result` via `validate_normalized_planning_feature_inputs`.
+- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_is_exported` via `stages.validate_normalized_planning_feature_inputs`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_public_source_validation_hashes_survive_parquet_readback` via `validate_normalized_planning_feature_inputs`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_rejects_stripped_catalog` via `validate_normalized_planning_feature_inputs`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_class_change` via `validate_normalized_planning_feature_inputs`.
+- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
+    ParcelPlanningFeaturesResult,
+    PlanningFeatureInputValidation,
+    PlanningFeaturesError,
+    _validate_result,
+    intersect_parcels_with_gpu_planning_features,
+    validate_normalized_planning_feature_inputs,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_result`
-- `src/landscout/stages/resolve_planning_feature_codes.py` — `_build_result`
-- `src/landscout/stages/resolve_planning_feature_codes.py` — `resolve_planning_feature_codes`
-- `tests/unit/test_enrich_planning_features.py` — `_validate_source_complete`
-- `tests/unit/test_enrich_planning_features.py` — `test_public_normalized_input_contract_rejects_stripped_catalog`
-- `tests/unit/test_enrich_planning_features.py` — `test_public_normalized_input_contract_validates_step_7d_3_1_result`
-- `tests/unit/test_enrich_planning_features.py` — `test_public_source_validation_hashes_survive_parquet_readback`
-- `tests/unit/test_enrich_planning_features.py` — `test_source_complete_contract_rejects_relation_index_class_change`
+```python
+def validate_normalized_planning_feature_inputs(
+    planning_document: GpuPlanningDocument,
+    parcels: gpd.GeoDataFrame,
+    surface_features: gpd.GeoDataFrame,
+    line_features: gpd.GeoDataFrame,
+    point_features: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+) -> PlanningFeatureInputValidation:
+    """Validate exact STEP 7D.3.1 facts against their document and parcels."""
 
-**Tests**
+    try:
+        return _validate_normalized_planning_feature_inputs(
+            planning_document,
+            parcels,
+            surface_features,
+            line_features,
+            point_features,
+            relations,
+        )
+    except PlanningFeaturesError:
+        raise
+    except Exception as error:
+        raise PlanningFeaturesError(
+            "Normalized planning-feature input validation failed safely"
+        ) from error
+```
 
-- `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_rejects_stripped_catalog`
-- `tests/unit/test_enrich_planning_features.py::test_public_normalized_input_contract_validates_step_7d_3_1_result`
-- `tests/unit/test_enrich_planning_features.py::test_public_source_validation_hashes_survive_parquet_readback`
-- `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_relation_index_class_change`
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_parcel_summaries`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_parcel_summaries(
@@ -3598,69 +4974,170 @@ def _validate_parcel_summaries(
 
 **Purpose**
 
-Validates and rejects malformed parcel summaries according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent parcel summaries; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `source` (`gpd.GeoDataFrame`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `output` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `relations` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `surface_work` (`pd.DataFrame | None`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `metric` from `_metric_parcels(source)`.
-2. Computes `metric_areas` from `dict(zip(metric['parcel_id'].tolist(), metric['_parcel_area_m2'].tolist(), strict=True))`.
-3. Calls `_integer_values(output, PARCEL_COUNT_COLUMNS, 'Parcel summary', allow_null=False)` for its validation or side effect.
-4. Computes `float_columns` from `tuple(PARCEL_OUTPUT_COLUMNS - PARCEL_COUNT_COLUMNS - {'planning_feature_document_id', 'planning_feature_archive_sha256'})`.
-5. Calls `_numeric_values(output, float_columns, 'Parcel summary', allow_null=False)` for its validation or side effect.
-6. Iterates `(_, parcel)` over `output.iterrows()`. For each value: Computes `parcel_id` from `parcel['parcel_id']`. Computes `rows` from `relations.loc[relations['parcel_id'] == parcel_id]`. Computes `surfaces` from `rows.loc[rows['geometry_kind'] == 'SURFACE']`. Executes 14 additional source-ordered statement(s).
-7. Checks `surface_work is not None`. When true: Computes `areas` from `metric['_parcel_area_m2'].to_numpy(dtype='float64')`. Computes `positive` from `surface_work.loc[surface_work['relation_type'] == 'AREA_OVERLAP'] if not surface_work.empty else surface_work`. Computes `expected_total` from `_surface_union_summary(positive, areas, len(output))`. Executes 1 additional source-ordered statement(s).
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `planning_union - raw_sum > technical_overlay_tolerance(raw_sum)` is true.
-- Rejects or diverts the path when `planning_union - parcel_area > technical_overlay_tolerance(parcel_area)` is true.
-- Rejects or diverts the path when `parcel[column] != expected` is true.
-- Rejects or diverts the path when `union - planning_union > technical_overlay_tolerance(planning_union)` is true.
-- Rejects or diverts the path when `abs(pct - expected_pct) > pct_tolerance` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `planning_union - raw_sum > technical_overlay_tolerance(raw_sum)`.
+- Guard with a raise path: `planning_union - parcel_area > technical_overlay_tolerance(parcel_area)`.
+- Guard with a raise path: `parcel[column] != expected`.
+- Guard with a raise path: `union - planning_union > technical_overlay_tolerance(planning_union)`.
+- Guard with a raise path: `abs(pct - expected_pct) > pct_tolerance`.
+- Explicit raise expressions: `PlanningFeaturesError('Family surface union exceeds total union')`, `PlanningFeaturesError('Surface union exceeds parcel area')`, `PlanningFeaturesError('Surface union exceeds raw intersection sum')`, `PlanningFeaturesError(f'Parcel summary {column} is inconsistent with relations')`, `PlanningFeaturesError(f'{prefix} surface percentage is inconsistent')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `lines['intersection_length_m'].sum`, `metric['_parcel_area_m2'].to_numpy`, `metric['_parcel_area_m2'].tolist`, `points['point_members_boundary_count'].sum`, `positive_surfaces['intersection_area_m2'].sum`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningFeaturesError`, `_integer_values`, `_metric_parcels`, `_numeric_values`, `_require_close`, `_surface_union_summary`, `abs`, `dict`, `exact_counts.items`, `float`, `int`, `len`, `lines['intersection_length_m'].sum`, `lines['relation_type'].eq`, `lines['relation_type'].eq('LENGTH_OVERLAP').sum`, `lines['relation_type'].eq('TOUCH_ONLY').sum`, `metric['_parcel_area_m2'].to_numpy`, `metric['_parcel_area_m2'].tolist`, `metric['parcel_id'].tolist`, `output.iterrows`, `output[column].tolist`, `points['point_members_boundary_count'].sum`, `points['point_members_inside_count'].sum`, `positive_surfaces['intersection_area_m2'].sum`, `surfaces['feature_family'].eq`, `surfaces['feature_family'].eq('INFORMATION').sum`, `surfaces['feature_family'].eq('PRESCRIPTION').sum`, `surfaces['relation_type'].eq`, `surfaces['relation_type'].eq('TOUCH_ONLY').sum`, `technical_overlay_tolerance`, `tuple`, `zip`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_parcel_summaries`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `_validate_parcel_summaries`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_normalized_planning_feature_inputs`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_result`
+```python
+def _validate_parcel_summaries(
+    source: gpd.GeoDataFrame,
+    output: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+    surface_work: pd.DataFrame | None,
+) -> None:
+    metric = _metric_parcels(source)
+    metric_areas = dict(
+        zip(
+            metric["parcel_id"].tolist(),
+            metric["_parcel_area_m2"].tolist(),
+            strict=True,
+        )
+    )
+    _integer_values(output, PARCEL_COUNT_COLUMNS, "Parcel summary", allow_null=False)
+    float_columns = tuple(
+        PARCEL_OUTPUT_COLUMNS
+        - PARCEL_COUNT_COLUMNS
+        - {"planning_feature_document_id", "planning_feature_archive_sha256"}
+    )
+    _numeric_values(output, float_columns, "Parcel summary", allow_null=False)
 
-**Tests**
+    for _, parcel in output.iterrows():
+        parcel_id = parcel["parcel_id"]
+        rows = relations.loc[relations["parcel_id"] == parcel_id]
+        surfaces = rows.loc[rows["geometry_kind"] == "SURFACE"]
+        positive_surfaces = surfaces.loc[surfaces["relation_type"] == "AREA_OVERLAP"]
+        lines = rows.loc[rows["geometry_kind"] == "LINE"]
+        points = rows.loc[rows["geometry_kind"] == "POINT"]
+        exact_counts = {
+            "planning_surface_relation_count": len(surfaces),
+            "planning_surface_area_overlap_count": len(positive_surfaces),
+            "planning_surface_touch_count": int(
+                surfaces["relation_type"].eq("TOUCH_ONLY").sum()
+            ),
+            "prescription_surface_relation_count": int(
+                surfaces["feature_family"].eq("PRESCRIPTION").sum()
+            ),
+            "information_surface_relation_count": int(
+                surfaces["feature_family"].eq("INFORMATION").sum()
+            ),
+            "planning_line_relation_count": len(lines),
+            "planning_line_length_overlap_count": int(
+                lines["relation_type"].eq("LENGTH_OVERLAP").sum()
+            ),
+            "planning_line_touch_count": int(
+                lines["relation_type"].eq("TOUCH_ONLY").sum()
+            ),
+            "planning_point_relation_count": len(points),
+            "planning_point_inside_count": int(
+                points["point_members_inside_count"].sum()
+            ),
+            "planning_point_boundary_count": int(
+                points["point_members_boundary_count"].sum()
+            ),
+        }
+        for column, expected in exact_counts.items():
+            if parcel[column] != expected:
+                raise PlanningFeaturesError(
+                    f"Parcel summary {column} is inconsistent with relations"
+                )
+        raw_sum = float(positive_surfaces["intersection_area_m2"].sum())
+        line_sum = float(lines["intersection_length_m"].sum())
+        _require_close(
+            parcel["planning_surface_intersection_area_sum_m2"],
+            raw_sum,
+            "planning_surface_intersection_area_sum_m2",
+        )
+        _require_close(
+            parcel["planning_line_intersection_length_sum_m"],
+            line_sum,
+            "planning_line_intersection_length_sum_m",
+        )
+        parcel_area = float(metric_areas[parcel_id])
+        planning_union = float(parcel["planning_surface_covered_union_area_m2"])
+        if planning_union - raw_sum > technical_overlay_tolerance(raw_sum):
+            raise PlanningFeaturesError("Surface union exceeds raw intersection sum")
+        if planning_union - parcel_area > technical_overlay_tolerance(parcel_area):
+            raise PlanningFeaturesError("Surface union exceeds parcel area")
+        for prefix in ("planning", "prescription", "information"):
+            union = float(parcel[f"{prefix}_surface_covered_union_area_m2"])
+            pct = float(parcel[f"{prefix}_surface_covered_pct"])
+            if union - planning_union > technical_overlay_tolerance(planning_union):
+                raise PlanningFeaturesError("Family surface union exceeds total union")
+            expected_pct = (
+                100.0 if union == parcel_area else 100.0 * union / parcel_area
+            )
+            pct_tolerance = (
+                100.0 * technical_overlay_tolerance(parcel_area) / parcel_area
+            )
+            if abs(pct - expected_pct) > pct_tolerance:
+                raise PlanningFeaturesError(
+                    f"{prefix} surface percentage is inconsistent"
+                )
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    if surface_work is not None:
+        areas = metric["_parcel_area_m2"].to_numpy(dtype="float64")
+        positive = (
+            surface_work.loc[surface_work["relation_type"] == "AREA_OVERLAP"]
+            if not surface_work.empty
+            else surface_work
+        )
+        expected_total = _surface_union_summary(positive, areas, len(output))
+        for family, column in (
+            (None, "planning_surface_covered_union_area_m2"),
+            ("PRESCRIPTION", "prescription_surface_covered_union_area_m2"),
+            ("INFORMATION", "information_surface_covered_union_area_m2"),
+        ):
+            expected_union = expected_total
+            if family is not None:
+                family_rows = (
+                    positive.loc[positive["feature_family"] == family]
+                    if not positive.empty
+                    else positive
+                )
+                expected_union = _surface_union_summary(family_rows, areas, len(output))
+            for actual, value in zip(
+                output[column].tolist(), expected_union, strict=True
+            ):
+                _require_close(actual, float(value), column)
+```
 
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_result`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_result(
@@ -3675,101 +5152,154 @@ def _validate_result(
 
 **Purpose**
 
-Validates and rejects malformed result according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent result; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `source` (`gpd.GeoDataFrame`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `result` (`ParcelPlanningFeaturesResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `surface_work` (`pd.DataFrame | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `planning_document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_inputs_already_rebuilt` (`bool`; optional/default `False`) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `output` from `result.parcels`.
-2. Computes `missing_output` from `sorted(PARCEL_OUTPUT_COLUMNS - set(output.columns))`.
-3. Checks `missing_output`. When true: Raises `PlanningFeaturesError('Planning-feature parcel output is missing columns: ' + ', '.join(missing_output))`.
-4. Checks `len(output) != len(source)`. When true: Raises `PlanningFeaturesError('Planning-feature parcel count changed')`.
-5. Checks `output['parcel_id'].tolist() != source['parcel_id'].tolist()`. When true: Raises `PlanningFeaturesError('Planning-feature parcel IDs or order changed')`.
-6. Checks `not output.index.equals(source.index)`. When true: Raises `PlanningFeaturesError('Planning-feature parcel index changed')`.
-7. Checks `output.crs != source.crs or not np.array_equal(output.geometry.to_wkb(), source.geometry.to_wkb())`. When true: Raises `PlanningFeaturesError('Planning-feature parcel geometry or CRS changed')`.
-8. Iterates `column` over `source.columns`. For each value: Checks `column == 'geometry'`. When true: Executes `continue` control flow. Checks `not output[column].equals(source[column])`. When true: Raises `PlanningFeaturesError(f'Existing parcel column changed: {column}')`.
-9. Computes `catalogs` from `(result.surface_features, result.line_features, result.point_features)`.
-10. Checks `not source_inputs_already_rebuilt`. When true: Calls `validate_normalized_planning_feature_inputs(planning_document, source, *catalogs, result.relations)` for its validation or side effect.
-11. Computes `all_feature_ids` from `[identifier for catalog in catalogs for identifier in catalog['planning_feature_id'].tolist()]`.
-12. Computes `known_features` from `set(all_feature_ids)`.
-13. Computes `relations` from `result.relations`.
-14. Checks `not set(relations['parcel_id']).issubset(set(output['parcel_id']))`. When true: Raises `PlanningFeaturesError('Planning relation references an unknown parcel')`.
-15. Checks `not set(relations['planning_feature_id']).issubset(known_features)`. When true: Raises `PlanningFeaturesError('Planning relation references an unknown feature')`.
-16. Calls `_validate_parcel_summaries(source, output, relations, surface_work)` for its validation or side effect.
-17. Iterates `column` over `('planning_feature_document_id', 'planning_feature_archive_sha256')`. For each value: Calls `_validate_exact_strings(output[column], column)` for its validation or side effect.
-18. Computes `nonempty_catalogs` from `[catalog for catalog in catalogs if not catalog.empty]`.
-19. Checks `nonempty_catalogs`. When true: Computes `expected_document_ids` from `{value for catalog in nonempty_catalogs for value in catalog['source_document_id'].tolist()}`. Computes `expected_archive_hashes` from `{value for catalog in nonempty_catalogs for value in catalog['source_archive_sha256'].tolist()}`. Checks `len(expected_document_ids) != 1 or len(expected_archive_hashes) != 1 or set(output['planning_feature_document_id']) != expected_document_ids or (set(output['planning_feature_archive_sha256']) != expected_archive_hashes)`. When true: Raises `PlanningFeaturesError('Parcel planning-feature lineage is inconsistent with catalogs')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `missing_output` is true.
-- Rejects or diverts the path when `len(output) != len(source)` is true.
-- Rejects or diverts the path when `output['parcel_id'].tolist() != source['parcel_id'].tolist()` is true.
-- Rejects or diverts the path when `not output.index.equals(source.index)` is true.
-- Rejects or diverts the path when `output.crs != source.crs or not np.array_equal(output.geometry.to_wkb(), source.geometry.to_wkb())` is true.
-- Rejects or diverts the path when `not set(relations['parcel_id']).issubset(set(output['parcel_id']))` is true.
-- Rejects or diverts the path when `not set(relations['planning_feature_id']).issubset(known_features)` is true.
-- Rejects or diverts the path when `nonempty_catalogs` is true.
-- Rejects or diverts the path when `not output[column].equals(source[column])` is true.
-- Rejects or diverts the path when `len(expected_document_ids) != 1 or len(expected_archive_hashes) != 1 or set(output['planning_feature_document_id']) != expected_document_ids or (set(output['planning_feature_archive_sha256']) != expected_archive_hashes)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningFeaturesError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `missing_output`.
+- Guard with a raise path: `len(output) != len(source)`.
+- Guard with a raise path: `output['parcel_id'].tolist() != source['parcel_id'].tolist()`.
+- Guard with a raise path: `not output.index.equals(source.index)`.
+- Guard with a raise path: `output.crs != source.crs or not np.array_equal(output.geometry.to_wkb(), source.geometry.to_wkb())`.
+- Guard with a raise path: `not set(relations['parcel_id']).issubset(set(output['parcel_id']))`.
+- Guard with a raise path: `not set(relations['planning_feature_id']).issubset(known_features)`.
+- Guard with a raise path: `nonempty_catalogs`.
+- Guard with a raise path: `not output[column].equals(source[column])`.
+- Guard with a raise path: `len(expected_document_ids) != 1 or len(expected_archive_hashes) != 1 or set(output['planning_feature_document_id']) != expected_document_ids or (set(output['planning_feature_archive_sha256']) != expected_archive_hashes)`.
+- Explicit raise expressions: `PlanningFeaturesError('Parcel planning-feature lineage is inconsistent with catalogs')`, `PlanningFeaturesError('Planning relation references an unknown feature')`, `PlanningFeaturesError('Planning relation references an unknown parcel')`, `PlanningFeaturesError('Planning-feature parcel IDs or order changed')`, `PlanningFeaturesError('Planning-feature parcel count changed')`, `PlanningFeaturesError('Planning-feature parcel geometry or CRS changed')`, `PlanningFeaturesError('Planning-feature parcel index changed')`, `PlanningFeaturesError('Planning-feature parcel output is missing columns: ' + ', '.join(missing_output))`, `PlanningFeaturesError(f'Existing parcel column changed: {column}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `output.geometry.to_wkb`, `source.geometry.to_wkb`.
+- Hashing: `catalog['source_archive_sha256'].tolist`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `PlanningFeaturesError`, `_validate_exact_strings`, `_validate_parcel_summaries`, `catalog['planning_feature_id'].tolist`, `catalog['source_archive_sha256'].tolist`, `catalog['source_document_id'].tolist`, `len`, `np.array_equal`, `output.geometry.to_wkb`, `output.index.equals`, `output['parcel_id'].tolist`, `output[column].equals`, `set`, `set(relations['parcel_id']).issubset`, `set(relations['planning_feature_id']).issubset`, `sorted`, `source.geometry.to_wkb`, `source['parcel_id'].tolist`, `validate_normalized_planning_feature_inputs`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_validate_result`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_result`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_strict_relation_integer_counts_are_enforced` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_strict_parcel_summary_integer_counts_are_enforced` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_corrupted_relation_semantics_are_rejected` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_point_member_relation_semantics_are_exact` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_relation_must_match_feature_catalog` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_feature_ids_are_globally_unique_across_catalogs` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_corrupted_parcel_summary_is_rejected` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_corrupted_surface_union_contract_is_rejected` via `_validate_result`.
+- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
+    ParcelPlanningFeaturesResult,
+    PlanningFeatureInputValidation,
+    PlanningFeaturesError,
+    _validate_result,
+    intersect_parcels_with_gpu_planning_features,
+    validate_normalized_planning_feature_inputs,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_features.py` — `intersect_parcels_with_gpu_planning_features`
-- `tests/unit/test_enrich_planning_features.py` — `test_corrupted_parcel_summary_is_rejected`
-- `tests/unit/test_enrich_planning_features.py` — `test_corrupted_relation_semantics_are_rejected`
-- `tests/unit/test_enrich_planning_features.py` — `test_corrupted_surface_union_contract_is_rejected`
-- `tests/unit/test_enrich_planning_features.py` — `test_feature_ids_are_globally_unique_across_catalogs`
-- `tests/unit/test_enrich_planning_features.py` — `test_point_member_relation_semantics_are_exact`
-- `tests/unit/test_enrich_planning_features.py` — `test_relation_must_match_feature_catalog`
-- `tests/unit/test_enrich_planning_features.py` — `test_strict_parcel_summary_integer_counts_are_enforced`
-- `tests/unit/test_enrich_planning_features.py` — `test_strict_relation_integer_counts_are_enforced`
+```python
+def _validate_result(
+    source: gpd.GeoDataFrame,
+    result: ParcelPlanningFeaturesResult,
+    surface_work: pd.DataFrame | None = None,
+    *,
+    planning_document: GpuPlanningDocument,
+    source_inputs_already_rebuilt: bool = False,
+) -> None:
+    output = result.parcels
+    missing_output = sorted(PARCEL_OUTPUT_COLUMNS - set(output.columns))
+    if missing_output:
+        raise PlanningFeaturesError(
+            "Planning-feature parcel output is missing columns: "
+            + ", ".join(missing_output)
+        )
+    if len(output) != len(source):
+        raise PlanningFeaturesError("Planning-feature parcel count changed")
+    if output["parcel_id"].tolist() != source["parcel_id"].tolist():
+        raise PlanningFeaturesError("Planning-feature parcel IDs or order changed")
+    if not output.index.equals(source.index):
+        raise PlanningFeaturesError("Planning-feature parcel index changed")
+    if output.crs != source.crs or not np.array_equal(
+        output.geometry.to_wkb(), source.geometry.to_wkb()
+    ):
+        raise PlanningFeaturesError("Planning-feature parcel geometry or CRS changed")
+    for column in source.columns:
+        if column == "geometry":
+            continue
+        if not output[column].equals(source[column]):
+            raise PlanningFeaturesError(f"Existing parcel column changed: {column}")
 
-**Tests**
+    catalogs = (
+        result.surface_features,
+        result.line_features,
+        result.point_features,
+    )
+    if not source_inputs_already_rebuilt:
+        validate_normalized_planning_feature_inputs(
+            planning_document,
+            source,
+            *catalogs,
+            result.relations,
+        )
+    all_feature_ids = [
+        identifier
+        for catalog in catalogs
+        for identifier in catalog["planning_feature_id"].tolist()
+    ]
+    known_features = set(all_feature_ids)
 
-- `tests/unit/test_enrich_planning_features.py::test_corrupted_parcel_summary_is_rejected`
-- `tests/unit/test_enrich_planning_features.py::test_corrupted_relation_semantics_are_rejected`
-- `tests/unit/test_enrich_planning_features.py::test_corrupted_surface_union_contract_is_rejected`
-- `tests/unit/test_enrich_planning_features.py::test_feature_ids_are_globally_unique_across_catalogs`
-- `tests/unit/test_enrich_planning_features.py::test_point_member_relation_semantics_are_exact`
-- `tests/unit/test_enrich_planning_features.py::test_relation_must_match_feature_catalog`
-- `tests/unit/test_enrich_planning_features.py::test_strict_parcel_summary_integer_counts_are_enforced`
-- `tests/unit/test_enrich_planning_features.py::test_strict_relation_integer_counts_are_enforced`
+    relations = result.relations
+    if not set(relations["parcel_id"]).issubset(set(output["parcel_id"])):
+        raise PlanningFeaturesError("Planning relation references an unknown parcel")
+    if not set(relations["planning_feature_id"]).issubset(known_features):
+        raise PlanningFeaturesError("Planning relation references an unknown feature")
+    _validate_parcel_summaries(source, output, relations, surface_work)
+    for column in (
+        "planning_feature_document_id",
+        "planning_feature_archive_sha256",
+    ):
+        _validate_exact_strings(output[column], column)
+    nonempty_catalogs = [catalog for catalog in catalogs if not catalog.empty]
+    if nonempty_catalogs:
+        expected_document_ids = {
+            value
+            for catalog in nonempty_catalogs
+            for value in catalog["source_document_id"].tolist()
+        }
+        expected_archive_hashes = {
+            value
+            for catalog in nonempty_catalogs
+            for value in catalog["source_archive_sha256"].tolist()
+        }
+        if (
+            len(expected_document_ids) != 1
+            or len(expected_archive_hashes) != 1
+            or set(output["planning_feature_document_id"]) != expected_document_ids
+            or set(output["planning_feature_archive_sha256"]) != expected_archive_hashes
+        ):
+            raise PlanningFeaturesError(
+                "Parcel planning-feature lineage is inconsistent with catalogs"
+            )
+```
 
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `intersect_parcels_with_gpu_planning_features`
 
-**Signature**
+**Exact signature**
 
 ```python
 def intersect_parcels_with_gpu_planning_features(
@@ -3782,183 +5312,368 @@ def intersect_parcels_with_gpu_planning_features(
 
 Measure factual GPU prescription/information relations to full parcels. All metric work is planar XY in EPSG:2154. Raw codes are preserved without interpretation, and every pre-existing parcel field and geometry is copied.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `planning_document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `ParcelPlanningFeaturesResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `ParcelPlanningFeaturesResult`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Calls `_validate_parcels(parcels)` for its validation or side effect.
-2. Computes `context` from `_planning_context(planning_document)`.
-3. Computes `(surfaces, lines, points, _)` from `_normalized_catalogs(planning_document)`.
-4. Computes `metric` from `_metric_parcels(parcels)`.
-5. Computes `(surface_work, line_work, point_work, relations)` from `_build_relation_tables(metric, surfaces, lines, points)`.
-6. Computes `parcel_output` from `_attach_parcel_summaries(parcels, metric, surface_work, line_work, point_work, context)`.
-7. Computes `result` from `ParcelPlanningFeaturesResult(parcels=parcel_output, surface_features=surfaces, line_features=lines, point_features=points, relations=relations)`.
-8. Calls `_validate_result(parcels, result, surface_work, planning_document=planning_document, source_inputs_already_rebuilt=True)` for its validation or side effect.
-9. Returns `result`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ParcelPlanningFeaturesResult`, `_attach_parcel_summaries`, `_build_relation_tables`, `_metric_parcels`, `_normalized_catalogs`, `_planning_context`, `_validate_parcels`, `_validate_result`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_features import (
+    ParcelPlanningFeaturesResult,
+    PlanningFeatureInputValidation,
+    PlanningFeaturesError,
+    intersect_parcels_with_gpu_planning_features,
+    validate_normalized_planning_feature_inputs,
+)`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_run` via `intersect_parcels_with_gpu_planning_features`.
+- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_only_high_level_api_is_exported` via `stages.intersect_parcels_with_gpu_planning_features`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected` via `intersect_parcels_with_gpu_planning_features`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers` via `intersect_parcels_with_gpu_planning_features`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved` via `intersect_parcels_with_gpu_planning_features`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_contract_result` via `intersect_parcels_with_gpu_planning_features`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_two_parcel_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_accepts_epsg4326_parcels` via `intersect_parcels_with_gpu_planning_features`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_document_reference_allows_one_archive_zip_suffix` via `intersect_parcels_with_gpu_planning_features`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows` via `intersect_parcels_with_gpu_planning_features`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `intersect_parcels_with_gpu_planning_features`.
+- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
+    ParcelPlanningFeaturesResult,
+    PlanningFeatureInputValidation,
+    PlanningFeaturesError,
+    _validate_result,
+    intersect_parcels_with_gpu_planning_features,
+    validate_normalized_planning_feature_inputs,
+)`.
+- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::_integration_inputs` via `intersect_parcels_with_gpu_planning_features`.
+- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_multi_geometries_are_accepted` via `intersect_parcels_with_gpu_planning_features`.
+- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_empty_optional_catalogs_preserve_schema_and_crs` via `intersect_parcels_with_gpu_planning_features`.
+- direct call or construction: `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained` via `intersect_parcels_with_gpu_planning_features`.
+- import/re-export: `tests/unit/test_resolve_planning_feature_codes.py::<module>` via `from landscout.stages.enrich_planning_features import (
+    RELATION_COLUMNS,
+    intersect_parcels_with_gpu_planning_features,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_enrich_planning_features.py` — `_contract_result`
-- `tests/unit/test_enrich_planning_features.py` — `_run`
-- `tests/unit/test_enrich_planning_features.py` — `_shapefile_ogr_fid_source_complete_contract`
-- `tests/unit/test_enrich_planning_features.py` — `_shapefile_source_complete_contract`
-- `tests/unit/test_enrich_planning_features.py` — `_source_complete_contract`
-- `tests/unit/test_enrich_planning_features.py` — `_two_parcel_source_complete_contract`
-- `tests/unit/test_enrich_planning_features.py` — `test_inputs_and_all_existing_parcel_fields_are_preserved`
-- `tests/unit/test_enrich_planning_features.py` — `test_mutated_source_summary_is_rejected`
-- `tests/unit/test_enrich_planning_features.py` — `test_source_complete_contract_accepts_epsg4326_parcels`
-- `tests/unit/test_enrich_planning_features.py` — `test_source_complete_contract_rejects_reordered_physical_gpkg_rows`
-- `tests/unit/test_enrich_planning_features.py` — `test_source_document_reference_allows_one_archive_zip_suffix`
-- `tests/unit/test_enrich_planning_features.py` — `test_source_summary_counts_are_strict_integers`
-- `tests/unit/test_resolve_planning_feature_codes.py` — `_integration_inputs`
-- `tests/unit/test_resolve_planning_feature_codes.py` — `test_valid_empty_optional_catalogs_preserve_schema_and_crs`
-- `tests/unit/test_resolve_planning_feature_codes.py` — `test_valid_multi_geometries_are_accepted`
-- `tests/unit/test_resolve_planning_feature_codes.py` — `test_valid_relation_types_are_retained`
+```python
+def intersect_parcels_with_gpu_planning_features(
+    parcels: gpd.GeoDataFrame,
+    planning_document: GpuPlanningDocument,
+) -> ParcelPlanningFeaturesResult:
+    """Measure factual GPU prescription/information relations to full parcels.
 
-**Tests**
+    All metric work is planar XY in EPSG:2154.  Raw codes are preserved without
+    interpretation, and every pre-existing parcel field and geometry is copied.
+    """
 
-- `tests/unit/test_enrich_planning_features.py::test_inputs_and_all_existing_parcel_fields_are_preserved`
-- `tests/unit/test_enrich_planning_features.py::test_mutated_source_summary_is_rejected`
-- `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_accepts_epsg4326_parcels`
-- `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_reordered_physical_gpkg_rows`
-- `tests/unit/test_enrich_planning_features.py::test_source_document_reference_allows_one_archive_zip_suffix`
-- `tests/unit/test_enrich_planning_features.py::test_source_summary_counts_are_strict_integers`
-- `tests/unit/test_resolve_planning_feature_codes.py::test_valid_empty_optional_catalogs_preserve_schema_and_crs`
-- `tests/unit/test_resolve_planning_feature_codes.py::test_valid_multi_geometries_are_accepted`
-- `tests/unit/test_resolve_planning_feature_codes.py::test_valid_relation_types_are_retained`
+    _validate_parcels(parcels)
+    context = _planning_context(planning_document)
+    surfaces, lines, points, _ = _normalized_catalogs(planning_document)
+    metric = _metric_parcels(parcels)
+    surface_work, line_work, point_work, relations = _build_relation_tables(
+        metric, surfaces, lines, points
+    )
+    parcel_output = _attach_parcel_summaries(
+        parcels, metric, surface_work, line_work, point_work, context
+    )
+    result = ParcelPlanningFeaturesResult(
+        parcels=parcel_output,
+        surface_features=surfaces,
+        line_features=lines,
+        point_features=points,
+        relations=relations,
+    )
+    _validate_result(
+        parcels,
+        result,
+        surface_work,
+        planning_document=planning_document,
+        source_inputs_already_rebuilt=True,
+    )
+    return result
+```
 
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
+
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+### `PARCEL_REQUIRED_COLUMNS` — required input frame fields (unordered when stored as a set)
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `ARCHIVE_SCOPED_OGR_FID` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `CNIG_ATTRIBUTE` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `IDURBA` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `INFORMATION` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `LINE` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `POINT` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `PRESCRIPTION` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `SURFACE` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `_feature_position` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `_intersection_geometry` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `_parcel_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `_parcel_position` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `columns` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `drop` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `feature_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `feature_family` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `feature_length_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
-| `feature_share_pct` | Logical dtype: float64. Nullability: determined by the owning schema/dtype map and explicit null guards. | percentage derived from the exact numerator/denominator named by its stage. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry` | Logical dtype: GeoPandas active geometry dtype. Nullability: nullable only where the source-stage geometry-status contract explicitly preserves nulls. | source or preserved spatial geometry; never itself a suitability or legal conclusion. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry_kind` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `intersection_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `intersection_length_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
-| `kind` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `label_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `logical_layer` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_metric_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_share_pct` | Logical dtype: float64. Nullability: determined by the owning schema/dtype map and explicit null guards. | percentage derived from the exact numerator/denominator named by its stage. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_feature_archive_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_feature_document_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_feature_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_line_intersection_length_sum_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_line_length_overlap_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_line_relation_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_line_touch_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_point_relation_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_surface_area_overlap_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_surface_covered_pct` | Logical dtype: float64. Nullability: determined by the owning schema/dtype map and explicit null guards. | percentage derived from the exact numerator/denominator named by its stage. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_surface_covered_union_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_surface_intersection_area_sum_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_surface_relation_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_surface_touch_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `point_member_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `point_members_boundary_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `point_members_inside_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `regulation_filename_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `regulation_url_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `relation_type` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `source_archive_name` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_archive_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `source_commune_code` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_crs` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_document_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `source_document_reference_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `source_document_type` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `source_feature_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `source_identity_field` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_identity_kind` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `source_layer` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_line_length_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
-| `source_portal` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_provider` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_standard_model` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_validity_date_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `subtype_code_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `text_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `type_code_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
+```python
+PARCEL_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry"})
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
+| 2 | `parcel_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+
+### `COMMON_SOURCE_FIELDS` — required input frame fields (unordered when stored as a set)
+
+```python
+COMMON_SOURCE_FIELDS = {
+    "label_raw": "LIBELLE",
+    "text_raw": "TXT",
+    "regulation_filename_raw": "NOMFIC",
+    "regulation_url_raw": "URLFIC",
+    "source_document_reference_raw": "IDURBA",
+    "source_validity_date_raw": "DATVALID",
+}
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `label_raw` | LIBELLE | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 2 | `text_raw` | TXT | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 3 | `regulation_filename_raw` | NOMFIC | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 4 | `regulation_url_raw` | URLFIC | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 5 | `source_document_reference_raw` | IDURBA | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 6 | `source_validity_date_raw` | DATVALID | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+
+### `OPTIONAL_SOURCE_FIELDS` — required input frame fields (unordered when stored as a set)
+
+```python
+OPTIONAL_SOURCE_FIELDS = frozenset(
+    {
+        "LIBELLE",
+        "TXT",
+        "NOMFIC",
+        "URLFIC",
+        "DATVALID",
+    }
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `DATVALID` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `LIBELLE` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `NOMFIC` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `TXT` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `URLFIC` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+
+### `_CATALOG_REQUIRED_EXACT_STRING_COLUMNS` — required input frame fields (unordered when stored as a set)
+
+```python
+_CATALOG_REQUIRED_EXACT_STRING_COLUMNS = (
+    "planning_feature_id",
+    "source_feature_id",
+    "source_identity_kind",
+    "source_identity_field",
+    "logical_layer",
+    "feature_family",
+    "geometry_kind",
+    "type_code_raw",
+    "subtype_code_raw",
+    "source_document_reference_raw",
+    "source_provider",
+    "source_portal",
+    "source_commune_code",
+    "source_document_id",
+    "source_document_type",
+    "source_archive_name",
+    "source_archive_sha256",
+    "source_layer",
+    "source_crs",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `planning_feature_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 2 | `source_feature_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 3 | `source_identity_kind` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 4 | `source_identity_field` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 5 | `logical_layer` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `feature_family` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `geometry_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `type_code_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 9 | `subtype_code_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 10 | `source_document_reference_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 11 | `source_provider` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 12 | `source_portal` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 13 | `source_commune_code` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 14 | `source_document_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 15 | `source_document_type` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 16 | `source_archive_name` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 17 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 18 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 19 | `source_crs` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+
+### `_CATALOG_OPTIONAL_EXACT_STRING_COLUMNS` — canonical or derived frame-column schema
+
+```python
+_CATALOG_OPTIONAL_EXACT_STRING_COLUMNS = (
+    "label_raw",
+    "text_raw",
+    "regulation_filename_raw",
+    "regulation_url_raw",
+    "source_validity_date_raw",
+    "source_standard_model",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `label_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 2 | `text_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 3 | `regulation_filename_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 4 | `regulation_url_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 5 | `source_validity_date_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 6 | `source_standard_model` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+
+### `PARCEL_OUTPUT_COLUMNS` — canonical or derived frame-column schema
+
+```python
+PARCEL_OUTPUT_COLUMNS = frozenset(
+    {
+        "planning_surface_relation_count",
+        "planning_surface_area_overlap_count",
+        "planning_surface_touch_count",
+        "planning_surface_intersection_area_sum_m2",
+        "planning_surface_covered_union_area_m2",
+        "planning_surface_covered_pct",
+        "prescription_surface_relation_count",
+        "prescription_surface_covered_union_area_m2",
+        "prescription_surface_covered_pct",
+        "information_surface_relation_count",
+        "information_surface_covered_union_area_m2",
+        "information_surface_covered_pct",
+        "planning_line_relation_count",
+        "planning_line_length_overlap_count",
+        "planning_line_touch_count",
+        "planning_line_intersection_length_sum_m",
+        "planning_point_relation_count",
+        "planning_point_inside_count",
+        "planning_point_boundary_count",
+        "planning_feature_document_id",
+        "planning_feature_archive_sha256",
+    }
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `information_surface_covered_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 2 | `information_surface_covered_union_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 3 | `information_surface_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 4 | `planning_feature_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 5 | `planning_feature_document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 6 | `planning_line_intersection_length_sum_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 7 | `planning_line_length_overlap_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 8 | `planning_line_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 9 | `planning_line_touch_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 10 | `planning_point_boundary_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 11 | `planning_point_inside_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 12 | `planning_point_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 13 | `planning_surface_area_overlap_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 14 | `planning_surface_covered_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 15 | `planning_surface_covered_union_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 16 | `planning_surface_intersection_area_sum_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 17 | `planning_surface_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 18 | `planning_surface_touch_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 19 | `prescription_surface_covered_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 20 | `prescription_surface_covered_union_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 21 | `prescription_surface_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+
+### `PARCEL_COUNT_COLUMNS` — canonical or derived frame-column schema
+
+```python
+PARCEL_COUNT_COLUMNS = frozenset(
+    {
+        "planning_surface_relation_count",
+        "planning_surface_area_overlap_count",
+        "planning_surface_touch_count",
+        "prescription_surface_relation_count",
+        "information_surface_relation_count",
+        "planning_line_relation_count",
+        "planning_line_length_overlap_count",
+        "planning_line_touch_count",
+        "planning_point_relation_count",
+        "planning_point_inside_count",
+        "planning_point_boundary_count",
+    }
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `information_surface_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 2 | `planning_line_length_overlap_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 3 | `planning_line_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 4 | `planning_line_touch_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 5 | `planning_point_boundary_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 6 | `planning_point_inside_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 7 | `planning_point_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 8 | `planning_surface_area_overlap_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 9 | `planning_surface_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 10 | `planning_surface_touch_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 11 | `prescription_surface_relation_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+
+
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module defines an exact `__all__` contract:
+
+| Export | Kind | Origin | Included in `__all__` |
+|---|---|---|---|
+| `ParcelPlanningFeaturesResult` | re-exported/defined Python symbol | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
+| `PlanningFeatureInputValidation` | re-exported/defined Python symbol | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
+| `PlanningFeaturesError` | re-exported/defined Python symbol | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
+| `intersect_parcels_with_gpu_planning_features` | re-exported/defined Python symbol | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
+| `validate_normalized_planning_feature_inputs` | re-exported/defined Python symbol | `defined in `src/landscout/stages/enrich_planning_features.py`` | yes |
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `planning` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the planning flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -3966,8 +5681,8 @@ This file contributes to LandScout's `planning` evidence flow as described by it
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

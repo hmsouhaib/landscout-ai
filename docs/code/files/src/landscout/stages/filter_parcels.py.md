@@ -4,9 +4,9 @@
 
 - Repository path: `src/landscout/stages/filter_parcels.py`
 - File type: Python source
-- Primary responsibility: Applies configured factual parcel-area bounds and records explicit keep/reject facts without ranking.
-- Layer / domain: `stage` / `cadastre`
-- Public or internal role: Module symbols without a package re-export are internal unless imported directly by repository code.
+- Layer: processing/policy stage
+- Domain: cadastre
+- Responsibility: Applies configured factual parcel-area bounds and records explicit keep/reject facts without ranking.
 - Source SHA256: `aa2071fc0df4ae843ded9df394df0b9d2f151d84eb5ac6edee1a41c3d6e2f439`
 
 ## 1. Purpose
@@ -15,32 +15,70 @@ Applies configured factual parcel-area bounds and records explicit keep/reject f
 
 ## 2. Position in LandScout architecture
 
-This file is a `stage` artifact in the `cadastre` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **processing/policy stage** layer and the **cadastre** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from math import isfinite` — required by the implementation paths and symbols documented below.
-- `from numbers import Real` — required by the implementation paths and symbols documented below.
+- `from math import isfinite`
+- `from numbers import Real`
 
-### Third-party
+### Third-party packages
 
-- `import geopandas as gpd` — required by the implementation paths and symbols documented below.
-- `from pyproj import CRS` — required by the implementation paths and symbols documented below.
+- `import geopandas as gpd`
+- `from pyproj import CRS`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout.common.cadastre_contract import validate_cadastre_geometry_statuses` — required by the implementation paths and symbols documented below.
-- `from landscout.config import ParcelConfig, ShapeScreeningConfig` — required by the implementation paths and symbols documented below.
+- `from landscout.common.cadastre_contract import validate_cadastre_geometry_statuses`
+- `from landscout.config import ParcelConfig, ShapeScreeningConfig`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `AREA_REQUIRED_COLUMNS` | `frozenset( {"parcel_id", "geometry_status", "area_m2", "geometry"} )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `SHAPE_REQUIRED_COLUMNS` | `frozenset( {"parcel_id", "shape_status", "width_m", "length_width_ratio", "geometry"} )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `ALLOWED_SHAPE_STATUSES` | `frozenset({"VALID", "ERROR"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `AREA_REQUIRED_COLUMNS`
+
+```python
+AREA_REQUIRED_COLUMNS = frozenset(
+    {"parcel_id", "geometry_status", "area_m2", "geometry"}
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` (value argument/reference).
+
+#### `SHAPE_REQUIRED_COLUMNS`
+
+```python
+SHAPE_REQUIRED_COLUMNS = frozenset(
+    {"parcel_id", "shape_status", "width_m", "length_width_ratio", "geometry"}
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` (value argument/reference).
+
+#### `ALLOWED_SHAPE_STATUSES`
+
+```python
+ALLOWED_SHAPE_STATUSES = frozenset({"VALID", "ERROR"})
+```
+
+Hash identity, algorithm, or canonical-content field used by the named integrity contract.
+
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
@@ -48,23 +86,70 @@ This file is a `stage` artifact in the `cadastre` domain. Its actual upstream in
 
 **Purpose:** Raised when normalized parcels cannot be partitioned safely.
 
+**Kind:** controlled exception.
+
 **Inheritance:** `ValueError`.
 
-**Model form and mutability:** class inheriting from `ValueError`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields:** none declared directly on this class.
 
-- No annotated instance fields are declared directly on this class.
+**Interface consumers**
 
-**Validators and methods:**
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.filter_parcels import (
+    ParcelFilterError,
+    filter_parcels_by_area,
+    filter_parcels_by_shape,
+)`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_spatial_frame` via `ParcelFilterError`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::_missing_columns` via `ParcelFilterError`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_exact_parcel_ids` via `ParcelFilterError`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `ParcelFilterError`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` via `ParcelFilterError`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_shape_partition` via `ParcelFilterError`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_shape` via `ParcelFilterError`.
+- callback/function object: `tests/unit/test_filter_parcels.py::test_missing_parcel_id_fails` via `pytest.raises(ParcelFilterError, match='parcel_id')`.
+- callback/function object: `tests/unit/test_filter_parcels.py::test_null_parcel_id_fails` via `pytest.raises(ParcelFilterError, match='null')`.
+- callback/function object: `tests/unit/test_filter_parcels.py::test_duplicate_parcel_id_fails` via `pytest.raises(ParcelFilterError, match='unique')`.
+- callback/function object: `tests/unit/test_filter_parcels.py::test_valid_geometry_requires_strict_positive_finite_area` via `pytest.raises(ParcelFilterError, match='strict positive finite numeric')`.
+- callback/function object: `tests/unit/test_filter_parcels.py::test_area_filter_requires_exact_non_empty_parcel_ids` via `pytest.raises(ParcelFilterError, match='exact non-empty strings')`.
+- callback/function object: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_plain_dataframe` via `pytest.raises(ParcelFilterError, match='GeoDataFrame')`.
+- callback/function object: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_duplicate_columns` via `pytest.raises(ParcelFilterError, match='columns.*unique')`.
+- callback/function object: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_malformed_spatial_envelope` via `pytest.raises(ParcelFilterError, match='geometry|CRS')`.
+- callback/function object: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_noncanonical_geometry_status` via `pytest.raises(ParcelFilterError, match='geometry_status')`.
+- import/re-export: `tests/unit/test_filter_parcels.py::<module>` via `from landscout.stages.filter_parcels import ParcelFilterError, filter_parcels_by_area`.
+- callback/function object: `tests/unit/test_filter_shape.py::test_missing_required_column_fails` via `pytest.raises(ParcelFilterError, match='Missing required shape columns')`.
+- callback/function object: `tests/unit/test_filter_shape.py::test_null_parcel_id_fails` via `pytest.raises(ParcelFilterError, match='must not be null')`.
+- callback/function object: `tests/unit/test_filter_shape.py::test_duplicate_parcel_id_fails` via `pytest.raises(ParcelFilterError, match='must be unique')`.
+- callback/function object: `tests/unit/test_filter_shape.py::test_unknown_crs_fails` via `pytest.raises(ParcelFilterError, match='known CRS')`.
+- callback/function object: `tests/unit/test_filter_shape.py::test_unexpected_or_null_shape_status_fails` via `pytest.raises(ParcelFilterError, match='Unexpected shape_status')`.
+- callback/function object: `tests/unit/test_filter_shape.py::test_non_finite_known_metric_on_valid_row_fails` via `pytest.raises(ParcelFilterError, match='numeric and finite')`.
+- callback/function object: `tests/unit/test_filter_shape.py::test_valid_shape_requires_strict_positive_width` via `pytest.raises(ParcelFilterError, match='width_m must be (numeric and finite|greater than zero)')`.
+- callback/function object: `tests/unit/test_filter_shape.py::test_valid_shape_requires_ratio_at_least_one` via `pytest.raises(ParcelFilterError, match='length_width_ratio must be (numeric and finite|at least one)')`.
+- callback/function object: `tests/unit/test_filter_shape.py::test_negative_ratio_cannot_pass_permissive_thresholds` via `pytest.raises(ParcelFilterError, match='length_width_ratio must be at least one')`.
+- callback/function object: `tests/unit/test_filter_shape.py::test_valid_shape_requires_complete_metrics_even_when_screening_disabled` via `pytest.raises(ParcelFilterError, match='complete|must not be null')`.
+- callback/function object: `tests/unit/test_filter_shape.py::test_valid_shape_rejects_every_incomplete_metric_form` via `pytest.raises(ParcelFilterError, match='complete')`.
+- callback/function object: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_plain_dataframe` via `pytest.raises(ParcelFilterError, match='GeoDataFrame')`.
+- callback/function object: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_duplicate_columns` via `pytest.raises(ParcelFilterError, match='columns.*unique')`.
+- callback/function object: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_unreadable_crs` via `pytest.raises(ParcelFilterError, match='CRS')`.
+- import/re-export: `tests/unit/test_filter_shape.py::<module>` via `from landscout.stages.filter_parcels import (
+    ParcelFilterError,
+    filter_parcels_by_shape,
+)`.
 
-- None.
+**Exact class source**
+
+```python
+class ParcelFilterError(ValueError):
+    """Raised when normalized parcels cannot be partitioned safely."""
+```
+
 
 ## 6. Functions and methods
 
 ### `_validate_spatial_frame`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_spatial_frame(parcels: object, label: str) -> gpd.GeoDataFrame:
@@ -72,66 +157,70 @@ def _validate_spatial_frame(parcels: object, label: str) -> gpd.GeoDataFrame:
 
 **Purpose**
 
-Validates and rejects malformed spatial frame according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent spatial frame; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`object`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+parcels
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `parcels`.
-
-**Algorithm**
-
-1. Checks `not isinstance(parcels, gpd.GeoDataFrame)`. When true: Raises `ParcelFilterError(f'{label} input must be a GeoDataFrame')`.
-2. Checks `parcels.columns.duplicated().any()`. When true: Raises `ParcelFilterError(f'{label} input columns must be unique')`.
-3. Runs guarded operation: Computes `geometry_name` from `parcels.active_geometry_name`. Handles `(AttributeError, ValueError)`.
-4. Checks `geometry_name is None or geometry_name not in parcels.columns`. When true: Raises `ParcelFilterError(f'{label} input requires an active geometry column')`.
-5. Checks `parcels.crs is None`. When true: Raises `ParcelFilterError(f'{label} input must have a known CRS')`.
-6. Runs guarded operation: Calls `CRS.from_user_input(parcels.crs)` for its validation or side effect. Handles `Exception`.
-7. Returns `parcels`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(parcels, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `parcels.columns.duplicated().any()` is true.
-- Rejects or diverts the path when `geometry_name is None or geometry_name not in parcels.columns` is true.
-- Rejects or diverts the path when `parcels.crs is None` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ParcelFilterError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(parcels, gpd.GeoDataFrame)`.
+- Guard with a raise path: `parcels.columns.duplicated().any()`.
+- Guard with a raise path: `geometry_name is None or geometry_name not in parcels.columns`.
+- Guard with a raise path: `parcels.crs is None`.
+- Explicit raise expressions: `ParcelFilterError(f'{label} input CRS must be readable')`, `ParcelFilterError(f'{label} input columns must be unique')`, `ParcelFilterError(f'{label} input geometry is invalid')`, `ParcelFilterError(f'{label} input must be a GeoDataFrame')`, `ParcelFilterError(f'{label} input must have a known CRS')`, `ParcelFilterError(f'{label} input requires an active geometry column')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `CRS.from_user_input`, `ParcelFilterError`, `isinstance`, `parcels.columns.duplicated`, `parcels.columns.duplicated().any`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `_validate_spatial_frame`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` via `_validate_spatial_frame`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/filter_parcels.py` — `_validate_shape_filter_input`
-- `src/landscout/stages/filter_parcels.py` — `filter_parcels_by_area`
+```python
+def _validate_spatial_frame(parcels: object, label: str) -> gpd.GeoDataFrame:
+    if not isinstance(parcels, gpd.GeoDataFrame):
+        raise ParcelFilterError(f"{label} input must be a GeoDataFrame")
+    if parcels.columns.duplicated().any():
+        raise ParcelFilterError(f"{label} input columns must be unique")
+    try:
+        geometry_name = parcels.active_geometry_name
+    except (AttributeError, ValueError) as error:
+        raise ParcelFilterError(f"{label} input geometry is invalid") from error
+    if geometry_name is None or geometry_name not in parcels.columns:
+        raise ParcelFilterError(f"{label} input requires an active geometry column")
+    if parcels.crs is None:
+        raise ParcelFilterError(f"{label} input must have a known CRS")
+    try:
+        CRS.from_user_input(parcels.crs)
+    except Exception as error:
+        raise ParcelFilterError(f"{label} input CRS must be readable") from error
+    return parcels
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `cadastre` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - It does not establish ownership contacts, developability, planning authorization, ranking, or a BESS score.
 
 ### `_missing_columns`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _missing_columns(
@@ -143,58 +232,58 @@ def _missing_columns(
 
 **Purpose**
 
-Implements missing columns according to the exact implementation and guards in this file.
+Private `cadastre` helper for missing columns; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`object`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `required` (`frozenset[str]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `frozenset[str]`.
+- Every observed return expression is reproduced without truncation:
+```python
+required - set(parcels.columns)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `frozenset[str]`. Observed return expression(s): `required - set(parcels.columns)`.
-
-**Algorithm**
-
-1. Runs guarded operation: Returns `required - set(parcels.columns)`. Handles `Exception`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `ParcelFilterError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `ParcelFilterError(f'{label} input must be a GeoDataFrame')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ParcelFilterError`, `set`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `_missing_columns`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` via `_missing_columns`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/filter_parcels.py` — `_validate_shape_filter_input`
-- `src/landscout/stages/filter_parcels.py` — `filter_parcels_by_area`
+```python
+def _missing_columns(
+    parcels: object,
+    required: frozenset[str],
+    label: str,
+) -> frozenset[str]:
+    try:
+        return required - set(parcels.columns)  # type: ignore[attr-defined]
+    except Exception as error:
+        raise ParcelFilterError(f"{label} input must be a GeoDataFrame") from error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `cadastre` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - It does not establish ownership contacts, developability, planning authorization, ranking, or a BESS score.
 
 ### `_validate_exact_parcel_ids`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_exact_parcel_ids(parcels: gpd.GeoDataFrame) -> None:
@@ -202,61 +291,61 @@ def _validate_exact_parcel_ids(parcels: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Validates and rejects malformed exact parcel ids according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent exact parcel ids; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `identifiers` from `parcels['parcel_id']`.
-2. Checks `identifiers.isna().any()`. When true: Raises `ParcelFilterError('parcel_id values must not be null')`.
-3. Checks `any((not isinstance(identifier, str) or not identifier or identifier != identifier.strip() for identifier in identifiers))`. When true: Raises `ParcelFilterError('parcel_id values must be exact non-empty strings')`.
-4. Checks `identifiers.duplicated().any()`. When true: Raises `ParcelFilterError('parcel_id values must be unique')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `identifiers.isna().any()` is true.
-- Rejects or diverts the path when `any((not isinstance(identifier, str) or not identifier or identifier != identifier.strip() for identifier in identifiers))` is true.
-- Rejects or diverts the path when `identifiers.duplicated().any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ParcelFilterError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `identifiers.isna().any()`.
+- Guard with a raise path: `any((not isinstance(identifier, str) or not identifier or identifier != identifier.strip() for identifier in identifiers))`.
+- Guard with a raise path: `identifiers.duplicated().any()`.
+- Explicit raise expressions: `ParcelFilterError('parcel_id values must be exact non-empty strings')`, `ParcelFilterError('parcel_id values must be unique')`, `ParcelFilterError('parcel_id values must not be null')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ParcelFilterError`, `any`, `identifier.strip`, `identifiers.duplicated`, `identifiers.duplicated().any`, `identifiers.isna`, `identifiers.isna().any`, `isinstance`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `_validate_exact_parcel_ids`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` via `_validate_exact_parcel_ids`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/filter_parcels.py` — `_validate_shape_filter_input`
-- `src/landscout/stages/filter_parcels.py` — `filter_parcels_by_area`
+```python
+def _validate_exact_parcel_ids(parcels: gpd.GeoDataFrame) -> None:
+    identifiers = parcels["parcel_id"]
+    if identifiers.isna().any():
+        raise ParcelFilterError("parcel_id values must not be null")
+    if any(
+        not isinstance(identifier, str)
+        or not identifier
+        or identifier != identifier.strip()
+        for identifier in identifiers
+    ):
+        raise ParcelFilterError("parcel_id values must be exact non-empty strings")
+    if identifiers.duplicated().any():
+        raise ParcelFilterError("parcel_id values must be unique")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `cadastre` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - It does not establish ownership contacts, developability, planning authorization, ranking, or a BESS score.
 
 ### `_is_strict_finite_number`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _is_strict_finite_number(value: object) -> bool:
@@ -264,56 +353,55 @@ def _is_strict_finite_number(value: object) -> bool:
 
 **Purpose**
 
-Returns whether `strict finite number` satisfies the exact predicates and branches listed below.
+Tests whether strict finite number; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `bool`.
+- Every observed return expression is reproduced without truncation:
+```python
+isinstance(value, Real) and (not isinstance(value, bool)) and isfinite(float(value))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `bool`. Observed return expression(s): `isinstance(value, Real) and (not isinstance(value, bool)) and isfinite(float(value))`.
-
-**Algorithm**
-
-1. Returns `isinstance(value, Real) and (not isinstance(value, bool)) and isfinite(float(value))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `float`, `isfinite`, `isinstance`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_area` via `_is_strict_finite_number`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::_validate_shape_filter_input` via `_is_strict_finite_number`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/filter_parcels.py` — `_validate_shape_filter_input`
-- `src/landscout/stages/filter_parcels.py` — `filter_parcels_by_area`
+```python
+def _is_strict_finite_number(value: object) -> bool:
+    return (
+        isinstance(value, Real)
+        and not isinstance(value, bool)
+        and isfinite(float(value))
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `cadastre` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - It does not establish ownership contacts, developability, planning authorization, ranking, or a BESS score.
 
 ### `filter_parcels_by_area`
 
-**Signature**
+**Exact signature**
 
 ```python
 def filter_parcels_by_area(
@@ -323,116 +411,138 @@ def filter_parcels_by_area(
 
 **Purpose**
 
-Filters parcels by area according to the exact implementation and guards in this file.
+Partitions normalized parcels into candidates and rejected rows using configured inclusive area thresholds and explicit area rejection reasons.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `area_config` (`ParcelConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(candidates, rejected)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]`. Observed return expression(s): `(candidates, rejected)`.
-
-**Algorithm**
-
-1. Computes `missing_columns` from `_missing_columns(parcels, AREA_REQUIRED_COLUMNS, 'Area-filter')`.
-2. Checks `missing_columns`. When true: Computes `formatted` from `', '.join(sorted(missing_columns))`. Raises `ParcelFilterError(f'Missing required normalized columns: {formatted}')`.
-3. Computes `parcels` from `_validate_spatial_frame(parcels, 'Area-filter')`.
-4. Calls `_validate_exact_parcel_ids(parcels)` for its validation or side effect.
-5. Runs guarded operation: Calls `validate_cadastre_geometry_statuses(parcels['geometry_status'].tolist())` for its validation or side effect. Handles `ValueError`.
-6. Computes `valid_geometry` from `parcels['geometry_status'] == 'VALID'`.
-7. Checks `any((not _is_strict_finite_number(value) or float(value) <= 0 for value in parcels.loc[valid_geometry, 'area_m2']))`. When true: Raises `ParcelFilterError('area_m2 must be a strict positive finite numeric value when geometry_status is VALID')`.
-8. Computes `known_area` from `parcels['area_m2'].notna()`.
-9. Computes `within_area_range` from `parcels['area_m2'].between(area_config.min_area_m2, area_config.max_area_m2, inclusive='both')`.
-10. Computes `candidate_mask` from `valid_geometry & known_area & within_area_range`.
-11. Computes `candidates` from `parcels.loc[candidate_mask].copy()`.
-12. Computes `rejected` from `parcels.loc[~candidate_mask].copy()`.
-13. Computes `rejected['rejection_reason']` from `'AREA_UNKNOWN'`.
-14. Computes `rejected_valid_geometry` from `rejected['geometry_status'] == 'VALID'`.
-15. Computes `rejected_known_area` from `rejected['area_m2'].notna()`.
-16. Computes `rejected.loc[~rejected_valid_geometry, 'rejection_reason']` from `'INVALID_GEOMETRY'`.
-17. Computes `rejected.loc[rejected_valid_geometry & rejected_known_area & (rejected['area_m2'] < area_config.min_area_m2), 'rejection_reason']` from `'AREA_BELOW_MIN'`.
-18. Computes `rejected.loc[rejected_valid_geometry & rejected_known_area & (rejected['area_m2'] > area_config.max_area_m2), 'rejection_reason']` from `'AREA_ABOVE_MAX'`.
-19. Checks `len(parcels) != len(candidates) + len(rejected)`. When true: Raises `ParcelFilterError('Parcel partition did not preserve every input row')`.
-20. Computes `input_ids` from `set(parcels['parcel_id'])`.
-21. Computes `candidate_ids` from `set(candidates['parcel_id'])`.
-22. Computes `rejected_ids` from `set(rejected['parcel_id'])`.
-23. Checks `candidates['parcel_id'].duplicated().any() or rejected['parcel_id'].duplicated().any()`. When true: Raises `ParcelFilterError('Parcel partition contains duplicate parcel IDs')`.
-24. Checks `candidate_ids & rejected_ids`. When true: Raises `ParcelFilterError('Candidate and rejected parcel IDs overlap')`.
-25. Checks `candidate_ids | rejected_ids != input_ids`. When true: Raises `ParcelFilterError('Parcel partition did not preserve exact parcel IDs')`.
-26. Returns `(candidates, rejected)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `missing_columns` is true.
-- Rejects or diverts the path when `any((not _is_strict_finite_number(value) or float(value) <= 0 for value in parcels.loc[valid_geometry, 'area_m2']))` is true.
-- Rejects or diverts the path when `len(parcels) != len(candidates) + len(rejected)` is true.
-- Rejects or diverts the path when `candidates['parcel_id'].duplicated().any() or rejected['parcel_id'].duplicated().any()` is true.
-- Rejects or diverts the path when `candidate_ids & rejected_ids` is true.
-- Rejects or diverts the path when `candidate_ids | rejected_ids != input_ids` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ParcelFilterError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `missing_columns`.
+- Guard with a raise path: `any((not _is_strict_finite_number(value) or float(value) <= 0 for value in parcels.loc[valid_geometry, 'area_m2']))`.
+- Guard with a raise path: `len(parcels) != len(candidates) + len(rejected)`.
+- Guard with a raise path: `candidates['parcel_id'].duplicated().any() or rejected['parcel_id'].duplicated().any()`.
+- Guard with a raise path: `candidate_ids & rejected_ids`.
+- Guard with a raise path: `candidate_ids | rejected_ids != input_ids`.
+- Explicit raise expressions: `ParcelFilterError('Candidate and rejected parcel IDs overlap')`, `ParcelFilterError('Parcel partition contains duplicate parcel IDs')`, `ParcelFilterError('Parcel partition did not preserve every input row')`, `ParcelFilterError('Parcel partition did not preserve exact parcel IDs')`, `ParcelFilterError('area_m2 must be a strict positive finite numeric value when geometry_status is VALID')`, `ParcelFilterError(f'Missing required normalized columns: {formatted}')`, `ParcelFilterError(str(error))`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `parcels.loc[candidate_mask].copy`, `parcels.loc[~candidate_mask].copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `parcels['area_m2'].between`, `parcels['area_m2'].notna`, `parcels['geometry_status'].tolist`, `rejected['area_m2'].notna`, `validate_cadastre_geometry_statuses`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `rejected.loc[rejected_valid_geometry & rejected_known_area & (rejected['area_m2'] < area_config.min_area_m2), 'rejection_reason']`, `rejected.loc[rejected_valid_geometry & rejected_known_area & (rejected['area_m2'] > area_config.max_area_m2), 'rejection_reason']`, `rejected.loc[~rejected_valid_geometry, 'rejection_reason']`, `rejected['rejection_reason']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `ParcelFilterError`, `_is_strict_finite_number`, `_missing_columns`, `_validate_exact_parcel_ids`, `_validate_spatial_frame`, `any`, `candidates['parcel_id'].duplicated`, `candidates['parcel_id'].duplicated().any`, `float`, `len`, `parcels.loc[candidate_mask].copy`, `parcels.loc[~candidate_mask].copy`, `parcels['area_m2'].between`, `parcels['area_m2'].notna`, `parcels['geometry_status'].tolist`, `rejected['area_m2'].notna`, `rejected['parcel_id'].duplicated`, `rejected['parcel_id'].duplicated().any`, `set`, `sorted`, `str`, `validate_cadastre_geometry_statuses`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.filter_parcels import (
+    ParcelFilterError,
+    filter_parcels_by_area,
+    filter_parcels_by_shape,
+)`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_minimum_boundary_is_included` via `filter_parcels_by_area`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_maximum_boundary_is_included` via `filter_parcels_by_area`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_rejected_parcel_has_expected_reason` via `filter_parcels_by_area`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_no_parcel_disappears` via `filter_parcels_by_area`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_thresholds_come_from_config` via `filter_parcels_by_area`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_missing_parcel_id_fails` via `filter_parcels_by_area`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_null_parcel_id_fails` via `filter_parcels_by_area`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_duplicate_parcel_id_fails` via `filter_parcels_by_area`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_candidate_and_rejected_ids_do_not_overlap` via `filter_parcels_by_area`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_exact_parcel_ids_are_preserved` via `filter_parcels_by_area`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_valid_geometry_requires_strict_positive_finite_area` via `filter_parcels_by_area`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_area_filter_requires_exact_non_empty_parcel_ids` via `filter_parcels_by_area`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_plain_dataframe` via `filter_parcels_by_area`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_duplicate_columns` via `filter_parcels_by_area`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_malformed_spatial_envelope` via `filter_parcels_by_area`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_area_filter_rejects_noncanonical_geometry_status` via `filter_parcels_by_area`.
+- import/re-export: `tests/unit/test_filter_parcels.py::<module>` via `from landscout.stages.filter_parcels import ParcelFilterError, filter_parcels_by_area`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_filter_parcels.py` — `test_area_filter_rejects_duplicate_columns`
-- `tests/unit/test_filter_parcels.py` — `test_area_filter_rejects_malformed_spatial_envelope`
-- `tests/unit/test_filter_parcels.py` — `test_area_filter_rejects_noncanonical_geometry_status`
-- `tests/unit/test_filter_parcels.py` — `test_area_filter_rejects_plain_dataframe`
-- `tests/unit/test_filter_parcels.py` — `test_area_filter_requires_exact_non_empty_parcel_ids`
-- `tests/unit/test_filter_parcels.py` — `test_candidate_and_rejected_ids_do_not_overlap`
-- `tests/unit/test_filter_parcels.py` — `test_duplicate_parcel_id_fails`
-- `tests/unit/test_filter_parcels.py` — `test_exact_parcel_ids_are_preserved`
-- `tests/unit/test_filter_parcels.py` — `test_maximum_boundary_is_included`
-- `tests/unit/test_filter_parcels.py` — `test_minimum_boundary_is_included`
-- `tests/unit/test_filter_parcels.py` — `test_missing_parcel_id_fails`
-- `tests/unit/test_filter_parcels.py` — `test_no_parcel_disappears`
-- `tests/unit/test_filter_parcels.py` — `test_null_parcel_id_fails`
-- `tests/unit/test_filter_parcels.py` — `test_rejected_parcel_has_expected_reason`
-- `tests/unit/test_filter_parcels.py` — `test_thresholds_come_from_config`
-- `tests/unit/test_filter_parcels.py` — `test_valid_geometry_requires_strict_positive_finite_area`
+```python
+def filter_parcels_by_area(
+    parcels: gpd.GeoDataFrame, area_config: ParcelConfig
+) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
+    missing_columns = _missing_columns(parcels, AREA_REQUIRED_COLUMNS, "Area-filter")
+    if missing_columns:
+        formatted = ", ".join(sorted(missing_columns))
+        raise ParcelFilterError(f"Missing required normalized columns: {formatted}")
+    parcels = _validate_spatial_frame(parcels, "Area-filter")
+    _validate_exact_parcel_ids(parcels)
+    try:
+        validate_cadastre_geometry_statuses(parcels["geometry_status"].tolist())
+    except ValueError as error:
+        raise ParcelFilterError(str(error)) from error
 
-**Tests**
+    valid_geometry = parcels["geometry_status"] == "VALID"
+    if any(
+        not _is_strict_finite_number(value) or float(value) <= 0
+        for value in parcels.loc[valid_geometry, "area_m2"]
+    ):
+        raise ParcelFilterError(
+            "area_m2 must be a strict positive finite numeric value when "
+            "geometry_status is VALID"
+        )
 
-- `tests/unit/test_filter_parcels.py::test_area_filter_rejects_duplicate_columns`
-- `tests/unit/test_filter_parcels.py::test_area_filter_rejects_malformed_spatial_envelope`
-- `tests/unit/test_filter_parcels.py::test_area_filter_rejects_noncanonical_geometry_status`
-- `tests/unit/test_filter_parcels.py::test_area_filter_rejects_plain_dataframe`
-- `tests/unit/test_filter_parcels.py::test_area_filter_requires_exact_non_empty_parcel_ids`
-- `tests/unit/test_filter_parcels.py::test_candidate_and_rejected_ids_do_not_overlap`
-- `tests/unit/test_filter_parcels.py::test_duplicate_parcel_id_fails`
-- `tests/unit/test_filter_parcels.py::test_exact_parcel_ids_are_preserved`
-- `tests/unit/test_filter_parcels.py::test_maximum_boundary_is_included`
-- `tests/unit/test_filter_parcels.py::test_minimum_boundary_is_included`
-- `tests/unit/test_filter_parcels.py::test_missing_parcel_id_fails`
-- `tests/unit/test_filter_parcels.py::test_no_parcel_disappears`
-- `tests/unit/test_filter_parcels.py::test_null_parcel_id_fails`
-- `tests/unit/test_filter_parcels.py::test_rejected_parcel_has_expected_reason`
-- `tests/unit/test_filter_parcels.py::test_thresholds_come_from_config`
-- `tests/unit/test_filter_parcels.py::test_valid_geometry_requires_strict_positive_finite_area`
+    known_area = parcels["area_m2"].notna()
+    within_area_range = parcels["area_m2"].between(
+        area_config.min_area_m2, area_config.max_area_m2, inclusive="both"
+    )
+    candidate_mask = valid_geometry & known_area & within_area_range
 
-**Business interpretation**
+    candidates = parcels.loc[candidate_mask].copy()
+    rejected = parcels.loc[~candidate_mask].copy()
+    rejected["rejection_reason"] = "AREA_UNKNOWN"
 
-This symbol contributes to the `cadastre` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
+    rejected_valid_geometry = rejected["geometry_status"] == "VALID"
+    rejected_known_area = rejected["area_m2"].notna()
+    rejected.loc[~rejected_valid_geometry, "rejection_reason"] = "INVALID_GEOMETRY"
+    rejected.loc[
+        rejected_valid_geometry
+        & rejected_known_area
+        & (rejected["area_m2"] < area_config.min_area_m2),
+        "rejection_reason",
+    ] = "AREA_BELOW_MIN"
+    rejected.loc[
+        rejected_valid_geometry
+        & rejected_known_area
+        & (rejected["area_m2"] > area_config.max_area_m2),
+        "rejection_reason",
+    ] = "AREA_ABOVE_MAX"
 
-**Does NOT prove**
+    if len(parcels) != len(candidates) + len(rejected):
+        raise ParcelFilterError("Parcel partition did not preserve every input row")
+    input_ids = set(parcels["parcel_id"])
+    candidate_ids = set(candidates["parcel_id"])
+    rejected_ids = set(rejected["parcel_id"])
+    if candidates["parcel_id"].duplicated().any() or rejected[
+        "parcel_id"
+    ].duplicated().any():
+        raise ParcelFilterError("Parcel partition contains duplicate parcel IDs")
+    if candidate_ids & rejected_ids:
+        raise ParcelFilterError("Candidate and rejected parcel IDs overlap")
+    if candidate_ids | rejected_ids != input_ids:
+        raise ParcelFilterError("Parcel partition did not preserve exact parcel IDs")
+    return candidates, rejected
+```
+
+**Business boundary**
 
 - It does not establish ownership contacts, developability, planning authorization, ranking, or a BESS score.
 
 ### `_validate_shape_filter_input`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_shape_filter_input(parcels: gpd.GeoDataFrame) -> None:
@@ -440,73 +550,88 @@ def _validate_shape_filter_input(parcels: gpd.GeoDataFrame) -> None:
 
 **Purpose**
 
-Validates and rejects malformed shape filter input according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent shape filter input; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `missing_columns` from `_missing_columns(parcels, SHAPE_REQUIRED_COLUMNS, 'Shape-filter')`.
-2. Checks `missing_columns`. When true: Computes `formatted` from `', '.join(sorted(missing_columns))`. Raises `ParcelFilterError(f'Missing required shape columns: {formatted}')`.
-3. Computes `parcels` from `_validate_spatial_frame(parcels, 'Shape-filter')`.
-4. Calls `_validate_exact_parcel_ids(parcels)` for its validation or side effect.
-5. Computes `statuses` from `parcels['shape_status']`.
-6. Computes `unexpected_statuses` from `set(statuses.dropna().unique()) - ALLOWED_SHAPE_STATUSES`.
-7. Checks `statuses.isna().any() or unexpected_statuses`. When true: Computes `formatted` from `', '.join(sorted((str(value) for value in unexpected_statuses)))`. Computes `detail` from `formatted or 'null'`. Raises `ParcelFilterError(f'Unexpected shape_status value(s): {detail}')`.
-8. Computes `valid_rows` from `statuses == 'VALID'`.
-9. Checks `parcels.loc[valid_rows, ['width_m', 'length_width_ratio']].isna().any().any()`. When true: Raises `ParcelFilterError('VALID shape rows must have complete width_m and length_width_ratio metrics')`.
-10. Iterates `column` over `('width_m', 'length_width_ratio')`. For each value: Checks `any((not _is_strict_finite_number(value) for value in parcels.loc[valid_rows, column]))`. When true: Raises `ParcelFilterError(f'{column} must be numeric and finite when shape_status is VALID')`.
-11. Computes `valid_width` from `parcels.loc[valid_rows, 'width_m']`.
-12. Checks `any((float(value) <= 0 for value in valid_width))`. When true: Raises `ParcelFilterError('width_m must be greater than zero when shape_status is VALID')`.
-13. Computes `valid_ratio` from `parcels.loc[valid_rows, 'length_width_ratio']`.
-14. Checks `any((float(value) < 1 for value in valid_ratio))`. When true: Raises `ParcelFilterError('length_width_ratio must be at least one when shape_status is VALID')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `missing_columns` is true.
-- Rejects or diverts the path when `statuses.isna().any() or unexpected_statuses` is true.
-- Rejects or diverts the path when `parcels.loc[valid_rows, ['width_m', 'length_width_ratio']].isna().any().any()` is true.
-- Rejects or diverts the path when `any((float(value) <= 0 for value in valid_width))` is true.
-- Rejects or diverts the path when `any((float(value) < 1 for value in valid_ratio))` is true.
-- Rejects or diverts the path when `any((not _is_strict_finite_number(value) for value in parcels.loc[valid_rows, column]))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ParcelFilterError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `missing_columns`.
+- Guard with a raise path: `statuses.isna().any() or unexpected_statuses`.
+- Guard with a raise path: `parcels.loc[valid_rows, ['width_m', 'length_width_ratio']].isna().any().any()`.
+- Guard with a raise path: `any((float(value) <= 0 for value in valid_width))`.
+- Guard with a raise path: `any((float(value) < 1 for value in valid_ratio))`.
+- Guard with a raise path: `any((not _is_strict_finite_number(value) for value in parcels.loc[valid_rows, column]))`.
+- Explicit raise expressions: `ParcelFilterError('VALID shape rows must have complete width_m and length_width_ratio metrics')`, `ParcelFilterError('length_width_ratio must be at least one when shape_status is VALID')`, `ParcelFilterError('width_m must be greater than zero when shape_status is VALID')`, `ParcelFilterError(f'Missing required shape columns: {formatted}')`, `ParcelFilterError(f'Unexpected shape_status value(s): {detail}')`, `ParcelFilterError(f'{column} must be numeric and finite when shape_status is VALID')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `ParcelFilterError`, `_is_strict_finite_number`, `_missing_columns`, `_validate_exact_parcel_ids`, `_validate_spatial_frame`, `any`, `float`, `parcels.loc[valid_rows, ['width_m', 'length_width_ratio']].isna`, `parcels.loc[valid_rows, ['width_m', 'length_width_ratio']].isna().any`, `parcels.loc[valid_rows, ['width_m', 'length_width_ratio']].isna().any().any`, `set`, `sorted`, `statuses.dropna`, `statuses.dropna().unique`, `statuses.isna`, `statuses.isna().any`, `str`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_shape` via `_validate_shape_filter_input`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/filter_parcels.py` — `filter_parcels_by_shape`
+```python
+def _validate_shape_filter_input(parcels: gpd.GeoDataFrame) -> None:
+    missing_columns = _missing_columns(parcels, SHAPE_REQUIRED_COLUMNS, "Shape-filter")
+    if missing_columns:
+        formatted = ", ".join(sorted(missing_columns))
+        raise ParcelFilterError(f"Missing required shape columns: {formatted}")
+    parcels = _validate_spatial_frame(parcels, "Shape-filter")
+    _validate_exact_parcel_ids(parcels)
 
-**Tests**
+    statuses = parcels["shape_status"]
+    unexpected_statuses = set(statuses.dropna().unique()) - ALLOWED_SHAPE_STATUSES
+    if statuses.isna().any() or unexpected_statuses:
+        formatted = ", ".join(sorted(str(value) for value in unexpected_statuses))
+        detail = formatted or "null"
+        raise ParcelFilterError(f"Unexpected shape_status value(s): {detail}")
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    valid_rows = statuses == "VALID"
+    if parcels.loc[valid_rows, ["width_m", "length_width_ratio"]].isna().any().any():
+        raise ParcelFilterError(
+            "VALID shape rows must have complete width_m and length_width_ratio metrics"
+        )
+    for column in ("width_m", "length_width_ratio"):
+        if any(
+            not _is_strict_finite_number(value)
+            for value in parcels.loc[valid_rows, column]
+        ):
+            raise ParcelFilterError(
+                f"{column} must be numeric and finite when shape_status is VALID"
+            )
+    valid_width = parcels.loc[valid_rows, "width_m"]
+    if any(float(value) <= 0 for value in valid_width):
+        raise ParcelFilterError(
+            "width_m must be greater than zero when shape_status is VALID"
+        )
+    valid_ratio = parcels.loc[valid_rows, "length_width_ratio"]
+    if any(float(value) < 1 for value in valid_ratio):
+        raise ParcelFilterError(
+            "length_width_ratio must be at least one when shape_status is VALID"
+        )
+```
 
-**Business interpretation**
-
-This symbol contributes to the `cadastre` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - It does not establish ownership contacts, developability, planning authorization, ranking, or a BESS score.
 
 ### `_validate_shape_partition`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_shape_partition(
@@ -518,66 +643,67 @@ def _validate_shape_partition(
 
 **Purpose**
 
-Validates and rejects malformed shape partition according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent shape partition; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `retained` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `rejected` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `len(parcels) != len(retained) + len(rejected)`. When true: Raises `ParcelFilterError('Shape partition did not preserve every input row')`.
-2. Checks `retained['parcel_id'].duplicated().any() or rejected['parcel_id'].duplicated().any()`. When true: Raises `ParcelFilterError('Shape partition contains duplicate parcel IDs')`.
-3. Computes `input_ids` from `set(parcels['parcel_id'])`.
-4. Computes `retained_ids` from `set(retained['parcel_id'])`.
-5. Computes `rejected_ids` from `set(rejected['parcel_id'])`.
-6. Checks `retained_ids & rejected_ids`. When true: Raises `ParcelFilterError('Retained and rejected parcel IDs overlap')`.
-7. Checks `retained_ids | rejected_ids != input_ids`. When true: Raises `ParcelFilterError('Shape partition did not preserve exact parcel IDs')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(parcels) != len(retained) + len(rejected)` is true.
-- Rejects or diverts the path when `retained['parcel_id'].duplicated().any() or rejected['parcel_id'].duplicated().any()` is true.
-- Rejects or diverts the path when `retained_ids & rejected_ids` is true.
-- Rejects or diverts the path when `retained_ids | rejected_ids != input_ids` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ParcelFilterError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(parcels) != len(retained) + len(rejected)`.
+- Guard with a raise path: `retained['parcel_id'].duplicated().any() or rejected['parcel_id'].duplicated().any()`.
+- Guard with a raise path: `retained_ids & rejected_ids`.
+- Guard with a raise path: `retained_ids | rejected_ids != input_ids`.
+- Explicit raise expressions: `ParcelFilterError('Retained and rejected parcel IDs overlap')`, `ParcelFilterError('Shape partition contains duplicate parcel IDs')`, `ParcelFilterError('Shape partition did not preserve every input row')`, `ParcelFilterError('Shape partition did not preserve exact parcel IDs')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ParcelFilterError`, `len`, `rejected['parcel_id'].duplicated`, `rejected['parcel_id'].duplicated().any`, `retained['parcel_id'].duplicated`, `retained['parcel_id'].duplicated().any`, `set`.
+- direct call or construction: `src/landscout/stages/filter_parcels.py::filter_parcels_by_shape` via `_validate_shape_partition`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/filter_parcels.py` — `filter_parcels_by_shape`
+```python
+def _validate_shape_partition(
+    parcels: gpd.GeoDataFrame,
+    retained: gpd.GeoDataFrame,
+    rejected: gpd.GeoDataFrame,
+) -> None:
+    if len(parcels) != len(retained) + len(rejected):
+        raise ParcelFilterError("Shape partition did not preserve every input row")
+    if retained["parcel_id"].duplicated().any() or rejected[
+        "parcel_id"
+    ].duplicated().any():
+        raise ParcelFilterError("Shape partition contains duplicate parcel IDs")
 
-**Tests**
+    input_ids = set(parcels["parcel_id"])
+    retained_ids = set(retained["parcel_id"])
+    rejected_ids = set(rejected["parcel_id"])
+    if retained_ids & rejected_ids:
+        raise ParcelFilterError("Retained and rejected parcel IDs overlap")
+    if retained_ids | rejected_ids != input_ids:
+        raise ParcelFilterError("Shape partition did not preserve exact parcel IDs")
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `cadastre` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - It does not establish ownership contacts, developability, planning authorization, ranking, or a BESS score.
 
 ### `filter_parcels_by_shape`
 
-**Signature**
+**Exact signature**
 
 ```python
 def filter_parcels_by_shape(
@@ -589,161 +715,224 @@ def filter_parcels_by_shape(
 
 Partition shape-enriched parcels using an explicit screening policy.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `shape_config` (`ShapeScreeningConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(retained, rejected)
 
-**Returns**
+(retained, rejected)
+```
 
-- Declared return type: `tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]`. Observed return expression(s): `(retained, rejected)`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Calls `_validate_shape_filter_input(parcels)` for its validation or side effect.
-2. Checks `not shape_config.enabled`. When true: Computes `retained` from `parcels.copy()`. Computes `rejected` from `parcels.iloc[0:0].copy()`. Calls `_validate_shape_partition(parcels, retained, rejected)` for its validation or side effect. Executes 1 additional source-ordered statement(s).
-3. Computes `min_width_m` from `shape_config.min_width_m`.
-4. Computes `max_ratio` from `shape_config.max_length_width_ratio`.
-5. Computes `calibration` from `shape_config.calibration`.
-6. Checks `min_width_m is None or max_ratio is None or calibration is None`. When true: Raises `ParcelFilterError('Enabled shape screening policy is incomplete')`.
-7. Computes `valid_shape` from `parcels['shape_status'] == 'VALID'`.
-8. Computes `screening_width` from `parcels['width_m'].where(valid_shape)`.
-9. Computes `screening_ratio` from `parcels['length_width_ratio'].where(valid_shape)`.
-10. Computes `known_width` from `screening_width.notna()`.
-11. Computes `known_ratio` from `screening_ratio.notna()`.
-12. Computes `retained_mask` from `valid_shape & known_width & known_ratio & (screening_width >= min_width_m) & (screening_ratio <= max_ratio)`.
-13. Computes `retained` from `parcels.loc[retained_mask].copy()`.
-14. Computes `rejected` from `parcels.loc[~retained_mask].copy()`.
-15. Computes `rejected['shape_rejection_reason']` from `'RATIO_ABOVE_MAX'`.
-16. Computes `rejected_valid` from `rejected['shape_status'] == 'VALID'`.
-17. Computes `rejected_width` from `rejected['width_m'].where(rejected_valid)`.
-18. Computes `rejected.loc[rejected_valid & (rejected_width < min_width_m), 'shape_rejection_reason']` from `'WIDTH_BELOW_MIN'`.
-19. Computes `rejected.loc[~rejected_valid, 'shape_rejection_reason']` from `'SHAPE_ERROR'`.
-20. Iterates `output` over `(retained, rejected)`. For each value: Computes `output['shape_policy_version']` from `calibration.policy_version`. Computes `output['shape_policy_min_width_m']` from `min_width_m`. Computes `output['shape_policy_max_ratio']` from `max_ratio`.
-21. Calls `_validate_shape_partition(parcels, retained, rejected)` for its validation or side effect.
-22. Returns `(retained, rejected)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `min_width_m is None or max_ratio is None or calibration is None` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ParcelFilterError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `min_width_m is None or max_ratio is None or calibration is None`.
+- Explicit raise expressions: `ParcelFilterError('Enabled shape screening policy is incomplete')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `parcels.copy`, `parcels.iloc[0:0].copy`, `parcels.loc[retained_mask].copy`, `parcels.loc[~retained_mask].copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_validate_shape_filter_input`, `_validate_shape_partition`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `output['shape_policy_max_ratio']`, `output['shape_policy_min_width_m']`, `output['shape_policy_version']`, `rejected.loc[rejected_valid & (rejected_width < min_width_m), 'shape_rejection_reason']`, `rejected.loc[~rejected_valid, 'shape_rejection_reason']`, `rejected['shape_rejection_reason']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ParcelFilterError`, `_validate_shape_filter_input`, `_validate_shape_partition`, `parcels.copy`, `parcels.iloc[0:0].copy`, `parcels.loc[retained_mask].copy`, `parcels.loc[~retained_mask].copy`, `parcels['length_width_ratio'].where`, `parcels['width_m'].where`, `rejected['width_m'].where`, `screening_ratio.notna`, `screening_width.notna`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.filter_parcels import (
+    ParcelFilterError,
+    filter_parcels_by_area,
+    filter_parcels_by_shape,
+)`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_exact_width_and_ratio_boundaries_are_retained` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_rejected_parcel_has_expected_primary_reason` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_rejection_reason_precedence_is_deterministic` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_shape_error_precedence_does_not_inspect_metrics` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_enabled_outputs_record_active_policy_metadata` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_enabled_partition_preserves_exact_ids_and_crs` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_filter_does_not_mutate_input` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_missing_required_column_fails` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_null_parcel_id_fails` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_duplicate_parcel_id_fails` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_unknown_crs_fails` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_unexpected_or_null_shape_status_fails` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_non_finite_known_metric_on_valid_row_fails` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_valid_shape_requires_strict_positive_width` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_valid_shape_requires_ratio_at_least_one` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_negative_ratio_cannot_pass_permissive_thresholds` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_disabled_policy_is_an_exact_passthrough` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_different_configs_change_results_for_same_parcels` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_valid_shape_requires_complete_metrics_even_when_screening_disabled` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_valid_shape_rejects_every_incomplete_metric_form` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_plain_dataframe` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_duplicate_columns` via `filter_parcels_by_shape`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_shape_filter_rejects_unreadable_crs` via `filter_parcels_by_shape`.
+- import/re-export: `tests/unit/test_filter_shape.py::<module>` via `from landscout.stages.filter_parcels import (
+    ParcelFilterError,
+    filter_parcels_by_shape,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_filter_shape.py` — `test_different_configs_change_results_for_same_parcels`
-- `tests/unit/test_filter_shape.py` — `test_disabled_policy_is_an_exact_passthrough`
-- `tests/unit/test_filter_shape.py` — `test_duplicate_parcel_id_fails`
-- `tests/unit/test_filter_shape.py` — `test_enabled_outputs_record_active_policy_metadata`
-- `tests/unit/test_filter_shape.py` — `test_enabled_partition_preserves_exact_ids_and_crs`
-- `tests/unit/test_filter_shape.py` — `test_exact_width_and_ratio_boundaries_are_retained`
-- `tests/unit/test_filter_shape.py` — `test_filter_does_not_mutate_input`
-- `tests/unit/test_filter_shape.py` — `test_missing_required_column_fails`
-- `tests/unit/test_filter_shape.py` — `test_negative_ratio_cannot_pass_permissive_thresholds`
-- `tests/unit/test_filter_shape.py` — `test_non_finite_known_metric_on_valid_row_fails`
-- `tests/unit/test_filter_shape.py` — `test_null_parcel_id_fails`
-- `tests/unit/test_filter_shape.py` — `test_rejected_parcel_has_expected_primary_reason`
-- `tests/unit/test_filter_shape.py` — `test_rejection_reason_precedence_is_deterministic`
-- `tests/unit/test_filter_shape.py` — `test_shape_error_precedence_does_not_inspect_metrics`
-- `tests/unit/test_filter_shape.py` — `test_shape_filter_rejects_duplicate_columns`
-- `tests/unit/test_filter_shape.py` — `test_shape_filter_rejects_plain_dataframe`
-- `tests/unit/test_filter_shape.py` — `test_shape_filter_rejects_unreadable_crs`
-- `tests/unit/test_filter_shape.py` — `test_unexpected_or_null_shape_status_fails`
-- `tests/unit/test_filter_shape.py` — `test_unknown_crs_fails`
-- `tests/unit/test_filter_shape.py` — `test_valid_shape_rejects_every_incomplete_metric_form`
-- `tests/unit/test_filter_shape.py` — `test_valid_shape_requires_complete_metrics_even_when_screening_disabled`
-- `tests/unit/test_filter_shape.py` — `test_valid_shape_requires_ratio_at_least_one`
-- `tests/unit/test_filter_shape.py` — `test_valid_shape_requires_strict_positive_width`
+```python
+def filter_parcels_by_shape(
+    parcels: gpd.GeoDataFrame, shape_config: ShapeScreeningConfig
+) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]:
+    """Partition shape-enriched parcels using an explicit screening policy."""
+    _validate_shape_filter_input(parcels)
 
-**Tests**
+    if not shape_config.enabled:
+        retained = parcels.copy()
+        rejected = parcels.iloc[0:0].copy()
+        _validate_shape_partition(parcels, retained, rejected)
+        return retained, rejected
 
-- `tests/unit/test_filter_shape.py::test_different_configs_change_results_for_same_parcels`
-- `tests/unit/test_filter_shape.py::test_disabled_policy_is_an_exact_passthrough`
-- `tests/unit/test_filter_shape.py::test_duplicate_parcel_id_fails`
-- `tests/unit/test_filter_shape.py::test_enabled_outputs_record_active_policy_metadata`
-- `tests/unit/test_filter_shape.py::test_enabled_partition_preserves_exact_ids_and_crs`
-- `tests/unit/test_filter_shape.py::test_exact_width_and_ratio_boundaries_are_retained`
-- `tests/unit/test_filter_shape.py::test_filter_does_not_mutate_input`
-- `tests/unit/test_filter_shape.py::test_missing_required_column_fails`
-- `tests/unit/test_filter_shape.py::test_negative_ratio_cannot_pass_permissive_thresholds`
-- `tests/unit/test_filter_shape.py::test_non_finite_known_metric_on_valid_row_fails`
-- `tests/unit/test_filter_shape.py::test_null_parcel_id_fails`
-- `tests/unit/test_filter_shape.py::test_rejected_parcel_has_expected_primary_reason`
-- `tests/unit/test_filter_shape.py::test_rejection_reason_precedence_is_deterministic`
-- `tests/unit/test_filter_shape.py::test_shape_error_precedence_does_not_inspect_metrics`
-- `tests/unit/test_filter_shape.py::test_shape_filter_rejects_duplicate_columns`
-- `tests/unit/test_filter_shape.py::test_shape_filter_rejects_plain_dataframe`
-- `tests/unit/test_filter_shape.py::test_shape_filter_rejects_unreadable_crs`
-- `tests/unit/test_filter_shape.py::test_unexpected_or_null_shape_status_fails`
-- `tests/unit/test_filter_shape.py::test_unknown_crs_fails`
-- `tests/unit/test_filter_shape.py::test_valid_shape_rejects_every_incomplete_metric_form`
-- `tests/unit/test_filter_shape.py::test_valid_shape_requires_complete_metrics_even_when_screening_disabled`
-- `tests/unit/test_filter_shape.py::test_valid_shape_requires_ratio_at_least_one`
-- `tests/unit/test_filter_shape.py::test_valid_shape_requires_strict_positive_width`
+    min_width_m = shape_config.min_width_m
+    max_ratio = shape_config.max_length_width_ratio
+    calibration = shape_config.calibration
+    if min_width_m is None or max_ratio is None or calibration is None:
+        raise ParcelFilterError("Enabled shape screening policy is incomplete")
 
-**Business interpretation**
+    valid_shape = parcels["shape_status"] == "VALID"
+    screening_width = parcels["width_m"].where(valid_shape)
+    screening_ratio = parcels["length_width_ratio"].where(valid_shape)
+    known_width = screening_width.notna()
+    known_ratio = screening_ratio.notna()
+    retained_mask = (
+        valid_shape
+        & known_width
+        & known_ratio
+        & (screening_width >= min_width_m)
+        & (screening_ratio <= max_ratio)
+    )
 
-This symbol contributes to the `cadastre` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
+    retained = parcels.loc[retained_mask].copy()
+    rejected = parcels.loc[~retained_mask].copy()
 
-**Does NOT prove**
+    rejected["shape_rejection_reason"] = "RATIO_ABOVE_MAX"
+    rejected_valid = rejected["shape_status"] == "VALID"
+    rejected_width = rejected["width_m"].where(rejected_valid)
+    rejected.loc[
+        rejected_valid
+        & (rejected_width < min_width_m),
+        "shape_rejection_reason",
+    ] = "WIDTH_BELOW_MIN"
+    rejected.loc[~rejected_valid, "shape_rejection_reason"] = "SHAPE_ERROR"
+
+    for output in (retained, rejected):
+        output["shape_policy_version"] = calibration.policy_version
+        output["shape_policy_min_width_m"] = min_width_m
+        output["shape_policy_max_ratio"] = max_ratio
+
+    _validate_shape_partition(parcels, retained, rejected)
+    return retained, rejected
+```
+
+**Business boundary**
 
 - It does not establish ownership contacts, developability, planning authorization, ranking, or a BESS score.
 
+
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+### Frame-preservation and semantic notes
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `length_width_ratio` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `rejection_reason` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `shape_policy_max_ratio` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `shape_policy_min_width_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
-| `shape_policy_version` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `shape_rejection_reason` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `shape_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `width_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
+- Area filtering copies all input columns to both partitions, preserving each subset's input order and original index labels. Candidates add no column; rejected rows append `rejection_reason` with the closed values `AREA_UNKNOWN`, `INVALID_GEOMETRY`, `AREA_BELOW_MIN`, or `AREA_ABOVE_MAX`.
+- With shape screening enabled, both outputs preserve all input columns/order/index and append `shape_policy_version`, `shape_policy_min_width_m`, and `shape_policy_max_ratio`; rejected rows additionally append `shape_rejection_reason` with the closed values `RATIO_ABOVE_MAX`, `WIDTH_BELOW_MIN`, or `SHAPE_ERROR`.
+- Configured width and ratio values are policy metadata, not measurements. When shape screening is disabled, retained is an unchanged copy of all rows and rejected is an empty same-schema copy; no shape policy/rejection columns are added on that branch.
+
+### `AREA_REJECTED_APPEND_COLUMNS` — source-reviewed frame contract
+
+Only the rejected area partition appends this column; candidates preserve the exact input schema.
+
+| Position | Exact column | Dtype | Nullability/domain | Classification | Source/calculation/business meaning |
+|---:|---|---|---|---|---|
+| 1 | `rejection_reason` | non-null string values | never null on rejected rows | policy-derived screening result | Exactly AREA_UNKNOWN, INVALID_GEOMETRY, AREA_BELOW_MIN, or AREA_ABOVE_MAX; it is not a score or rank. |
+
+### `ENABLED_SHAPE_POLICY_APPEND_COLUMNS` — source-reviewed frame contract
+
+Appended to both retained and rejected partitions only when shape screening is enabled.
+
+| Position | Exact column | Dtype | Nullability/domain | Classification | Source/calculation/business meaning |
+|---:|---|---|---|---|---|
+| 1 | `shape_policy_version` | string | non-null on enabled branch | policy lineage | Configured calibration policy version. |
+| 2 | `shape_policy_min_width_m` | numeric | non-null on enabled branch | policy configuration | Configured width threshold in metres, not measured width. |
+| 3 | `shape_policy_max_ratio` | numeric | non-null on enabled branch | policy configuration | Configured maximum dimensionless length/width ratio. |
+
+### `ENABLED_SHAPE_REJECTED_EXTRA_COLUMN` — source-reviewed frame contract
+
+Appended only to rejected rows on the enabled branch.
+
+| Position | Exact column | Dtype | Nullability/domain | Classification | Source/calculation/business meaning |
+|---:|---|---|---|---|---|
+| 1 | `shape_rejection_reason` | non-null string values | never null on enabled rejected rows | policy-derived screening result | Exactly RATIO_ABOVE_MAX, WIDTH_BELOW_MIN, or SHAPE_ERROR; it is not a score or rank. |
+
+### `AREA_REQUIRED_COLUMNS` — required input frame fields (unordered when stored as a set)
+
+```python
+AREA_REQUIRED_COLUMNS = frozenset(
+    {"parcel_id", "geometry_status", "area_m2", "geometry"}
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 2 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
+| 3 | `geometry_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 4 | `parcel_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+
+### `SHAPE_REQUIRED_COLUMNS` — required input frame fields (unordered when stored as a set)
+
+```python
+SHAPE_REQUIRED_COLUMNS = frozenset(
+    {"parcel_id", "shape_status", "width_m", "length_width_ratio", "geometry"}
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
+| 2 | `length_width_ratio` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `parcel_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 4 | `shape_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 5 | `width_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+
+
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `cadastre` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the cadastre flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -751,8 +940,8 @@ This file contributes to LandScout's `cadastre` evidence flow as described by it
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

@@ -4,9 +4,9 @@
 
 - Repository path: `src/landscout/common/safe_http.py`
 - File type: Python source
-- Primary responsibility: Implements the shared HTTPS trust boundary that binds validated DNS answers to the actual TLS socket and owns redirects.
-- Layer / domain: `internal common contract/utility` / `common`
-- Public or internal role: Module symbols without a package re-export are internal unless imported directly by repository code.
+- Layer: internal common contract
+- Domain: common contract
+- Responsibility: Implements the shared HTTPS trust boundary that binds validated DNS answers to the actual TLS socket and owns redirects.
 - Source SHA256: `f63952179ee94bf8e4838f2658e7f7b7dbd7e4b91bc4e532eb1a44f1e2b5133f`
 
 ## 1. Purpose
@@ -15,43 +15,84 @@ Implements the shared HTTPS trust boundary that binds validated DNS answers to t
 
 ## 2. Position in LandScout architecture
 
-This file is a `internal common contract/utility` artifact in the `common` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **internal common contract** layer and the **common contract** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from __future__ import annotations` — required by the implementation paths and symbols documented below.
-- `import http.client` — required by the implementation paths and symbols documented below.
-- `import ipaddress` — required by the implementation paths and symbols documented below.
-- `import re` — required by the implementation paths and symbols documented below.
-- `import socket` — required by the implementation paths and symbols documented below.
-- `import ssl` — required by the implementation paths and symbols documented below.
-- `from collections.abc import Mapping` — required by the implementation paths and symbols documented below.
-- `from dataclasses import dataclass` — required by the implementation paths and symbols documented below.
-- `from math import isfinite` — required by the implementation paths and symbols documented below.
-- `from numbers import Real` — required by the implementation paths and symbols documented below.
-- `from types import TracebackType` — required by the implementation paths and symbols documented below.
-- `from typing import Self` — required by the implementation paths and symbols documented below.
-- `from urllib.parse import SplitResult, urljoin, urlsplit, urlunsplit` — required by the implementation paths and symbols documented below.
-- `from urllib.request import Request` — required by the implementation paths and symbols documented below.
+- `from __future__ import annotations`
+- `import http.client`
+- `import ipaddress`
+- `import re`
+- `import socket`
+- `import ssl`
+- `from collections.abc import Mapping`
+- `from dataclasses import dataclass`
+- `from math import isfinite`
+- `from numbers import Real`
+- `from types import TracebackType`
+- `from typing import Self`
+- `from urllib.parse import SplitResult, urljoin, urlsplit, urlunsplit`
+- `from urllib.request import Request`
 
-### Third-party
+### Third-party packages
 
-- None.
+- `None.`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- None.
+- `None.`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `_REDIRECT_STATUSES` | `frozenset({301, 302, 303, 307, 308})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_DEFAULT_MAX_REDIRECTS` | `10` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_NUMERIC_HOST_PATTERN` | `re.compile(r"^[0-9A-Fa-fxX.]+$")` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_HEADER_NAME_PATTERN` | `re.compile(r"^[!#$%&'*+\-.^_`&#124;~0-9A-Za-z]+$")` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `_REDIRECT_STATUSES`
+
+```python
+_REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+
+#### `_DEFAULT_MAX_REDIRECTS`
+
+```python
+_DEFAULT_MAX_REDIRECTS = 10
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `_NUMERIC_HOST_PATTERN`
+
+```python
+_NUMERIC_HOST_PATTERN = re.compile(r"^[0-9A-Fa-fxX.]+$")
+```
+
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+
+#### `_HEADER_NAME_PATTERN`
+
+```python
+_HEADER_NAME_PATTERN = re.compile(r"^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$")
+```
+
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
@@ -59,114 +100,275 @@ This file is a `internal common contract/utility` artifact in the `common` domai
 
 **Purpose:** Raised when an outbound HTTPS destination or exchange is unsafe.
 
+**Kind:** controlled exception.
+
 **Inheritance:** `OSError`.
 
-**Model form and mutability:** class inheriting from `OSError`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields:** none declared directly on this class.
 
-- No annotated instance fields are declared directly on this class.
+**Interface consumers**
 
-**Validators and methods:**
+- direct call or construction: `src/landscout/common/safe_http.py::_strict_literal_address` via `SafeHttpsError`.
+- direct call or construction: `src/landscout/common/safe_http.py::_resolve_public_addresses` via `SafeHttpsError`.
+- direct call or construction: `src/landscout/common/safe_http.py::_canonical_hostname` via `SafeHttpsError`.
+- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `SafeHttpsError`.
+- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `SafeHttpsError`.
+- direct call or construction: `src/landscout/common/safe_http.py::SafeHttpsResponse.read` via `SafeHttpsError`.
+- direct call or construction: `src/landscout/common/safe_http.py::_validated_timeout` via `SafeHttpsError`.
+- direct call or construction: `src/landscout/common/safe_http.py::_request_parts` via `SafeHttpsError`.
+- direct call or construction: `src/landscout/common/safe_http.py::_open_destination` via `SafeHttpsError`.
+- direct call or construction: `src/landscout/common/safe_http.py::_redirect_location` via `SafeHttpsError`.
+- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `SafeHttpsError`.
+- import/re-export: `src/landscout/sources/inpn_protected_areas_fr.py::<module>` via `from landscout.common.safe_http import SafeHttpsError, open_safe_https`.
+- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_Session.open` via `SafeHttpsError`.
+- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_coordinated_cache_and_metadata_snapshot_change_is_not_a_cache_hit` via `SafeHttpsError`.
+- import/re-export: `tests/unit/test_inpn_protected_areas_fr.py::<module>` via `from landscout.common.safe_http import SafeHttpsError`.
+- callback/function object: `tests/unit/test_safe_http.py::test_malformed_or_unusable_dns_results_fail_before_socket` via `pytest.raises(SafeHttpsError, match='DNS|address')`.
+- callback/function object: `tests/unit/test_safe_http.py::test_any_nonpublic_dns_answer_fails_before_socket` via `pytest.raises(SafeHttpsError, match='public|global|address|DNS')`.
+- callback/function object: `tests/unit/test_safe_http.py::test_mixed_public_private_dns_answer_fails_closed` via `pytest.raises(SafeHttpsError, match='public|global|address|DNS')`.
+- callback/function object: `tests/unit/test_safe_http.py::test_dns_errors_are_controlled_before_socket` via `pytest.raises(SafeHttpsError, match='DNS|resolve')`.
+- callback/function object: `tests/unit/test_safe_http.py::test_unsafe_url_identity_fails_before_dns` via `pytest.raises(SafeHttpsError, match='HTTPS|credential|localhost|host|URL')`.
+- callback/function object: `tests/unit/test_safe_http.py::test_literal_and_malformed_numeric_ip_rejection_never_uses_dns` via `pytest.raises(SafeHttpsError, match='public|global|address|IP|URL')`.
+- callback/function object: `tests/unit/test_safe_http.py::test_unsafe_redirect_is_rejected_before_target_socket` via `pytest.raises(SafeHttpsError, match='public|global|address|DNS')`.
+- callback/function object: `tests/unit/test_safe_http.py::test_redirect_loop_is_rejected` via `pytest.raises(SafeHttpsError, match='loop')`.
+- callback/function object: `tests/unit/test_safe_http.py::test_redirect_limit_is_enforced` via `pytest.raises(SafeHttpsError, match='redirect')`.
+- callback/function object: `tests/unit/test_safe_http.py::test_malformed_header_name_is_rejected_before_dns` via `pytest.raises(SafeHttpsError, match='header|Host')`.
+- import/re-export: `tests/unit/test_safe_http.py::<module>` via `from landscout.common.safe_http import SafeHttpsError, open_safe_https`.
 
-- None.
+**Exact class source**
+
+```python
+class SafeHttpsError(OSError):
+    """Raised when an outbound HTTPS destination or exchange is unsafe."""
+```
 
 ### `_ResolvedAddress`
 
-**Purpose:** Groups the `ResolvedAddress` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** One validated public IPv4 or IPv6 destination and the numeric socket endpoint derived from the same DNS snapshot.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `family` | `int` | `required` | Socket address family (`AF_INET` or `AF_INET6`) selected from a validated resolver record. |
-| `address` | `ipaddress.IPv4Address | ipaddress.IPv6Address` | `required` | Parsed IP address that passed every globally-routable-address guard. |
-| `port` | `int` | `required` | Validated TCP destination port; HTTPS defaults to 443 when the URL omits it. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `family` | `family: int` | AF_INET or AF_INET6 socket family validated from one getaddrinfo record. |
+| `address` | `address: ipaddress.IPv4Address \| ipaddress.IPv6Address` | Globally routable parsed IPv4/IPv6 address from the validated DNS snapshot. |
+| `port` | `port: int` | Validated HTTPS destination port attached to the immutable numeric endpoint. |
 
-- `socket_address` — `def socket_address(self) -> tuple[object, ...]:`; decorators `property`. The complete method algorithm appears in the function/method section.
+**Interface consumers**
+
+- direct call or construction: `src/landscout/common/safe_http.py::_resolve_public_addresses` via `_ResolvedAddress`.
+- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `_ResolvedAddress`.
+
+**Exact class source**
+
+```python
+class _ResolvedAddress:
+    family: int
+    address: ipaddress.IPv4Address | ipaddress.IPv6Address
+
+    @property
+    def socket_address(self) -> tuple[object, ...]:
+        if self.family == socket.AF_INET:
+            return (str(self.address), self.port)
+        return (str(self.address), self.port, 0, 0)
+
+    # The port is attached after resolution so the address remains an exact,
+    # immutable description of the validated endpoint.
+    port: int
+```
 
 ### `_ResolvedDestination`
 
-**Purpose:** Groups the `ResolvedDestination` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Canonical request identity plus the complete validated public-address set for one HTTPS hop.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `url` | `str` | `required` | Canonical HTTPS URL retained for request identity, redirects, lineage, or provenance according to the owning model. |
-| `hostname` | `str` | `required` | Canonical original hostname used for DNS, TLS SNI, certificate verification, and HTTP Host identity. |
-| `port` | `int` | `required` | Validated TCP destination port; HTTPS defaults to 443 when the URL omits it. |
-| `request_target` | `str` | `required` | Origin-form HTTP request path plus query sent to the bound HTTPS connection. |
-| `addresses` | `tuple[_ResolvedAddress, ...]` | `required` | Non-empty immutable ordered set of validated public IP candidates returned by the resolver. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `url` | `url: str` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
+| `hostname` | `hostname: str` | Stores `_ResolvedDestination`'s `hostname` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `port` | `port: int` | Stores `_ResolvedDestination`'s `port` value under exact annotation `int`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `request_target` | `request_target: str` | Stores `_ResolvedDestination`'s `request target` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `addresses` | `addresses: tuple[_ResolvedAddress, ...]` | Structured `addresses` collection owned by `_ResolvedDestination`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 
-- None.
+**Interface consumers**
+
+- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `_ResolvedDestination`.
+
+**Exact class source**
+
+```python
+class _ResolvedDestination:
+    url: str
+    hostname: str
+    port: int
+    request_target: str
+    addresses: tuple[_ResolvedAddress, ...]
+```
 
 ### `_BoundHTTPSConnection`
 
 **Purpose:** HTTPS connection whose transport endpoint is one validated IP.
 
+**Kind:** class.
+
 **Inheritance:** `http.client.HTTPSConnection`.
 
-**Model form and mutability:** class inheriting from `http.client.HTTPSConnection`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `_validated_address` | `not explicitly annotated` | `assigned in `__init__` from `address`` | `not explicitly annotated` state used by `src/landscout/common/safe_http.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `_tls_context` | `not explicitly annotated` | `assigned in `__init__` from `context`` | `not explicitly annotated` state used by `src/landscout/common/safe_http.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `sock` | `not explicitly annotated` | `assigned in `connect` from `self._tls_context.wrap_socket(raw_socket, server_hostname=self.host)`` | `not explicitly annotated` state used by `src/landscout/common/safe_http.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `_validated_address` | `self._validated_address = address  # assigned in __init__` | Stores `_BoundHTTPSConnection`'s ` validated address` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `_tls_context` | `self._tls_context = context  # assigned in __init__` | `_BoundHTTPSConnection`'s ` tls context` evidence/text field; it retains the exact configured or source meaning under annotation `not explicitly annotated` and is not promoted to a legal conclusion. |
+| `sock` | `self.sock = self._tls_context.wrap_socket(raw_socket, server_hostname=self.host)  # assigned in connect` | Stores `_BoundHTTPSConnection`'s `sock` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-**Validators and methods:**
+**Interface consumers**
 
-- `__init__` — `def __init__(         self,         hostname: str,         port: int,         address: _ResolvedAddress,         *,         timeout: float,         context: ssl.SSLContext,     ) -> None:`; decorators `none`. The complete method algorithm appears in the function/method section.
-- `connect` — `def connect(self) -> None:`; decorators `none`. The complete method algorithm appears in the function/method section.
+- direct call or construction: `src/landscout/common/safe_http.py::_open_destination` via `_BoundHTTPSConnection`.
+
+**Exact class source**
+
+```python
+class _BoundHTTPSConnection(http.client.HTTPSConnection):
+    """HTTPS connection whose transport endpoint is one validated IP."""
+
+    def __init__(
+        self,
+        hostname: str,
+        port: int,
+        address: _ResolvedAddress,
+        *,
+        timeout: float,
+        context: ssl.SSLContext,
+    ) -> None:
+        super().__init__(hostname, port=port, timeout=timeout, context=context)
+        self._validated_address = address
+        self._tls_context = context
+
+    def connect(self) -> None:
+        if getattr(self, "_tunnel_host", None) is not None:
+            raise SafeHttpsError("HTTPS proxy tunnels are forbidden")
+        raw_socket = socket.socket(
+            self._validated_address.family,
+            socket.SOCK_STREAM,
+        )
+        try:
+            raw_socket.settimeout(self.timeout)
+            raw_socket.connect(self._validated_address.socket_address)
+            peer = raw_socket.getpeername()
+            if type(peer) is not tuple or not peer or type(peer[0]) is not str:
+                raise SafeHttpsError("Connected HTTPS peer address is malformed")
+            peer_address = ipaddress.ip_address(peer[0].split("%", maxsplit=1)[0])
+            if peer_address != self._validated_address.address:
+                raise SafeHttpsError(
+                    "Connected HTTPS peer differs from the validated DNS address"
+                )
+            self.sock = self._tls_context.wrap_socket(
+                raw_socket,
+                server_hostname=self.host,
+            )
+        except Exception:
+            raw_socket.close()
+            raise
+```
 
 ### `SafeHttpsResponse`
 
 **Purpose:** Streaming final response returned by :func:`open_safe_https`.
 
-**Inheritance:** `object`.
+**Kind:** class.
 
-**Model form and mutability:** class inheriting from `object`. Decorators: `none`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** none.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `_response` | `not explicitly annotated` | `assigned in `__init__` from `response`` | `not explicitly annotated` state used by `src/landscout/common/safe_http.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `_connection` | `not explicitly annotated` | `assigned in `__init__` from `connection`` | `not explicitly annotated` state used by `src/landscout/common/safe_http.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `url` | `not explicitly annotated` | `assigned in `__init__` from `url`` | Canonical HTTPS URL retained for request identity, redirects, lineage, or provenance according to the owning model. |
-| `history` | `not explicitly annotated` | `assigned in `__init__` from `history`` | `not explicitly annotated` state used by `src/landscout/common/safe_http.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `status` | `not explicitly annotated` | `assigned in `__init__` from `response.status`` | `not explicitly annotated` state used by `src/landscout/common/safe_http.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `headers` | `not explicitly annotated` | `assigned in `__init__` from `response.headers`` | `not explicitly annotated` state used by `src/landscout/common/safe_http.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `_closed` | `not explicitly annotated` | `assigned in `__init__` from `False`` | `not explicitly annotated` state used by `src/landscout/common/safe_http.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `_response` | `self._response = response  # assigned in __init__` | Stores `SafeHttpsResponse`'s ` response` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `_connection` | `self._connection = connection  # assigned in __init__` | Stores `SafeHttpsResponse`'s ` connection` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `url` | `self.url = url  # assigned in __init__` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
+| `history` | `self.history = history  # assigned in __init__` | Stores `SafeHttpsResponse`'s `history` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `status` | `self.status = response.status  # assigned in __init__` | Closed or validated `status` classification on `SafeHttpsResponse`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `headers` | `self.headers = response.headers  # assigned in __init__` | Stores `SafeHttpsResponse`'s `headers` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `_closed` | `self._closed = False  # assigned in __init__` | Stores `SafeHttpsResponse`'s ` closed` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-- `__init__` — `def __init__(         self,         response: http.client.HTTPResponse,         connection: _BoundHTTPSConnection,         *,         url: str,         history: tuple[str, ...],     ) -> None:`; decorators `none`. The complete method algorithm appears in the function/method section.
-- `read` — `def read(self, amount: int | None = None) -> bytes:`; decorators `none`. The complete method algorithm appears in the function/method section.
-- `close` — `def close(self) -> None:`; decorators `none`. The complete method algorithm appears in the function/method section.
-- `__enter__` — `def __enter__(self) -> Self:`; decorators `none`. The complete method algorithm appears in the function/method section.
-- `__exit__` — `def __exit__(         self,         exc_type: type[BaseException] | None,         exc_value: BaseException | None,         traceback: TracebackType | None,     ) -> None:`; decorators `none`. The complete method algorithm appears in the function/method section.
+**Interface consumers**
+
+- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `SafeHttpsResponse`.
+
+**Exact class source**
+
+```python
+class SafeHttpsResponse:
+    """Streaming final response returned by :func:`open_safe_https`."""
+
+    def __init__(
+        self,
+        response: http.client.HTTPResponse,
+        connection: _BoundHTTPSConnection,
+        *,
+        url: str,
+        history: tuple[str, ...],
+    ) -> None:
+        self._response = response
+        self._connection = connection
+        self.url = url
+        self.history = history
+        self.status = response.status
+        self.headers = response.headers
+        self._closed = False
+
+    def read(self, amount: int | None = None) -> bytes:
+        try:
+            return self._response.read(amount)
+        except Exception as error:
+            raise SafeHttpsError("HTTPS response stream failed") from error
+
+    def close(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        try:
+            self._response.close()
+        finally:
+            self._connection.close()
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        self.close()
+```
+
 
 ## 6. Functions and methods
 
 ### `_ResolvedAddress.socket_address`
 
-**Signature**
+**Exact signature**
 
 ```python
 def socket_address(self) -> tuple[object, ...]:
@@ -174,56 +376,55 @@ def socket_address(self) -> tuple[object, ...]:
 
 **Purpose**
 
-Implements socket address according to the exact implementation and guards in this file.
+Private `common contract` helper for socket address; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[object, ...]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(str(self.address), self.port, 0, 0)
 
-**Returns**
+(str(self.address), self.port)
+```
 
-- Declared return type: `tuple[object, ...]`. Observed return expression(s): `(str(self.address), self.port, 0, 0)`; `(str(self.address), self.port)`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Checks `self.family == socket.AF_INET`. When true: Returns `(str(self.address), self.port)`.
-2. Returns `(str(self.address), self.port, 0, 0)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `str`.
+- callback/property argument: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `raw_socket.connect(self._validated_address.socket_address)`.
+- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `self._validated_address.socket_address`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def socket_address(self) -> tuple[object, ...]:
+        if self.family == socket.AF_INET:
+            return (str(self.address), self.port)
+        return (str(self.address), self.port, 0, 0)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_is_globally_routable_address`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _is_globally_routable_address(
@@ -233,58 +434,71 @@ def _is_globally_routable_address(
 
 **Purpose**
 
-Returns whether `globally routable address` satisfies the exact predicates and branches listed below.
+Tests whether globally routable address; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `address` (`ipaddress.IPv4Address | ipaddress.IPv6Address`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `bool`.
+- Every observed return expression is reproduced without truncation:
+```python
+True
 
-**Returns**
+False
 
-- Declared return type: `bool`. Observed return expression(s): `True`; `False`.
+False
+```
 
-**Algorithm**
+**Validation and exceptions**
 
-1. Checks `not address.is_global or address.is_private or address.is_loopback or address.is_link_local or address.is_unspecified or address.is_multicast or address.is_reserved`. When true: Returns `False`.
-2. Checks `isinstance(address, ipaddress.IPv6Address)`. When true: Computes `mapped` from `address.ipv4_mapped`. Checks `mapped is not None and (not _is_globally_routable_address(mapped))`. When true: Returns `False`.
-3. Returns `True`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_is_globally_routable_address`, `isinstance`.
+- direct call or construction: `src/landscout/common/safe_http.py::_resolve_public_addresses` via `_is_globally_routable_address`.
+- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `_is_globally_routable_address`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/safe_http.py` — `_resolve_destination`
-- `src/landscout/common/safe_http.py` — `_resolve_public_addresses`
+```python
+def _is_globally_routable_address(
+    address: ipaddress.IPv4Address | ipaddress.IPv6Address,
+) -> bool:
+    if (
+        not address.is_global
+        or address.is_private
+        or address.is_loopback
+        or address.is_link_local
+        or address.is_unspecified
+        or address.is_multicast
+        or address.is_reserved
+    ):
+        return False
+    if isinstance(address, ipaddress.IPv6Address):
+        mapped = address.ipv4_mapped
+        if mapped is not None and not _is_globally_routable_address(mapped):
+            return False
+    return True
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_strict_literal_address`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _strict_literal_address(
@@ -294,62 +508,88 @@ def _strict_literal_address(
 
 **Purpose**
 
-Implements strict literal address according to the exact implementation and guards in this file.
+Private `common contract` helper for strict literal address; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `hostname` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `ipaddress.IPv4Address | ipaddress.IPv6Address | None`.
+- Every observed return expression is reproduced without truncation:
+```python
+None
 
-**Returns**
+ipaddress.ip_address(hostname)
 
-- Declared return type: `ipaddress.IPv4Address | ipaddress.IPv6Address | None`. Observed return expression(s): `None`; `ipaddress.ip_address(hostname)`; `ipaddress.ip_address(packed)`; `ipaddress.IPv4Address(int(hostname, base))`.
+ipaddress.ip_address(packed)
 
-**Algorithm**
+ipaddress.IPv4Address(int(hostname, base))
+```
 
-1. Runs guarded operation: Returns `ipaddress.ip_address(hostname)`. Handles `ValueError`.
-2. Runs guarded operation: Computes `packed` from `socket.inet_aton(hostname)`. Handles `OSError`.
-3. Checks `packed is not None`. When true: Returns `ipaddress.ip_address(packed)`.
-4. Checks `hostname.isdecimal() or hostname.casefold().startswith('0x')`. When true: Computes `base` from `16 if hostname.casefold().startswith('0x') else 10`. Runs guarded operation: Returns `ipaddress.IPv4Address(int(hostname, base))`. Handles `(ValueError, ipaddress.AddressValueError, OverflowError)`.
-5. Checks `any((character.isdigit() for character in hostname)) and _NUMERIC_HOST_PATTERN.fullmatch(hostname)`. When true: Raises `SafeHttpsError('Malformed numeric IP destination')`.
-6. Returns `None`.
+**Validation and exceptions**
 
-**Validation and invariants**
-
-- Rejects or diverts the path when `hostname.isdecimal() or hostname.casefold().startswith('0x')` is true.
-- Rejects or diverts the path when `any((character.isdigit() for character in hostname)) and _NUMERIC_HOST_PATTERN.fullmatch(hostname)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `SafeHttpsError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `hostname.isdecimal() or hostname.casefold().startswith('0x')`.
+- Guard with a raise path: `any((character.isdigit() for character in hostname)) and _NUMERIC_HOST_PATTERN.fullmatch(hostname)`.
+- Explicit raise expressions: `SafeHttpsError('Malformed numeric IP destination')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: `socket.inet_aton`.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `SafeHttpsError`, `_NUMERIC_HOST_PATTERN.fullmatch`, `any`, `character.isdigit`, `hostname.casefold`, `hostname.casefold().startswith`, `hostname.isdecimal`, `int`, `ipaddress.IPv4Address`, `ipaddress.ip_address`, `socket.inet_aton`.
+- direct call or construction: `src/landscout/common/safe_http.py::_canonical_url` via `_strict_literal_address`.
+- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `_strict_literal_address`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/safe_http.py` — `_canonical_url`
-- `src/landscout/common/safe_http.py` — `_resolve_destination`
+```python
+def _strict_literal_address(
+    hostname: str,
+) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
+    try:
+        return ipaddress.ip_address(hostname)
+    except ValueError:
+        pass
 
-**Tests**
+    # inet_aton recognises legacy IPv4 spellings such as 127.1.  They are
+    # interpreted here only so that they can be subjected to the same public
+    # address gate without a second DNS lookup.
+    try:
+        packed = socket.inet_aton(hostname)
+    except OSError:
+        packed = None
+    if packed is not None:
+        return ipaddress.ip_address(packed)
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    if hostname.isdecimal() or hostname.casefold().startswith("0x"):
+        base = 16 if hostname.casefold().startswith("0x") else 10
+        try:
+            return ipaddress.IPv4Address(int(hostname, base))
+        except (ValueError, ipaddress.AddressValueError, OverflowError) as error:
+            raise SafeHttpsError("Malformed numeric IP destination") from error
 
-**Business interpretation**
+    # A host made entirely from numeric-IP syntax must not fall through to
+    # ordinary DNS merely because its numeric representation is malformed.
+    if any(character.isdigit() for character in hostname) and _NUMERIC_HOST_PATTERN.fullmatch(
+        hostname
+    ):
+        raise SafeHttpsError("Malformed numeric IP destination")
+    return None
+```
 
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_resolve_public_addresses`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _resolve_public_addresses(
@@ -360,66 +600,130 @@ def _resolve_public_addresses(
 
 **Purpose**
 
-Resolves public addresses according to the exact implementation and guards in this file.
+Resolves public addresses; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `hostname` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `port` (`int`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[_ResolvedAddress, ...]`.
+- Every observed return expression is reproduced without truncation:
+```python
+tuple((addresses[key] for key in sorted(addresses)))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[_ResolvedAddress, ...]`. Observed return expression(s): `tuple((addresses[key] for key in sorted(addresses)))`.
-
-**Algorithm**
-
-1. Runs guarded operation: Computes `records` from `socket.getaddrinfo(hostname, port, type=socket.SOCK_STREAM)`. Defines `addresses` with annotation `dict[tuple[int, int], _ResolvedAddress]` from `{}`. Iterates `record` over `records`. For each value: Checks `type(record) is not tuple or len(record) != 5`. When true: Raises `TypeError('DNS result must be a five-item tuple')`. Computes `(family, socket_type, protocol, canonical_name, sockaddr)` from `record`. Checks `family == socket.AF_INET`. When true: Computes `expected_version` from `4`. Computes `expected_sockaddr_length` from `2`. Otherwise: Checks `family == socket.AF_INET6`. When true: Computes `expected_version` from `6`. Computes `expected_sockaddr_length` from `4`. Otherwise: Raises `ValueError('DNS result uses an unsupported address family')`. Executes 12 additional source-ordered statement(s). Checks `not addresses`. When true: Raises `ValueError('DNS resolution returned no usable address')`. Executes 1 additional source-ordered statement(s). Handles `SafeHttpsError`, `(OSError, UnicodeError, IndexError, TypeError, ValueError, OverflowError)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not addresses` is true.
-- Rejects or diverts the path when `type(record) is not tuple or len(record) != 5` is true.
-- Rejects or diverts the path when `socket_type != socket.SOCK_STREAM` is true.
-- Rejects or diverts the path when `type(protocol) is not int or protocol not in {0, socket.IPPROTO_TCP}` is true.
-- Rejects or diverts the path when `type(canonical_name) is not str` is true.
-- Rejects or diverts the path when `type(sockaddr) is not tuple or len(sockaddr) != expected_sockaddr_length` is true.
-- Rejects or diverts the path when `type(validated_sockaddr[0]) is not str or type(validated_sockaddr[1]) is not int` is true.
-- Rejects or diverts the path when `validated_sockaddr[1] != port` is true.
-- Rejects or diverts the path when `expected_version == 6 and (type(validated_sockaddr[2]) is not int or type(validated_sockaddr[3]) is not int)` is true.
-- Rejects or diverts the path when `address.version != expected_version` is true.
-- Rejects or diverts the path when `not _is_globally_routable_address(address)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `SafeHttpsError`, `TypeError`, `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not addresses`.
+- Guard with a raise path: `type(record) is not tuple or len(record) != 5`.
+- Guard with a raise path: `socket_type != socket.SOCK_STREAM`.
+- Guard with a raise path: `type(protocol) is not int or protocol not in {0, socket.IPPROTO_TCP}`.
+- Guard with a raise path: `type(canonical_name) is not str`.
+- Guard with a raise path: `type(sockaddr) is not tuple or len(sockaddr) != expected_sockaddr_length`.
+- Guard with a raise path: `type(validated_sockaddr[0]) is not str or type(validated_sockaddr[1]) is not int`.
+- Guard with a raise path: `validated_sockaddr[1] != port`.
+- Guard with a raise path: `expected_version == 6 and (type(validated_sockaddr[2]) is not int or type(validated_sockaddr[3]) is not int)`.
+- Guard with a raise path: `address.version != expected_version`.
+- Guard with a raise path: `not _is_globally_routable_address(address)`.
+- Explicit raise expressions: `SafeHttpsError(f'DNS resolution failed for host: {hostname}')`, `SafeHttpsError(f'DNS resolved {hostname} to a non-public address')`, `TypeError('DNS canonical name must be a string')`, `TypeError('DNS result has an invalid IPv6 socket address')`, `TypeError('DNS result has an invalid socket address')`, `TypeError('DNS result must be a five-item tuple')`, `ValueError('DNS address family does not match its IP address')`, `ValueError('DNS resolution returned no usable address')`, `ValueError('DNS result is not a TCP-compatible address')`, `ValueError('DNS result is not a stream address')`, `ValueError('DNS result uses an unexpected destination port')`, `ValueError('DNS result uses an unsupported address family')`, `re-raise`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: `socket.getaddrinfo`.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `addresses[address.version, int(address)]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `SafeHttpsError`, `TypeError`, `ValueError`, `_ResolvedAddress`, `_is_globally_routable_address`, `int`, `ipaddress.ip_address`, `len`, `socket.getaddrinfo`, `sorted`, `tuple`, `type`.
+- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `_resolve_public_addresses`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/safe_http.py` — `_resolve_destination`
+```python
+def _resolve_public_addresses(
+    hostname: str,
+    port: int,
+) -> tuple[_ResolvedAddress, ...]:
+    try:
+        records = socket.getaddrinfo(hostname, port, type=socket.SOCK_STREAM)
+        addresses: dict[
+            tuple[int, int],
+            _ResolvedAddress,
+        ] = {}
+        for record in records:
+            if type(record) is not tuple or len(record) != 5:
+                raise TypeError("DNS result must be a five-item tuple")
+            family, socket_type, protocol, canonical_name, sockaddr = record
+            if family == socket.AF_INET:
+                expected_version = 4
+                expected_sockaddr_length = 2
+            elif family == socket.AF_INET6:
+                expected_version = 6
+                expected_sockaddr_length = 4
+            else:
+                raise ValueError("DNS result uses an unsupported address family")
+            if socket_type != socket.SOCK_STREAM:
+                raise ValueError("DNS result is not a stream address")
+            if type(protocol) is not int or protocol not in {
+                0,
+                socket.IPPROTO_TCP,
+            }:
+                raise ValueError("DNS result is not a TCP-compatible address")
+            if type(canonical_name) is not str:
+                raise TypeError("DNS canonical name must be a string")
+            if type(sockaddr) is not tuple or len(sockaddr) != expected_sockaddr_length:
+                raise TypeError("DNS result has an invalid socket address")
+            validated_sockaddr: tuple[object, ...] = tuple(sockaddr)
+            if (
+                type(validated_sockaddr[0]) is not str
+                or type(validated_sockaddr[1]) is not int
+            ):
+                raise TypeError("DNS result has an invalid socket address")
+            if validated_sockaddr[1] != port:
+                raise ValueError("DNS result uses an unexpected destination port")
+            if expected_version == 6 and (
+                type(validated_sockaddr[2]) is not int
+                or type(validated_sockaddr[3]) is not int
+            ):
+                raise TypeError("DNS result has an invalid IPv6 socket address")
+            address = ipaddress.ip_address(validated_sockaddr[0])
+            if address.version != expected_version:
+                raise ValueError("DNS address family does not match its IP address")
+            if not _is_globally_routable_address(address):
+                raise SafeHttpsError(
+                    f"DNS resolved {hostname} to a non-public address"
+                )
+            addresses[(address.version, int(address))] = _ResolvedAddress(
+                family=family,
+                address=address,
+                port=port,
+            )
+        if not addresses:
+            raise ValueError("DNS resolution returned no usable address")
+        return tuple(addresses[key] for key in sorted(addresses))
+    except SafeHttpsError:
+        raise
+    except (
+        OSError,
+        UnicodeError,
+        IndexError,
+        TypeError,
+        ValueError,
+        OverflowError,
+    ) as error:
+        raise SafeHttpsError(f"DNS resolution failed for host: {hostname}") from error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_canonical_hostname`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _canonical_hostname(hostname: str) -> str:
@@ -427,61 +731,64 @@ def _canonical_hostname(hostname: str) -> str:
 
 **Purpose**
 
-Implements canonical hostname according to the exact implementation and guards in this file.
+Private `common contract` helper for canonical hostname; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `hostname` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+canonical
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `canonical`.
-
-**Algorithm**
-
-1. Checks `not hostname`. When true: Raises `SafeHttpsError('HTTPS URL hostname is empty')`.
-2. Runs guarded operation: Computes `canonical` from `hostname.encode('idna').decode('ascii').casefold().rstrip('.')`. Handles `UnicodeError`.
-3. Checks `not canonical`. When true: Raises `SafeHttpsError('HTTPS URL hostname is empty')`.
-4. Checks `canonical == 'localhost' or canonical.endswith('.localhost')`. When true: Raises `SafeHttpsError('Localhost HTTPS destinations are forbidden')`.
-5. Returns `canonical`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not hostname` is true.
-- Rejects or diverts the path when `not canonical` is true.
-- Rejects or diverts the path when `canonical == 'localhost' or canonical.endswith('.localhost')` is true.
-
-**Exceptions**
-
-- Explicitly raises: `SafeHttpsError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not hostname`.
+- Guard with a raise path: `not canonical`.
+- Guard with a raise path: `canonical == 'localhost' or canonical.endswith('.localhost')`.
+- Explicit raise expressions: `SafeHttpsError('HTTPS URL hostname is empty')`, `SafeHttpsError('HTTPS URL hostname is malformed')`, `SafeHttpsError('Localhost HTTPS destinations are forbidden')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `SafeHttpsError`, `canonical.endswith`, `hostname.encode`, `hostname.encode('idna').decode`, `hostname.encode('idna').decode('ascii').casefold`, `hostname.encode('idna').decode('ascii').casefold().rstrip`.
+- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `_canonical_hostname`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/safe_http.py` — `_resolve_destination`
+```python
+def _canonical_hostname(hostname: str) -> str:
+    if not hostname:
+        raise SafeHttpsError("HTTPS URL hostname is empty")
+    try:
+        canonical = (
+            hostname.encode("idna").decode("ascii").casefold().rstrip(".")
+        )
+    except UnicodeError as error:
+        raise SafeHttpsError("HTTPS URL hostname is malformed") from error
+    if not canonical:
+        raise SafeHttpsError("HTTPS URL hostname is empty")
+    if canonical == "localhost" or canonical.endswith(".localhost"):
+        raise SafeHttpsError("Localhost HTTPS destinations are forbidden")
+    return canonical
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_canonical_url`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _canonical_url(parsed: SplitResult, hostname: str, port: int) -> str:
@@ -489,60 +796,53 @@ def _canonical_url(parsed: SplitResult, hostname: str, port: int) -> str:
 
 **Purpose**
 
-Implements canonical url according to the exact implementation and guards in this file.
+Private `common contract` helper for canonical url; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parsed` (`SplitResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `hostname` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `port` (`int`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+urlunsplit(('https', netloc, parsed.path or '/', parsed.query, ''))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `urlunsplit(('https', netloc, parsed.path or '/', parsed.query, ''))`.
-
-**Algorithm**
-
-1. Computes `address` from `_strict_literal_address(hostname)`.
-2. Computes `host_text` from `f'[{hostname}]' if address is not None and address.version == 6 else hostname`.
-3. Computes `netloc` from `host_text if port == 443 else f'{host_text}:{port}'`.
-4. Returns `urlunsplit(('https', netloc, parsed.path or '/', parsed.query, ''))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_strict_literal_address`, `urlunsplit`.
+- direct call or construction: `src/landscout/common/safe_http.py::_resolve_destination` via `_canonical_url`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/safe_http.py` — `_resolve_destination`
+```python
+def _canonical_url(parsed: SplitResult, hostname: str, port: int) -> str:
+    address = _strict_literal_address(hostname)
+    host_text = f"[{hostname}]" if address is not None and address.version == 6 else hostname
+    netloc = host_text if port == 443 else f"{host_text}:{port}"
+    return urlunsplit(("https", netloc, parsed.path or "/", parsed.query, ""))
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_resolve_destination`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _resolve_destination(value: str) -> _ResolvedDestination:
@@ -550,61 +850,100 @@ def _resolve_destination(value: str) -> _ResolvedDestination:
 
 **Purpose**
 
-Resolves destination according to the exact implementation and guards in this file.
+Resolves destination; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `value` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `_ResolvedDestination`.
+- Every observed return expression is reproduced without truncation:
+```python
+_ResolvedDestination(url=_canonical_url(parsed, hostname, port), hostname=hostname, port=port, request_target=request_target, addresses=addresses)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `_ResolvedDestination`. Observed return expression(s): `_ResolvedDestination(url=_canonical_url(parsed, hostname, port), hostname=hostname, port=port, request_target=request_target, addresses=addresses)`.
-
-**Algorithm**
-
-1. Runs guarded operation: Checks `type(value) is not str or not value`. When true: Raises `TypeError('HTTPS URL must be an exact non-empty string')`. Checks `any((ord(character) < 32 or ord(character) == 127 for character in value))`. When true: Raises `ValueError('HTTPS URL contains a control character')`. Computes `parsed` from `urlsplit(value)`. Checks `parsed.scheme.casefold() != 'https' or parsed.hostname is None`. When true: Raises `ValueError('Remote URL must use HTTPS and include a hostname')`. Executes 10 additional source-ordered statement(s). Handles `SafeHttpsError`, `(AttributeError, IndexError, TypeError, UnicodeError, ValueError, OverflowError)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `type(value) is not str or not value` is true.
-- Rejects or diverts the path when `any((ord(character) < 32 or ord(character) == 127 for character in value))` is true.
-- Rejects or diverts the path when `parsed.scheme.casefold() != 'https' or parsed.hostname is None` is true.
-- Rejects or diverts the path when `parsed.username is not None or parsed.password is not None` is true.
-- Rejects or diverts the path when `parsed.fragment` is true.
-- Rejects or diverts the path when `not 1 <= port <= 65535` is true.
-- Rejects or diverts the path when `not _is_globally_routable_address(literal)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `SafeHttpsError`, `TypeError`, `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `type(value) is not str or not value`.
+- Guard with a raise path: `any((ord(character) < 32 or ord(character) == 127 for character in value))`.
+- Guard with a raise path: `parsed.scheme.casefold() != 'https' or parsed.hostname is None`.
+- Guard with a raise path: `parsed.username is not None or parsed.password is not None`.
+- Guard with a raise path: `parsed.fragment`.
+- Guard with a raise path: `not 1 <= port <= 65535`.
+- Guard with a raise path: `not _is_globally_routable_address(literal)`.
+- Explicit raise expressions: `SafeHttpsError(f'Unsafe HTTPS URL: {value}')`, `TypeError('HTTPS URL must be an exact non-empty string')`, `ValueError('HTTPS URL contains a control character')`, `ValueError('HTTPS URL port is invalid')`, `ValueError('Non-public IP HTTPS destinations are forbidden')`, `ValueError('Remote URL credentials are forbidden')`, `ValueError('Remote URL fragments are forbidden')`, `ValueError('Remote URL must use HTTPS and include a hostname')`, `re-raise`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `SafeHttpsError`, `TypeError`, `ValueError`, `_ResolvedAddress`, `_ResolvedDestination`, `_canonical_hostname`, `_canonical_url`, `_is_globally_routable_address`, `_resolve_public_addresses`, `_strict_literal_address`, `any`, `ord`, `parsed.scheme.casefold`, `type`, `urlsplit`.
+- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `_resolve_destination`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/safe_http.py` — `open_safe_https`
+```python
+def _resolve_destination(value: str) -> _ResolvedDestination:
+    try:
+        if type(value) is not str or not value:
+            raise TypeError("HTTPS URL must be an exact non-empty string")
+        if any(ord(character) < 32 or ord(character) == 127 for character in value):
+            raise ValueError("HTTPS URL contains a control character")
+        parsed = urlsplit(value)
+        if parsed.scheme.casefold() != "https" or parsed.hostname is None:
+            raise ValueError("Remote URL must use HTTPS and include a hostname")
+        if parsed.username is not None or parsed.password is not None:
+            raise ValueError("Remote URL credentials are forbidden")
+        if parsed.fragment:
+            raise ValueError("Remote URL fragments are forbidden")
+        hostname = _canonical_hostname(parsed.hostname)
+        port = 443 if parsed.port is None else parsed.port
+        if not 1 <= port <= 65535:
+            raise ValueError("HTTPS URL port is invalid")
+        literal = _strict_literal_address(hostname)
+        if literal is None:
+            addresses = _resolve_public_addresses(hostname, port)
+        else:
+            if not _is_globally_routable_address(literal):
+                raise ValueError("Non-public IP HTTPS destinations are forbidden")
+            family = socket.AF_INET if literal.version == 4 else socket.AF_INET6
+            addresses = (_ResolvedAddress(family, literal, port),)
+        request_target = parsed.path or "/"
+        if parsed.query:
+            request_target = f"{request_target}?{parsed.query}"
+        return _ResolvedDestination(
+            url=_canonical_url(parsed, hostname, port),
+            hostname=hostname,
+            port=port,
+            request_target=request_target,
+            addresses=addresses,
+        )
+    except SafeHttpsError:
+        raise
+    except (
+        AttributeError,
+        IndexError,
+        TypeError,
+        UnicodeError,
+        ValueError,
+        OverflowError,
+    ) as error:
+        raise SafeHttpsError(f"Unsafe HTTPS URL: {value}") from error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_BoundHTTPSConnection.__init__`
 
-**Signature**
+**Exact signature**
 
 ```python
 def __init__(
@@ -620,62 +959,56 @@ def __init__(
 
 **Purpose**
 
-Implements init according to the exact implementation and guards in this file.
+Private `common contract` helper for init; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `hostname` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `port` (`int`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `address` (`_ResolvedAddress`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `timeout` (`float`; required) — network timeout in seconds; validation rejects unsupported or non-positive values. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `context` (`ssl.SSLContext`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Calls `super().__init__(hostname, port=port, timeout=timeout, context=context)` for its validation or side effect.
-2. Computes `self._validated_address` from `address`.
-3. Computes `self._tls_context` from `context`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `self._tls_context`, `self._validated_address`.
+- Input mutation: `self._tls_context`, `self._validated_address`.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `super`, `super().__init__`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def __init__(
+        self,
+        hostname: str,
+        port: int,
+        address: _ResolvedAddress,
+        *,
+        timeout: float,
+        context: ssl.SSLContext,
+    ) -> None:
+        super().__init__(hostname, port=port, timeout=timeout, context=context)
+        self._validated_address = address
+        self._tls_context = context
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_BoundHTTPSConnection.connect`
 
-**Signature**
+**Exact signature**
 
 ```python
 def connect(self) -> None:
@@ -683,59 +1016,71 @@ def connect(self) -> None:
 
 **Purpose**
 
-Implements connect according to the exact implementation and guards in this file.
+Private `common contract` helper for connect; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `getattr(self, '_tunnel_host', None) is not None`. When true: Raises `SafeHttpsError('HTTPS proxy tunnels are forbidden')`.
-2. Computes `raw_socket` from `socket.socket(self._validated_address.family, socket.SOCK_STREAM)`.
-3. Runs guarded operation: Calls `raw_socket.settimeout(self.timeout)` for its validation or side effect. Calls `raw_socket.connect(self._validated_address.socket_address)` for its validation or side effect. Computes `peer` from `raw_socket.getpeername()`. Checks `type(peer) is not tuple or not peer or type(peer[0]) is not str`. When true: Raises `SafeHttpsError('Connected HTTPS peer address is malformed')`. Executes 3 additional source-ordered statement(s). Handles `Exception`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `getattr(self, '_tunnel_host', None) is not None` is true.
-- Rejects or diverts the path when `type(peer) is not tuple or not peer or type(peer[0]) is not str` is true.
-- Rejects or diverts the path when `peer_address != self._validated_address.address` is true.
-
-**Exceptions**
-
-- Explicitly raises: `SafeHttpsError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `getattr(self, '_tunnel_host', None) is not None`.
+- Guard with a raise path: `type(peer) is not tuple or not peer or type(peer[0]) is not str`.
+- Guard with a raise path: `peer_address != self._validated_address.address`.
+- Explicit raise expressions: `SafeHttpsError('Connected HTTPS peer address is malformed')`, `SafeHttpsError('Connected HTTPS peer differs from the validated DNS address')`, `SafeHttpsError('HTTPS proxy tunnels are forbidden')`, `re-raise`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: `raw_socket.close`, `raw_socket.connect`, `raw_socket.getpeername`, `raw_socket.settimeout`, `self._tls_context.wrap_socket`, `socket.socket`.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `self.sock`.
+- Input mutation: `self.sock`.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `SafeHttpsError`, `getattr`, `ipaddress.ip_address`, `peer[0].split`, `raw_socket.close`, `raw_socket.connect`, `raw_socket.getpeername`, `raw_socket.settimeout`, `self._tls_context.wrap_socket`, `socket.socket`, `type`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def connect(self) -> None:
+        if getattr(self, "_tunnel_host", None) is not None:
+            raise SafeHttpsError("HTTPS proxy tunnels are forbidden")
+        raw_socket = socket.socket(
+            self._validated_address.family,
+            socket.SOCK_STREAM,
+        )
+        try:
+            raw_socket.settimeout(self.timeout)
+            raw_socket.connect(self._validated_address.socket_address)
+            peer = raw_socket.getpeername()
+            if type(peer) is not tuple or not peer or type(peer[0]) is not str:
+                raise SafeHttpsError("Connected HTTPS peer address is malformed")
+            peer_address = ipaddress.ip_address(peer[0].split("%", maxsplit=1)[0])
+            if peer_address != self._validated_address.address:
+                raise SafeHttpsError(
+                    "Connected HTTPS peer differs from the validated DNS address"
+                )
+            self.sock = self._tls_context.wrap_socket(
+                raw_socket,
+                server_hostname=self.host,
+            )
+        except Exception:
+            raw_socket.close()
+            raise
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `SafeHttpsResponse.__init__`
 
-**Signature**
+**Exact signature**
 
 ```python
 def __init__(
@@ -750,65 +1095,61 @@ def __init__(
 
 **Purpose**
 
-Implements init according to the exact implementation and guards in this file.
+Private `common contract` helper for init; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `response` (`http.client.HTTPResponse`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `connection` (`_BoundHTTPSConnection`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `url` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `history` (`tuple[str, ...]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `self._response` from `response`.
-2. Computes `self._connection` from `connection`.
-3. Computes `self.url` from `url`.
-4. Computes `self.history` from `history`.
-5. Computes `self.status` from `response.status`.
-6. Computes `self.headers` from `response.headers`.
-7. Computes `self._closed` from `False`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `self._closed`, `self._connection`, `self._response`, `self.headers`, `self.history`, `self.status`, `self.url`.
+- Input mutation: `self._closed`, `self._connection`, `self._response`, `self.headers`, `self.history`, `self.status`, `self.url`.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- No function calls.
+- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
+- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def __init__(
+        self,
+        response: http.client.HTTPResponse,
+        connection: _BoundHTTPSConnection,
+        *,
+        url: str,
+        history: tuple[str, ...],
+    ) -> None:
+        self._response = response
+        self._connection = connection
+        self.url = url
+        self.history = history
+        self.status = response.status
+        self.headers = response.headers
+        self._closed = False
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `SafeHttpsResponse.read`
 
-**Signature**
+**Exact signature**
 
 ```python
 def read(self, amount: int | None = None) -> bytes:
@@ -816,56 +1157,83 @@ def read(self, amount: int | None = None) -> bytes:
 
 **Purpose**
 
-Reads and validates read according to the exact implementation and guards in this file.
+Reads read; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `amount` (`int | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `bytes`.
+- Every observed return expression is reproduced without truncation:
+```python
+self._response.read(amount)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `bytes`. Observed return expression(s): `self._response.read(amount)`.
-
-**Algorithm**
-
-1. Runs guarded operation: Returns `self._response.read(amount)`. Handles `Exception`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `SafeHttpsError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `SafeHttpsError('HTTPS response stream failed')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `SafeHttpsError`, `self._response.read`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::_sha256` via `stream.read`.
+- property/attribute access: `src/landscout/sources/cadastre_fr.py::_sha256` via `stream.read`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::_is_valid_gzip` via `stream.read`.
+- property/attribute access: `src/landscout/sources/cadastre_fr.py::_is_valid_gzip` via `stream.read`.
+- direct call or construction: `src/landscout/sources/cadastre_loader_fr.py::_validate_download` via `stream.read`.
+- property/attribute access: `src/landscout/sources/cadastre_loader_fr.py::_validate_download` via `stream.read`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_request_json` via `response.read`.
+- property/attribute access: `src/landscout/sources/gpu_fr.py::_request_json` via `response.read`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_sha256` via `stream.read`.
+- property/attribute access: `src/landscout/sources/gpu_fr.py::_sha256` via `stream.read`.
+- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_calculate_checksums` via `stream.read`.
+- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_calculate_checksums` via `stream.read`.
+- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_geopackage_integrity` via `stream.read`.
+- property/attribute access: `src/landscout/sources/ign_bdtopo_fr.py::_geopackage_integrity` via `stream.read`.
+- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_sha256_file` via `stream.read`.
+- property/attribute access: `src/landscout/sources/inpn_protected_areas_fr.py::_sha256_file` via `stream.read`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_read_response_json` via `response.read`.
+- property/attribute access: `src/landscout/sources/rte_odre_fr.py::_read_response_json` via `response.read`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_sha256` via `stream.read`.
+- property/attribute access: `src/landscout/sources/rte_odre_fr.py::_sha256` via `stream.read`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_file_sha256` via `stream.read`.
+- property/attribute access: `src/landscout/stages/index_planning_regulation.py::_file_sha256` via `stream.read`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_incompatible_upstreams_before_io_or_rebuild` via `monkeypatch.setattr(module, '_read_verified_artifact', read)`.
+- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_Response.iter_content` via `self.raw.read`.
+- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::_Response.iter_content` via `self.raw.read`.
+- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_Response.read` via `self.raw.read`.
+- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::_Response.read` via `self.raw.read`.
+- direct call or construction: `tests/unit/test_safe_http.py::_read` via `response.read`.
+- property/attribute access: `tests/unit/test_safe_http.py::_read` via `response.read`.
+- direct call or construction: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `response.read`.
+- property/attribute access: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `response.read`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def read(self, amount: int | None = None) -> bytes:
+        try:
+            return self._response.read(amount)
+        except Exception as error:
+            raise SafeHttpsError("HTTPS response stream failed") from error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `SafeHttpsResponse.close`
 
-**Signature**
+**Exact signature**
 
 ```python
 def close(self) -> None:
@@ -873,57 +1241,71 @@ def close(self) -> None:
 
 **Purpose**
 
-Implements close according to the exact implementation and guards in this file.
+Private `common contract` helper for close; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- Every observed return expression is reproduced without truncation:
+```python
+None
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. Observed return expression(s): `None`.
-
-**Algorithm**
-
-1. Checks `self._closed`. When true: Returns `None`.
-2. Computes `self._closed` from `True`.
-3. Runs guarded operation: Calls `self._response.close()` for its validation or side effect. Handles no explicit exception types. Finally: Calls `self._connection.close()` for its validation or side effect.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `self._closed`.
+- Input mutation: `self._closed`.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `self._connection.close`, `self._response.close`.
+- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `raw_socket.close`.
+- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.connect` via `raw_socket.close`.
+- direct call or construction: `src/landscout/common/safe_http.py::SafeHttpsResponse.__exit__` via `self.close`.
+- property/attribute access: `src/landscout/common/safe_http.py::SafeHttpsResponse.__exit__` via `self.close`.
+- direct call or construction: `src/landscout/common/safe_http.py::_open_destination` via `connection.close`.
+- property/attribute access: `src/landscout/common/safe_http.py::_open_destination` via `connection.close`.
+- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `response.close`.
+- property/attribute access: `src/landscout/common/safe_http.py::open_safe_https` via `response.close`.
+- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `connection.close`.
+- property/attribute access: `src/landscout/common/safe_http.py::open_safe_https` via `connection.close`.
+- direct call or construction: `tests/unit/test_gpu_fr.py::_Response.__exit__` via `self.close`.
+- property/attribute access: `tests/unit/test_gpu_fr.py::_Response.__exit__` via `self.close`.
+- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_Response.__exit__` via `self.close`.
+- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::_Response.__exit__` via `self.close`.
+- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::_Session.open` via `response.close`.
+- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::_Session.open` via `response.close`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def close(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        try:
+            self._response.close()
+        finally:
+            self._connection.close()
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `SafeHttpsResponse.__enter__`
 
-**Signature**
+**Exact signature**
 
 ```python
 def __enter__(self) -> Self:
@@ -931,55 +1313,50 @@ def __enter__(self) -> Self:
 
 **Purpose**
 
-Implements enter according to the exact implementation and guards in this file.
+Private `common contract` helper for enter; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `Self`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `Self`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Returns `self`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- No function calls.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def __enter__(self) -> Self:
+        return self
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `SafeHttpsResponse.__exit__`
 
-**Signature**
+**Exact signature**
 
 ```python
 def __exit__(
@@ -992,58 +1369,52 @@ def __exit__(
 
 **Purpose**
 
-Implements exit according to the exact implementation and guards in this file.
+Private `common contract` helper for exit; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `exc_type` (`type[BaseException] | None`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `exc_value` (`BaseException | None`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `traceback` (`TracebackType | None`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Calls `self.close()` for its validation or side effect.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `self.close`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
+        self.close()
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_validated_timeout`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validated_timeout(value: object) -> float:
@@ -1051,59 +1422,61 @@ def _validated_timeout(value: object) -> float:
 
 **Purpose**
 
-Validates and returns canonical timeout according to the exact implementation and guards in this file.
+Checks and returns canonical timeout; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `float`.
+- Every observed return expression is reproduced without truncation:
+```python
+timeout
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `float`. Observed return expression(s): `timeout`.
-
-**Algorithm**
-
-1. Checks `isinstance(value, bool) or not isinstance(value, Real)`. When true: Raises `SafeHttpsError('HTTPS timeout must be a strict positive finite number')`.
-2. Runs guarded operation: Computes `timeout` from `float(value)`. Handles `(OverflowError, TypeError, ValueError)`.
-3. Checks `not isfinite(timeout) or timeout <= 0`. When true: Raises `SafeHttpsError('HTTPS timeout must be a strict positive finite number')`.
-4. Returns `timeout`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `isinstance(value, bool) or not isinstance(value, Real)` is true.
-- Rejects or diverts the path when `not isfinite(timeout) or timeout <= 0` is true.
-
-**Exceptions**
-
-- Explicitly raises: `SafeHttpsError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `isinstance(value, bool) or not isinstance(value, Real)`.
+- Guard with a raise path: `not isfinite(timeout) or timeout <= 0`.
+- Explicit raise expressions: `SafeHttpsError('HTTPS timeout must be a strict positive finite number')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `SafeHttpsError`, `float`, `isfinite`, `isinstance`.
+- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `_validated_timeout`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/safe_http.py` — `open_safe_https`
+```python
+def _validated_timeout(value: object) -> float:
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise SafeHttpsError("HTTPS timeout must be a strict positive finite number")
+    try:
+        timeout = float(value)
+    except (OverflowError, TypeError, ValueError) as error:
+        raise SafeHttpsError(
+            "HTTPS timeout must be a strict positive finite number"
+        ) from error
+    if not isfinite(timeout) or timeout <= 0:
+        raise SafeHttpsError("HTTPS timeout must be a strict positive finite number")
+    return timeout
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_request_parts`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _request_parts(
@@ -1114,68 +1487,89 @@ def _request_parts(
 
 **Purpose**
 
-Implements request parts according to the exact implementation and guards in this file.
+Private `common contract` helper for request parts; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`str | Request`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `supplied_headers` (`Mapping[str, str] | None`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[str, dict[str, str]]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(url, output)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[str, dict[str, str]]`. Observed return expression(s): `(url, output)`.
-
-**Algorithm**
-
-1. Checks `isinstance(value, Request)`. When true: Checks `value.data is not None or value.get_method().upper() != 'GET'`. When true: Raises `SafeHttpsError('Safe HTTPS source transport supports GET only')`. Computes `url` from `value.full_url`. Computes `combined` from `dict(value.header_items())`. Otherwise: Checks `type(value) is str`. When true: Computes `url` from `value`. Computes `combined` from `{}`. Otherwise: Raises `SafeHttpsError('HTTPS request must be an exact URL string or Request')`.
-2. Checks `supplied_headers is not None`. When true: Checks `not isinstance(supplied_headers, Mapping)`. When true: Raises `SafeHttpsError('HTTPS request headers must be a mapping')`. Calls `combined.update(supplied_headers)` for its validation or side effect.
-3. Defines `output` with annotation `dict[str, str]` from `{}`.
-4. Iterates `(name, header_value)` over `combined.items()`. For each value: Checks `type(name) is not str or type(header_value) is not str`. When true: Raises `SafeHttpsError('HTTPS header names and values must be exact strings')`. Checks `_HEADER_NAME_PATTERN.fullmatch(name) is None`. When true: Raises `SafeHttpsError('HTTPS header name is invalid')`. Checks `name.casefold() == 'host'`. When true: Raises `SafeHttpsError('Caller-supplied Host headers are forbidden')`. Executes 2 additional source-ordered statement(s).
-5. Computes `output['Connection']` from `'close'`.
-6. Returns `(url, output)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `isinstance(value, Request)` is true.
-- Rejects or diverts the path when `supplied_headers is not None` is true.
-- Rejects or diverts the path when `value.data is not None or value.get_method().upper() != 'GET'` is true.
-- Rejects or diverts the path when `not isinstance(supplied_headers, Mapping)` is true.
-- Rejects or diverts the path when `type(name) is not str or type(header_value) is not str` is true.
-- Rejects or diverts the path when `_HEADER_NAME_PATTERN.fullmatch(name) is None` is true.
-- Rejects or diverts the path when `name.casefold() == 'host'` is true.
-- Rejects or diverts the path when `any((ord(character) < 32 or ord(character) == 127 for character in name + header_value))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `SafeHttpsError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `isinstance(value, Request)`.
+- Guard with a raise path: `supplied_headers is not None`.
+- Guard with a raise path: `value.data is not None or value.get_method().upper() != 'GET'`.
+- Guard with a raise path: `not isinstance(supplied_headers, Mapping)`.
+- Guard with a raise path: `type(name) is not str or type(header_value) is not str`.
+- Guard with a raise path: `_HEADER_NAME_PATTERN.fullmatch(name) is None`.
+- Guard with a raise path: `name.casefold() == 'host'`.
+- Guard with a raise path: `any((ord(character) < 32 or ord(character) == 127 for character in name + header_value))`.
+- Explicit raise expressions: `SafeHttpsError('Caller-supplied Host headers are forbidden')`, `SafeHttpsError('HTTPS header name is invalid')`, `SafeHttpsError('HTTPS header names and values must be exact strings')`, `SafeHttpsError('HTTPS headers contain control characters')`, `SafeHttpsError('HTTPS request headers must be a mapping')`, `SafeHttpsError('HTTPS request must be an exact URL string or Request')`, `SafeHttpsError('Safe HTTPS source transport supports GET only')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `output['Connection']`, `output[name]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `SafeHttpsError`, `_HEADER_NAME_PATTERN.fullmatch`, `any`, `combined.items`, `combined.update`, `dict`, `isinstance`, `name.casefold`, `ord`, `type`, `value.get_method`, `value.get_method().upper`, `value.header_items`.
+- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `_request_parts`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/safe_http.py` — `open_safe_https`
+```python
+def _request_parts(
+    value: str | Request,
+    supplied_headers: Mapping[str, str] | None,
+) -> tuple[str, dict[str, str]]:
+    if isinstance(value, Request):
+        if value.data is not None or value.get_method().upper() != "GET":
+            raise SafeHttpsError("Safe HTTPS source transport supports GET only")
+        url = value.full_url
+        combined = dict(value.header_items())
+    elif type(value) is str:
+        url = value
+        combined = {}
+    else:
+        raise SafeHttpsError("HTTPS request must be an exact URL string or Request")
+    if supplied_headers is not None:
+        if not isinstance(supplied_headers, Mapping):
+            raise SafeHttpsError("HTTPS request headers must be a mapping")
+        combined.update(supplied_headers)
+    output: dict[str, str] = {}
+    for name, header_value in combined.items():
+        if type(name) is not str or type(header_value) is not str:
+            raise SafeHttpsError("HTTPS header names and values must be exact strings")
+        if _HEADER_NAME_PATTERN.fullmatch(name) is None:
+            raise SafeHttpsError("HTTPS header name is invalid")
+        if name.casefold() == "host":
+            raise SafeHttpsError("Caller-supplied Host headers are forbidden")
+        if any(
+            ord(character) < 32 or ord(character) == 127
+            for character in name + header_value
+        ):
+            raise SafeHttpsError("HTTPS headers contain control characters")
+        output[name] = header_value
+    output["Connection"] = "close"
+    return url, output
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_open_destination`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _open_destination(
@@ -1187,60 +1581,82 @@ def _open_destination(
 
 **Purpose**
 
-Implements open destination according to the exact implementation and guards in this file.
+Private `common contract` helper for open destination; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `destination` (`_ResolvedDestination`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `timeout` (`float`; required) — network timeout in seconds; validation rejects unsupported or non-positive values. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `headers` (`Mapping[str, str]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[http.client.HTTPResponse, _BoundHTTPSConnection]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(connection.getresponse(), connection)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[http.client.HTTPResponse, _BoundHTTPSConnection]`. Observed return expression(s): `(connection.getresponse(), connection)`.
-
-**Algorithm**
-
-1. Computes `context` from `ssl.create_default_context()`.
-2. Defines `last_error` with annotation `BaseException | None` from `None`.
-3. Iterates `address` over `destination.addresses`. For each value: Computes `connection` from `_BoundHTTPSConnection(destination.hostname, destination.port, address, timeout=timeout, context=context)`. Runs guarded operation: Calls `connection.request('GET', destination.request_target, headers=dict(headers))` for its validation or side effect. Returns `(connection.getresponse(), connection)`. Handles `SafeHttpsError`, `ssl.SSLError`, `(OSError, http.client.HTTPException)`.
-4. Raises `SafeHttpsError('Every validated HTTPS destination address failed')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `SafeHttpsError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `SafeHttpsError('Every validated HTTPS destination address failed')`, `SafeHttpsError('HTTPS TLS verification failed')`, `re-raise`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `connection.request`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `connection.getresponse`, `connection.request`.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `SafeHttpsError`, `_BoundHTTPSConnection`, `connection.close`, `connection.getresponse`, `connection.request`, `dict`, `ssl.create_default_context`.
+- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `_open_destination`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/safe_http.py` — `open_safe_https`
+```python
+def _open_destination(
+    destination: _ResolvedDestination,
+    timeout: float,
+    headers: Mapping[str, str],
+) -> tuple[http.client.HTTPResponse, _BoundHTTPSConnection]:
+    context = ssl.create_default_context()
+    last_error: BaseException | None = None
+    for address in destination.addresses:
+        connection = _BoundHTTPSConnection(
+            destination.hostname,
+            destination.port,
+            address,
+            timeout=timeout,
+            context=context,
+        )
+        try:
+            connection.request(
+                "GET",
+                destination.request_target,
+                headers=dict(headers),
+            )
+            return connection.getresponse(), connection
+        except SafeHttpsError:
+            connection.close()
+            raise
+        except ssl.SSLError as error:
+            connection.close()
+            raise SafeHttpsError("HTTPS TLS verification failed") from error
+        except (OSError, http.client.HTTPException) as error:
+            last_error = error
+            connection.close()
+    raise SafeHttpsError(
+        "Every validated HTTPS destination address failed"
+    ) from last_error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_redirect_location`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _redirect_location(response: http.client.HTTPResponse) -> str:
@@ -1248,57 +1664,53 @@ def _redirect_location(response: http.client.HTTPResponse) -> str:
 
 **Purpose**
 
-Implements redirect location according to the exact implementation and guards in this file.
+Private `common contract` helper for redirect location; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `response` (`http.client.HTTPResponse`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+values[0]
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `values[0]`.
-
-**Algorithm**
-
-1. Computes `values` from `response.headers.get_all('Location', failobj=[])`.
-2. Checks `len(values) != 1 or type(values[0]) is not str or (not values[0])`. When true: Raises `SafeHttpsError('HTTPS redirect requires exactly one Location header')`.
-3. Returns `values[0]`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(values) != 1 or type(values[0]) is not str or (not values[0])` is true.
-
-**Exceptions**
-
-- Explicitly raises: `SafeHttpsError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(values) != 1 or type(values[0]) is not str or (not values[0])`.
+- Explicit raise expressions: `SafeHttpsError('HTTPS redirect requires exactly one Location header')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `SafeHttpsError`, `len`, `response.headers.get_all`, `type`.
+- direct call or construction: `src/landscout/common/safe_http.py::open_safe_https` via `_redirect_location`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/safe_http.py` — `open_safe_https`
+```python
+def _redirect_location(response: http.client.HTTPResponse) -> str:
+    values = response.headers.get_all("Location", failobj=[])
+    if len(values) != 1 or type(values[0]) is not str or not values[0]:
+        raise SafeHttpsError("HTTPS redirect requires exactly one Location header")
+    return values[0]
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `open_safe_https`
 
-**Signature**
+**Exact signature**
 
 ```python
 def open_safe_https(
@@ -1314,107 +1726,162 @@ def open_safe_https(
 
 Open one source GET with validated redirects and a bound TLS socket.
 
-**Inputs**
+**Return contract**
 
-- `url` (`str | Request`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `timeout` (`float`; required) — network timeout in seconds; validation rejects unsupported or non-positive values. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `headers` (`Mapping[str, str] | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `max_redirects` (`int`; optional/default `_DEFAULT_MAX_REDIRECTS`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `SafeHttpsResponse`.
+- Every observed return expression is reproduced without truncation:
+```python
+SafeHttpsResponse(response, connection, url=destination.url, history=tuple(history))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `SafeHttpsResponse`. Observed return expression(s): `SafeHttpsResponse(response, connection, url=destination.url, history=tuple(history))`.
-
-**Algorithm**
-
-1. Computes `validated_timeout` from `_validated_timeout(timeout)`.
-2. Checks `type(max_redirects) is not int or max_redirects < 0`. When true: Raises `SafeHttpsError('max_redirects must be a non-negative integer')`.
-3. Computes `(current_url, request_headers)` from `_request_parts(url, headers)`.
-4. Defines `history` with annotation `list[str]` from `[]`.
-5. Defines `seen` with annotation `set[str]` from `set()`.
-6. Repeats the guarded body while `True` remains true.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `type(max_redirects) is not int or max_redirects < 0` is true.
-- Rejects or diverts the path when `destination.url in seen` is true.
-- Rejects or diverts the path when `status in _REDIRECT_STATUSES` is true.
-- Rejects or diverts the path when `not 200 <= status < 300` is true.
-- Rejects or diverts the path when `len(history) >= max_redirects` is true.
-
-**Exceptions**
-
-- Explicitly raises: `SafeHttpsError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `type(max_redirects) is not int or max_redirects < 0`.
+- Guard with a raise path: `destination.url in seen`.
+- Guard with a raise path: `status in _REDIRECT_STATUSES`.
+- Guard with a raise path: `not 200 <= status < 300`.
+- Guard with a raise path: `len(history) >= max_redirects`.
+- Explicit raise expressions: `SafeHttpsError('HTTPS redirect limit exceeded')`, `SafeHttpsError('HTTPS redirect loop detected')`, `SafeHttpsError('Safe HTTPS exchange failed')`, `SafeHttpsError('max_redirects must be a non-negative integer')`, `SafeHttpsError(f'HTTPS source returned status {status}')`, `re-raise`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `_open_destination`, `_request_parts`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `SafeHttpsError`, `SafeHttpsResponse`, `_open_destination`, `_redirect_location`, `_request_parts`, `_resolve_destination`, `_validated_timeout`, `connection.close`, `history.append`, `len`, `response.close`, `seen.add`, `set`, `tuple`, `type`, `urljoin`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `open_safe_https`.
+- import/re-export: `src/landscout/sources/cadastre_fr.py::<module>` via `from landscout.common.safe_http import open_safe_https`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_request_json` via `open_safe_https`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `open_safe_https`.
+- import/re-export: `src/landscout/sources/gpu_fr.py::<module>` via `from landscout.common.safe_http import open_safe_https`.
+- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `open_safe_https`.
+- import/re-export: `src/landscout/sources/ign_bdtopo_fr.py::<module>` via `from landscout.common.safe_http import open_safe_https`.
+- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_download_archive_bytes` via `open_safe_https`.
+- import/re-export: `src/landscout/sources/inpn_protected_areas_fr.py::<module>` via `from landscout.common.safe_http import SafeHttpsError, open_safe_https`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_read_response_json` via `open_safe_https`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `open_safe_https`.
+- import/re-export: `src/landscout/sources/rte_odre_fr.py::<module>` via `from landscout.common.safe_http import open_safe_https`.
+- direct call or construction: `tests/unit/test_safe_http.py::_read` via `open_safe_https`.
+- direct call or construction: `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated` via `open_safe_https`.
+- direct call or construction: `tests/unit/test_safe_http.py::test_malformed_header_name_is_rejected_before_dns` via `open_safe_https`.
+- import/re-export: `tests/unit/test_safe_http.py::<module>` via `from landscout.common.safe_http import SafeHttpsError, open_safe_https`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/cadastre_fr.py` — `download_cadastre_parcelles`
-- `src/landscout/sources/gpu_fr.py` — `_request_json`
-- `src/landscout/sources/gpu_fr.py` — `download_gpu_document`
-- `src/landscout/sources/ign_bdtopo_fr.py` — `download_ign_bdtopo_archive`
-- `src/landscout/sources/inpn_protected_areas_fr.py` — `_download_archive_bytes`
-- `src/landscout/sources/rte_odre_fr.py` — `_read_response_json`
-- `src/landscout/sources/rte_odre_fr.py` — `download_rte_odre_dataset`
-- `tests/unit/test_safe_http.py` — `_read`
-- `tests/unit/test_safe_http.py` — `test_malformed_header_name_is_rejected_before_dns`
-- `tests/unit/test_safe_http.py` — `test_safe_https_redirect_is_manually_revalidated`
+```python
+def open_safe_https(
+    url: str | Request,
+    *,
+    timeout: float,
+    headers: Mapping[str, str] | None = None,
+    max_redirects: int = _DEFAULT_MAX_REDIRECTS,
+) -> SafeHttpsResponse:
+    """Open one source GET with validated redirects and a bound TLS socket."""
 
-**Tests**
+    validated_timeout = _validated_timeout(timeout)
+    if type(max_redirects) is not int or max_redirects < 0:
+        raise SafeHttpsError("max_redirects must be a non-negative integer")
+    current_url, request_headers = _request_parts(url, headers)
+    history: list[str] = []
+    seen: set[str] = set()
 
-- `tests/unit/test_safe_http.py::test_malformed_header_name_is_rejected_before_dns`
-- `tests/unit/test_safe_http.py::test_safe_https_redirect_is_manually_revalidated`
+    while True:
+        destination = _resolve_destination(current_url)
+        if destination.url in seen:
+            raise SafeHttpsError("HTTPS redirect loop detected")
+        seen.add(destination.url)
+        response: http.client.HTTPResponse | None = None
+        connection: _BoundHTTPSConnection | None = None
+        try:
+            response, connection = _open_destination(
+                destination,
+                validated_timeout,
+                request_headers,
+            )
+            status = response.status
+            if status in _REDIRECT_STATUSES:
+                if len(history) >= max_redirects:
+                    raise SafeHttpsError("HTTPS redirect limit exceeded")
+                location = _redirect_location(response)
+                history.append(destination.url)
+                current_url = urljoin(destination.url, location)
+                continue
+            if not 200 <= status < 300:
+                raise SafeHttpsError(f"HTTPS source returned status {status}")
+            return SafeHttpsResponse(
+                response,
+                connection,
+                url=destination.url,
+                history=tuple(history),
+            )
+        except SafeHttpsError:
+            raise
+        except (OSError, http.client.HTTPException, ValueError) as error:
+            raise SafeHttpsError("Safe HTTPS exchange failed") from error
+        finally:
+            if response is not None and (
+                response.status in _REDIRECT_STATUSES
+                or not 200 <= response.status < 300
+            ):
+                response.close()
+                if connection is not None:
+                    connection.close()
+```
 
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
+
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+### Frame-preservation and semantic notes
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `Connection` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
+- HTTP header names such as `Connection` belong to the request-header mapping and are not DataFrame columns.
+
+No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
+
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
+- Configured source identity: none; the helper is dataset-agnostic.
+- URL validation: HTTPS-only, no credentials/fragment/unsafe host/header, strict literal/numeric IP handling, all-address public DNS validation per hop.
+- Safe transport: one validated DNS snapshot is converted into numeric socket endpoints; the socket never re-resolves the hostname; peer IP is checked; original hostname remains TLS SNI/certificate and HTTP Host identity; redirects are owned and revalidated.
+- Physical bytes/cache/archive/layer/result: not interpreted here. The response is a stream; each adapter owns its byte pins, cache, archive, layer, and result semantics.
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `common` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the common contract flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -1422,8 +1889,8 @@ This file contributes to LandScout's `common` evidence flow as described by its 
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

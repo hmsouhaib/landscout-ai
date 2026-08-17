@@ -4,9 +4,9 @@
 
 - Repository path: `tests/unit/test_normalize_grid_ign.py`
 - File type: Python test
-- Primary responsibility: Provides complete unit and regression coverage for the `normalize_grid_ign` contracts exercised in this file.
-- Layer / domain: `unit/regression test` / `test`
-- Public or internal role: Internal test support; not a production API.
+- Layer: unit/regression test
+- Domain: test
+- Responsibility: Provides complete unit and regression coverage for the `normalize_grid_ign` contracts exercised in this file.
 - Source SHA256: `2ef2f253fa949fff73772dd7e05f6f46a0d8b1bccafb33606ad21b2be108c345`
 
 ## 1. Purpose
@@ -15,65 +15,154 @@ Provides complete unit and regression coverage for the `normalize_grid_ign` cont
 
 ## 2. Position in LandScout architecture
 
-This file is a `unit/regression test` artifact in the `test` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **unit/regression test** layer and the **test** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from __future__ import annotations` — required by the implementation paths and symbols documented below.
-- `import json` — required by the implementation paths and symbols documented below.
-- `import tempfile` — required by the implementation paths and symbols documented below.
-- `from copy import deepcopy` — required by the implementation paths and symbols documented below.
-- `from dataclasses import replace` — required by the implementation paths and symbols documented below.
-- `from hashlib import sha256` — required by the implementation paths and symbols documented below.
-- `from math import isfinite` — required by the implementation paths and symbols documented below.
-- `from pathlib import Path` — required by the implementation paths and symbols documented below.
-- `from typing import Any, Literal, cast` — required by the implementation paths and symbols documented below.
+- `from __future__ import annotations`
+- `import json`
+- `import tempfile`
+- `from copy import deepcopy`
+- `from dataclasses import replace`
+- `from hashlib import sha256`
+- `from math import isfinite`
+- `from pathlib import Path`
+- `from typing import Any, Literal, cast`
+- `from uuid import uuid4`
 
-### Third-party
+### Third-party packages
 
-- `from uuid import uuid4` — required by the implementation paths and symbols documented below.
-- `import geopandas as gpd` — required by the implementation paths and symbols documented below.
-- `import numpy as np` — required by the implementation paths and symbols documented below.
-- `import pandas as pd` — required by the implementation paths and symbols documented below.
-- `import pyogrio` — required by the implementation paths and symbols documented below.
-- `import pytest` — required by the implementation paths and symbols documented below.
-- `from geopandas.testing import assert_geodataframe_equal` — required by the implementation paths and symbols documented below.
-- `from shapely.geometry import ( LineString, MultiLineString, MultiPolygon, Point, Polygon, )` — required by the implementation paths and symbols documented below.
+- `import geopandas as gpd`
+- `import numpy as np`
+- `import pandas as pd`
+- `import pyogrio`
+- `import pytest`
+- `from geopandas.testing import assert_geodataframe_equal`
+- `from shapely.geometry import (
+    LineString,
+    MultiLineString,
+    MultiPolygon,
+    Point,
+    Polygon,
+)`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `import landscout.stages.normalize_grid_ign as grid_normalization` — required by the implementation paths and symbols documented below.
-- `from landscout import stages` — required by the implementation paths and symbols documented below.
-- `from landscout.sources.ign_bdtopo_fr import ( IgnBdTopoDownload, IgnBdTopoElectricityData, IgnBdTopoExtraction, IgnBdTopoLayerSummary, IgnBdTopoSourceConfig, load_ign_bdtopo_source_config, )` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.normalize_grid_ign import ( LINE_OUTPUT_COLUMNS, TRANSFORMATION_POST_OUTPUT_COLUMNS, IgnGridNormalizationError, NormalizedIgnElectricityData, parse_ign_voltage, )` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.normalize_grid_ign import ( _IgnGridSourceContext as IgnGridSourceContext, )` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.normalize_grid_ign import ( _normalize_ign_electric_lines as normalize_ign_electric_lines, )` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.normalize_grid_ign import ( _normalize_ign_transformation_posts as normalize_ign_transformation_posts, )` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.normalize_grid_ign import ( normalize_ign_electricity as _normalize_ign_electricity, )` — required by the implementation paths and symbols documented below.
+- `import landscout.stages.normalize_grid_ign as grid_normalization`
+- `from landscout import stages`
+- `from landscout.sources.ign_bdtopo_fr import (
+    IgnBdTopoDownload,
+    IgnBdTopoElectricityData,
+    IgnBdTopoExtraction,
+    IgnBdTopoLayerSummary,
+    IgnBdTopoSourceConfig,
+    load_ign_bdtopo_source_config,
+)`
+- `from landscout.stages.normalize_grid_ign import (
+    LINE_OUTPUT_COLUMNS,
+    TRANSFORMATION_POST_OUTPUT_COLUMNS,
+    IgnGridNormalizationError,
+    NormalizedIgnElectricityData,
+    parse_ign_voltage,
+)`
+- `from landscout.stages.normalize_grid_ign import (
+    _IgnGridSourceContext as IgnGridSourceContext,
+)`
+- `from landscout.stages.normalize_grid_ign import (
+    _normalize_ign_electric_lines as normalize_ign_electric_lines,
+)`
+- `from landscout.stages.normalize_grid_ign import (
+    _normalize_ign_transformation_posts as normalize_ign_transformation_posts,
+)`
+- `from landscout.stages.normalize_grid_ign import (
+    normalize_ign_electricity as _normalize_ign_electricity,
+)`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `LINE_LAYER` | `"LIGNE_ELECTRIQUE_V2"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `POST_LAYER` | `"POSTE_DE_TRANSFORMATION_V2"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `ARCHIVE_SHA256` | `"a" * 64` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `SOURCE_URL` | `"https://example.test/BDTOPO_D031.7z"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_FIXTURE_ROOT` | `Path(tempfile.mkdtemp(prefix="landscout-grid-ign-"))` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_SOURCE_CONFIG_PAYLOAD` | `load_ign_bdtopo_source_config().model_dump(mode="json")` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `SOURCE_CONFIG` | `IgnBdTopoSourceConfig.model_validate(_SOURCE_CONFIG_PAYLOAD)` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `LINE_LAYER`
+
+```python
+LINE_LAYER = "LIGNE_ELECTRIQUE_V2"
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::test_layer_loader_retains_crs_counts_and_null_geometries` (value argument/reference), `tests/unit/test_ign_bdtopo_fr.py::test_geographic_crs_is_rejected` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_accepts_supported_department_codes` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_does_not_override_source_asset_status` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_line_geometry_quality_is_preserved_without_row_loss_or_repair` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_z_coordinates_are_preserved` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_unusual_duplicate_source_index_is_not_preserved_as_identity` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails` (value argument/reference).
+
+#### `POST_LAYER`
+
+```python
+POST_LAYER = "POSTE_DE_TRANSFORMATION_V2"
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::test_invalid_geometry_is_preserved_without_repair` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_post_geometry_crs_and_input_are_preserved` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_null_post_geometry_and_precision_are_preserved` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post` (value argument/reference).
+
+#### `ARCHIVE_SHA256`
+
+```python
+ARCHIVE_SHA256 = "a" * 64
+```
+
+Hash identity, algorithm, or canonical-content field used by the named integrity contract. Consumers include `tests/unit/test_assess_grid_coverage.py::_coverage` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::_coverage` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_caller_provided_proximity_and_coverage_are_not_public_inputs` (value argument/reference), `tests/unit/test_assess_road_proximity_coverage.py::_archive` (value argument/reference), `tests/unit/test_enrich_planning_zoning.py::_planning_document` (value argument/reference), `tests/unit/test_enrich_planning_zoning.py::_planning_document` (value argument/reference), `tests/unit/test_normalize_access_ign.py::_source` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_context` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference).
+
+#### `SOURCE_URL`
+
+```python
+SOURCE_URL = "https://example.test/BDTOPO_D031.7z"
+```
+
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes. Consumers include `tests/unit/test_normalize_access_ign.py::_source` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_context` (value argument/reference), `tests/unit/test_normalize_grid_ign.py::_source_bundle` (value argument/reference).
+
+#### `_FIXTURE_ROOT`
+
+```python
+_FIXTURE_ROOT = Path(tempfile.mkdtemp(prefix="landscout-grid-ign-"))
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `_SOURCE_CONFIG_PAYLOAD`
+
+```python
+_SOURCE_CONFIG_PAYLOAD = load_ign_bdtopo_source_config().model_dump(mode="json")
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_normalize_grid_ign.py::<module>` (value argument/reference).
+
+#### `SOURCE_CONFIG`
+
+```python
+SOURCE_CONFIG = IgnBdTopoSourceConfig.model_validate(_SOURCE_CONFIG_PAYLOAD)
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_apply_road_vehicle_proxy_policy.py::_apply` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_wrong_source_type_has_controlled_error` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_malformed_policy_path_has_controlled_error` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_complete_normalization_is_invoked_exactly_once` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalization_failure_stops_policy_loading` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_source_object_is_not_mutated` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_valid_geometry_status_with_unsupported_geometry_is_not_repaired` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_path_must_be_path_or_none` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_coverage_assessment_reproduces_configured_logical_layer` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_owns_proximity_and_configured_coverage_once` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_public_coverage_proximity_failure_stops_coverage_loading` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_caller_provided_proximity_and_coverage_are_not_public_inputs` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_polygonal_coverage_geometry_is_accepted` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_invalid_coverage_geometry_is_rejected` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_strict_geometric_boundary_proof` (value argument/reference), `tests/unit/test_assess_grid_coverage.py::test_outside_crossing_or_touching_parcel_is_conservative` (value argument/reference).
+
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
-No class, model, or dataclass is declared in this file.
+No class/model/dataclass is declared.
 
 ## 6. Functions and methods
 
 ### `normalize_ign_electricity`
 
-**Signature**
+**Exact signature**
 
 ```python
 def normalize_ign_electricity(
@@ -83,85 +172,84 @@ def normalize_ign_electricity(
 
 **Purpose**
 
-Normalizes ign electricity according to the exact implementation and guards in this file.
+Source-completely revalidates configured IGN electricity layers once and projects them into stable factual line and transformation-post catalogs.
 
-**Inputs**
+**Return contract**
 
-- `source` (`IgnBdTopoElectricityData`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `NormalizedIgnElectricityData`.
+- Every observed return expression is reproduced without truncation:
+```python
+_normalize_ign_electricity(source, SOURCE_CONFIG)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `NormalizedIgnElectricityData`. Observed return expression(s): `_normalize_ign_electricity(source, SOURCE_CONFIG)`.
-
-**Algorithm**
-
-1. Returns `_normalize_ign_electricity(source, SOURCE_CONFIG)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_normalize_ign_electricity`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+    IgnGridNormalizationError,
+    IgnVoltageNormalization,
+    NormalizedIgnElectricityData,
+    normalize_ign_electricity,
+    parse_ign_voltage,
+)`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `normalize_ign_electricity`.
+- import/re-export: `src/landscout/stages/enrich_grid_proximity.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+    NormalizedIgnElectricityData,
+    normalize_ign_electricity,
+)`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_supported_package_api_keeps_high_level_normalization` via `stages.normalize_ign_electricity`.
+- property/attribute access: `tests/unit/test_normalize_grid_ign.py::test_supported_package_api_keeps_high_level_normalization` via `stages.normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_grid_summary_requires_strict_structural_types` via `normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_grid_archive_sha256_requires_canonical_lowercase` via `normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_path_uses_discovered_layer_names_and_archive_lineage` via `normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_source_complete_grid_validation_does_not_mutate_supplied_frames` via `normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_incompatible_archive_identity` via `normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_row_count_mismatch` via `normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_layer_name_mismatch` via `normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_wrong_logical_name` via `normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_crs_mismatch` via `normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_forged_ordered_summary_schema` via `normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory` via `normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_colliding_electricity_roles` via `normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_counts_after_frame_mutation` via `normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_types_after_frame_mutation` via `normalize_ign_electricity`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_any_spatial_role_mismatch` via `normalize_ign_electricity`.
+- import/re-export: `tests/unit/test_normalize_grid_ign.py::<module>` via `from landscout.stages.normalize_grid_ign import (
+    normalize_ign_electricity as _normalize_ign_electricity,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_normalize_grid_ign.py` — `test_grid_archive_sha256_requires_canonical_lowercase`
-- `tests/unit/test_normalize_grid_ign.py` — `test_grid_summary_requires_strict_structural_types`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_path_uses_discovered_layer_names_and_archive_lineage`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_any_spatial_role_mismatch`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_colliding_electricity_roles`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_coordinated_frame_and_summary_forgery`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_duplicate_or_missing_layer_inventory`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_forged_ordered_summary_schema`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_incompatible_archive_identity`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_stale_geometry_counts_after_frame_mutation`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_stale_geometry_types_after_frame_mutation`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_summary_crs_mismatch`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_summary_layer_name_mismatch`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_summary_row_count_mismatch`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_wrong_logical_name`
-- `tests/unit/test_normalize_grid_ign.py` — `test_source_complete_grid_validation_does_not_mutate_supplied_frames`
+```python
+def normalize_ign_electricity(
+    source: IgnBdTopoElectricityData,
+) -> NormalizedIgnElectricityData:
+    return _normalize_ign_electricity(source, SOURCE_CONFIG)
+```
 
-**Tests**
-
-- `tests/unit/test_normalize_grid_ign.py::test_grid_archive_sha256_requires_canonical_lowercase`
-- `tests/unit/test_normalize_grid_ign.py::test_grid_summary_requires_strict_structural_types`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_path_uses_discovered_layer_names_and_archive_lineage`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_any_spatial_role_mismatch`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_colliding_electricity_roles`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_forged_ordered_summary_schema`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_incompatible_archive_identity`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_counts_after_frame_mutation`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_types_after_frame_mutation`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_crs_mismatch`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_layer_name_mismatch`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_row_count_mismatch`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_wrong_logical_name`
-- `tests/unit/test_normalize_grid_ign.py::test_source_complete_grid_validation_does_not_mutate_supplied_frames`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_line_source`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _line_source(
@@ -177,99 +265,108 @@ def _line_source(
 
 **Purpose**
 
-Implements line source according to the exact implementation and guards in this file.
+Private `test` helper for line source; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `geometries` (`list[object] | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `identifiers` (`list[object] | None`; optional/default `None`) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `voltages` (`list[object] | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `precisions` (`list[object] | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `crs` (`str | None`; optional/default `'EPSG:2154'`) — coordinate reference system identity. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `index` (`list[object] | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+gpd.GeoDataFrame({'cleabs': source_ids, 'voltage': source_voltages, 'gestionnaire': ["Réseau de Transport d'Électricité"] * count, 'siren_gestionnaire': ['444619258'] * count, 'etat_de_l_objet': ['En service'] * count, 'sources': ['RTE 2024'] * count, 'identifiants_sources': ['source-id'] * count, 'date_creation': pd.to_datetime(['2024-01-01'] * count), 'date_modification': pd.to_datetime(['2025-01-01'] * count), 'date_de_confirmation': pd.to_datetime(['2024-12-18'] * count), 'methode_d_acquisition_planimetrique': ['Photogrammétrie'] * count, 'precision_planimetrique': source_precisions}, geometry=source_geometries, crs=crs, index=source_index)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `gpd.GeoDataFrame({'cleabs': source_ids, 'voltage': source_voltages, 'gestionnaire': ["Réseau de Transport d'Électricité"] * count, 'siren_gestionnaire': ['444619258'] * count, 'etat_de_l_objet': ['En service'] * count, 'sources': ['RTE 2024'] * count, 'identifiants_sources': ['source-id'] * count, 'date_creation': pd.to_datetime(['2024-01-01'] * count), 'date_modification': pd.to_datetime(['2025-…`.
-
-**Algorithm**
-
-1. Computes `source_geometries` from `geometries if geometries is not None else [LineString([(0, 0), (100, 100)])]`.
-2. Computes `count` from `len(source_geometries)`.
-3. Computes `source_ids` from `identifiers if identifiers is not None else [f'LIGNE-{item + 1}' for item in range(count)]`.
-4. Computes `source_voltages` from `voltages if voltages is not None else ['225 kV'] * count`.
-5. Computes `source_precisions` from `precisions if precisions is not None else [2.5] * count`.
-6. Computes `source_index` from `index if index is not None else [100 + item for item in range(count)]`.
-7. Returns `gpd.GeoDataFrame({'cleabs': source_ids, 'voltage': source_voltages, 'gestionnaire': ["Réseau de Transport d'Électricité"] * count, 'siren_gestionnaire': ['444619258'] * count, 'etat_de_l_objet': ['En service'] * count, 'sources': ['RTE 2024'] * count, 'identifiants_sources': ['source-id'] * count, 'date_creation': pd.to_datetime(['2024-01-01'] * count), 'da…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `LineString`, `gpd.GeoDataFrame`, `len`, `pd.to_datetime`, `range`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_does_not_override_source_asset_status` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_line_geometry_quality_is_preserved_without_row_loss_or_repair` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_z_coordinates_are_preserved` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_unusual_duplicate_source_index_is_not_preserved_as_identity` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_or_null_line_precision_is_normalized_to_float` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_invalid_line_precision_fails` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_normalized_voltage_never_emits_non_finite_numeric_values` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` via `_line_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_polygon_or_point_is_rejected_as_electric_line` via `_line_source`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_normalize_grid_ign.py` — `_source_bundle`
-- `tests/unit/test_normalize_grid_ign.py` — `test_appropriate_multigeometry_types_are_accepted`
-- `tests/unit/test_normalize_grid_ign.py` — `test_deenergized_voltage_does_not_override_source_asset_status`
-- `tests/unit/test_normalize_grid_ign.py` — `test_duplicate_line_cleabs_fails`
-- `tests/unit/test_normalize_grid_ign.py` — `test_internal_source_context_rejects_uppercase_sha256`
-- `tests/unit/test_normalize_grid_ign.py` — `test_invalid_line_precision_fails`
-- `tests/unit/test_normalize_grid_ign.py` — `test_line_geometry_quality_is_preserved_without_row_loss_or_repair`
-- `tests/unit/test_normalize_grid_ign.py` — `test_line_missing_or_wrong_crs_fails`
-- `tests/unit/test_normalize_grid_ign.py` — `test_line_normalization_does_not_mutate_input_and_has_stable_columns`
-- `tests/unit/test_normalize_grid_ign.py` — `test_missing_required_line_field_fails`
-- `tests/unit/test_normalize_grid_ign.py` — `test_normalized_voltage_never_emits_non_finite_numeric_values`
-- `tests/unit/test_normalize_grid_ign.py` — `test_null_or_empty_line_cleabs_fails`
-- `tests/unit/test_normalize_grid_ign.py` — `test_unsafe_source_id_is_rejected_without_rewriting`
-- `tests/unit/test_normalize_grid_ign.py` — `test_unusual_duplicate_source_index_is_not_preserved_as_identity`
-- `tests/unit/test_normalize_grid_ign.py` — `test_valid_line_has_stable_identity_lineage_and_range_index`
-- `tests/unit/test_normalize_grid_ign.py` — `test_valid_or_null_line_precision_is_normalized_to_float`
-- `tests/unit/test_normalize_grid_ign.py` — `test_valid_polygon_or_point_is_rejected_as_electric_line`
-- `tests/unit/test_normalize_grid_ign.py` — `test_z_coordinates_are_preserved`
+```python
+def _line_source(
+    geometries: list[object] | None = None,
+    *,
+    identifiers: list[object] | None = None,
+    voltages: list[object] | None = None,
+    precisions: list[object] | None = None,
+    crs: str | None = "EPSG:2154",
+    index: list[object] | None = None,
+) -> gpd.GeoDataFrame:
+    source_geometries = (
+        geometries
+        if geometries is not None
+        else [LineString([(0, 0), (100, 100)])]
+    )
+    count = len(source_geometries)
+    source_ids = (
+        identifiers
+        if identifiers is not None
+        else [f"LIGNE-{item + 1}" for item in range(count)]
+    )
+    source_voltages = voltages if voltages is not None else ["225 kV"] * count
+    source_precisions = precisions if precisions is not None else [2.5] * count
+    source_index = index if index is not None else [100 + item for item in range(count)]
+    return gpd.GeoDataFrame(
+        {
+            "cleabs": source_ids,
+            "voltage": source_voltages,
+            "gestionnaire": ["Réseau de Transport d'Électricité"] * count,
+            "siren_gestionnaire": ["444619258"] * count,
+            "etat_de_l_objet": ["En service"] * count,
+            "sources": ["RTE 2024"] * count,
+            "identifiants_sources": ["source-id"] * count,
+            "date_creation": pd.to_datetime(["2024-01-01"] * count),
+            "date_modification": pd.to_datetime(["2025-01-01"] * count),
+            "date_de_confirmation": pd.to_datetime(["2024-12-18"] * count),
+            "methode_d_acquisition_planimetrique": ["Photogrammétrie"]
+            * count,
+            "precision_planimetrique": source_precisions,
+        },
+        geometry=source_geometries,
+        crs=crs,
+        index=source_index,
+    )
+```
 
-**Tests**
-
-- `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted`
-- `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_does_not_override_source_asset_status`
-- `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails`
-- `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256`
-- `tests/unit/test_normalize_grid_ign.py::test_invalid_line_precision_fails`
-- `tests/unit/test_normalize_grid_ign.py::test_line_geometry_quality_is_preserved_without_row_loss_or_repair`
-- `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails`
-- `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns`
-- `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails`
-- `tests/unit/test_normalize_grid_ign.py::test_normalized_voltage_never_emits_non_finite_numeric_values`
-- `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails`
-- `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting`
-- `tests/unit/test_normalize_grid_ign.py::test_unusual_duplicate_source_index_is_not_preserved_as_identity`
-- `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index`
-- `tests/unit/test_normalize_grid_ign.py::test_valid_or_null_line_precision_is_normalized_to_float`
-- `tests/unit/test_normalize_grid_ign.py::test_valid_polygon_or_point_is_rejected_as_electric_line`
-- `tests/unit/test_normalize_grid_ign.py::test_z_coordinates_are_preserved`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_post_source`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _post_source(
@@ -284,77 +381,96 @@ def _post_source(
 
 **Purpose**
 
-Implements post source according to the exact implementation and guards in this file.
+Private `test` helper for post source; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `geometries` (`list[object] | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `identifiers` (`list[object] | None`; optional/default `None`) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `precisions` (`list[object] | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `crs` (`str | None`; optional/default `'EPSG:2154'`) — coordinate reference system identity. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `index` (`list[object] | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+gpd.GeoDataFrame({'cleabs': source_ids, 'toponyme': ['Poste de test'] * count, 'statut_du_toponyme': ['Validé'] * count, 'importance': ['5'] * count, 'etat_de_l_objet': ['En service'] * count, 'sources': ['RTE 2021'] * count, 'identifiants_sources': ['source-post-id'] * count, 'date_creation': pd.to_datetime(['2023-01-01'] * count), 'date_modification': pd.to_datetime(['2025-02-01'] * count), 'date_de_confirmation': pd.to_datetime(['2025-01-15'] * count), 'methode_d_acquisition_planimetrique': ['Orthophotographie'] * count, 'precision_planimetrique': source_precisions}, geometry=source_geometries, crs=crs, index=source_index)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `gpd.GeoDataFrame({'cleabs': source_ids, 'toponyme': ['Poste de test'] * count, 'statut_du_toponyme': ['Validé'] * count, 'importance': ['5'] * count, 'etat_de_l_objet': ['En service'] * count, 'sources': ['RTE 2021'] * count, 'identifiants_sources': ['source-post-id'] * count, 'date_creation': pd.to_datetime(['2023-01-01'] * count), 'date_modification': pd.to_datetime(['2025-02-01'] * count), 'da…`.
-
-**Algorithm**
-
-1. Computes `source_geometries` from `geometries if geometries is not None else [Polygon([(0, 0), (0, 20), (20, 20), (20, 0), (0, 0)])]`.
-2. Computes `count` from `len(source_geometries)`.
-3. Computes `source_ids` from `identifiers if identifiers is not None else [f'POSTE-{item + 1}' for item in range(count)]`.
-4. Computes `source_precisions` from `precisions if precisions is not None else [5.0] * count`.
-5. Computes `source_index` from `index if index is not None else [200 + item for item in range(count)]`.
-6. Returns `gpd.GeoDataFrame({'cleabs': source_ids, 'toponyme': ['Poste de test'] * count, 'statut_du_toponyme': ['Validé'] * count, 'importance': ['5'] * count, 'etat_de_l_objet': ['En service'] * count, 'sources': ['RTE 2021'] * count, 'identifiants_sources': ['source-post-id'] * count, 'date_creation': pd.to_datetime(['2023-01-01'] * count), 'date_modification': pd.…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `Polygon`, `gpd.GeoDataFrame`, `len`, `pd.to_datetime`, `range`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `_post_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` via `_post_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_post_geometry_crs_and_input_are_preserved` via `_post_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails` via `_post_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_null_post_geometry_and_precision_are_preserved` via `_post_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails` via `_post_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` via `_post_source`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post` via `_post_source`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_normalize_grid_ign.py` — `_source_bundle`
-- `tests/unit/test_normalize_grid_ign.py` — `test_appropriate_multigeometry_types_are_accepted`
-- `tests/unit/test_normalize_grid_ign.py` — `test_duplicate_post_cleabs_fails`
-- `tests/unit/test_normalize_grid_ign.py` — `test_invalid_post_precision_fails`
-- `tests/unit/test_normalize_grid_ign.py` — `test_null_post_geometry_and_precision_are_preserved`
-- `tests/unit/test_normalize_grid_ign.py` — `test_post_geometry_crs_and_input_are_preserved`
-- `tests/unit/test_normalize_grid_ign.py` — `test_valid_line_or_point_is_rejected_as_transformation_post`
-- `tests/unit/test_normalize_grid_ign.py` — `test_valid_post_has_stable_lineage_and_no_voltage_inference`
+```python
+def _post_source(
+    geometries: list[object] | None = None,
+    *,
+    identifiers: list[object] | None = None,
+    precisions: list[object] | None = None,
+    crs: str | None = "EPSG:2154",
+    index: list[object] | None = None,
+) -> gpd.GeoDataFrame:
+    source_geometries = (
+        geometries
+        if geometries is not None
+        else [Polygon([(0, 0), (0, 20), (20, 20), (20, 0), (0, 0)])]
+    )
+    count = len(source_geometries)
+    source_ids = (
+        identifiers
+        if identifiers is not None
+        else [f"POSTE-{item + 1}" for item in range(count)]
+    )
+    source_precisions = precisions if precisions is not None else [5.0] * count
+    source_index = index if index is not None else [200 + item for item in range(count)]
+    return gpd.GeoDataFrame(
+        {
+            "cleabs": source_ids,
+            "toponyme": ["Poste de test"] * count,
+            "statut_du_toponyme": ["Validé"] * count,
+            "importance": ["5"] * count,
+            "etat_de_l_objet": ["En service"] * count,
+            "sources": ["RTE 2021"] * count,
+            "identifiants_sources": ["source-post-id"] * count,
+            "date_creation": pd.to_datetime(["2023-01-01"] * count),
+            "date_modification": pd.to_datetime(["2025-02-01"] * count),
+            "date_de_confirmation": pd.to_datetime(["2025-01-15"] * count),
+            "methode_d_acquisition_planimetrique": ["Orthophotographie"]
+            * count,
+            "precision_planimetrique": source_precisions,
+        },
+        geometry=source_geometries,
+        crs=crs,
+        index=source_index,
+    )
+```
 
-**Tests**
-
-- `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted`
-- `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails`
-- `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails`
-- `tests/unit/test_normalize_grid_ign.py::test_null_post_geometry_and_precision_are_preserved`
-- `tests/unit/test_normalize_grid_ign.py::test_post_geometry_crs_and_input_are_preserved`
-- `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post`
-- `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_context`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _context(source_layer: str) -> IgnGridSourceContext:
@@ -362,103 +478,82 @@ def _context(source_layer: str) -> IgnGridSourceContext:
 
 **Purpose**
 
-Implements context according to the exact implementation and guards in this file.
+Private `test` helper for context; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `source_layer` (`str`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `IgnGridSourceContext`.
+- Every observed return expression is reproduced without truncation:
+```python
+IgnGridSourceContext(source_layer=source_layer, department_code='31', edition='2026-06-15', product_version='3.5', download_timestamp='2026-08-11T15:32:03+00:00', archive_sha256=ARCHIVE_SHA256, source_url=SOURCE_URL)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `IgnGridSourceContext`. Observed return expression(s): `IgnGridSourceContext(source_layer=source_layer, department_code='31', edition='2026-06-15', product_version='3.5', download_timestamp='2026-08-11T15:32:03+00:00', archive_sha256=ARCHIVE_SHA256, source_url=SOURCE_URL)`.
-
-**Algorithm**
-
-1. Returns `IgnGridSourceContext(source_layer=source_layer, department_code='31', edition='2026-06-15', product_version='3.5', download_timestamp='2026-08-11T15:32:03+00:00', archive_sha256=ARCHIVE_SHA256, source_url=SOURCE_URL)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `IgnGridSourceContext`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_accepts_supported_department_codes` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_does_not_override_source_asset_status` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_line_geometry_quality_is_preserved_without_row_loss_or_repair` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_z_coordinates_are_preserved` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_unusual_duplicate_source_index_is_not_preserved_as_identity` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_or_null_line_precision_is_normalized_to_float` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_invalid_line_precision_fails` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_normalized_voltage_never_emits_non_finite_numeric_values` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_post_geometry_crs_and_input_are_preserved` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_null_post_geometry_and_precision_are_preserved` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_polygon_or_point_is_rejected_as_electric_line` via `_context`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post` via `_context`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_normalize_grid_ign.py` — `test_appropriate_multigeometry_types_are_accepted`
-- `tests/unit/test_normalize_grid_ign.py` — `test_deenergized_voltage_does_not_override_source_asset_status`
-- `tests/unit/test_normalize_grid_ign.py` — `test_duplicate_line_cleabs_fails`
-- `tests/unit/test_normalize_grid_ign.py` — `test_duplicate_post_cleabs_fails`
-- `tests/unit/test_normalize_grid_ign.py` — `test_internal_source_context_accepts_supported_department_codes`
-- `tests/unit/test_normalize_grid_ign.py` — `test_internal_source_context_rejects_invalid_lineage_values`
-- `tests/unit/test_normalize_grid_ign.py` — `test_internal_source_context_rejects_uppercase_sha256`
-- `tests/unit/test_normalize_grid_ign.py` — `test_invalid_line_precision_fails`
-- `tests/unit/test_normalize_grid_ign.py` — `test_invalid_post_precision_fails`
-- `tests/unit/test_normalize_grid_ign.py` — `test_line_geometry_quality_is_preserved_without_row_loss_or_repair`
-- `tests/unit/test_normalize_grid_ign.py` — `test_line_missing_or_wrong_crs_fails`
-- `tests/unit/test_normalize_grid_ign.py` — `test_line_normalization_does_not_mutate_input_and_has_stable_columns`
-- `tests/unit/test_normalize_grid_ign.py` — `test_missing_required_line_field_fails`
-- `tests/unit/test_normalize_grid_ign.py` — `test_normalized_voltage_never_emits_non_finite_numeric_values`
-- `tests/unit/test_normalize_grid_ign.py` — `test_null_or_empty_line_cleabs_fails`
-- `tests/unit/test_normalize_grid_ign.py` — `test_null_post_geometry_and_precision_are_preserved`
-- `tests/unit/test_normalize_grid_ign.py` — `test_post_geometry_crs_and_input_are_preserved`
-- `tests/unit/test_normalize_grid_ign.py` — `test_unsafe_source_id_is_rejected_without_rewriting`
-- `tests/unit/test_normalize_grid_ign.py` — `test_unusual_duplicate_source_index_is_not_preserved_as_identity`
-- `tests/unit/test_normalize_grid_ign.py` — `test_valid_line_has_stable_identity_lineage_and_range_index`
-- `tests/unit/test_normalize_grid_ign.py` — `test_valid_line_or_point_is_rejected_as_transformation_post`
-- `tests/unit/test_normalize_grid_ign.py` — `test_valid_or_null_line_precision_is_normalized_to_float`
-- `tests/unit/test_normalize_grid_ign.py` — `test_valid_polygon_or_point_is_rejected_as_electric_line`
-- `tests/unit/test_normalize_grid_ign.py` — `test_valid_post_has_stable_lineage_and_no_voltage_inference`
-- `tests/unit/test_normalize_grid_ign.py` — `test_z_coordinates_are_preserved`
+```python
+def _context(source_layer: str) -> IgnGridSourceContext:
+    return IgnGridSourceContext(
+        source_layer=source_layer,
+        department_code="31",
+        edition="2026-06-15",
+        product_version="3.5",
+        download_timestamp="2026-08-11T15:32:03+00:00",
+        archive_sha256=ARCHIVE_SHA256,
+        source_url=SOURCE_URL,
+    )
+```
 
-**Tests**
-
-- `tests/unit/test_normalize_grid_ign.py::test_appropriate_multigeometry_types_are_accepted`
-- `tests/unit/test_normalize_grid_ign.py::test_deenergized_voltage_does_not_override_source_asset_status`
-- `tests/unit/test_normalize_grid_ign.py::test_duplicate_line_cleabs_fails`
-- `tests/unit/test_normalize_grid_ign.py::test_duplicate_post_cleabs_fails`
-- `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_accepts_supported_department_codes`
-- `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_invalid_lineage_values`
-- `tests/unit/test_normalize_grid_ign.py::test_internal_source_context_rejects_uppercase_sha256`
-- `tests/unit/test_normalize_grid_ign.py::test_invalid_line_precision_fails`
-- `tests/unit/test_normalize_grid_ign.py::test_invalid_post_precision_fails`
-- `tests/unit/test_normalize_grid_ign.py::test_line_geometry_quality_is_preserved_without_row_loss_or_repair`
-- `tests/unit/test_normalize_grid_ign.py::test_line_missing_or_wrong_crs_fails`
-- `tests/unit/test_normalize_grid_ign.py::test_line_normalization_does_not_mutate_input_and_has_stable_columns`
-- `tests/unit/test_normalize_grid_ign.py::test_missing_required_line_field_fails`
-- `tests/unit/test_normalize_grid_ign.py::test_normalized_voltage_never_emits_non_finite_numeric_values`
-- `tests/unit/test_normalize_grid_ign.py::test_null_or_empty_line_cleabs_fails`
-- `tests/unit/test_normalize_grid_ign.py::test_null_post_geometry_and_precision_are_preserved`
-- `tests/unit/test_normalize_grid_ign.py::test_post_geometry_crs_and_input_are_preserved`
-- `tests/unit/test_normalize_grid_ign.py::test_unsafe_source_id_is_rejected_without_rewriting`
-- `tests/unit/test_normalize_grid_ign.py::test_unusual_duplicate_source_index_is_not_preserved_as_identity`
-- `tests/unit/test_normalize_grid_ign.py::test_valid_line_has_stable_identity_lineage_and_range_index`
-- `tests/unit/test_normalize_grid_ign.py::test_valid_line_or_point_is_rejected_as_transformation_post`
-- `tests/unit/test_normalize_grid_ign.py::test_valid_or_null_line_precision_is_normalized_to_float`
-- `tests/unit/test_normalize_grid_ign.py::test_valid_polygon_or_point_is_rejected_as_electric_line`
-- `tests/unit/test_normalize_grid_ign.py::test_valid_post_has_stable_lineage_and_no_voltage_inference`
-- `tests/unit/test_normalize_grid_ign.py::test_z_coordinates_are_preserved`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_summary`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _summary(
@@ -470,63 +565,83 @@ def _summary(
 
 **Purpose**
 
-Implements summary according to the exact implementation and guards in this file.
+Private `test` helper for summary; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `logical_name` (`Literal['electric_lines', 'transformation_posts']`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `layer_name` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `IgnBdTopoLayerSummary`.
+- Every observed return expression is reproduced without truncation:
+```python
+IgnBdTopoLayerSummary(logical_name=logical_name, source_layer_name=layer_name, crs=str(frame.crs), feature_count=len(frame), columns=tuple((str(column) for column in frame.columns)), dtypes=tuple(((str(column), str(dtype)) for column, dtype in frame.dtypes.items())), null_geometry_count=int(null_mask.sum()), empty_geometry_count=int(empty_mask.sum()), invalid_geometry_count=int(invalid_mask.sum()), geometry_types=geometry_types)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `IgnBdTopoLayerSummary`. Observed return expression(s): `IgnBdTopoLayerSummary(logical_name=logical_name, source_layer_name=layer_name, crs=str(frame.crs), feature_count=len(frame), columns=tuple((str(column) for column in frame.columns)), dtypes=tuple(((str(column), str(dtype)) for column, dtype in frame.dtypes.items())), null_geometry_count=int(null_mask.sum()), empty_geometry_count=int(empty_mask.sum()), invalid_geometry_count=int(invalid_mask.sum()…`.
-
-**Algorithm**
-
-1. Computes `geometry` from `frame.geometry`.
-2. Computes `null_mask` from `geometry.isna()`.
-3. Computes `empty_mask` from `~null_mask & geometry.is_empty`.
-4. Computes `invalid_mask` from `~null_mask & ~geometry.is_empty & ~geometry.is_valid`.
-5. Computes `geometry_types` from `tuple(sorted((str(value) for value in geometry[~null_mask].geom_type.dropna().unique())))`.
-6. Returns `IgnBdTopoLayerSummary(logical_name=logical_name, source_layer_name=layer_name, crs=str(frame.crs), feature_count=len(frame), columns=tuple((str(column) for column in frame.columns)), dtypes=tuple(((str(column), str(dtype)) for column, dtype in frame.dtypes.items())), null_geometry_count=int(null_mask.sum()), empty_geometry_count=int(empty_mask.sum()), inval…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `geometry.isna`, `geometry[~null_mask].geom_type.dropna`, `geometry[~null_mask].geom_type.dropna().unique`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `IgnBdTopoLayerSummary`, `empty_mask.sum`, `frame.dtypes.items`, `geometry.isna`, `geometry[~null_mask].geom_type.dropna`, `geometry[~null_mask].geom_type.dropna().unique`, `int`, `invalid_mask.sum`, `len`, `null_mask.sum`, `sorted`, `str`, `tuple`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_inspected` via `_summary`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_materialize_layer` via `_summary`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_summary`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` via `_summary`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_replace_related_layer` via `_summary`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_summary`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_summary`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `_summary`.
+- direct call or construction: `tests/unit/test_normalize_access_ign.py::_source` via `_summary`.
+- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `_summary`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `_summary`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `_summary`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_normalize_grid_ign.py` — `_source_bundle`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_coordinated_frame_and_summary_forgery`
+```python
+def _summary(
+    frame: gpd.GeoDataFrame,
+    logical_name: Literal["electric_lines", "transformation_posts"],
+    layer_name: str,
+) -> IgnBdTopoLayerSummary:
+    geometry = frame.geometry
+    null_mask = geometry.isna()
+    empty_mask = ~null_mask & geometry.is_empty
+    invalid_mask = ~null_mask & ~geometry.is_empty & ~geometry.is_valid
+    geometry_types = tuple(
+        sorted(str(value) for value in geometry[~null_mask].geom_type.dropna().unique())
+    )
+    return IgnBdTopoLayerSummary(
+        logical_name=logical_name,
+        source_layer_name=layer_name,
+        crs=str(frame.crs),
+        feature_count=len(frame),
+        columns=tuple(str(column) for column in frame.columns),
+        dtypes=tuple((str(column), str(dtype)) for column, dtype in frame.dtypes.items()),
+        null_geometry_count=int(null_mask.sum()),
+        empty_geometry_count=int(empty_mask.sum()),
+        invalid_geometry_count=int(invalid_mask.sum()),
+        geometry_types=geometry_types,
+    )
+```
 
-**Tests**
-
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_source_bundle`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _source_bundle(
@@ -537,101 +652,141 @@ def _source_bundle(
 
 **Purpose**
 
-Implements source bundle according to the exact implementation and guards in this file.
+Private `test` helper for source bundle; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `lines` (`gpd.GeoDataFrame | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `posts` (`gpd.GeoDataFrame | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `IgnBdTopoElectricityData`.
+- Every observed return expression is reproduced without truncation:
+```python
+IgnBdTopoElectricityData(extraction=extraction, electric_lines=line_frame, transformation_posts=post_frame, electric_lines_summary=_summary(line_frame, 'electric_lines', LINE_LAYER), transformation_posts_summary=_summary(post_frame, 'transformation_posts', POST_LAYER))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `IgnBdTopoElectricityData`. Observed return expression(s): `IgnBdTopoElectricityData(extraction=extraction, electric_lines=line_frame, transformation_posts=post_frame, electric_lines_summary=_summary(line_frame, 'electric_lines', LINE_LAYER), transformation_posts_summary=_summary(post_frame, 'transformation_posts', POST_LAYER))`.
-
-**Algorithm**
-
-1. Computes `line_frame` from `lines if lines is not None else _line_source()`.
-2. Computes `post_frame` from `posts if posts is not None else _post_source()`.
-3. Computes `extraction_path` from `_FIXTURE_ROOT / uuid4().hex`.
-4. Calls `extraction_path.mkdir(parents=True)` for its validation or side effect.
-5. Computes `geopackage_path` from `extraction_path / 'data.gpkg'`.
-6. Calls `pyogrio.write_dataframe(line_frame, geopackage_path, layer=LINE_LAYER, driver='GPKG')` for its validation or side effect.
-7. Calls `pyogrio.write_dataframe(post_frame, geopackage_path, layer=POST_LAYER, driver='GPKG', append=True)` for its validation or side effect.
-8. Computes `line_frame` from `gpd.read_file(geopackage_path, layer=LINE_LAYER, engine='pyogrio')`.
-9. Computes `post_frame` from `gpd.read_file(geopackage_path, layer=POST_LAYER, engine='pyogrio')`.
-10. Computes `payload` from `geopackage_path.read_bytes()`.
-11. Computes `layer_names` from `tuple((str(row[0]) for row in pyogrio.list_layers(geopackage_path)))`.
-12. Computes `digest` from `sha256(payload).hexdigest()`.
-13. Computes `marker` from `{'schema_version': 2, 'archive_sha256': ARCHIVE_SHA256, 'geopackage_relative_path': 'data.gpkg', 'geopackage_size_bytes': len(payload), 'geopackage_sha256': digest, 'all_layer_names': list(layer_names), 'electric_lines_layer': LINE_LAYER, 'transformation_posts_layer': POST_LAYER, 'spatial_role': 'PROXY_GEOMETRY'}`.
-14. Calls `(extraction_path / '.landscout-extraction.json').write_text(json.dumps(marker), encoding='utf-8')` for its validation or side effect.
-15. Computes `archive` from `IgnBdTopoDownload(provider="Institut national de l'information géographique et forestière", product='BD TOPO', department_code='31', edition='2026-06-15', product_version='3.5', projection='EPSG:2154', package_format='GPKG', archive_format='7z', source_url=SOURCE_URL, checksum_url=None, download_timestamp='2026-08-11T…`.
-16. Computes `extraction` from `IgnBdTopoExtraction(archive=archive, extraction_path=extraction_path, geopackage_path=geopackage_path, geopackage_filename='data.gpkg', geopackage_size_bytes=len(payload), geopackage_sha256=digest, all_layer_names=layer_names, electric_lines_layer=LINE_LAYER, transformation_posts_layer=POST_LAYER, cache_hit=True)`.
-17. Returns `IgnBdTopoElectricityData(extraction=extraction, electric_lines=line_frame, transformation_posts=post_frame, electric_lines_summary=_summary(line_frame, 'electric_lines', LINE_LAYER), transformation_posts_summary=_summary(post_frame, 'transformation_posts', POST_LAYER))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `(extraction_path / '.landscout-extraction.json').write_text`, `IgnBdTopoDownload`, `extraction_path.mkdir`, `geopackage_path.read_bytes`, `gpd.read_file`, `pyogrio.write_dataframe`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `IgnBdTopoDownload`.
+- Filesystem read: `geopackage_path.read_bytes`, `gpd.read_file`.
+- Filesystem write: `(extraction_path / '.landscout-extraction.json').write_text`, `extraction_path.mkdir`.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `sha256`, `sha256(payload).hexdigest`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(extraction_path / '.landscout-extraction.json').write_text`, `IgnBdTopoDownload`, `IgnBdTopoElectricityData`, `IgnBdTopoExtraction`, `Path`, `_line_source`, `_post_source`, `_summary`, `extraction_path.mkdir`, `geopackage_path.read_bytes`, `gpd.read_file`, `json.dumps`, `len`, `list`, `pyogrio.list_layers`, `pyogrio.write_dataframe`, `sha256`, `sha256(payload).hexdigest`, `str`, `tuple`, `uuid4`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_source_bundle_with_archive` via `_source_bundle`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_supported_package_api_keeps_high_level_normalization` via `_source_bundle`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_grid_summary_requires_strict_structural_types` via `_source_bundle`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_path_uses_discovered_layer_names_and_archive_lineage` via `_source_bundle`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `_source_bundle`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_source_complete_grid_validation_does_not_mutate_supplied_frames` via `_source_bundle`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_row_count_mismatch` via `_source_bundle`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_layer_name_mismatch` via `_source_bundle`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_wrong_logical_name` via `_source_bundle`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_crs_mismatch` via `_source_bundle`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_forged_ordered_summary_schema` via `_source_bundle`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory` via `_source_bundle`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_colliding_electricity_roles` via `_source_bundle`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_counts_after_frame_mutation` via `_source_bundle`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_types_after_frame_mutation` via `_source_bundle`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_any_spatial_role_mismatch` via `_source_bundle`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_normalize_grid_ign.py` — `_source_bundle_with_archive`
-- `tests/unit/test_normalize_grid_ign.py` — `test_grid_summary_requires_strict_structural_types`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_path_uses_discovered_layer_names_and_archive_lineage`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_any_spatial_role_mismatch`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_colliding_electricity_roles`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_coordinated_frame_and_summary_forgery`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_duplicate_or_missing_layer_inventory`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_forged_ordered_summary_schema`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_stale_geometry_counts_after_frame_mutation`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_stale_geometry_types_after_frame_mutation`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_summary_crs_mismatch`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_summary_layer_name_mismatch`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_summary_row_count_mismatch`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_wrong_logical_name`
-- `tests/unit/test_normalize_grid_ign.py` — `test_source_complete_grid_validation_does_not_mutate_supplied_frames`
-- `tests/unit/test_normalize_grid_ign.py` — `test_supported_package_api_keeps_high_level_normalization`
+```python
+def _source_bundle(
+    lines: gpd.GeoDataFrame | None = None,
+    posts: gpd.GeoDataFrame | None = None,
+) -> IgnBdTopoElectricityData:
+    line_frame = lines if lines is not None else _line_source()
+    post_frame = posts if posts is not None else _post_source()
+    extraction_path = _FIXTURE_ROOT / uuid4().hex
+    extraction_path.mkdir(parents=True)
+    geopackage_path = extraction_path / "data.gpkg"
+    pyogrio.write_dataframe(line_frame, geopackage_path, layer=LINE_LAYER, driver="GPKG")
+    pyogrio.write_dataframe(
+        post_frame,
+        geopackage_path,
+        layer=POST_LAYER,
+        driver="GPKG",
+        append=True,
+    )
+    line_frame = gpd.read_file(geopackage_path, layer=LINE_LAYER, engine="pyogrio")
+    post_frame = gpd.read_file(geopackage_path, layer=POST_LAYER, engine="pyogrio")
+    payload = geopackage_path.read_bytes()
+    layer_names = tuple(str(row[0]) for row in pyogrio.list_layers(geopackage_path))
+    digest = sha256(payload).hexdigest()
+    marker = {
+        "schema_version": 2,
+        "archive_sha256": ARCHIVE_SHA256,
+        "geopackage_relative_path": "data.gpkg",
+        "geopackage_size_bytes": len(payload),
+        "geopackage_sha256": digest,
+        "all_layer_names": list(layer_names),
+        "electric_lines_layer": LINE_LAYER,
+        "transformation_posts_layer": POST_LAYER,
+        "spatial_role": "PROXY_GEOMETRY",
+    }
+    (extraction_path / ".landscout-extraction.json").write_text(
+        json.dumps(marker), encoding="utf-8"
+    )
+    archive = IgnBdTopoDownload(
+        provider="Institut national de l'information géographique et forestière",
+        product="BD TOPO",
+        department_code="31",
+        edition="2026-06-15",
+        product_version="3.5",
+        projection="EPSG:2154",
+        package_format="GPKG",
+        archive_format="7z",
+        source_url=SOURCE_URL,
+        checksum_url=None,
+        download_timestamp="2026-08-11T15:32:03+00:00",
+        filename="BDTOPO_D031.7z",
+        file_size=1234,
+        sha256=ARCHIVE_SHA256,
+        official_checksum_algorithm=None,
+        official_checksum=None,
+        official_checksum_validated=False,
+        path=Path("cache/BDTOPO_D031.7z"),
+        cache_hit=True,
+    )
+    extraction = IgnBdTopoExtraction(
+        archive=archive,
+        extraction_path=extraction_path,
+        geopackage_path=geopackage_path,
+        geopackage_filename="data.gpkg",
+        geopackage_size_bytes=len(payload),
+        geopackage_sha256=digest,
+        all_layer_names=layer_names,
+        electric_lines_layer=LINE_LAYER,
+        transformation_posts_layer=POST_LAYER,
+        cache_hit=True,
+    )
+    return IgnBdTopoElectricityData(
+        extraction=extraction,
+        electric_lines=line_frame,
+        transformation_posts=post_frame,
+        electric_lines_summary=_summary(line_frame, "electric_lines", LINE_LAYER),
+        transformation_posts_summary=_summary(
+            post_frame, "transformation_posts", POST_LAYER
+        ),
+    )
+```
 
-**Tests**
-
-- `tests/unit/test_normalize_grid_ign.py::test_grid_summary_requires_strict_structural_types`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_path_uses_discovered_layer_names_and_archive_lineage`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_any_spatial_role_mismatch`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_colliding_electricity_roles`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_duplicate_or_missing_layer_inventory`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_forged_ordered_summary_schema`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_counts_after_frame_mutation`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_stale_geometry_types_after_frame_mutation`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_crs_mismatch`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_layer_name_mismatch`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_summary_row_count_mismatch`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_wrong_logical_name`
-- `tests/unit/test_normalize_grid_ign.py::test_source_complete_grid_validation_does_not_mutate_supplied_frames`
-- `tests/unit/test_normalize_grid_ign.py::test_supported_package_api_keeps_high_level_normalization`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_source_bundle_with_archive`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _source_bundle_with_archive(**changes: object) -> IgnBdTopoElectricityData:
@@ -639,1749 +794,2278 @@ def _source_bundle_with_archive(**changes: object) -> IgnBdTopoElectricityData:
 
 **Purpose**
 
-Implements source bundle with archive according to the exact implementation and guards in this file.
+Private `test` helper for source bundle with archive; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `**changes` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `IgnBdTopoElectricityData`.
+- Every observed return expression is reproduced without truncation:
+```python
+replace(source, extraction=replace(source.extraction, archive=archive))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `IgnBdTopoElectricityData`. Observed return expression(s): `replace(source, extraction=replace(source.extraction, archive=archive))`.
-
-**Algorithm**
-
-1. Computes `source` from `_source_bundle()`.
-2. Computes `archive` from `replace(source.extraction.archive, **changes)`.
-3. Returns `replace(source, extraction=replace(source.extraction, archive=archive))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `replace`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_source_bundle`, `replace`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_grid_archive_sha256_requires_canonical_lowercase` via `_source_bundle_with_archive`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_incompatible_archive_identity` via `_source_bundle_with_archive`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_archive_identity_comparison_is_case_accent_and_punctuation_tolerant` via `_source_bundle_with_archive`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_normalize_grid_ign.py` — `test_archive_identity_comparison_is_case_accent_and_punctuation_tolerant`
-- `tests/unit/test_normalize_grid_ign.py` — `test_grid_archive_sha256_requires_canonical_lowercase`
-- `tests/unit/test_normalize_grid_ign.py` — `test_high_level_rejects_incompatible_archive_identity`
+```python
+def _source_bundle_with_archive(**changes: object) -> IgnBdTopoElectricityData:
+    source = _source_bundle()
+    archive = replace(source.extraction.archive, **changes)
+    return replace(source, extraction=replace(source.extraction, archive=archive))
+```
 
-**Tests**
-
-- `tests/unit/test_normalize_grid_ign.py::test_archive_identity_comparison_is_case_accent_and_punctuation_tolerant`
-- `tests/unit/test_normalize_grid_ign.py::test_grid_archive_sha256_requires_canonical_lowercase`
-- `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_incompatible_archive_identity`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_low_level_normalization_is_not_part_of_stages_public_api`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `name`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert name not in stages.__all__
+assert not hasattr(stages, name)
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_low_level_normalization_is_not_part_of_stages_public_api(name: str) -> None:
+    assert name not in stages.__all__
+    assert not hasattr(stages, name)
 ```
-
-**Purpose**
-
-Protects the `low level normalization is not part of stages public api` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `name`.
-- Contains 0 explicit setup/context statement(s).
-
-**Action**
-
-- Calls `hasattr`.
-
-**Expected result**
-
-- Direct assertions: `assert name not in stages.__all__`; `assert not hasattr(stages, name)`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `low level normalization is not part of stages public api` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `hasattr`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_supported_package_api_keeps_high_level_normalization`
 
-**Signature**
-
-```python
-def test_supported_package_api_keeps_high_level_normalization() -> None:
-```
-
 **Purpose**
 
-Protects the `supported package api keeps high level normalization` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `expected_names` from `{'IgnGridNormalizationError', 'IgnVoltageNormalization', 'NormalizedIgnElectricityData', 'parse_ign_voltage', 'normalize_ign_electricity'}`.
-- Computes `normalized` from `stages.normalize_ign_electricity(_source_bundle(), SOURCE_CONFIG)`.
+```python
+expected_names = {
+        "IgnGridNormalizationError",
+        "IgnVoltageNormalization",
+        "NormalizedIgnElectricityData",
+        "parse_ign_voltage",
+        "normalize_ign_electricity",
+    }
+normalized = stages.normalize_ign_electricity(_source_bundle(), SOURCE_CONFIG)
+```
 
 **Action**
 
-- Calls `_source_bundle`, `normalized.electric_lines['source_layer'].unique`, `normalized.electric_lines['source_layer'].unique().tolist`, `normalized.transformation_posts['source_layer'].unique`, `normalized.transformation_posts['source_layer'].unique().tolist`, `stages.normalize_ign_electricity`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: `assert expected_names <= set(stages.__all__)`; `assert normalized.electric_lines['source_layer'].unique().tolist() == [LINE_LAYER]`; `assert normalized.transformation_posts['source_layer'].unique().tolist() == [POST_LAYER]`.
-- Expected exception contexts: none.
+```python
+assert expected_names <= set(stages.__all__)
+assert normalized.electric_lines["source_layer"].unique().tolist() == [LINE_LAYER]
+assert normalized.transformation_posts["source_layer"].unique().tolist() == [
+        POST_LAYER
+    ]
+```
 
 **Regression protected**
 
-- Protects the exact `supported package api keeps high level normalization` contract against a future change that would violate these assertions or controlled-failure expectations.
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- In-memory/local unit boundary defined entirely by the reproduced setup.
 
-**Calls**
+**Complete test implementation**
 
-- `_source_bundle`, `normalized.electric_lines['source_layer'].unique`, `normalized.electric_lines['source_layer'].unique().tolist`, `normalized.transformation_posts['source_layer'].unique`, `normalized.transformation_posts['source_layer'].unique().tolist`, `set`, `stages.normalize_ign_electricity`.
+```python
+def test_supported_package_api_keeps_high_level_normalization() -> None:
+    expected_names = {
+        "IgnGridNormalizationError",
+        "IgnVoltageNormalization",
+        "NormalizedIgnElectricityData",
+        "parse_ign_voltage",
+        "normalize_ign_electricity",
+    }
 
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    assert expected_names <= set(stages.__all__)
+    normalized = stages.normalize_ign_electricity(_source_bundle(), SOURCE_CONFIG)
+    assert normalized.electric_lines["source_layer"].unique().tolist() == [LINE_LAYER]
+    assert normalized.transformation_posts["source_layer"].unique().tolist() == [
+        POST_LAYER
+    ]
+```
 
 ### `test_internal_source_context_accepts_supported_department_codes`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `department_code`.
+
+**Setup**
+
+```python
+context = replace(_context(LINE_LAYER), department_code=department_code)
+grid_normalization._validate_source_context(context)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+# Completion without an exception is the asserted outcome.
+```
+
+**Regression protected**
+
+Pins the exact framework interaction and outcome reproduced in the complete test source.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_internal_source_context_accepts_supported_department_codes(
     department_code: str,
 ) -> None:
+    context = replace(_context(LINE_LAYER), department_code=department_code)
+
+    grid_normalization._validate_source_context(context)
 ```
-
-**Purpose**
-
-Protects the `internal source context accepts supported department codes` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `department_code`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `context` from `replace(_context(LINE_LAYER), department_code=department_code)`.
-
-**Action**
-
-- Calls `_context`, `grid_normalization._validate_source_context`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `internal source context accepts supported department codes` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_context`, `grid_normalization._validate_source_context`, `pytest.mark.parametrize`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_internal_source_context_rejects_uppercase_sha256`
 
-**Signature**
-
-```python
-def test_internal_source_context_rejects_uppercase_sha256() -> None:
-```
-
 **Purpose**
 
-Protects the `internal source context rejects uppercase sha256` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `archive_sha256` from `'A' * 64`.
-- Computes `context` from `replace(_context(LINE_LAYER), archive_sha256=archive_sha256)`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='archive_sha256')` and executes: Calls `normalize_ign_electric_lines(_line_source(), context)` for its validation or side effect.
+```python
+archive_sha256 = "A" * 64
+context = replace(_context(LINE_LAYER), archive_sha256=archive_sha256)
+```
 
 **Action**
 
-- Calls `_context`, `_line_source`, `normalize_ign_electric_lines`, `replace`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='archive_sha256'): normalize_ign_electric_lines(_line_source(), context)`.
+```python
+with pytest.raises(IgnGridNormalizationError, match="archive_sha256"):
+        normalize_ign_electric_lines(_line_source(), context)
+```
 
 **Regression protected**
 
-- Protects the exact `internal source context rejects uppercase sha256` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- In-memory/local unit boundary defined entirely by the reproduced setup.
 
-**Calls**
+**Complete test implementation**
 
-- `_context`, `_line_source`, `normalize_ign_electric_lines`, `pytest.raises`, `replace`.
+```python
+def test_internal_source_context_rejects_uppercase_sha256() -> None:
+    archive_sha256 = "A" * 64
+    context = replace(_context(LINE_LAYER), archive_sha256=archive_sha256)
 
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    with pytest.raises(IgnGridNormalizationError, match="archive_sha256"):
+        normalize_ign_electric_lines(_line_source(), context)
+```
 
 ### `test_grid_summary_requires_strict_structural_types`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `field`, `value`.
+
+**Setup**
+
+```python
+source = _source_bundle()
+changed = replace(source.electric_lines_summary, **{field: value})
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError):
+        normalize_ign_electricity(replace(source, electric_lines_summary=changed))
+```
+
+**Regression protected**
+
+Prevents a schema-compatible-looking frame from replacing the canonical dtype contract with an object/category/other representation.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_grid_summary_requires_strict_structural_types(
     field: str, value: object
 ) -> None:
+    source = _source_bundle()
+    changed = replace(source.electric_lines_summary, **{field: value})
+
+    with pytest.raises(IgnGridNormalizationError):
+        normalize_ign_electricity(replace(source, electric_lines_summary=changed))
 ```
-
-**Purpose**
-
-Protects the `grid summary requires strict structural types` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `field`, `value`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle()`.
-- Computes `changed` from `replace(source.electric_lines_summary, **{field: value})`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError)` and executes: Calls `normalize_ign_electricity(replace(source, electric_lines_summary=changed))` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_bundle`, `normalize_ign_electricity`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError): normalize_ign_electricity(replace(source, electric_lines_summary=changed))`.
-
-**Regression protected**
-
-- Protects the exact `grid summary requires strict structural types` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_bundle`, `normalize_ign_electricity`, `pytest.mark.parametrize`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_grid_archive_sha256_requires_canonical_lowercase`
 
-**Signature**
-
-```python
-def test_grid_archive_sha256_requires_canonical_lowercase(value: str) -> None:
-```
-
 **Purpose**
 
-Protects the `grid archive sha256 requires canonical lowercase` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `value`.
 
 **Setup**
 
-- Uses parameters/fixtures: `value`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle_with_archive(sha256=value)`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError)` and executes: Calls `normalize_ign_electricity(source)` for its validation or side effect.
+```python
+source = _source_bundle_with_archive(sha256=value)
+```
 
 **Action**
 
-- Calls `_source_bundle_with_archive`, `normalize_ign_electricity`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError): normalize_ign_electricity(source)`.
+```python
+with pytest.raises(IgnGridNormalizationError):
+        normalize_ign_electricity(source)
+```
 
 **Regression protected**
 
-- Protects the exact `grid archive sha256 requires canonical lowercase` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- In-memory/local unit boundary defined entirely by the reproduced setup.
 
-**Calls**
+**Complete test implementation**
 
-- `_source_bundle_with_archive`, `normalize_ign_electricity`, `pytest.mark.parametrize`, `pytest.raises`.
+```python
+def test_grid_archive_sha256_requires_canonical_lowercase(value: str) -> None:
+    source = _source_bundle_with_archive(sha256=value)
 
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    with pytest.raises(IgnGridNormalizationError):
+        normalize_ign_electricity(source)
+```
 
 ### `test_internal_source_context_rejects_invalid_lineage_values`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `field`, `value`.
+
+**Setup**
+
+```python
+context = replace(_context(LINE_LAYER), **{field: value})
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError):
+        grid_normalization._validate_source_context(context)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_internal_source_context_rejects_invalid_lineage_values(
     field: str,
     value: object,
 ) -> None:
+    context = replace(_context(LINE_LAYER), **{field: value})
+
+    with pytest.raises(IgnGridNormalizationError):
+        grid_normalization._validate_source_context(context)
 ```
-
-**Purpose**
-
-Protects the `internal source context rejects invalid lineage values` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `field`, `value`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `context` from `replace(_context(LINE_LAYER), **{field: value})`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError)` and executes: Calls `grid_normalization._validate_source_context(context)` for its validation or side effect.
-
-**Action**
-
-- Calls `_context`, `grid_normalization._validate_source_context`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError): grid_normalization._validate_source_context(context)`.
-
-**Regression protected**
-
-- Protects the exact `internal source context rejects invalid lineage values` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_context`, `grid_normalization._validate_source_context`, `pytest.mark.parametrize`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_exact_voltage_parser_is_generic_and_finite`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `expected_kv`, `raw`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+parsed = parse_ign_voltage(raw)
+```
+
+**Expected result**
+
+```python
+assert parsed.raw == raw
+assert parsed.status == "EXACT"
+assert parsed.voltage_kv == expected_kv
+assert parsed.voltage_kv is not None and isfinite(parsed.voltage_kv)
+assert parsed.voltage_upper_bound_kv is None
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_exact_voltage_parser_is_generic_and_finite(
     raw: str, expected_kv: float
 ) -> None:
+    parsed = parse_ign_voltage(raw)
+
+    assert parsed.raw == raw
+    assert parsed.status == "EXACT"
+    assert parsed.voltage_kv == expected_kv
+    assert parsed.voltage_kv is not None and isfinite(parsed.voltage_kv)
+    assert parsed.voltage_upper_bound_kv is None
 ```
-
-**Purpose**
-
-Protects the `exact voltage parser is generic and finite` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `raw`, `expected_kv`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `parsed` from `parse_ign_voltage(raw)`.
-
-**Action**
-
-- Calls `isfinite`, `parse_ign_voltage`.
-
-**Expected result**
-
-- Direct assertions: `assert parsed.raw == raw`; `assert parsed.status == 'EXACT'`; `assert parsed.voltage_kv == expected_kv`; `assert parsed.voltage_kv is not None and isfinite(parsed.voltage_kv)`; `assert parsed.voltage_upper_bound_kv is None`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `exact voltage parser is generic and finite` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `isfinite`, `parse_ign_voltage`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_bounded_voltage_is_generic_finite_and_not_exact`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `expected_upper_bound`, `raw`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+parsed = parse_ign_voltage(raw)
+```
+
+**Expected result**
+
+```python
+assert parsed.raw == raw
+assert parsed.status == "BELOW"
+assert parsed.voltage_kv is None
+assert parsed.voltage_upper_bound_kv == expected_upper_bound
+assert isfinite(parsed.voltage_upper_bound_kv)
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_bounded_voltage_is_generic_finite_and_not_exact(
     raw: str, expected_upper_bound: float
 ) -> None:
+    parsed = parse_ign_voltage(raw)
+
+    assert parsed.raw == raw
+    assert parsed.status == "BELOW"
+    assert parsed.voltage_kv is None
+    assert parsed.voltage_upper_bound_kv == expected_upper_bound
+    assert isfinite(parsed.voltage_upper_bound_kv)
 ```
-
-**Purpose**
-
-Protects the `bounded voltage is generic finite and not exact` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `raw`, `expected_upper_bound`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `parsed` from `parse_ign_voltage(raw)`.
-
-**Action**
-
-- Calls `isfinite`, `parse_ign_voltage`.
-
-**Expected result**
-
-- Direct assertions: `assert parsed.raw == raw`; `assert parsed.status == 'BELOW'`; `assert parsed.voltage_kv is None`; `assert parsed.voltage_upper_bound_kv == expected_upper_bound`; `assert isfinite(parsed.voltage_upper_bound_kv)`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `bounded voltage is generic finite and not exact` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `isfinite`, `parse_ign_voltage`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_unknown_voltage_parser`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `raw`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+parsed = parse_ign_voltage(raw)
+```
+
+**Expected result**
+
+```python
+assert parsed.raw == raw
+assert parsed.status == "UNKNOWN"
+assert parsed.voltage_kv is None
+assert parsed.voltage_upper_bound_kv is None
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_unknown_voltage_parser(raw: str | None) -> None:
+    parsed = parse_ign_voltage(raw)
+
+    assert parsed.raw == raw
+    assert parsed.status == "UNKNOWN"
+    assert parsed.voltage_kv is None
+    assert parsed.voltage_upper_bound_kv is None
 ```
-
-**Purpose**
-
-Protects the `unknown voltage parser` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `raw`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `parsed` from `parse_ign_voltage(raw)`.
-
-**Action**
-
-- Calls `parse_ign_voltage`.
-
-**Expected result**
-
-- Direct assertions: `assert parsed.raw == raw`; `assert parsed.status == 'UNKNOWN'`; `assert parsed.voltage_kv is None`; `assert parsed.voltage_upper_bound_kv is None`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `unknown voltage parser` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `parse_ign_voltage`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_deenergized_voltage_parser`
 
-**Signature**
-
-```python
-def test_deenergized_voltage_parser(raw: str) -> None:
-```
-
 **Purpose**
 
-Protects the `deenergized voltage parser` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `raw`.
 
 **Setup**
 
-- Uses parameters/fixtures: `raw`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `parsed` from `parse_ign_voltage(raw)`.
+```python
+# No separate setup statement.
+```
 
 **Action**
 
-- Calls `parse_ign_voltage`.
+```python
+parsed = parse_ign_voltage(raw)
+```
 
 **Expected result**
 
-- Direct assertions: `assert parsed.raw == raw`; `assert parsed.status == 'DEENERGIZED'`; `assert parsed.voltage_kv is None`; `assert parsed.voltage_upper_bound_kv is None`.
-- Expected exception contexts: none.
+```python
+assert parsed.raw == raw
+assert parsed.status == "DEENERGIZED"
+assert parsed.voltage_kv is None
+assert parsed.voltage_upper_bound_kv is None
+```
 
 **Regression protected**
 
-- Protects the exact `deenergized voltage parser` contract against a future change that would violate these assertions or controlled-failure expectations.
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- In-memory/local unit boundary defined entirely by the reproduced setup.
 
-**Calls**
+**Complete test implementation**
 
-- `parse_ign_voltage`, `pytest.mark.parametrize`.
+```python
+def test_deenergized_voltage_parser(raw: str) -> None:
+    parsed = parse_ign_voltage(raw)
 
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    assert parsed.raw == raw
+    assert parsed.status == "DEENERGIZED"
+    assert parsed.voltage_kv is None
+    assert parsed.voltage_upper_bound_kv is None
+```
 
 ### `test_unexpected_or_non_scalar_voltage_is_controlled_unparsed`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `value`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+parsed = parse_ign_voltage(value)
+```
+
+**Expected result**
+
+```python
+assert parsed.status == "UNPARSED"
+assert parsed.voltage_kv is None
+assert parsed.voltage_upper_bound_kv is None
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_unexpected_or_non_scalar_voltage_is_controlled_unparsed(
     value: object,
 ) -> None:
+    parsed = parse_ign_voltage(value)
+
+    assert parsed.status == "UNPARSED"
+    assert parsed.voltage_kv is None
+    assert parsed.voltage_upper_bound_kv is None
 ```
-
-**Purpose**
-
-Protects the `unexpected or non scalar voltage is controlled unparsed` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `value`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `parsed` from `parse_ign_voltage(value)`.
-
-**Action**
-
-- Calls `np.array`, `parse_ign_voltage`.
-
-**Expected result**
-
-- Direct assertions: `assert parsed.status == 'UNPARSED'`; `assert parsed.voltage_kv is None`; `assert parsed.voltage_upper_bound_kv is None`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `unexpected or non scalar voltage is controlled unparsed` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `np.array`, `parse_ign_voltage`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_invalid_or_overflowing_numeric_voltage_is_unparsed`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `raw`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+parsed = parse_ign_voltage(raw)
+```
+
+**Expected result**
+
+```python
+assert parsed.status == "UNPARSED"
+assert parsed.voltage_kv is None
+assert parsed.voltage_upper_bound_kv is None
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_invalid_or_overflowing_numeric_voltage_is_unparsed(raw: str) -> None:
+    parsed = parse_ign_voltage(raw)
+
+    assert parsed.status == "UNPARSED"
+    assert parsed.voltage_kv is None
+    assert parsed.voltage_upper_bound_kv is None
 ```
-
-**Purpose**
-
-Protects the `invalid or overflowing numeric voltage is unparsed` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `raw`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `parsed` from `parse_ign_voltage(raw)`.
-
-**Action**
-
-- Calls `parse_ign_voltage`.
-
-**Expected result**
-
-- Direct assertions: `assert parsed.status == 'UNPARSED'`; `assert parsed.voltage_kv is None`; `assert parsed.voltage_upper_bound_kv is None`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `invalid or overflowing numeric voltage is unparsed` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `parse_ign_voltage`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_valid_line_has_stable_identity_lineage_and_range_index`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _line_source()
+row = normalized.iloc[0]
+```
+
+**Action**
+
+```python
+normalized = normalize_ign_electric_lines(source, _context(LINE_LAYER))
+```
+
+**Expected result**
+
+```python
+assert list(normalized.columns) == list(LINE_OUTPUT_COLUMNS)
+assert isinstance(normalized.index, pd.RangeIndex)
+assert row["grid_feature_id"] == "IGN_BDTOPO:ELECTRIC_LINE:LIGNE-1"
+assert row["source_feature_id"] == "LIGNE-1"
+assert row["source_provider"] == "IGN"
+assert row["source_product"] == "BD_TOPO"
+assert row["source_layer"] == LINE_LAYER
+assert row["source_department_code"] == "31"
+assert row["source_edition"] == "2026-06-15"
+assert row["source_product_version"] == "3.5"
+assert row["source_download_timestamp"] == "2026-08-11T15:32:03+00:00"
+assert row["source_archive_sha256"] == ARCHIVE_SHA256
+assert row["source_url"] == SOURCE_URL
+assert row["manager_name"] == "Réseau de Transport d'Électricité"
+assert row["asset_status_raw"] == "En service"
+assert row["source_identifiers_raw"] == "source-id"
+assert row["planimetric_precision_m"] == 2.5
+assert row["spatial_role"] == "PROXY_GEOMETRY"
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_valid_line_has_stable_identity_lineage_and_range_index() -> None:
+    source = _line_source()
+
+    normalized = normalize_ign_electric_lines(source, _context(LINE_LAYER))
+
+    row = normalized.iloc[0]
+    assert list(normalized.columns) == list(LINE_OUTPUT_COLUMNS)
+    assert isinstance(normalized.index, pd.RangeIndex)
+    assert row["grid_feature_id"] == "IGN_BDTOPO:ELECTRIC_LINE:LIGNE-1"
+    assert row["source_feature_id"] == "LIGNE-1"
+    assert row["source_provider"] == "IGN"
+    assert row["source_product"] == "BD_TOPO"
+    assert row["source_layer"] == LINE_LAYER
+    assert row["source_department_code"] == "31"
+    assert row["source_edition"] == "2026-06-15"
+    assert row["source_product_version"] == "3.5"
+    assert row["source_download_timestamp"] == "2026-08-11T15:32:03+00:00"
+    assert row["source_archive_sha256"] == ARCHIVE_SHA256
+    assert row["source_url"] == SOURCE_URL
+    assert row["manager_name"] == "Réseau de Transport d'Électricité"
+    assert row["asset_status_raw"] == "En service"
+    assert row["source_identifiers_raw"] == "source-id"
+    assert row["planimetric_precision_m"] == 2.5
+    assert row["spatial_role"] == "PROXY_GEOMETRY"
 ```
-
-**Purpose**
-
-Protects the `valid line has stable identity lineage and range index` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source` from `_line_source()`.
-- Computes `normalized` from `normalize_ign_electric_lines(source, _context(LINE_LAYER))`.
-- Computes `row` from `normalized.iloc[0]`.
-
-**Action**
-
-- Calls `_context`, `_line_source`, `isinstance`, `normalize_ign_electric_lines`.
-
-**Expected result**
-
-- Direct assertions: `assert list(normalized.columns) == list(LINE_OUTPUT_COLUMNS)`; `assert isinstance(normalized.index, pd.RangeIndex)`; `assert row['grid_feature_id'] == 'IGN_BDTOPO:ELECTRIC_LINE:LIGNE-1'`; `assert row['source_feature_id'] == 'LIGNE-1'`; `assert row['source_provider'] == 'IGN'`; `assert row['source_product'] == 'BD_TOPO'`; `assert row['source_layer'] == LINE_LAYER`; `assert row['source_department_code'] == '31'`; `assert row['source_edition'] == '2026-06-15'`; `assert row['source_product_version'] == '3.5'`; `assert row['source_download_timestamp'] == '2026-08-11T15:32:03+00:00'`; `assert row['source_archive_sha256'] == ARCHIVE_SHA256`; `assert row['source_url'] == SOURCE_URL`; `assert row['manager_name'] == "Réseau de Transport d'Électricité"`; `assert row['asset_status_raw'] == 'En service'`; `assert row['source_identifiers_raw'] == 'source-id'`; `assert row['planimetric_precision_m'] == 2.5`; `assert row['spatial_role'] == 'PROXY_GEOMETRY'`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `valid line has stable identity lineage and range index` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_context`, `_line_source`, `isinstance`, `list`, `normalize_ign_electric_lines`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_deenergized_voltage_does_not_override_source_asset_status`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+normalized = normalize_ign_electric_lines(
+        _line_source(voltages=["Hors tension"]), _context(LINE_LAYER)
+    )
+```
+
+**Expected result**
+
+```python
+assert normalized.iloc[0]["voltage_status"] == "DEENERGIZED"
+assert normalized.iloc[0]["asset_status_raw"] == "En service"
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_deenergized_voltage_does_not_override_source_asset_status() -> None:
+    normalized = normalize_ign_electric_lines(
+        _line_source(voltages=["Hors tension"]), _context(LINE_LAYER)
+    )
+
+    assert normalized.iloc[0]["voltage_status"] == "DEENERGIZED"
+    assert normalized.iloc[0]["asset_status_raw"] == "En service"
 ```
-
-**Purpose**
-
-Protects the `deenergized voltage does not override source asset status` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 1 explicit setup/context statement(s).
-- Computes `normalized` from `normalize_ign_electric_lines(_line_source(voltages=['Hors tension']), _context(LINE_LAYER))`.
-
-**Action**
-
-- Calls `_context`, `_line_source`, `normalize_ign_electric_lines`.
-
-**Expected result**
-
-- Direct assertions: `assert normalized.iloc[0]['voltage_status'] == 'DEENERGIZED'`; `assert normalized.iloc[0]['asset_status_raw'] == 'En service'`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `deenergized voltage does not override source asset status` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_context`, `_line_source`, `normalize_ign_electric_lines`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_null_or_empty_line_cleabs_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `identifier`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="cleabs|null|empty"):
+        normalize_ign_electric_lines(
+            _line_source(identifiers=[identifier]), _context(LINE_LAYER)
+        )
+```
+
+**Regression protected**
+
+Pins true-null handling and prevents textual or malformed null-like values from changing the contract.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_null_or_empty_line_cleabs_fails(identifier: object) -> None:
+    with pytest.raises(IgnGridNormalizationError, match="cleabs|null|empty"):
+        normalize_ign_electric_lines(
+            _line_source(identifiers=[identifier]), _context(LINE_LAYER)
+        )
 ```
-
-**Purpose**
-
-Protects the `null or empty line cleabs fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `identifier`.
-- Contains 1 explicit setup/context statement(s).
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='cleabs|null|empty')` and executes: Calls `normalize_ign_electric_lines(_line_source(identifiers=[identifier]), _context(LINE_LAYER))` for its validation or side effect.
-
-**Action**
-
-- Calls `_context`, `_line_source`, `normalize_ign_electric_lines`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='cleabs|null|empty'): normalize_ign_electric_lines(_line_source(identifiers=[identifier]), _context(LINE_LAYER))`.
-
-**Regression protected**
-
-- Protects the exact `null or empty line cleabs fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_context`, `_line_source`, `normalize_ign_electric_lines`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_unsafe_source_id_is_rejected_without_rewriting`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `identifier`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="cleabs|whitespace|control|:"):
+        normalize_ign_electric_lines(
+            _line_source(identifiers=[identifier]), _context(LINE_LAYER)
+        )
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_unsafe_source_id_is_rejected_without_rewriting(identifier: str) -> None:
+    with pytest.raises(IgnGridNormalizationError, match="cleabs|whitespace|control|:"):
+        normalize_ign_electric_lines(
+            _line_source(identifiers=[identifier]), _context(LINE_LAYER)
+        )
 ```
-
-**Purpose**
-
-Protects the `unsafe source id is rejected without rewriting` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `identifier`.
-- Contains 1 explicit setup/context statement(s).
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='cleabs|whitespace|control|:')` and executes: Calls `normalize_ign_electric_lines(_line_source(identifiers=[identifier]), _context(LINE_LAYER))` for its validation or side effect.
-
-**Action**
-
-- Calls `_context`, `_line_source`, `normalize_ign_electric_lines`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='cleabs|whitespace|control|:'): normalize_ign_electric_lines(_line_source(identifiers=[identifier]), _context(LINE_LAYER))`.
-
-**Regression protected**
-
-- Protects the exact `unsafe source id is rejected without rewriting` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_context`, `_line_source`, `normalize_ign_electric_lines`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_duplicate_line_cleabs_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _line_source(
+        geometries=[
+            LineString([(0, 0), (10, 10)]),
+            LineString([(20, 20), (30, 30)]),
+        ],
+        identifiers=["DUPLICATE", "DUPLICATE"],
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="unique"):
+        normalize_ign_electric_lines(source, _context(LINE_LAYER))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_duplicate_line_cleabs_fails() -> None:
+    source = _line_source(
+        geometries=[
+            LineString([(0, 0), (10, 10)]),
+            LineString([(20, 20), (30, 30)]),
+        ],
+        identifiers=["DUPLICATE", "DUPLICATE"],
+    )
+
+    with pytest.raises(IgnGridNormalizationError, match="unique"):
+        normalize_ign_electric_lines(source, _context(LINE_LAYER))
 ```
-
-**Purpose**
-
-Protects the `duplicate line cleabs fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `source` from `_line_source(geometries=[LineString([(0, 0), (10, 10)]), LineString([(20, 20), (30, 30)])], identifiers=['DUPLICATE', 'DUPLICATE'])`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='unique')` and executes: Calls `normalize_ign_electric_lines(source, _context(LINE_LAYER))` for its validation or side effect.
-
-**Action**
-
-- Calls `LineString`, `_context`, `_line_source`, `normalize_ign_electric_lines`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='unique'): normalize_ign_electric_lines(source, _context(LINE_LAYER))`.
-
-**Regression protected**
-
-- Protects the exact `duplicate line cleabs fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `LineString`, `_context`, `_line_source`, `normalize_ign_electric_lines`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_line_missing_or_wrong_crs_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `crs`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="CRS|2154"):
+        normalize_ign_electric_lines(_line_source(crs=crs), _context(LINE_LAYER))
+```
+
+**Regression protected**
+
+Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_line_missing_or_wrong_crs_fails(crs: str | None) -> None:
+    with pytest.raises(IgnGridNormalizationError, match="CRS|2154"):
+        normalize_ign_electric_lines(_line_source(crs=crs), _context(LINE_LAYER))
 ```
-
-**Purpose**
-
-Protects the `line missing or wrong crs fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `crs`.
-- Contains 1 explicit setup/context statement(s).
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='CRS|2154')` and executes: Calls `normalize_ign_electric_lines(_line_source(crs=crs), _context(LINE_LAYER))` for its validation or side effect.
-
-**Action**
-
-- Calls `_context`, `_line_source`, `normalize_ign_electric_lines`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='CRS|2154'): normalize_ign_electric_lines(_line_source(crs=crs), _context(LINE_LAYER))`.
-
-**Regression protected**
-
-- Protects the exact `line missing or wrong crs fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_context`, `_line_source`, `normalize_ign_electric_lines`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_line_geometry_quality_is_preserved_without_row_loss_or_repair`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+invalid = Polygon([(0, 0), (20, 20), (20, 0), (0, 20), (0, 0)])
+source = _line_source(
+        geometries=[LineString([(0, 0), (10, 10)]), None, LineString(), invalid],
+        identifiers=["VALID", "NULL", "EMPTY", "INVALID"],
+        voltages=["63 kV"] * 4,
+    )
+```
+
+**Action**
+
+```python
+normalized = normalize_ign_electric_lines(source, _context(LINE_LAYER))
+```
+
+**Expected result**
+
+```python
+assert normalized["geometry_status"].tolist() == [
+        "VALID",
+        "NULL",
+        "EMPTY",
+        "INVALID",
+    ]
+assert normalized["source_feature_id"].tolist() == [
+        "VALID",
+        "NULL",
+        "EMPTY",
+        "INVALID",
+    ]
+assert normalized.geometry.iloc[1] is None
+assert normalized.geometry.iloc[2].is_empty
+assert normalized.geometry.iloc[3].equals_exact(invalid, tolerance=0)
+```
+
+**Regression protected**
+
+Pins true-null handling and prevents textual or malformed null-like values from changing the contract.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_line_geometry_quality_is_preserved_without_row_loss_or_repair() -> None:
+    invalid = Polygon([(0, 0), (20, 20), (20, 0), (0, 20), (0, 0)])
+    source = _line_source(
+        geometries=[LineString([(0, 0), (10, 10)]), None, LineString(), invalid],
+        identifiers=["VALID", "NULL", "EMPTY", "INVALID"],
+        voltages=["63 kV"] * 4,
+    )
+
+    normalized = normalize_ign_electric_lines(source, _context(LINE_LAYER))
+
+    assert normalized["geometry_status"].tolist() == [
+        "VALID",
+        "NULL",
+        "EMPTY",
+        "INVALID",
+    ]
+    assert normalized["source_feature_id"].tolist() == [
+        "VALID",
+        "NULL",
+        "EMPTY",
+        "INVALID",
+    ]
+    assert normalized.geometry.iloc[1] is None
+    assert normalized.geometry.iloc[2].is_empty
+    assert normalized.geometry.iloc[3].equals_exact(invalid, tolerance=0)
 ```
-
-**Purpose**
-
-Protects the `line geometry quality is preserved without row loss or repair` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `invalid` from `Polygon([(0, 0), (20, 20), (20, 0), (0, 20), (0, 0)])`.
-- Computes `source` from `_line_source(geometries=[LineString([(0, 0), (10, 10)]), None, LineString(), invalid], identifiers=['VALID', 'NULL', 'EMPTY', 'INVALID'], voltages=['63 kV'] * 4)`.
-- Computes `normalized` from `normalize_ign_electric_lines(source, _context(LINE_LAYER))`.
-
-**Action**
-
-- Calls `LineString`, `Polygon`, `_context`, `_line_source`, `normalize_ign_electric_lines`, `normalized.geometry.iloc[3].equals_exact`, `normalized['geometry_status'].tolist`, `normalized['source_feature_id'].tolist`.
-
-**Expected result**
-
-- Direct assertions: `assert normalized['geometry_status'].tolist() == ['VALID', 'NULL', 'EMPTY', 'INVALID']`; `assert normalized['source_feature_id'].tolist() == ['VALID', 'NULL', 'EMPTY', 'INVALID']`; `assert normalized.geometry.iloc[1] is None`; `assert normalized.geometry.iloc[2].is_empty`; `assert normalized.geometry.iloc[3].equals_exact(invalid, tolerance=0)`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `line geometry quality is preserved without row loss or repair` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `LineString`, `Polygon`, `_context`, `_line_source`, `normalize_ign_electric_lines`, `normalized.geometry.iloc[3].equals_exact`, `normalized['geometry_status'].tolist`, `normalized['source_feature_id'].tolist`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_z_coordinates_are_preserved`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _line_source(geometries=[LineString([(0, 0, 10), (10, 10, 20)])])
+```
+
+**Action**
+
+```python
+normalized = normalize_ign_electric_lines(source, _context(LINE_LAYER))
+```
+
+**Expected result**
+
+```python
+assert source.geometry.iloc[0].has_z
+assert normalized.geometry.iloc[0].has_z
+assert normalized.geometry.iloc[0].equals_exact(
+        source.geometry.iloc[0], tolerance=0
+    )
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_z_coordinates_are_preserved() -> None:
+    source = _line_source(geometries=[LineString([(0, 0, 10), (10, 10, 20)])])
+
+    normalized = normalize_ign_electric_lines(source, _context(LINE_LAYER))
+
+    assert source.geometry.iloc[0].has_z
+    assert normalized.geometry.iloc[0].has_z
+    assert normalized.geometry.iloc[0].equals_exact(
+        source.geometry.iloc[0], tolerance=0
+    )
 ```
-
-**Purpose**
-
-Protects the `z coordinates are preserved` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `source` from `_line_source(geometries=[LineString([(0, 0, 10), (10, 10, 20)])])`.
-- Computes `normalized` from `normalize_ign_electric_lines(source, _context(LINE_LAYER))`.
-
-**Action**
-
-- Calls `LineString`, `_context`, `_line_source`, `normalize_ign_electric_lines`, `normalized.geometry.iloc[0].equals_exact`.
-
-**Expected result**
-
-- Direct assertions: `assert source.geometry.iloc[0].has_z`; `assert normalized.geometry.iloc[0].has_z`; `assert normalized.geometry.iloc[0].equals_exact(source.geometry.iloc[0], tolerance=0)`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `z coordinates are preserved` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `LineString`, `_context`, `_line_source`, `normalize_ign_electric_lines`, `normalized.geometry.iloc[0].equals_exact`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_unusual_duplicate_source_index_is_not_preserved_as_identity`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _line_source(
+        geometries=[
+            LineString([(0, 0), (10, 10)]),
+            LineString([(20, 20), (30, 30)]),
+        ],
+        identifiers=["FIRST", "SECOND"],
+        index=[77, 77],
+    )
+```
+
+**Action**
+
+```python
+normalized = normalize_ign_electric_lines(source, _context(LINE_LAYER))
+```
+
+**Expected result**
+
+```python
+assert isinstance(normalized.index, pd.RangeIndex)
+assert normalized.index.tolist() == [0, 1]
+assert normalized["source_feature_id"].tolist() == ["FIRST", "SECOND"]
+assert normalized["grid_feature_id"].tolist() == [
+        "IGN_BDTOPO:ELECTRIC_LINE:FIRST",
+        "IGN_BDTOPO:ELECTRIC_LINE:SECOND",
+    ]
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_unusual_duplicate_source_index_is_not_preserved_as_identity() -> None:
+    source = _line_source(
+        geometries=[
+            LineString([(0, 0), (10, 10)]),
+            LineString([(20, 20), (30, 30)]),
+        ],
+        identifiers=["FIRST", "SECOND"],
+        index=[77, 77],
+    )
+
+    normalized = normalize_ign_electric_lines(source, _context(LINE_LAYER))
+
+    assert isinstance(normalized.index, pd.RangeIndex)
+    assert normalized.index.tolist() == [0, 1]
+    assert normalized["source_feature_id"].tolist() == ["FIRST", "SECOND"]
+    assert normalized["grid_feature_id"].tolist() == [
+        "IGN_BDTOPO:ELECTRIC_LINE:FIRST",
+        "IGN_BDTOPO:ELECTRIC_LINE:SECOND",
+    ]
 ```
-
-**Purpose**
-
-Protects the `unusual duplicate source index is not preserved as identity` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `source` from `_line_source(geometries=[LineString([(0, 0), (10, 10)]), LineString([(20, 20), (30, 30)])], identifiers=['FIRST', 'SECOND'], index=[77, 77])`.
-- Computes `normalized` from `normalize_ign_electric_lines(source, _context(LINE_LAYER))`.
-
-**Action**
-
-- Calls `LineString`, `_context`, `_line_source`, `isinstance`, `normalize_ign_electric_lines`, `normalized.index.tolist`, `normalized['grid_feature_id'].tolist`, `normalized['source_feature_id'].tolist`.
-
-**Expected result**
-
-- Direct assertions: `assert isinstance(normalized.index, pd.RangeIndex)`; `assert normalized.index.tolist() == [0, 1]`; `assert normalized['source_feature_id'].tolist() == ['FIRST', 'SECOND']`; `assert normalized['grid_feature_id'].tolist() == ['IGN_BDTOPO:ELECTRIC_LINE:FIRST', 'IGN_BDTOPO:ELECTRIC_LINE:SECOND']`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `unusual duplicate source index is not preserved as identity` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `LineString`, `_context`, `_line_source`, `isinstance`, `normalize_ign_electric_lines`, `normalized.index.tolist`, `normalized['grid_feature_id'].tolist`, `normalized['source_feature_id'].tolist`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_line_normalization_does_not_mutate_input_and_has_stable_columns`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _line_source()
+reordered = source.loc[:, list(reversed(source.columns))].set_geometry("geometry")
+before = deepcopy(reordered)
+assert_geodataframe_equal(reordered, before)
+```
+
+**Action**
+
+```python
+normalized = normalize_ign_electric_lines(reordered, _context(LINE_LAYER))
+```
+
+**Expected result**
+
+```python
+assert list(normalized.columns) == list(LINE_OUTPUT_COLUMNS)
+```
+
+**Regression protected**
+
+Prevents geometry changes from passing a preservation or source-bound comparison merely because other fields were updated coherently.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_line_normalization_does_not_mutate_input_and_has_stable_columns() -> None:
+    source = _line_source()
+    reordered = source.loc[:, list(reversed(source.columns))].set_geometry("geometry")
+    before = deepcopy(reordered)
+
+    normalized = normalize_ign_electric_lines(reordered, _context(LINE_LAYER))
+
+    assert_geodataframe_equal(reordered, before)
+    assert list(normalized.columns) == list(LINE_OUTPUT_COLUMNS)
 ```
-
-**Purpose**
-
-Protects the `line normalization does not mutate input and has stable columns` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 4 explicit setup/context statement(s).
-- Computes `source` from `_line_source()`.
-- Computes `reordered` from `source.loc[:, list(reversed(source.columns))].set_geometry('geometry')`.
-- Computes `before` from `deepcopy(reordered)`.
-- Computes `normalized` from `normalize_ign_electric_lines(reordered, _context(LINE_LAYER))`.
-
-**Action**
-
-- Calls `_context`, `_line_source`, `deepcopy`, `normalize_ign_electric_lines`, `reversed`, `source.loc[:, list(reversed(source.columns))].set_geometry`.
-
-**Expected result**
-
-- Direct assertions: `assert list(normalized.columns) == list(LINE_OUTPUT_COLUMNS)`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `line normalization does not mutate input and has stable columns` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_context`, `_line_source`, `assert_geodataframe_equal`, `deepcopy`, `list`, `normalize_ign_electric_lines`, `reversed`, `source.loc[:, list(reversed(source.columns))].set_geometry`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_missing_required_line_field_fails`
 
-**Signature**
-
-```python
-def test_missing_required_line_field_fails(column: str) -> None:
-```
-
 **Purpose**
 
-Protects the `missing required line field fails` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `column`.
 
 **Setup**
 
-- Uses parameters/fixtures: `column`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `source` from `_line_source().drop(columns=column)`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match=column)` and executes: Calls `normalize_ign_electric_lines(source, _context(LINE_LAYER))` for its validation or side effect.
+```python
+source = _line_source().drop(columns=column)
+```
 
 **Action**
 
-- Calls `_context`, `_line_source`, `_line_source().drop`, `normalize_ign_electric_lines`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match=column): normalize_ign_electric_lines(source, _context(LINE_LAYER))`.
+```python
+with pytest.raises(IgnGridNormalizationError, match=column):
+        normalize_ign_electric_lines(source, _context(LINE_LAYER))
+```
 
 **Regression protected**
 
-- Protects the exact `missing required line field fails` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
 
-**Calls**
+**Complete test implementation**
 
-- `_context`, `_line_source`, `_line_source().drop`, `normalize_ign_electric_lines`, `pytest.mark.parametrize`, `pytest.raises`.
+```python
+def test_missing_required_line_field_fails(column: str) -> None:
+    source = _line_source().drop(columns=column)
 
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    with pytest.raises(IgnGridNormalizationError, match=column):
+        normalize_ign_electric_lines(source, _context(LINE_LAYER))
+```
 
 ### `test_valid_or_null_line_precision_is_normalized_to_float`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `precision`.
+
+**Setup**
+
+```python
+if precision is None or (isinstance(precision, float) and np.isnan(precision)):
+        assert pd.isna(normalized.iloc[0]["planimetric_precision_m"])
+    else:
+        assert normalized.iloc[0]["planimetric_precision_m"] == float(precision)
+```
+
+**Action**
+
+```python
+normalized = normalize_ign_electric_lines(
+        _line_source(precisions=[precision]), _context(LINE_LAYER)
+    )
+```
+
+**Expected result**
+
+```python
+assert str(normalized["planimetric_precision_m"].dtype) == "float64"
+```
+
+**Regression protected**
+
+Prevents a schema-compatible-looking frame from replacing the canonical dtype contract with an object/category/other representation.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_valid_or_null_line_precision_is_normalized_to_float(
     precision: object,
 ) -> None:
+    normalized = normalize_ign_electric_lines(
+        _line_source(precisions=[precision]), _context(LINE_LAYER)
+    )
+
+    assert str(normalized["planimetric_precision_m"].dtype) == "float64"
+    if precision is None or (isinstance(precision, float) and np.isnan(precision)):
+        assert pd.isna(normalized.iloc[0]["planimetric_precision_m"])
+    else:
+        assert normalized.iloc[0]["planimetric_precision_m"] == float(precision)
 ```
-
-**Purpose**
-
-Protects the `valid or null line precision is normalized to float` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `precision`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `normalized` from `normalize_ign_electric_lines(_line_source(precisions=[precision]), _context(LINE_LAYER))`.
-
-**Action**
-
-- Calls `_context`, `_line_source`, `float`, `isinstance`, `normalize_ign_electric_lines`, `np.isnan`, `pd.isna`.
-
-**Expected result**
-
-- Direct assertions: `assert str(normalized['planimetric_precision_m'].dtype) == 'float64'`; `assert pd.isna(normalized.iloc[0]['planimetric_precision_m'])`; `assert normalized.iloc[0]['planimetric_precision_m'] == float(precision)`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `valid or null line precision is normalized to float` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_context`, `_line_source`, `float`, `isinstance`, `normalize_ign_electric_lines`, `np.isnan`, `pd.isna`, `pytest.mark.parametrize`, `str`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_invalid_line_precision_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `precision`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="precision_planimetrique"):
+        normalize_ign_electric_lines(
+            _line_source(precisions=[precision]), _context(LINE_LAYER)
+        )
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_invalid_line_precision_fails(precision: object) -> None:
+    with pytest.raises(IgnGridNormalizationError, match="precision_planimetrique"):
+        normalize_ign_electric_lines(
+            _line_source(precisions=[precision]), _context(LINE_LAYER)
+        )
 ```
-
-**Purpose**
-
-Protects the `invalid line precision fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `precision`.
-- Contains 1 explicit setup/context statement(s).
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='precision_planimetrique')` and executes: Calls `normalize_ign_electric_lines(_line_source(precisions=[precision]), _context(LINE_LAYER))` for its validation or side effect.
-
-**Action**
-
-- Calls `_context`, `_line_source`, `float`, `normalize_ign_electric_lines`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='precision_planimetrique'): normalize_ign_electric_lines(_line_source(precisions=[precision]), _context(LINE_LAYER))`.
-
-**Regression protected**
-
-- Protects the exact `invalid line precision fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_context`, `_line_source`, `float`, `normalize_ign_electric_lines`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_normalized_voltage_never_emits_non_finite_numeric_values`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+huge = f"{'9' * 400} kV"
+source = _line_source(
+        geometries=[LineString([(0, 0), (1, 1)])] * 4,
+        identifiers=["EXACT", "BELOW", "OVERFLOW", "MISSING"],
+        voltages=["225 kV", "<90 kV", huge, None],
+    )
+```
+
+**Action**
+
+```python
+normalized = normalize_ign_electric_lines(source, _context(LINE_LAYER))
+```
+
+**Expected result**
+
+```python
+assert normalized["voltage_status"].tolist() == [
+        "EXACT",
+        "BELOW",
+        "UNPARSED",
+        "UNKNOWN",
+    ]
+assert np.isfinite(normalized["voltage_kv"].dropna()).all()
+assert np.isfinite(normalized["voltage_upper_bound_kv"].dropna()).all()
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_normalized_voltage_never_emits_non_finite_numeric_values() -> None:
+    huge = f"{'9' * 400} kV"
+    source = _line_source(
+        geometries=[LineString([(0, 0), (1, 1)])] * 4,
+        identifiers=["EXACT", "BELOW", "OVERFLOW", "MISSING"],
+        voltages=["225 kV", "<90 kV", huge, None],
+    )
+
+    normalized = normalize_ign_electric_lines(source, _context(LINE_LAYER))
+
+    assert normalized["voltage_status"].tolist() == [
+        "EXACT",
+        "BELOW",
+        "UNPARSED",
+        "UNKNOWN",
+    ]
+    assert np.isfinite(normalized["voltage_kv"].dropna()).all()
+    assert np.isfinite(normalized["voltage_upper_bound_kv"].dropna()).all()
 ```
-
-**Purpose**
-
-Protects the `normalized voltage never emits non finite numeric values` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `huge` from `f"{'9' * 400} kV"`.
-- Computes `source` from `_line_source(geometries=[LineString([(0, 0), (1, 1)])] * 4, identifiers=['EXACT', 'BELOW', 'OVERFLOW', 'MISSING'], voltages=['225 kV', '<90 kV', huge, None])`.
-- Computes `normalized` from `normalize_ign_electric_lines(source, _context(LINE_LAYER))`.
-
-**Action**
-
-- Calls `LineString`, `_context`, `_line_source`, `normalize_ign_electric_lines`, `normalized['voltage_kv'].dropna`, `normalized['voltage_status'].tolist`, `normalized['voltage_upper_bound_kv'].dropna`, `np.isfinite`, `np.isfinite(normalized['voltage_kv'].dropna()).all`, `np.isfinite(normalized['voltage_upper_bound_kv'].dropna()).all`.
-
-**Expected result**
-
-- Direct assertions: `assert normalized['voltage_status'].tolist() == ['EXACT', 'BELOW', 'UNPARSED', 'UNKNOWN']`; `assert np.isfinite(normalized['voltage_kv'].dropna()).all()`; `assert np.isfinite(normalized['voltage_upper_bound_kv'].dropna()).all()`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `normalized voltage never emits non finite numeric values` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `LineString`, `_context`, `_line_source`, `normalize_ign_electric_lines`, `normalized['voltage_kv'].dropna`, `normalized['voltage_status'].tolist`, `normalized['voltage_upper_bound_kv'].dropna`, `np.isfinite`, `np.isfinite(normalized['voltage_kv'].dropna()).all`, `np.isfinite(normalized['voltage_upper_bound_kv'].dropna()).all`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_valid_post_has_stable_lineage_and_no_voltage_inference`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _post_source()
+row = normalized.iloc[0]
+```
+
+**Action**
+
+```python
+normalized = normalize_ign_transformation_posts(
+        source, _context(POST_LAYER)
+    )
+```
+
+**Expected result**
+
+```python
+assert list(normalized.columns) == list(TRANSFORMATION_POST_OUTPUT_COLUMNS)
+assert isinstance(normalized.index, pd.RangeIndex)
+assert row["grid_feature_id"] == "IGN_BDTOPO:TRANSFORMATION_POST:POSTE-1"
+assert row["source_layer"] == POST_LAYER
+assert row["source_department_code"] == "31"
+assert row["source_archive_sha256"] == ARCHIVE_SHA256
+assert row["name"] == "Poste de test"
+assert row["voltage_status"] == "UNKNOWN"
+assert pd.isna(row["voltage_kv"])
+assert row["spatial_role"] == "PROXY_GEOMETRY"
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_valid_post_has_stable_lineage_and_no_voltage_inference() -> None:
+    source = _post_source()
+
+    normalized = normalize_ign_transformation_posts(
+        source, _context(POST_LAYER)
+    )
+
+    row = normalized.iloc[0]
+    assert list(normalized.columns) == list(TRANSFORMATION_POST_OUTPUT_COLUMNS)
+    assert isinstance(normalized.index, pd.RangeIndex)
+    assert row["grid_feature_id"] == "IGN_BDTOPO:TRANSFORMATION_POST:POSTE-1"
+    assert row["source_layer"] == POST_LAYER
+    assert row["source_department_code"] == "31"
+    assert row["source_archive_sha256"] == ARCHIVE_SHA256
+    assert row["name"] == "Poste de test"
+    assert row["voltage_status"] == "UNKNOWN"
+    assert pd.isna(row["voltage_kv"])
+    assert row["spatial_role"] == "PROXY_GEOMETRY"
 ```
-
-**Purpose**
-
-Protects the `valid post has stable lineage and no voltage inference` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source` from `_post_source()`.
-- Computes `normalized` from `normalize_ign_transformation_posts(source, _context(POST_LAYER))`.
-- Computes `row` from `normalized.iloc[0]`.
-
-**Action**
-
-- Calls `_context`, `_post_source`, `isinstance`, `normalize_ign_transformation_posts`, `pd.isna`.
-
-**Expected result**
-
-- Direct assertions: `assert list(normalized.columns) == list(TRANSFORMATION_POST_OUTPUT_COLUMNS)`; `assert isinstance(normalized.index, pd.RangeIndex)`; `assert row['grid_feature_id'] == 'IGN_BDTOPO:TRANSFORMATION_POST:POSTE-1'`; `assert row['source_layer'] == POST_LAYER`; `assert row['source_department_code'] == '31'`; `assert row['source_archive_sha256'] == ARCHIVE_SHA256`; `assert row['name'] == 'Poste de test'`; `assert row['voltage_status'] == 'UNKNOWN'`; `assert pd.isna(row['voltage_kv'])`; `assert row['spatial_role'] == 'PROXY_GEOMETRY'`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `valid post has stable lineage and no voltage inference` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_context`, `_post_source`, `isinstance`, `list`, `normalize_ign_transformation_posts`, `pd.isna`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_post_geometry_crs_and_input_are_preserved`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _post_source()
+before = deepcopy(source)
+assert_geodataframe_equal(source, before)
+```
+
+**Action**
+
+```python
+normalized = normalize_ign_transformation_posts(
+        source, _context(POST_LAYER)
+    )
+```
+
+**Expected result**
+
+```python
+assert normalized.crs is not None and normalized.crs.to_epsg() == 2154
+assert normalized.geometry.iloc[0].equals_exact(
+        source.geometry.iloc[0], tolerance=0
+    )
+```
+
+**Regression protected**
+
+Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_post_geometry_crs_and_input_are_preserved() -> None:
+    source = _post_source()
+    before = deepcopy(source)
+
+    normalized = normalize_ign_transformation_posts(
+        source, _context(POST_LAYER)
+    )
+
+    assert_geodataframe_equal(source, before)
+    assert normalized.crs is not None and normalized.crs.to_epsg() == 2154
+    assert normalized.geometry.iloc[0].equals_exact(
+        source.geometry.iloc[0], tolerance=0
+    )
 ```
-
-**Purpose**
-
-Protects the `post geometry crs and input are preserved` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source` from `_post_source()`.
-- Computes `before` from `deepcopy(source)`.
-- Computes `normalized` from `normalize_ign_transformation_posts(source, _context(POST_LAYER))`.
-
-**Action**
-
-- Calls `_context`, `_post_source`, `deepcopy`, `normalize_ign_transformation_posts`, `normalized.crs.to_epsg`, `normalized.geometry.iloc[0].equals_exact`.
-
-**Expected result**
-
-- Direct assertions: `assert normalized.crs is not None and normalized.crs.to_epsg() == 2154`; `assert normalized.geometry.iloc[0].equals_exact(source.geometry.iloc[0], tolerance=0)`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `post geometry crs and input are preserved` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_context`, `_post_source`, `assert_geodataframe_equal`, `deepcopy`, `normalize_ign_transformation_posts`, `normalized.crs.to_epsg`, `normalized.geometry.iloc[0].equals_exact`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_duplicate_post_cleabs_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+polygon = Polygon([(0, 0), (0, 20), (20, 20), (20, 0), (0, 0)])
+source = _post_source(
+        geometries=[polygon, polygon], identifiers=["DUPLICATE", "DUPLICATE"]
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="unique"):
+        normalize_ign_transformation_posts(source, _context(POST_LAYER))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_duplicate_post_cleabs_fails() -> None:
+    polygon = Polygon([(0, 0), (0, 20), (20, 20), (20, 0), (0, 0)])
+    source = _post_source(
+        geometries=[polygon, polygon], identifiers=["DUPLICATE", "DUPLICATE"]
+    )
+
+    with pytest.raises(IgnGridNormalizationError, match="unique"):
+        normalize_ign_transformation_posts(source, _context(POST_LAYER))
 ```
-
-**Purpose**
-
-Protects the `duplicate post cleabs fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `polygon` from `Polygon([(0, 0), (0, 20), (20, 20), (20, 0), (0, 0)])`.
-- Computes `source` from `_post_source(geometries=[polygon, polygon], identifiers=['DUPLICATE', 'DUPLICATE'])`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='unique')` and executes: Calls `normalize_ign_transformation_posts(source, _context(POST_LAYER))` for its validation or side effect.
-
-**Action**
-
-- Calls `Polygon`, `_context`, `_post_source`, `normalize_ign_transformation_posts`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='unique'): normalize_ign_transformation_posts(source, _context(POST_LAYER))`.
-
-**Regression protected**
-
-- Protects the exact `duplicate post cleabs fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `Polygon`, `_context`, `_post_source`, `normalize_ign_transformation_posts`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_null_post_geometry_and_precision_are_preserved`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+normalized = normalize_ign_transformation_posts(
+        _post_source(geometries=[None], precisions=[None]), _context(POST_LAYER)
+    )
+```
+
+**Expected result**
+
+```python
+assert normalized.iloc[0]["geometry_status"] == "NULL"
+assert normalized.geometry.iloc[0] is None
+assert normalized.iloc[0]["voltage_status"] == "UNKNOWN"
+assert normalized["voltage_kv"].isna().all()
+assert normalized["planimetric_precision_m"].isna().all()
+```
+
+**Regression protected**
+
+Pins true-null handling and prevents textual or malformed null-like values from changing the contract.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_null_post_geometry_and_precision_are_preserved() -> None:
+    normalized = normalize_ign_transformation_posts(
+        _post_source(geometries=[None], precisions=[None]), _context(POST_LAYER)
+    )
+
+    assert normalized.iloc[0]["geometry_status"] == "NULL"
+    assert normalized.geometry.iloc[0] is None
+    assert normalized.iloc[0]["voltage_status"] == "UNKNOWN"
+    assert normalized["voltage_kv"].isna().all()
+    assert normalized["planimetric_precision_m"].isna().all()
 ```
-
-**Purpose**
-
-Protects the `null post geometry and precision are preserved` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 1 explicit setup/context statement(s).
-- Computes `normalized` from `normalize_ign_transformation_posts(_post_source(geometries=[None], precisions=[None]), _context(POST_LAYER))`.
-
-**Action**
-
-- Calls `_context`, `_post_source`, `normalize_ign_transformation_posts`, `normalized['planimetric_precision_m'].isna`, `normalized['planimetric_precision_m'].isna().all`, `normalized['voltage_kv'].isna`, `normalized['voltage_kv'].isna().all`.
-
-**Expected result**
-
-- Direct assertions: `assert normalized.iloc[0]['geometry_status'] == 'NULL'`; `assert normalized.geometry.iloc[0] is None`; `assert normalized.iloc[0]['voltage_status'] == 'UNKNOWN'`; `assert normalized['voltage_kv'].isna().all()`; `assert normalized['planimetric_precision_m'].isna().all()`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `null post geometry and precision are preserved` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_context`, `_post_source`, `normalize_ign_transformation_posts`, `normalized['planimetric_precision_m'].isna`, `normalized['planimetric_precision_m'].isna().all`, `normalized['voltage_kv'].isna`, `normalized['voltage_kv'].isna().all`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_invalid_post_precision_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="precision_planimetrique"):
+        normalize_ign_transformation_posts(
+            _post_source(precisions=["5.0"]), _context(POST_LAYER)
+        )
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_invalid_post_precision_fails() -> None:
+    with pytest.raises(IgnGridNormalizationError, match="precision_planimetrique"):
+        normalize_ign_transformation_posts(
+            _post_source(precisions=["5.0"]), _context(POST_LAYER)
+        )
 ```
-
-**Purpose**
-
-Protects the `invalid post precision fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 1 explicit setup/context statement(s).
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='precision_planimetrique')` and executes: Calls `normalize_ign_transformation_posts(_post_source(precisions=['5.0']), _context(POST_LAYER))` for its validation or side effect.
-
-**Action**
-
-- Calls `_context`, `_post_source`, `normalize_ign_transformation_posts`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='precision_planimetrique'): normalize_ign_transformation_posts(_post_source(precisions=['5.0']), _context(POST_LAYER))`.
-
-**Regression protected**
-
-- Protects the exact `invalid post precision fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_context`, `_post_source`, `normalize_ign_transformation_posts`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_appropriate_multigeometry_types_are_accepted`
 
-**Signature**
-
-```python
-def test_appropriate_multigeometry_types_are_accepted() -> None:
-```
-
 **Purpose**
 
-Protects the `appropriate multigeometry types are accepted` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: none.
-- Contains 4 explicit setup/context statement(s).
-- Computes `multilines` from `MultiLineString([[(0, 0), (10, 10)], [(20, 20), (30, 30)]])`.
-- Computes `multipolygon` from `MultiPolygon([Polygon([(0, 0), (0, 5), (5, 5), (5, 0), (0, 0)]), Polygon([(10, 10), (10, 15), (15, 15), (15, 10), (10, 10)])])`.
-- Computes `lines` from `normalize_ign_electric_lines(_line_source(geometries=[multilines]), _context(LINE_LAYER))`.
-- Computes `posts` from `normalize_ign_transformation_posts(_post_source(geometries=[multipolygon]), _context(POST_LAYER))`.
+```python
+multilines = MultiLineString([[(0, 0), (10, 10)], [(20, 20), (30, 30)]])
+multipolygon = MultiPolygon(
+        [
+            Polygon([(0, 0), (0, 5), (5, 5), (5, 0), (0, 0)]),
+            Polygon([(10, 10), (10, 15), (15, 15), (15, 10), (10, 10)]),
+        ]
+    )
+```
 
 **Action**
 
-- Calls `MultiLineString`, `MultiPolygon`, `Polygon`, `_context`, `_line_source`, `_post_source`, `normalize_ign_electric_lines`, `normalize_ign_transformation_posts`.
+```python
+lines = normalize_ign_electric_lines(
+        _line_source(geometries=[multilines]), _context(LINE_LAYER)
+    )
+posts = normalize_ign_transformation_posts(
+        _post_source(geometries=[multipolygon]), _context(POST_LAYER)
+    )
+```
 
 **Expected result**
 
-- Direct assertions: `assert lines.iloc[0]['geometry_status'] == 'VALID'`; `assert lines.geometry.iloc[0].geom_type == 'MultiLineString'`; `assert posts.iloc[0]['geometry_status'] == 'VALID'`; `assert posts.geometry.iloc[0].geom_type == 'MultiPolygon'`.
-- Expected exception contexts: none.
+```python
+assert lines.iloc[0]["geometry_status"] == "VALID"
+assert lines.geometry.iloc[0].geom_type == "MultiLineString"
+assert posts.iloc[0]["geometry_status"] == "VALID"
+assert posts.geometry.iloc[0].geom_type == "MultiPolygon"
+```
 
 **Regression protected**
 
-- Protects the exact `appropriate multigeometry types are accepted` contract against a future change that would violate these assertions or controlled-failure expectations.
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
 
 **Test boundary**
 
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
 
-**Calls**
+**Complete test implementation**
 
-- `MultiLineString`, `MultiPolygon`, `Polygon`, `_context`, `_line_source`, `_post_source`, `normalize_ign_electric_lines`, `normalize_ign_transformation_posts`.
+```python
+def test_appropriate_multigeometry_types_are_accepted() -> None:
+    multilines = MultiLineString([[(0, 0), (10, 10)], [(20, 20), (30, 30)]])
+    multipolygon = MultiPolygon(
+        [
+            Polygon([(0, 0), (0, 5), (5, 5), (5, 0), (0, 0)]),
+            Polygon([(10, 10), (10, 15), (15, 15), (15, 10), (10, 10)]),
+        ]
+    )
 
-**Does NOT prove**
+    lines = normalize_ign_electric_lines(
+        _line_source(geometries=[multilines]), _context(LINE_LAYER)
+    )
+    posts = normalize_ign_transformation_posts(
+        _post_source(geometries=[multipolygon]), _context(POST_LAYER)
+    )
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    assert lines.iloc[0]["geometry_status"] == "VALID"
+    assert lines.geometry.iloc[0].geom_type == "MultiLineString"
+    assert posts.iloc[0]["geometry_status"] == "VALID"
+    assert posts.geometry.iloc[0].geom_type == "MultiPolygon"
+```
 
 ### `test_valid_polygon_or_point_is_rejected_as_electric_line`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `geometry`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="geometry types"):
+        normalize_ign_electric_lines(
+            _line_source(geometries=[geometry]), _context(LINE_LAYER)
+        )
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_valid_polygon_or_point_is_rejected_as_electric_line(
     geometry: object,
 ) -> None:
+    with pytest.raises(IgnGridNormalizationError, match="geometry types"):
+        normalize_ign_electric_lines(
+            _line_source(geometries=[geometry]), _context(LINE_LAYER)
+        )
 ```
-
-**Purpose**
-
-Protects the `valid polygon or point is rejected as electric line` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `geometry`.
-- Contains 1 explicit setup/context statement(s).
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='geometry types')` and executes: Calls `normalize_ign_electric_lines(_line_source(geometries=[geometry]), _context(LINE_LAYER))` for its validation or side effect.
-
-**Action**
-
-- Calls `Point`, `Polygon`, `_context`, `_line_source`, `normalize_ign_electric_lines`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='geometry types'): normalize_ign_electric_lines(_line_source(geometries=[geometry]), _context(LINE_LAYER))`.
-
-**Regression protected**
-
-- Protects the exact `valid polygon or point is rejected as electric line` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `Point`, `Polygon`, `_context`, `_line_source`, `normalize_ign_electric_lines`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_valid_line_or_point_is_rejected_as_transformation_post`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `geometry`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="geometry types"):
+        normalize_ign_transformation_posts(
+            _post_source(geometries=[geometry]), _context(POST_LAYER)
+        )
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_valid_line_or_point_is_rejected_as_transformation_post(
     geometry: object,
 ) -> None:
+    with pytest.raises(IgnGridNormalizationError, match="geometry types"):
+        normalize_ign_transformation_posts(
+            _post_source(geometries=[geometry]), _context(POST_LAYER)
+        )
 ```
-
-**Purpose**
-
-Protects the `valid line or point is rejected as transformation post` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `geometry`.
-- Contains 1 explicit setup/context statement(s).
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='geometry types')` and executes: Calls `normalize_ign_transformation_posts(_post_source(geometries=[geometry]), _context(POST_LAYER))` for its validation or side effect.
-
-**Action**
-
-- Calls `LineString`, `Point`, `_context`, `_post_source`, `normalize_ign_transformation_posts`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='geometry types'): normalize_ign_transformation_posts(_post_source(geometries=[geometry]), _context(POST_LAYER))`.
-
-**Regression protected**
-
-- Protects the exact `valid line or point is rejected as transformation post` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `LineString`, `Point`, `_context`, `_post_source`, `normalize_ign_transformation_posts`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_high_level_path_uses_discovered_layer_names_and_archive_lineage`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _source_bundle()
+normalized = normalize_ign_electricity(source)
+for frame in (normalized.electric_lines, normalized.transformation_posts):
+        assert frame["source_department_code"].unique().tolist() == ["31"]
+        assert frame["source_edition"].unique().tolist() == ["2026-06-15"]
+        assert frame["source_product_version"].unique().tolist() == ["3.5"]
+        assert frame["source_archive_sha256"].unique().tolist() == [ARCHIVE_SHA256]
+        assert frame["source_url"].unique().tolist() == [SOURCE_URL]
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert normalized.electric_lines["source_layer"].unique().tolist() == [LINE_LAYER]
+assert normalized.transformation_posts["source_layer"].unique().tolist() == [
+        POST_LAYER
+    ]
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_high_level_path_uses_discovered_layer_names_and_archive_lineage() -> None:
+    source = _source_bundle()
+
+    normalized = normalize_ign_electricity(source)
+
+    assert normalized.electric_lines["source_layer"].unique().tolist() == [LINE_LAYER]
+    assert normalized.transformation_posts["source_layer"].unique().tolist() == [
+        POST_LAYER
+    ]
+    for frame in (normalized.electric_lines, normalized.transformation_posts):
+        assert frame["source_department_code"].unique().tolist() == ["31"]
+        assert frame["source_edition"].unique().tolist() == ["2026-06-15"]
+        assert frame["source_product_version"].unique().tolist() == ["3.5"]
+        assert frame["source_archive_sha256"].unique().tolist() == [ARCHIVE_SHA256]
+        assert frame["source_url"].unique().tolist() == [SOURCE_URL]
 ```
-
-**Purpose**
-
-Protects the `high level path uses discovered layer names and archive lineage` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle()`.
-- Computes `normalized` from `normalize_ign_electricity(source)`.
-
-**Action**
-
-- Calls `_source_bundle`, `frame['source_archive_sha256'].unique`, `frame['source_archive_sha256'].unique().tolist`, `frame['source_department_code'].unique`, `frame['source_department_code'].unique().tolist`, `frame['source_edition'].unique`, `frame['source_edition'].unique().tolist`, `frame['source_product_version'].unique`, `frame['source_product_version'].unique().tolist`, `frame['source_url'].unique`, `frame['source_url'].unique().tolist`, `normalize_ign_electricity`, `normalized.electric_lines['source_layer'].unique`, `normalized.electric_lines['source_layer'].unique().tolist`, `normalized.transformation_posts['source_layer'].unique`, `normalized.transformation_posts['source_layer'].unique().tolist`.
-
-**Expected result**
-
-- Direct assertions: `assert normalized.electric_lines['source_layer'].unique().tolist() == [LINE_LAYER]`; `assert normalized.transformation_posts['source_layer'].unique().tolist() == [POST_LAYER]`; `assert frame['source_department_code'].unique().tolist() == ['31']`; `assert frame['source_edition'].unique().tolist() == ['2026-06-15']`; `assert frame['source_product_version'].unique().tolist() == ['3.5']`; `assert frame['source_archive_sha256'].unique().tolist() == [ARCHIVE_SHA256]`; `assert frame['source_url'].unique().tolist() == [SOURCE_URL]`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `high level path uses discovered layer names and archive lineage` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_bundle`, `frame['source_archive_sha256'].unique`, `frame['source_archive_sha256'].unique().tolist`, `frame['source_department_code'].unique`, `frame['source_department_code'].unique().tolist`, `frame['source_edition'].unique`, `frame['source_edition'].unique().tolist`, `frame['source_product_version'].unique`, `frame['source_product_version'].unique().tolist`, `frame['source_url'].unique`, `frame['source_url'].unique().tolist`, `normalize_ign_electricity`, `normalized.electric_lines['source_layer'].unique`, `normalized.electric_lines['source_layer'].unique().tolist`, `normalized.transformation_posts['source_layer'].unique`, `normalized.transformation_posts['source_layer'].unique().tolist`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_high_level_rejects_coordinated_frame_and_summary_forgery`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _source_bundle()
+forged = source.electric_lines.copy()
+forged.loc[0, "voltage"] = "400 kV"
+forged_summary = _summary(forged, "electric_lines", LINE_LAYER)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="physical|fresh|source"):
+        normalize_ign_electricity(
+            replace(
+                source,
+                electric_lines=forged,
+                electric_lines_summary=forged_summary,
+            )
+        )
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_high_level_rejects_coordinated_frame_and_summary_forgery() -> None:
+    source = _source_bundle()
+    forged = source.electric_lines.copy()
+    forged.loc[0, "voltage"] = "400 kV"
+    forged_summary = _summary(forged, "electric_lines", LINE_LAYER)
+
+    with pytest.raises(IgnGridNormalizationError, match="physical|fresh|source"):
+        normalize_ign_electricity(
+            replace(
+                source,
+                electric_lines=forged,
+                electric_lines_summary=forged_summary,
+            )
+        )
 ```
-
-**Purpose**
-
-Protects the `high level rejects coordinated frame and summary forgery` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 5 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle()`.
-- Computes `forged` from `source.electric_lines.copy()`.
-- Computes `forged.loc[0, 'voltage']` from `'400 kV'`.
-- Computes `forged_summary` from `_summary(forged, 'electric_lines', LINE_LAYER)`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='physical|fresh|source')` and executes: Calls `normalize_ign_electricity(replace(source, electric_lines=forged, electric_lines_summary=forged_summary))` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_bundle`, `_summary`, `normalize_ign_electricity`, `replace`, `source.electric_lines.copy`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='physical|fresh|source'): normalize_ign_electricity(replace(source, electric_lines=forged, electric_lines_summary=forged_summary))`.
-
-**Regression protected**
-
-- Protects the exact `high level rejects coordinated frame and summary forgery` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_bundle`, `_summary`, `normalize_ign_electricity`, `pytest.raises`, `replace`, `source.electric_lines.copy`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_source_complete_grid_validation_does_not_mutate_supplied_frames`
 
-**Signature**
-
-```python
-def test_source_complete_grid_validation_does_not_mutate_supplied_frames() -> None:
-```
-
 **Purpose**
 
-Protects the `source complete grid validation does not mutate supplied frames` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle()`.
-- Computes `lines_before` from `deepcopy(source.electric_lines)`.
-- Computes `posts_before` from `deepcopy(source.transformation_posts)`.
+```python
+source = _source_bundle()
+lines_before = deepcopy(source.electric_lines)
+posts_before = deepcopy(source.transformation_posts)
+normalize_ign_electricity(source)
+assert_geodataframe_equal(source.electric_lines, lines_before)
+assert_geodataframe_equal(source.transformation_posts, posts_before)
+```
 
 **Action**
 
-- Calls `_source_bundle`, `deepcopy`, `normalize_ign_electricity`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: none.
+```python
+# Completion without an exception is the asserted outcome.
+```
 
 **Regression protected**
 
-- Protects the exact `source complete grid validation does not mutate supplied frames` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents a self-consistent but forged local object from bypassing the independent source-complete revalidation boundary.
 
 **Test boundary**
 
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
 
-**Calls**
+**Complete test implementation**
 
-- `_source_bundle`, `assert_geodataframe_equal`, `deepcopy`, `normalize_ign_electricity`.
+```python
+def test_source_complete_grid_validation_does_not_mutate_supplied_frames() -> None:
+    source = _source_bundle()
+    lines_before = deepcopy(source.electric_lines)
+    posts_before = deepcopy(source.transformation_posts)
 
-**Does NOT prove**
+    normalize_ign_electricity(source)
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    assert_geodataframe_equal(source.electric_lines, lines_before)
+    assert_geodataframe_equal(source.transformation_posts, posts_before)
+```
 
 ### `test_high_level_rejects_incompatible_archive_identity`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `field`, `message`, `value`.
+
+**Setup**
+
+```python
+source = _source_bundle_with_archive(**{field: value})
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match=message):
+        normalize_ign_electricity(source)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_high_level_rejects_incompatible_archive_identity(
@@ -2389,621 +3073,769 @@ def test_high_level_rejects_incompatible_archive_identity(
     value: str,
     message: str,
 ) -> None:
+    source = _source_bundle_with_archive(**{field: value})
+
+    with pytest.raises(IgnGridNormalizationError, match=message):
+        normalize_ign_electricity(source)
 ```
-
-**Purpose**
-
-Protects the `high level rejects incompatible archive identity` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `field`, `value`, `message`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle_with_archive(**{field: value})`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match=message)` and executes: Calls `normalize_ign_electricity(source)` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_bundle_with_archive`, `normalize_ign_electricity`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match=message): normalize_ign_electricity(source)`.
-
-**Regression protected**
-
-- Protects the exact `high level rejects incompatible archive identity` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_bundle_with_archive`, `normalize_ign_electricity`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_archive_identity_comparison_is_case_accent_and_punctuation_tolerant`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+provider = (
+        "INSTITUT NATIONAL DE L'INFORMATION GEOGRAPHIQUE ET FORESTIERE (ign)"
+    )
+product = "bd-topo"
+source = _source_bundle_with_archive(
+        provider=provider,
+        product=product,
+    )
+config_payload = SOURCE_CONFIG.model_dump(mode="json")
+config_payload.update({"provider": provider, "product": product})
+matching_config = IgnBdTopoSourceConfig.model_validate(config_payload)
+```
+
+**Action**
+
+```python
+normalized = _normalize_ign_electricity(source, matching_config)
+```
+
+**Expected result**
+
+```python
+assert len(normalized.electric_lines) == 1
+assert len(normalized.transformation_posts) == 1
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_archive_identity_comparison_is_case_accent_and_punctuation_tolerant() -> None:
+    provider = (
+        "INSTITUT NATIONAL DE L'INFORMATION GEOGRAPHIQUE ET FORESTIERE (ign)"
+    )
+    product = "bd-topo"
+    source = _source_bundle_with_archive(
+        provider=provider,
+        product=product,
+    )
+    config_payload = SOURCE_CONFIG.model_dump(mode="json")
+    config_payload.update({"provider": provider, "product": product})
+    matching_config = IgnBdTopoSourceConfig.model_validate(config_payload)
+
+    normalized = _normalize_ign_electricity(source, matching_config)
+
+    assert len(normalized.electric_lines) == 1
+    assert len(normalized.transformation_posts) == 1
 ```
-
-**Purpose**
-
-Protects the `archive identity comparison is case accent and punctuation tolerant` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 6 explicit setup/context statement(s).
-- Computes `provider` from `"INSTITUT NATIONAL DE L'INFORMATION GEOGRAPHIQUE ET FORESTIERE (ign)"`.
-- Computes `product` from `'bd-topo'`.
-- Computes `source` from `_source_bundle_with_archive(provider=provider, product=product)`.
-- Computes `config_payload` from `SOURCE_CONFIG.model_dump(mode='json')`.
-- Computes `matching_config` from `IgnBdTopoSourceConfig.model_validate(config_payload)`.
-- Computes `normalized` from `_normalize_ign_electricity(source, matching_config)`.
-
-**Action**
-
-- Calls `IgnBdTopoSourceConfig.model_validate`, `SOURCE_CONFIG.model_dump`, `_normalize_ign_electricity`, `_source_bundle_with_archive`, `config_payload.update`.
-
-**Expected result**
-
-- Direct assertions: `assert len(normalized.electric_lines) == 1`; `assert len(normalized.transformation_posts) == 1`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `archive identity comparison is case accent and punctuation tolerant` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `IgnBdTopoSourceConfig.model_validate`, `SOURCE_CONFIG.model_dump`, `_normalize_ign_electricity`, `_source_bundle_with_archive`, `config_payload.update`, `len`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_high_level_rejects_summary_row_count_mismatch`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _source_bundle()
+summary = replace(
+        source.electric_lines_summary,
+        feature_count=source.electric_lines_summary.feature_count + 1,
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="row count"):
+        normalize_ign_electricity(replace(source, electric_lines_summary=summary))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_high_level_rejects_summary_row_count_mismatch() -> None:
+    source = _source_bundle()
+    summary = replace(
+        source.electric_lines_summary,
+        feature_count=source.electric_lines_summary.feature_count + 1,
+    )
+
+    with pytest.raises(IgnGridNormalizationError, match="row count"):
+        normalize_ign_electricity(replace(source, electric_lines_summary=summary))
 ```
-
-**Purpose**
-
-Protects the `high level rejects summary row count mismatch` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle()`.
-- Computes `summary` from `replace(source.electric_lines_summary, feature_count=source.electric_lines_summary.feature_count + 1)`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='row count')` and executes: Calls `normalize_ign_electricity(replace(source, electric_lines_summary=summary))` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_bundle`, `normalize_ign_electricity`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='row count'): normalize_ign_electricity(replace(source, electric_lines_summary=summary))`.
-
-**Regression protected**
-
-- Protects the exact `high level rejects summary row count mismatch` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_bundle`, `normalize_ign_electricity`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_high_level_rejects_summary_layer_name_mismatch`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _source_bundle()
+summary = replace(source.electric_lines_summary, source_layer_name="WRONG")
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="summary layer"):
+        normalize_ign_electricity(replace(source, electric_lines_summary=summary))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_high_level_rejects_summary_layer_name_mismatch() -> None:
+    source = _source_bundle()
+    summary = replace(source.electric_lines_summary, source_layer_name="WRONG")
+
+    with pytest.raises(IgnGridNormalizationError, match="summary layer"):
+        normalize_ign_electricity(replace(source, electric_lines_summary=summary))
 ```
-
-**Purpose**
-
-Protects the `high level rejects summary layer name mismatch` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle()`.
-- Computes `summary` from `replace(source.electric_lines_summary, source_layer_name='WRONG')`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='summary layer')` and executes: Calls `normalize_ign_electricity(replace(source, electric_lines_summary=summary))` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_bundle`, `normalize_ign_electricity`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='summary layer'): normalize_ign_electricity(replace(source, electric_lines_summary=summary))`.
-
-**Regression protected**
-
-- Protects the exact `high level rejects summary layer name mismatch` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_bundle`, `normalize_ign_electricity`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_high_level_rejects_wrong_logical_name`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _source_bundle()
+summary = replace(
+        source.electric_lines_summary,
+        logical_name=cast(Any, "transformation_posts"),
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="logical name"):
+        normalize_ign_electricity(replace(source, electric_lines_summary=summary))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_high_level_rejects_wrong_logical_name() -> None:
+    source = _source_bundle()
+    summary = replace(
+        source.electric_lines_summary,
+        logical_name=cast(Any, "transformation_posts"),
+    )
+
+    with pytest.raises(IgnGridNormalizationError, match="logical name"):
+        normalize_ign_electricity(replace(source, electric_lines_summary=summary))
 ```
-
-**Purpose**
-
-Protects the `high level rejects wrong logical name` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle()`.
-- Computes `summary` from `replace(source.electric_lines_summary, logical_name=cast(Any, 'transformation_posts'))`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='logical name')` and executes: Calls `normalize_ign_electricity(replace(source, electric_lines_summary=summary))` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_bundle`, `cast`, `normalize_ign_electricity`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='logical name'): normalize_ign_electricity(replace(source, electric_lines_summary=summary))`.
-
-**Regression protected**
-
-- Protects the exact `high level rejects wrong logical name` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_bundle`, `cast`, `normalize_ign_electricity`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_high_level_rejects_summary_crs_mismatch`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _source_bundle()
+summary = replace(source.electric_lines_summary, crs="EPSG:4326")
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="CRS|2154"):
+        normalize_ign_electricity(replace(source, electric_lines_summary=summary))
+```
+
+**Regression protected**
+
+Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_high_level_rejects_summary_crs_mismatch() -> None:
+    source = _source_bundle()
+    summary = replace(source.electric_lines_summary, crs="EPSG:4326")
+
+    with pytest.raises(IgnGridNormalizationError, match="CRS|2154"):
+        normalize_ign_electricity(replace(source, electric_lines_summary=summary))
 ```
-
-**Purpose**
-
-Protects the `high level rejects summary crs mismatch` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle()`.
-- Computes `summary` from `replace(source.electric_lines_summary, crs='EPSG:4326')`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='CRS|2154')` and executes: Calls `normalize_ign_electricity(replace(source, electric_lines_summary=summary))` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_bundle`, `normalize_ign_electricity`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='CRS|2154'): normalize_ign_electricity(replace(source, electric_lines_summary=summary))`.
-
-**Regression protected**
-
-- Protects the exact `high level rejects summary crs mismatch` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_bundle`, `normalize_ign_electricity`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_high_level_rejects_forged_ordered_summary_schema`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `mutation`.
+
+**Setup**
+
+```python
+source = _source_bundle()
+summary = source.electric_lines_summary
+if mutation == "missing":
+        changed = replace(summary, columns=summary.columns[:-1])
+    elif mutation == "extra":
+        changed = replace(summary, columns=(*summary.columns, "invented"))
+    elif mutation == "reordered":
+        changed = replace(summary, columns=tuple(reversed(summary.columns)))
+    else:
+        dtypes = list(summary.dtypes)
+        dtypes[0] = (dtypes[0][0], "object")
+        changed = replace(summary, dtypes=tuple(dtypes))
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="schema|columns|dtype"):
+        normalize_ign_electricity(
+            replace(source, electric_lines_summary=changed)
+        )
+```
+
+**Regression protected**
+
+Prevents a schema-compatible-looking frame from replacing the canonical dtype contract with an object/category/other representation.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_high_level_rejects_forged_ordered_summary_schema(mutation: str) -> None:
+    source = _source_bundle()
+    summary = source.electric_lines_summary
+    if mutation == "missing":
+        changed = replace(summary, columns=summary.columns[:-1])
+    elif mutation == "extra":
+        changed = replace(summary, columns=(*summary.columns, "invented"))
+    elif mutation == "reordered":
+        changed = replace(summary, columns=tuple(reversed(summary.columns)))
+    else:
+        dtypes = list(summary.dtypes)
+        dtypes[0] = (dtypes[0][0], "object")
+        changed = replace(summary, dtypes=tuple(dtypes))
+
+    with pytest.raises(IgnGridNormalizationError, match="schema|columns|dtype"):
+        normalize_ign_electricity(
+            replace(source, electric_lines_summary=changed)
+        )
 ```
-
-**Purpose**
-
-Protects the `high level rejects forged ordered summary schema` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `mutation`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle()`.
-- Computes `summary` from `source.electric_lines_summary`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='schema|columns|dtype')` and executes: Calls `normalize_ign_electricity(replace(source, electric_lines_summary=changed))` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_bundle`, `normalize_ign_electricity`, `replace`, `reversed`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='schema|columns|dtype'): normalize_ign_electricity(replace(source, electric_lines_summary=changed))`.
-
-**Regression protected**
-
-- Protects the exact `high level rejects forged ordered summary schema` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_bundle`, `list`, `normalize_ign_electricity`, `pytest.mark.parametrize`, `pytest.raises`, `replace`, `reversed`, `tuple`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_high_level_rejects_duplicate_or_missing_layer_inventory`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _source_bundle()
+duplicate = replace(
+        source,
+        extraction=replace(
+            source.extraction,
+            all_layer_names=(LINE_LAYER, POST_LAYER, LINE_LAYER),
+        ),
+    )
+missing = replace(
+        source,
+        extraction=replace(
+            source.extraction,
+            all_layer_names=(POST_LAYER,),
+        ),
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="inventory|duplicate"):
+        normalize_ign_electricity(duplicate)
+with pytest.raises(IgnGridNormalizationError, match="inventory|selected"):
+        normalize_ign_electricity(missing)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_high_level_rejects_duplicate_or_missing_layer_inventory() -> None:
+    source = _source_bundle()
+    duplicate = replace(
+        source,
+        extraction=replace(
+            source.extraction,
+            all_layer_names=(LINE_LAYER, POST_LAYER, LINE_LAYER),
+        ),
+    )
+    with pytest.raises(IgnGridNormalizationError, match="inventory|duplicate"):
+        normalize_ign_electricity(duplicate)
+
+    missing = replace(
+        source,
+        extraction=replace(
+            source.extraction,
+            all_layer_names=(POST_LAYER,),
+        ),
+    )
+    with pytest.raises(IgnGridNormalizationError, match="inventory|selected"):
+        normalize_ign_electricity(missing)
 ```
-
-**Purpose**
-
-Protects the `high level rejects duplicate or missing layer inventory` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 5 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle()`.
-- Computes `duplicate` from `replace(source, extraction=replace(source.extraction, all_layer_names=(LINE_LAYER, POST_LAYER, LINE_LAYER)))`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='inventory|duplicate')` and executes: Calls `normalize_ign_electricity(duplicate)` for its validation or side effect.
-- Computes `missing` from `replace(source, extraction=replace(source.extraction, all_layer_names=(POST_LAYER,)))`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='inventory|selected')` and executes: Calls `normalize_ign_electricity(missing)` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_bundle`, `normalize_ign_electricity`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='inventory|duplicate'): normalize_ign_electricity(duplicate)`; `with pytest.raises(IgnGridNormalizationError, match='inventory|selected'): normalize_ign_electricity(missing)`.
-
-**Regression protected**
-
-- Protects the exact `high level rejects duplicate or missing layer inventory` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_bundle`, `normalize_ign_electricity`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_high_level_rejects_colliding_electricity_roles`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _source_bundle()
+extraction = replace(
+        source.extraction,
+        transformation_posts_layer=LINE_LAYER,
+    )
+post_summary = replace(
+        source.transformation_posts_summary,
+        source_layer_name=LINE_LAYER,
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="same layer|distinct|role"):
+        normalize_ign_electricity(
+            replace(
+                source,
+                extraction=extraction,
+                transformation_posts_summary=post_summary,
+            )
+        )
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_high_level_rejects_colliding_electricity_roles() -> None:
+    source = _source_bundle()
+    extraction = replace(
+        source.extraction,
+        transformation_posts_layer=LINE_LAYER,
+    )
+    post_summary = replace(
+        source.transformation_posts_summary,
+        source_layer_name=LINE_LAYER,
+    )
+
+    with pytest.raises(IgnGridNormalizationError, match="same layer|distinct|role"):
+        normalize_ign_electricity(
+            replace(
+                source,
+                extraction=extraction,
+                transformation_posts_summary=post_summary,
+            )
+        )
 ```
-
-**Purpose**
-
-Protects the `high level rejects colliding electricity roles` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 4 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle()`.
-- Computes `extraction` from `replace(source.extraction, transformation_posts_layer=LINE_LAYER)`.
-- Computes `post_summary` from `replace(source.transformation_posts_summary, source_layer_name=LINE_LAYER)`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='same layer|distinct|role')` and executes: Calls `normalize_ign_electricity(replace(source, extraction=extraction, transformation_posts_summary=post_summary))` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_bundle`, `normalize_ign_electricity`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='same layer|distinct|role'): normalize_ign_electricity(replace(source, extraction=extraction, transformation_posts_summary=post_summary))`.
-
-**Regression protected**
-
-- Protects the exact `high level rejects colliding electricity roles` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_bundle`, `normalize_ign_electricity`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_high_level_rejects_stale_geometry_counts_after_frame_mutation`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _source_bundle()
+mutated = source.electric_lines.copy()
+mutated.at[mutated.index[0], "geometry"] = None
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="geometry summary"):
+        normalize_ign_electricity(replace(source, electric_lines=mutated))
+```
+
+**Regression protected**
+
+Prevents geometry changes from passing a preservation or source-bound comparison merely because other fields were updated coherently.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_high_level_rejects_stale_geometry_counts_after_frame_mutation() -> None:
+    source = _source_bundle()
+    mutated = source.electric_lines.copy()
+    mutated.at[mutated.index[0], "geometry"] = None
+
+    with pytest.raises(IgnGridNormalizationError, match="geometry summary"):
+        normalize_ign_electricity(replace(source, electric_lines=mutated))
 ```
-
-**Purpose**
-
-Protects the `high level rejects stale geometry counts after frame mutation` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 4 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle()`.
-- Computes `mutated` from `source.electric_lines.copy()`.
-- Computes `mutated.at[mutated.index[0], 'geometry']` from `None`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='geometry summary')` and executes: Calls `normalize_ign_electricity(replace(source, electric_lines=mutated))` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_bundle`, `normalize_ign_electricity`, `replace`, `source.electric_lines.copy`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='geometry summary'): normalize_ign_electricity(replace(source, electric_lines=mutated))`.
-
-**Regression protected**
-
-- Protects the exact `high level rejects stale geometry counts after frame mutation` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_bundle`, `normalize_ign_electricity`, `pytest.raises`, `replace`, `source.electric_lines.copy`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_high_level_rejects_stale_geometry_types_after_frame_mutation`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _source_bundle()
+mutated = source.electric_lines.copy()
+mutated.at[mutated.index[0], "geometry"] = MultiLineString(
+        [[(0, 0), (10, 10)], [(20, 20), (30, 30)]]
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(IgnGridNormalizationError, match="geometry summary"):
+        normalize_ign_electricity(replace(source, electric_lines=mutated))
+```
+
+**Regression protected**
+
+Prevents geometry changes from passing a preservation or source-bound comparison merely because other fields were updated coherently.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_high_level_rejects_stale_geometry_types_after_frame_mutation() -> None:
+    source = _source_bundle()
+    mutated = source.electric_lines.copy()
+    mutated.at[mutated.index[0], "geometry"] = MultiLineString(
+        [[(0, 0), (10, 10)], [(20, 20), (30, 30)]]
+    )
+
+    with pytest.raises(IgnGridNormalizationError, match="geometry summary"):
+        normalize_ign_electricity(replace(source, electric_lines=mutated))
 ```
-
-**Purpose**
-
-Protects the `high level rejects stale geometry types after frame mutation` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 4 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle()`.
-- Computes `mutated` from `source.electric_lines.copy()`.
-- Computes `mutated.at[mutated.index[0], 'geometry']` from `MultiLineString([[(0, 0), (10, 10)], [(20, 20), (30, 30)]])`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='geometry summary')` and executes: Calls `normalize_ign_electricity(replace(source, electric_lines=mutated))` for its validation or side effect.
-
-**Action**
-
-- Calls `MultiLineString`, `_source_bundle`, `normalize_ign_electricity`, `replace`, `source.electric_lines.copy`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='geometry summary'): normalize_ign_electricity(replace(source, electric_lines=mutated))`.
-
-**Regression protected**
-
-- Protects the exact `high level rejects stale geometry types after frame mutation` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `MultiLineString`, `_source_bundle`, `normalize_ign_electricity`, `pytest.raises`, `replace`, `source.electric_lines.copy`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_high_level_rejects_any_spatial_role_mismatch`
 
-**Signature**
-
-```python
-def test_high_level_rejects_any_spatial_role_mismatch(component: str) -> None:
-```
-
 **Purpose**
 
-Protects the `high level rejects any spatial role mismatch` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `component`.
 
 **Setup**
 
-- Uses parameters/fixtures: `component`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source` from `_source_bundle()`.
-- Computes `wrong_role` from `cast(Any, 'EXACT_RTE_GEOMETRY')`.
-- Enters managed context(s) `pytest.raises(IgnGridNormalizationError, match='PROXY_GEOMETRY')` and executes: Calls `normalize_ign_electricity(inconsistent)` for its validation or side effect.
+```python
+source = _source_bundle()
+wrong_role = cast(Any, "EXACT_RTE_GEOMETRY")
+if component == "source":
+        inconsistent = replace(source, spatial_role=wrong_role)
+    elif component == "extraction":
+        inconsistent = replace(
+            source, extraction=replace(source.extraction, spatial_role=wrong_role)
+        )
+    elif component == "archive":
+        extraction = replace(
+            source.extraction,
+            archive=replace(source.extraction.archive, spatial_role=wrong_role),
+        )
+        inconsistent = replace(source, extraction=extraction)
+    elif component == "line_summary":
+        inconsistent = replace(
+            source,
+            electric_lines_summary=replace(
+                source.electric_lines_summary, spatial_role=wrong_role
+            ),
+        )
+    else:
+        inconsistent = replace(
+            source,
+            transformation_posts_summary=replace(
+                source.transformation_posts_summary, spatial_role=wrong_role
+            ),
+        )
+```
 
 **Action**
 
-- Calls `_source_bundle`, `cast`, `normalize_ign_electricity`, `replace`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(IgnGridNormalizationError, match='PROXY_GEOMETRY'): normalize_ign_electricity(inconsistent)`.
+```python
+with pytest.raises(IgnGridNormalizationError, match="PROXY_GEOMETRY"):
+        normalize_ign_electricity(inconsistent)
+```
 
 **Regression protected**
 
-- Protects the exact `high level rejects any spatial role mismatch` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
 
-**Calls**
+**Complete test implementation**
 
-- `_source_bundle`, `cast`, `normalize_ign_electricity`, `pytest.mark.parametrize`, `pytest.raises`, `replace`.
+```python
+def test_high_level_rejects_any_spatial_role_mismatch(component: str) -> None:
+    source = _source_bundle()
+    wrong_role = cast(Any, "EXACT_RTE_GEOMETRY")
+    if component == "source":
+        inconsistent = replace(source, spatial_role=wrong_role)
+    elif component == "extraction":
+        inconsistent = replace(
+            source, extraction=replace(source.extraction, spatial_role=wrong_role)
+        )
+    elif component == "archive":
+        extraction = replace(
+            source.extraction,
+            archive=replace(source.extraction.archive, spatial_role=wrong_role),
+        )
+        inconsistent = replace(source, extraction=extraction)
+    elif component == "line_summary":
+        inconsistent = replace(
+            source,
+            electric_lines_summary=replace(
+                source.electric_lines_summary, spatial_role=wrong_role
+            ),
+        )
+    else:
+        inconsistent = replace(
+            source,
+            transformation_posts_summary=replace(
+                source.transformation_posts_summary, spatial_role=wrong_role
+            ),
+        )
 
-**Does NOT prove**
+    with pytest.raises(IgnGridNormalizationError, match="PROXY_GEOMETRY"):
+        normalize_ign_electricity(inconsistent)
+```
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `asset_status_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `cleabs` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `columns` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `date_creation` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `date_de_confirmation` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `date_modification` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `electric_lines` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `etat_de_l_objet` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry` | Logical dtype: GeoPandas active geometry dtype. Nullability: nullable only where the source-stage geometry-status contract explicitly preserves nulls. | source or preserved spatial geometry; never itself a suitability or legal conclusion. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `gestionnaire` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `grid_feature_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `identifiants_sources` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `importance` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `manager_name` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `methode_d_acquisition_planimetrique` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `name` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `planimetric_precision_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
-| `precision_planimetrique` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `siren_gestionnaire` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_archive_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `source_department_code` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_download_timestamp` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_edition` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_feature_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `source_identifiers_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `source_layer` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_product` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_product_version` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_provider` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_url` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `sources` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `spatial_role` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `statut_du_toponyme` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `toponyme` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `transformation_posts` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `voltage` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `voltage_kv` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `voltage_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `voltage_upper_bound_kv` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `test` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the test flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -3011,8 +3843,8 @@ This file contributes to LandScout's `test` evidence flow as described by its pu
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

@@ -4,9 +4,9 @@
 
 - Repository path: `src/landscout/stages/enrich_grid_proximity.py`
 - File type: Python source
-- Primary responsibility: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
-- Layer / domain: `stage` / `grid`
-- Public or internal role: Module symbols without a package re-export are internal unless imported directly by repository code.
+- Layer: processing/policy stage
+- Domain: grid/source
+- Responsibility: Computes parcel-to-grid proxy distances and exact-voltage views from verified IGN electricity source data.
 - Source SHA256: `b6b2f3c296b3fc933a542a33157b42f4260a7356a0da8e59710c2d482cf2d8c3`
 
 ## 1. Purpose
@@ -15,50 +15,278 @@ Computes parcel-to-grid proxy distances and exact-voltage views from verified IG
 
 ## 2. Position in LandScout architecture
 
-This file is a `stage` artifact in the `grid` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **processing/policy stage** layer and the **grid/source** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from __future__ import annotations` — required by the implementation paths and symbols documented below.
-- `from dataclasses import dataclass` — required by the implementation paths and symbols documented below.
-- `from math import isfinite` — required by the implementation paths and symbols documented below.
-- `from numbers import Integral, Real` — required by the implementation paths and symbols documented below.
+- `from __future__ import annotations`
+- `from dataclasses import dataclass`
+- `from math import isfinite`
+- `from numbers import Integral, Real`
 
-### Third-party
+### Third-party packages
 
-- `import geopandas as gpd` — required by the implementation paths and symbols documented below.
-- `import numpy as np` — required by the implementation paths and symbols documented below.
-- `import pandas as pd` — required by the implementation paths and symbols documented below.
-- `from pandas.api.types import is_scalar` — required by the implementation paths and symbols documented below.
-- `from pyproj import CRS` — required by the implementation paths and symbols documented below.
-- `from shapely import STRtree, force_2d` — required by the implementation paths and symbols documented below.
+- `import geopandas as gpd`
+- `import numpy as np`
+- `import pandas as pd`
+- `from pandas.api.types import is_scalar`
+- `from pyproj import CRS`
+- `from shapely import STRtree, force_2d`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout.sources.ign_bdtopo_fr import ( IgnBdTopoElectricityData, IgnBdTopoSourceConfig, )` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.normalize_grid_ign import ( NormalizedIgnElectricityData, normalize_ign_electricity, )` — required by the implementation paths and symbols documented below.
+- `from landscout.sources.ign_bdtopo_fr import (
+    IgnBdTopoElectricityData,
+    IgnBdTopoSourceConfig,
+)`
+- `from landscout.stages.normalize_grid_ign import (
+    NormalizedIgnElectricityData,
+    normalize_ign_electricity,
+)`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `CALCULATION_CRS` | `"EPSG:2154"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `SPATIAL_ROLE` | `"PROXY_GEOMETRY"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `PARCEL_REQUIRED_COLUMNS` | `frozenset({"parcel_id", "geometry"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `LINE_REQUIRED_COLUMNS` | `frozenset( { "grid_feature_id", "grid_feature_type", "source_feature_id", "source_department_code", "source_edition", "source_archive_sha256", "source_layer", "spatial_role", "geometry_status", "voltage_raw", "voltage_status", "voltage_kv", "voltage_upper_bound_kv", "manager_name", "asset_status_raw", "geometry", } )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `POST_REQUIRED_COLUMNS` | `frozenset( { "grid_feature_id", "grid_feature_type", "source_feature_id", "source_department_code", "source_edition", "source_archive_sha256", "source_layer", "spatial_role", "geometry_status", "name", "importance_raw", "asset_status_raw", "geometry", } )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `GRID_GEOMETRY_STATUSES` | `frozenset({"VALID", "NULL", "EMPTY", "INVALID"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `LINE_GEOMETRY_TYPES` | `frozenset({"LineString", "MultiLineString"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `POST_GEOMETRY_TYPES` | `frozenset({"Polygon", "MultiPolygon"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `PARCEL_GEOMETRY_TYPES` | `frozenset({"Polygon", "MultiPolygon"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `VOLTAGE_PROXIMITY_COLUMNS` | `( "parcel_id", "voltage_kv", "nearest_line_proxy_distance_m", "nearest_line_grid_feature_id", "nearest_line_source_feature_id", "tie_count", "manager_name", "asset_status_raw", "source_department_code", "source_edition", "source_archive_sha256", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_LINE_MATCH_COLUMNS` | `( "grid_feature_id", "source_feature_id", "voltage_raw", "voltage_status", "voltage_kv", "voltage_upper_bound_kv", "manager_name", "asset_status_raw", "source_department_code", "source_edition", "source_archive_sha256", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_POST_MATCH_COLUMNS` | `( "grid_feature_id", "source_feature_id", "name", "importance_raw", "asset_status_raw", "source_department_code", "source_edition", "source_archive_sha256", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_LINE_OUTPUT_MAPPING` | `{ "distance_m": "nearest_line_proxy_distance_m", "grid_feature_id": "nearest_line_grid_feature_id", "source_feature_id": "nearest_line_source_feature_id", "tie_count": "nearest_line_tie_count", "voltage_raw": "nearest_line_voltage_raw", "voltage_status": "nearest_line_voltage_status", "voltage_kv": "nearest_line_voltage_kv", "voltage_upper_bound_kv": "nearest_line_voltage_upper_bound_kv", "manager_name": "nearest_line_manager_name", "asset_status_raw": "nearest_line_asset_status_raw", "source_department_code": "nearest_line_source_department_code", "source_edition": "nearest_line_source_edition", "source_archive_sha256": "nearest_line_source_archive_sha256", }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_EXACT_LINE_OUTPUT_MAPPING` | `{ "distance_m": "nearest_exact_line_proxy_distance_m", "grid_feature_id": "nearest_exact_line_grid_feature_id", "source_feature_id": "nearest_exact_line_source_feature_id", "tie_count": "nearest_exact_line_tie_count", "voltage_kv": "nearest_exact_line_voltage_kv", "manager_name": "nearest_exact_line_manager_name", "asset_status_raw": "nearest_exact_line_asset_status_raw", "source_department_code": "nearest_exact_line_source_department_code", "source_edition": "nearest_exact_line_source_edition", "source_archive_sha256": "nearest_exact_line_source_archive_sha256", }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_POST_OUTPUT_MAPPING` | `{ "distance_m": "nearest_post_proxy_distance_m", "grid_feature_id": "nearest_post_grid_feature_id", "source_feature_id": "nearest_post_source_feature_id", "tie_count": "nearest_post_tie_count", "name": "nearest_post_name", "importance_raw": "nearest_post_importance_raw", "asset_status_raw": "nearest_post_asset_status_raw", "source_department_code": "nearest_post_source_department_code", "source_edition": "nearest_post_source_edition", "source_archive_sha256": "nearest_post_source_archive_sha256", }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `CALCULATION_CRS`
+
+```python
+CALCULATION_CRS = "EPSG:2154"
+```
+
+Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` (value argument/reference), `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_normalize_layer` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_metric_parcels` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_relation_base` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_project_geometries` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_metric_parcels` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` (value argument/reference).
+
+#### `SPATIAL_ROLE`
+
+```python
+SPATIAL_ROLE = "PROXY_GEOMETRY"
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_grid_proximity.py::_validate_grid` (value argument/reference).
+
+#### `PARCEL_REQUIRED_COLUMNS`
+
+```python
+PARCEL_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry"})
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+
+#### `LINE_REQUIRED_COLUMNS`
+
+```python
+LINE_REQUIRED_COLUMNS = frozenset(
+    {
+        "grid_feature_id",
+        "grid_feature_type",
+        "source_feature_id",
+        "source_department_code",
+        "source_edition",
+        "source_archive_sha256",
+        "source_layer",
+        "spatial_role",
+        "geometry_status",
+        "voltage_raw",
+        "voltage_status",
+        "voltage_kv",
+        "voltage_upper_bound_kv",
+        "manager_name",
+        "asset_status_raw",
+        "geometry",
+    }
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference).
+
+#### `POST_REQUIRED_COLUMNS`
+
+```python
+POST_REQUIRED_COLUMNS = frozenset(
+    {
+        "grid_feature_id",
+        "grid_feature_type",
+        "source_feature_id",
+        "source_department_code",
+        "source_edition",
+        "source_archive_sha256",
+        "source_layer",
+        "spatial_role",
+        "geometry_status",
+        "name",
+        "importance_raw",
+        "asset_status_raw",
+        "geometry",
+    }
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference).
+
+#### `GRID_GEOMETRY_STATUSES`
+
+```python
+GRID_GEOMETRY_STATUSES = frozenset({"VALID", "NULL", "EMPTY", "INVALID"})
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+
+#### `LINE_GEOMETRY_TYPES`
+
+```python
+LINE_GEOMETRY_TYPES = frozenset({"LineString", "MultiLineString"})
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference), `src/landscout/stages/normalize_grid_ign.py::_normalize_ign_electric_lines` (value argument/reference).
+
+#### `POST_GEOMETRY_TYPES`
+
+```python
+POST_GEOMETRY_TYPES = frozenset({"Polygon", "MultiPolygon"})
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference).
+
+#### `PARCEL_GEOMETRY_TYPES`
+
+```python
+PARCEL_GEOMETRY_TYPES = frozenset({"Polygon", "MultiPolygon"})
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+
+#### `VOLTAGE_PROXIMITY_COLUMNS`
+
+```python
+VOLTAGE_PROXIMITY_COLUMNS = (
+    "parcel_id",
+    "voltage_kv",
+    "nearest_line_proxy_distance_m",
+    "nearest_line_grid_feature_id",
+    "nearest_line_source_feature_id",
+    "tie_count",
+    "manager_name",
+    "asset_status_raw",
+    "source_department_code",
+    "source_edition",
+    "source_archive_sha256",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_grid_proximity.py::_validate_voltage_table` (value argument/reference), `src/landscout/stages/enrich_grid_proximity.py::_voltage_level_table` (value argument/reference), `tests/unit/test_enrich_grid_proximity.py::test_nearest_exact_and_voltage_table_exclude_nonexact_lines` (value argument/reference), `tests/unit/test_enrich_grid_proximity.py::test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table` (value argument/reference), `tests/unit/test_enrich_grid_proximity.py::<module>` (import/re-export).
+
+#### `_LINE_MATCH_COLUMNS`
+
+```python
+_LINE_MATCH_COLUMNS = (
+    "grid_feature_id",
+    "source_feature_id",
+    "voltage_raw",
+    "voltage_status",
+    "voltage_kv",
+    "voltage_upper_bound_kv",
+    "manager_name",
+    "asset_status_raw",
+    "source_department_code",
+    "source_edition",
+    "source_archive_sha256",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference), `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference).
+
+#### `_POST_MATCH_COLUMNS`
+
+```python
+_POST_MATCH_COLUMNS = (
+    "grid_feature_id",
+    "source_feature_id",
+    "name",
+    "importance_raw",
+    "asset_status_raw",
+    "source_department_code",
+    "source_edition",
+    "source_archive_sha256",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference).
+
+#### `_LINE_OUTPUT_MAPPING`
+
+```python
+_LINE_OUTPUT_MAPPING = {
+    "distance_m": "nearest_line_proxy_distance_m",
+    "grid_feature_id": "nearest_line_grid_feature_id",
+    "source_feature_id": "nearest_line_source_feature_id",
+    "tie_count": "nearest_line_tie_count",
+    "voltage_raw": "nearest_line_voltage_raw",
+    "voltage_status": "nearest_line_voltage_status",
+    "voltage_kv": "nearest_line_voltage_kv",
+    "voltage_upper_bound_kv": "nearest_line_voltage_upper_bound_kv",
+    "manager_name": "nearest_line_manager_name",
+    "asset_status_raw": "nearest_line_asset_status_raw",
+    "source_department_code": "nearest_line_source_department_code",
+    "source_edition": "nearest_line_source_edition",
+    "source_archive_sha256": "nearest_line_source_archive_sha256",
+}
+```
+
+Explicit mapping between source/input and target/output fields; keys and values are documented separately. Consumers include `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference).
+
+#### `_EXACT_LINE_OUTPUT_MAPPING`
+
+```python
+_EXACT_LINE_OUTPUT_MAPPING = {
+    "distance_m": "nearest_exact_line_proxy_distance_m",
+    "grid_feature_id": "nearest_exact_line_grid_feature_id",
+    "source_feature_id": "nearest_exact_line_source_feature_id",
+    "tie_count": "nearest_exact_line_tie_count",
+    "voltage_kv": "nearest_exact_line_voltage_kv",
+    "manager_name": "nearest_exact_line_manager_name",
+    "asset_status_raw": "nearest_exact_line_asset_status_raw",
+    "source_department_code": "nearest_exact_line_source_department_code",
+    "source_edition": "nearest_exact_line_source_edition",
+    "source_archive_sha256": "nearest_exact_line_source_archive_sha256",
+}
+```
+
+Explicit mapping between source/input and target/output fields; keys and values are documented separately. Consumers include `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference).
+
+#### `_POST_OUTPUT_MAPPING`
+
+```python
+_POST_OUTPUT_MAPPING = {
+    "distance_m": "nearest_post_proxy_distance_m",
+    "grid_feature_id": "nearest_post_grid_feature_id",
+    "source_feature_id": "nearest_post_source_feature_id",
+    "tie_count": "nearest_post_tie_count",
+    "name": "nearest_post_name",
+    "importance_raw": "nearest_post_importance_raw",
+    "asset_status_raw": "nearest_post_asset_status_raw",
+    "source_department_code": "nearest_post_source_department_code",
+    "source_edition": "nearest_post_source_edition",
+    "source_archive_sha256": "nearest_post_source_archive_sha256",
+}
+```
+
+Explicit mapping between source/input and target/output fields; keys and values are documented separately. Consumers include `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference).
+
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
@@ -66,137 +294,375 @@ This file is a `stage` artifact in the `grid` domain. Its actual upstream inputs
 
 **Purpose:** Raised when grid-proximity inputs or results are unsafe.
 
+**Kind:** controlled exception.
+
 **Inheritance:** `ValueError`.
 
-**Model form and mutability:** class inheriting from `ValueError`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields:** none declared directly on this class.
 
-- No annotated instance fields are declared directly on this class.
+**Interface consumers**
 
-**Validators and methods:**
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_grid_proximity import (
+    DistanceProfile,
+    GridProximityError,
+    GridProximityProfile,
+    GridProximityResult,
+    VoltageLevelCoverage,
+    VoltageLevelDistanceProfile,
+    enrich_parcel_grid_proximity,
+    profile_grid_proximity,
+)`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validated_crs` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_require_lambert93` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_active_geometry` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_id_values` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_parcels` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_grid` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_nearest_feature_rows` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_distance_values` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_tie_counts` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_match_integrity` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_voltage_coverage` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_voltage_table` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_exact_representation_consistency` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_output_integrity` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_distance_profile` via `GridProximityError`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_wrong_source_boundary_types` via `pytest.raises(GridProximityError)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_caller_crafted_normalized_grid_frame_is_not_a_public_source` via `pytest.raises(GridProximityError, match='IgnBdTopoElectricityData|electricity source')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_reproduces_configured_electricity_roles` via `pytest.raises(GridProximityError)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_public_proximity_rejects_archive_lineage_differing_from_config` via `pytest.raises(GridProximityError)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_source_normalization_failure_stops_grid_computation` via `pytest.raises(GridProximityError)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_invalid_parcel_id_hygiene_is_rejected` via `pytest.raises(GridProximityError, match='parcel_id')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_semantically_wrong_parcel_geometry_is_rejected` via `pytest.raises(GridProximityError, match='Polygon|MultiPolygon')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_missing_crs_is_rejected` via `pytest.raises(GridProximityError, match='CRS')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_crs_is_rejected` via `pytest.raises(GridProximityError, match='2154')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_feature_type_is_rejected` via `pytest.raises(GridProximityError, match='grid_feature_type')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_grid_feature_id_is_rejected` via `pytest.raises(GridProximityError, match='unique')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_wrong_spatial_role_is_rejected` via `pytest.raises(GridProximityError, match='PROXY_GEOMETRY')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_unsupported_valid_grid_geometry_type_is_rejected` via `pytest.raises(GridProximityError, match='geometry types')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_missing_parcel_column_is_rejected` via `pytest.raises(GridProximityError, match=column)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_null_parcel_id_is_rejected` via `pytest.raises(GridProximityError, match='parcel_id')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_parcel_id_is_rejected` via `pytest.raises(GridProximityError, match='unique')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_bad_parcel_geometry_is_rejected` via `pytest.raises(GridProximityError, match=message)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_voltage_cartesian_row` via `pytest.raises(GridProximityError)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_unknown_voltage_parcel_with_same_total_count` via `pytest.raises(GridProximityError)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_duplicate_parcel_voltage_pair` via `pytest.raises(GridProximityError, match='unique')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_voltage_rows_out_of_parcel_order` via `pytest.raises(GridProximityError, match='exact parcel set')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_distance` via `pytest.raises(GridProximityError, match='exact-line distance')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_identity` via `pytest.raises(GridProximityError, match='inconsistent')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_metadata` via `pytest.raises(GridProximityError, match='inconsistent')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_tie_count` via `pytest.raises(GridProximityError, match='tie count')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_required_match_tie_count` via `pytest.raises(GridProximityError, match='tie_count|match')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_tie_count` via `pytest.raises(GridProximityError, match='tie_count|match')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_main_match_feature_id` via `pytest.raises(GridProximityError, match='require')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_required_match_distance` via `pytest.raises(GridProximityError)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_exact_match_voltage` via `pytest.raises(GridProximityError, match='voltage|match')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_result_parcel_id` via `pytest.raises(GridProximityError, match='parcel_id')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_required_proximity_column` via `pytest.raises(GridProximityError, match='Missing proximity')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nondeterministic_or_duplicate_coverage` via `pytest.raises(GridProximityError, match='coverage')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_voltage_coverage_level` via `pytest.raises(GridProximityError, match='coverage')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_voltage_coverage_feature_count` via `pytest.raises(GridProximityError, match='line_feature_count')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_long_table_voltage` via `pytest.raises(GridProximityError, match='Voltage proximity')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_long_table_match_lineage` via `pytest.raises(GridProximityError, match='require')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_distance` via `pytest.raises(GridProximityError)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage` via `pytest.raises(GridProximityError, match='unmatched|entirely')`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::test_no_valid_required_grid_feature_is_rejected` via `pytest.raises(GridProximityError, match='No VALID')`.
+- import/re-export: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.stages import (
+    GridProximityError,
+    GridProximityResult,
+    VoltageLevelCoverage,
+    profile_grid_proximity,
+)`.
 
-- None.
+**Exact class source**
+
+```python
+class GridProximityError(ValueError):
+    """Raised when grid-proximity inputs or results are unsafe."""
+```
 
 ### `VoltageLevelCoverage`
 
 **Purpose:** Source-line coverage for one dynamically observed exact voltage.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `voltage_kv` | `float` | `required` | `float` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `line_feature_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `voltage_kv` | `voltage_kv: float` | Stores `VoltageLevelCoverage`'s `voltage kv` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `line_feature_count` | `line_feature_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 
-- None.
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_grid_proximity import (
+    DistanceProfile,
+    GridProximityError,
+    GridProximityProfile,
+    GridProximityResult,
+    VoltageLevelCoverage,
+    VoltageLevelDistanceProfile,
+    enrich_parcel_grid_proximity,
+    profile_grid_proximity,
+)`.
+- import/re-export: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.stages.enrich_grid_proximity import (
+    GridProximityResult,
+    VoltageLevelCoverage,
+    enrich_parcel_grid_proximity,
+    profile_grid_proximity,
+)`.
+- callback/function object: `src/landscout/stages/enrich_grid_proximity.py::_validate_voltage_coverage` via `isinstance(item, VoltageLevelCoverage)`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_voltage_level_table` via `VoltageLevelCoverage`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_voltage_coverage_level` via `VoltageLevelCoverage`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_voltage_coverage_feature_count` via `VoltageLevelCoverage`.
+- import/re-export: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.stages import (
+    GridProximityError,
+    GridProximityResult,
+    VoltageLevelCoverage,
+    profile_grid_proximity,
+)`.
+
+**Exact class source**
+
+```python
+class VoltageLevelCoverage:
+    """Source-line coverage for one dynamically observed exact voltage."""
+
+    voltage_kv: float
+    line_feature_count: int
+```
 
 ### `GridProximityResult`
 
 **Purpose:** Parcel enrichment and dynamic exact-voltage proximity output.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `parcels` | `gpd.GeoDataFrame` | `required` | Tabular/spatial evidence carried with the schema, dtype, index, geometry, and preservation contract documented in this module. |
-| `voltage_level_proximity` | `pd.DataFrame` | `required` | `pd.DataFrame` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `voltage_level_coverage` | `tuple[VoltageLevelCoverage, ...]` | `required` | `tuple[VoltageLevelCoverage, ...]` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `parcels` | `parcels: gpd.GeoDataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
+| `voltage_level_proximity` | `voltage_level_proximity: pd.DataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
+| `voltage_level_coverage` | `voltage_level_coverage: tuple[VoltageLevelCoverage, ...]` | Structured `voltage level coverage` collection owned by `GridProximityResult`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 
-- None.
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_grid_proximity import (
+    DistanceProfile,
+    GridProximityError,
+    GridProximityProfile,
+    GridProximityResult,
+    VoltageLevelCoverage,
+    VoltageLevelDistanceProfile,
+    enrich_parcel_grid_proximity,
+    profile_grid_proximity,
+)`.
+- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `GridProximityResult`.
+- import/re-export: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.stages.enrich_grid_proximity import (
+    GridProximityResult,
+    VoltageLevelCoverage,
+    enrich_parcel_grid_proximity,
+    profile_grid_proximity,
+)`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `GridProximityResult`.
+- import/re-export: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.stages import (
+    GridProximityError,
+    GridProximityResult,
+    VoltageLevelCoverage,
+    profile_grid_proximity,
+)`.
+
+**Exact class source**
+
+```python
+class GridProximityResult:
+    """Parcel enrichment and dynamic exact-voltage proximity output."""
+
+    parcels: gpd.GeoDataFrame
+    voltage_level_proximity: pd.DataFrame
+    voltage_level_coverage: tuple[VoltageLevelCoverage, ...]
+```
 
 ### `DistanceProfile`
 
 **Purpose:** Threshold-free distribution summary for one distance field.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `count` | `int` | `required` | `int` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `missing_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `minimum` | `float | None` | `required` | `float | None` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `p01` | `float | None` | `required` | `float | None` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `p05` | `float | None` | `required` | `float | None` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `p10` | `float | None` | `required` | `float | None` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `p25` | `float | None` | `required` | `float | None` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `p50` | `float | None` | `required` | `float | None` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `p75` | `float | None` | `required` | `float | None` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `p90` | `float | None` | `required` | `float | None` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `p95` | `float | None` | `required` | `float | None` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `p99` | `float | None` | `required` | `float | None` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `maximum` | `float | None` | `required` | `float | None` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `zero_distance_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `tie_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `count` | `count: int` | Stores `DistanceProfile`'s `count` value under exact annotation `int`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `missing_count` | `missing_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `minimum` | `minimum: float \| None` | Stores `DistanceProfile`'s `minimum` value under exact annotation `float | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `p01` | `p01: float \| None` | Stores `DistanceProfile`'s `p01` value under exact annotation `float | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `p05` | `p05: float \| None` | Stores `DistanceProfile`'s `p05` value under exact annotation `float | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `p10` | `p10: float \| None` | Stores `DistanceProfile`'s `p10` value under exact annotation `float | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `p25` | `p25: float \| None` | Stores `DistanceProfile`'s `p25` value under exact annotation `float | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `p50` | `p50: float \| None` | Stores `DistanceProfile`'s `p50` value under exact annotation `float | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `p75` | `p75: float \| None` | Stores `DistanceProfile`'s `p75` value under exact annotation `float | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `p90` | `p90: float \| None` | Stores `DistanceProfile`'s `p90` value under exact annotation `float | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `p95` | `p95: float \| None` | Stores `DistanceProfile`'s `p95` value under exact annotation `float | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `p99` | `p99: float \| None` | Stores `DistanceProfile`'s `p99` value under exact annotation `float | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `maximum` | `maximum: float \| None` | Stores `DistanceProfile`'s `maximum` value under exact annotation `float | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `zero_distance_count` | `zero_distance_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `tie_count` | `tie_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
 
-- None.
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_grid_proximity import (
+    DistanceProfile,
+    GridProximityError,
+    GridProximityProfile,
+    GridProximityResult,
+    VoltageLevelCoverage,
+    VoltageLevelDistanceProfile,
+    enrich_parcel_grid_proximity,
+    profile_grid_proximity,
+)`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_distance_profile` via `DistanceProfile`.
+
+**Exact class source**
+
+```python
+class DistanceProfile:
+    """Threshold-free distribution summary for one distance field."""
+
+    count: int
+    missing_count: int
+    minimum: float | None
+    p01: float | None
+    p05: float | None
+    p10: float | None
+    p25: float | None
+    p50: float | None
+    p75: float | None
+    p90: float | None
+    p95: float | None
+    p99: float | None
+    maximum: float | None
+    zero_distance_count: int
+    tie_count: int
+```
 
 ### `VoltageLevelDistanceProfile`
 
 **Purpose:** Distance distribution and source coverage for one exact voltage.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `voltage_kv` | `float` | `required` | `float` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `line_feature_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `parcel_proximity_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `distance` | `DistanceProfile` | `required` | `DistanceProfile` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `voltage_kv` | `voltage_kv: float` | Stores `VoltageLevelDistanceProfile`'s `voltage kv` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `line_feature_count` | `line_feature_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `parcel_proximity_count` | `parcel_proximity_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `distance` | `distance: DistanceProfile` | Stores `VoltageLevelDistanceProfile`'s `distance` value under exact annotation `DistanceProfile`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-- None.
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_grid_proximity import (
+    DistanceProfile,
+    GridProximityError,
+    GridProximityProfile,
+    GridProximityResult,
+    VoltageLevelCoverage,
+    VoltageLevelDistanceProfile,
+    enrich_parcel_grid_proximity,
+    profile_grid_proximity,
+)`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::profile_grid_proximity` via `VoltageLevelDistanceProfile`.
+
+**Exact class source**
+
+```python
+class VoltageLevelDistanceProfile:
+    """Distance distribution and source coverage for one exact voltage."""
+
+    voltage_kv: float
+    line_feature_count: int
+    parcel_proximity_count: int
+    distance: DistanceProfile
+```
 
 ### `GridProximityProfile`
 
 **Purpose:** Threshold-free parcel and voltage-level proximity profiles.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `parcel_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `nearest_line` | `DistanceProfile` | `required` | `DistanceProfile` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `nearest_exact_line` | `DistanceProfile` | `required` | `DistanceProfile` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `nearest_post` | `DistanceProfile` | `required` | `DistanceProfile` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `voltage_levels` | `tuple[VoltageLevelDistanceProfile, ...]` | `required` | `tuple[VoltageLevelDistanceProfile, ...]` state used by `src/landscout/stages/enrich_grid_proximity.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `parcel_count` | `parcel_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `nearest_line` | `nearest_line: DistanceProfile` | Stores `GridProximityProfile`'s `nearest line` value under exact annotation `DistanceProfile`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `nearest_exact_line` | `nearest_exact_line: DistanceProfile` | Stores `GridProximityProfile`'s `nearest exact line` value under exact annotation `DistanceProfile`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `nearest_post` | `nearest_post: DistanceProfile` | Stores `GridProximityProfile`'s `nearest post` value under exact annotation `DistanceProfile`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `voltage_levels` | `voltage_levels: tuple[VoltageLevelDistanceProfile, ...]` | Structured `voltage levels` collection owned by `GridProximityProfile`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 
-- None.
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_grid_proximity import (
+    DistanceProfile,
+    GridProximityError,
+    GridProximityProfile,
+    GridProximityResult,
+    VoltageLevelCoverage,
+    VoltageLevelDistanceProfile,
+    enrich_parcel_grid_proximity,
+    profile_grid_proximity,
+)`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::profile_grid_proximity` via `GridProximityProfile`.
+
+**Exact class source**
+
+```python
+class GridProximityProfile:
+    """Threshold-free parcel and voltage-level proximity profiles."""
+
+    parcel_count: int
+    nearest_line: DistanceProfile
+    nearest_exact_line: DistanceProfile
+    nearest_post: DistanceProfile
+    voltage_levels: tuple[VoltageLevelDistanceProfile, ...]
+```
+
 
 ## 6. Functions and methods
 
 ### `_validated_crs`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validated_crs(value: object, label: str) -> CRS:
@@ -204,59 +670,63 @@ def _validated_crs(value: object, label: str) -> CRS:
 
 **Purpose**
 
-Validates and returns canonical crs according to the exact implementation and guards in this file.
+Checks and returns canonical crs; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `CRS`.
+- Every observed return expression is reproduced without truncation:
+```python
+CRS.from_user_input(value)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `CRS`. Observed return expression(s): `CRS.from_user_input(value)`.
-
-**Algorithm**
-
-1. Checks `value is None`. When true: Raises `GridProximityError(f'{label} CRS is required')`.
-2. Runs guarded operation: Returns `CRS.from_user_input(value)`. Handles `Exception`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `value is None` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `value is None`.
+- Explicit raise expressions: `GridProximityError(f'{label} CRS is required')`, `GridProximityError(f'{label} CRS is unreadable')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `CRS.from_user_input`, `GridProximityError`.
+- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_parcel_frame` via `_validated_crs`.
+- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_require_same_parcels` via `_validated_crs`.
+- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_coverage_summary` via `_validated_crs`.
+- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_source_coverage` via `_validated_crs`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_require_lambert93` via `_validated_crs`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_parcels` via `_validated_crs`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_output_integrity` via `_validated_crs`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_require_crs` via `_validated_crs`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_validate_parcel_preservation` via `_validated_crs`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_require_lambert93`
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_output_integrity`
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_parcels`
+```python
+def _validated_crs(value: object, label: str) -> CRS:
+    if value is None:
+        raise GridProximityError(f"{label} CRS is required")
+    try:
+        return CRS.from_user_input(value)
+    except Exception as error:
+        raise GridProximityError(f"{label} CRS is unreadable") from error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_require_lambert93`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _require_lambert93(value: object, label: str) -> None:
@@ -264,58 +734,50 @@ def _require_lambert93(value: object, label: str) -> None:
 
 **Purpose**
 
-Implements require lambert93 according to the exact implementation and guards in this file.
+Private `grid/source` helper for require lambert93; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `actual` from `_validated_crs(value, label)`.
-2. Computes `expected` from `CRS.from_epsg(2154)`.
-3. Checks `not actual.is_projected or not actual.equals(expected)`. When true: Raises `GridProximityError(f'{label} must use EPSG:2154')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not actual.is_projected or not actual.equals(expected)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not actual.is_projected or not actual.equals(expected)`.
+- Explicit raise expressions: `GridProximityError(f'{label} must use EPSG:2154')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `CRS.from_epsg`, `GridProximityError`, `_validated_crs`, `actual.equals`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_grid` via `_require_lambert93`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_grid`
+```python
+def _require_lambert93(value: object, label: str) -> None:
+    actual = _validated_crs(value, label)
+    expected = CRS.from_epsg(2154)
+    if not actual.is_projected or not actual.equals(expected):
+        raise GridProximityError(f"{label} must use EPSG:2154")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_active_geometry`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
@@ -323,59 +785,52 @@ def _validate_active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
 
 **Purpose**
 
-Validates and rejects malformed active geometry according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent active geometry; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `'geometry' not in frame.columns`. When true: Raises `GridProximityError(f'{label} geometry column is required')`.
-2. Checks `frame.active_geometry_name != 'geometry'`. When true: Raises `GridProximityError(f'{label} geometry column must be active')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `'geometry' not in frame.columns` is true.
-- Rejects or diverts the path when `frame.active_geometry_name != 'geometry'` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `'geometry' not in frame.columns`.
+- Guard with a raise path: `frame.active_geometry_name != 'geometry'`.
+- Explicit raise expressions: `GridProximityError(f'{label} geometry column is required')`, `GridProximityError(f'{label} geometry column must be active')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `GridProximityError`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_parcels` via `_validate_active_geometry`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_grid` via `_validate_active_geometry`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_grid`
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_parcels`
+```python
+def _validate_active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
+    if "geometry" not in frame.columns:
+        raise GridProximityError(f"{label} geometry column is required")
+    if frame.active_geometry_name != "geometry":
+        raise GridProximityError(f"{label} geometry column must be active")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_id_values`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_id_values(
@@ -388,68 +843,70 @@ def _validate_id_values(
 
 **Purpose**
 
-Validates and rejects malformed id values according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent id values; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `values` (`pd.Series`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `require_unique` (`bool`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `values.isna().any()`. When true: Raises `GridProximityError(f'{label} values must not be null')`.
-2. Computes `raw_values` from `values.tolist()`.
-3. Checks `any((not isinstance(value, str) for value in raw_values))`. When true: Raises `GridProximityError(f'{label} values must be strings')`.
-4. Checks `any((not value.strip() for value in raw_values))`. When true: Raises `GridProximityError(f'{label} values must not be empty')`.
-5. Checks `any((value != value.strip() for value in raw_values))`. When true: Raises `GridProximityError(f'{label} values must not contain leading or trailing whitespace')`.
-6. Checks `require_unique and values.duplicated().any()`. When true: Raises `GridProximityError(f'{label} values must be unique')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `values.isna().any()` is true.
-- Rejects or diverts the path when `any((not isinstance(value, str) for value in raw_values))` is true.
-- Rejects or diverts the path when `any((not value.strip() for value in raw_values))` is true.
-- Rejects or diverts the path when `any((value != value.strip() for value in raw_values))` is true.
-- Rejects or diverts the path when `require_unique and values.duplicated().any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `values.isna().any()`.
+- Guard with a raise path: `any((not isinstance(value, str) for value in raw_values))`.
+- Guard with a raise path: `any((not value.strip() for value in raw_values))`.
+- Guard with a raise path: `any((value != value.strip() for value in raw_values))`.
+- Guard with a raise path: `require_unique and values.duplicated().any()`.
+- Explicit raise expressions: `GridProximityError(f'{label} values must be strings')`, `GridProximityError(f'{label} values must be unique')`, `GridProximityError(f'{label} values must not be empty')`, `GridProximityError(f'{label} values must not be null')`, `GridProximityError(f'{label} values must not contain leading or trailing whitespace')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `GridProximityError`, `any`, `isinstance`, `value.strip`, `values.duplicated`, `values.duplicated().any`, `values.isna`, `values.isna().any`, `values.tolist`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_parcels` via `_validate_id_values`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_voltage_table` via `_validate_id_values`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_exact_representation_consistency` via `_validate_id_values`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_exact_representation_consistency`
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_parcels`
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_voltage_table`
+```python
+def _validate_id_values(
+    values: pd.Series,
+    label: str,
+    *,
+    require_unique: bool,
+) -> None:
+    if values.isna().any():
+        raise GridProximityError(f"{label} values must not be null")
+    raw_values = values.tolist()
+    if any(not isinstance(value, str) for value in raw_values):
+        raise GridProximityError(f"{label} values must be strings")
+    if any(not value.strip() for value in raw_values):
+        raise GridProximityError(f"{label} values must not be empty")
+    if any(value != value.strip() for value in raw_values):
+        raise GridProximityError(
+            f"{label} values must not contain leading or trailing whitespace"
+        )
+    if require_unique and values.duplicated().any():
+        raise GridProximityError(f"{label} values must be unique")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_parcels`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_parcels(parcels: gpd.GeoDataFrame) -> CRS:
@@ -457,72 +914,84 @@ def _validate_parcels(parcels: gpd.GeoDataFrame) -> CRS:
 
 **Purpose**
 
-Validates and rejects malformed parcels according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent parcels; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `CRS`.
+- Every observed return expression is reproduced without truncation:
+```python
+source_crs
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `CRS`. Observed return expression(s): `source_crs`.
-
-**Algorithm**
-
-1. Computes `missing` from `PARCEL_REQUIRED_COLUMNS - set(parcels.columns)`.
-2. Checks `missing`. When true: Raises `GridProximityError('Missing required parcel columns: ' + ', '.join(sorted(missing)))`.
-3. Calls `_validate_active_geometry(parcels, 'Parcel')` for its validation or side effect.
-4. Computes `source_crs` from `_validated_crs(parcels.crs, 'Parcel')`.
-5. Calls `_validate_id_values(parcels['parcel_id'], 'parcel_id', require_unique=True)` for its validation or side effect.
-6. Checks `parcels.geometry.isna().any()`. When true: Raises `GridProximityError('Parcel geometries must not be null')`.
-7. Checks `parcels.geometry.is_empty.any()`. When true: Raises `GridProximityError('Parcel geometries must not be empty')`.
-8. Checks `not parcels.geometry.is_valid.all()`. When true: Raises `GridProximityError('Parcel geometries must be valid')`.
-9. Computes `geometry_types` from `set(parcels.geometry.geom_type.dropna())`.
-10. Computes `unsupported` from `sorted((str(value) for value in geometry_types - PARCEL_GEOMETRY_TYPES))`.
-11. Checks `unsupported`. When true: Raises `GridProximityError('Parcel geometries must be Polygon or MultiPolygon; found: ' + ', '.join(unsupported))`.
-12. Returns `source_crs`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `parcels.geometry.isna().any()` is true.
-- Rejects or diverts the path when `parcels.geometry.is_empty.any()` is true.
-- Rejects or diverts the path when `not parcels.geometry.is_valid.all()` is true.
-- Rejects or diverts the path when `unsupported` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `parcels.geometry.isna().any()`.
+- Guard with a raise path: `parcels.geometry.is_empty.any()`.
+- Guard with a raise path: `not parcels.geometry.is_valid.all()`.
+- Guard with a raise path: `unsupported`.
+- Explicit raise expressions: `GridProximityError('Missing required parcel columns: ' + ', '.join(sorted(missing)))`, `GridProximityError('Parcel geometries must be Polygon or MultiPolygon; found: ' + ', '.join(unsupported))`, `GridProximityError('Parcel geometries must be valid')`, `GridProximityError('Parcel geometries must not be empty')`, `GridProximityError('Parcel geometries must not be null')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `_validate_active_geometry`, `parcels.geometry.geom_type.dropna`, `parcels.geometry.is_empty.any`, `parcels.geometry.is_valid.all`, `parcels.geometry.isna`, `parcels.geometry.isna().any`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `GridProximityError`, `_validate_active_geometry`, `_validate_id_values`, `_validated_crs`, `parcels.geometry.geom_type.dropna`, `parcels.geometry.is_empty.any`, `parcels.geometry.is_valid.all`, `parcels.geometry.isna`, `parcels.geometry.isna().any`, `set`, `sorted`, `str`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_parcels`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_enrich_parcel_grid_proximity_from_normalized`
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_result_contract`
-- `src/landscout/stages/enrich_grid_proximity.py` — `enrich_parcel_grid_proximity`
+```python
+def _validate_parcels(parcels: gpd.GeoDataFrame) -> CRS:
+    missing = PARCEL_REQUIRED_COLUMNS - set(parcels.columns)
+    if missing:
+        raise GridProximityError(
+            "Missing required parcel columns: " + ", ".join(sorted(missing))
+        )
+    _validate_active_geometry(parcels, "Parcel")
+    source_crs = _validated_crs(parcels.crs, "Parcel")
+    _validate_id_values(parcels["parcel_id"], "parcel_id", require_unique=True)
+    if parcels.geometry.isna().any():
+        raise GridProximityError("Parcel geometries must not be null")
+    if parcels.geometry.is_empty.any():
+        raise GridProximityError("Parcel geometries must not be empty")
+    if not parcels.geometry.is_valid.all():
+        raise GridProximityError("Parcel geometries must be valid")
+    geometry_types = set(parcels.geometry.geom_type.dropna())
+    unsupported = sorted(
+        str(value) for value in geometry_types - PARCEL_GEOMETRY_TYPES
+    )
+    if unsupported:
+        raise GridProximityError(
+            "Parcel geometries must be Polygon or MultiPolygon; found: "
+            + ", ".join(unsupported)
+        )
+    return source_crs
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_observed_geometry_status`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _observed_geometry_status(geometry: gpd.GeoSeries) -> pd.Series:
@@ -530,62 +999,57 @@ def _observed_geometry_status(geometry: gpd.GeoSeries) -> pd.Series:
 
 **Purpose**
 
-Implements observed geometry status according to the exact implementation and guards in this file.
+Private `grid/source` helper for observed geometry status; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `geometry` (`gpd.GeoSeries`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.Series`.
+- Every observed return expression is reproduced without truncation:
+```python
+status
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.Series`. Observed return expression(s): `status`.
-
-**Algorithm**
-
-1. Computes `status` from `pd.Series('VALID', index=geometry.index, dtype='object')`.
-2. Computes `null_mask` from `geometry.isna()`.
-3. Computes `empty_mask` from `~null_mask & geometry.is_empty`.
-4. Computes `invalid_mask` from `~null_mask & ~geometry.is_empty & ~geometry.is_valid`.
-5. Computes `status.loc[null_mask]` from `'NULL'`.
-6. Computes `status.loc[empty_mask]` from `'EMPTY'`.
-7. Computes `status.loc[invalid_mask]` from `'INVALID'`.
-8. Returns `status`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `geometry.isna`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `status.loc[empty_mask]`, `status.loc[invalid_mask]`, `status.loc[null_mask]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `geometry.isna`, `pd.Series`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_grid` via `_observed_geometry_status`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_grid`
+```python
+def _observed_geometry_status(geometry: gpd.GeoSeries) -> pd.Series:
+    status = pd.Series("VALID", index=geometry.index, dtype="object")
+    null_mask = geometry.isna()
+    empty_mask = ~null_mask & geometry.is_empty
+    invalid_mask = ~null_mask & ~geometry.is_empty & ~geometry.is_valid
+    status.loc[null_mask] = "NULL"
+    status.loc[empty_mask] = "EMPTY"
+    status.loc[invalid_mask] = "INVALID"
+    return status
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_grid`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_grid(
@@ -600,86 +1064,111 @@ def _validate_grid(
 
 **Purpose**
 
-Validates and rejects malformed grid according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent grid; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `required_columns` (`frozenset[str]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `feature_type` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `allowed_geometry_types` (`frozenset[str]`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+frame.loc[valid_mask].reset_index(drop=True).copy()
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `frame.loc[valid_mask].reset_index(drop=True).copy()`.
-
-**Algorithm**
-
-1. Computes `missing` from `required_columns - set(frame.columns)`.
-2. Checks `missing`. When true: Raises `GridProximityError(f'Missing required {label} columns: ' + ', '.join(sorted(missing)))`.
-3. Calls `_validate_active_geometry(frame, label)` for its validation or side effect.
-4. Calls `_require_lambert93(frame.crs, label)` for its validation or side effect.
-5. Computes `identifiers` from `frame['grid_feature_id']`.
-6. Checks `identifiers.isna().any()`. When true: Raises `GridProximityError(f'{label} grid_feature_id values must not be null')`.
-7. Checks `any((not isinstance(value, str) or not value for value in identifiers.tolist()))`. When true: Raises `GridProximityError(f'{label} grid_feature_id values must be non-empty strings')`.
-8. Checks `identifiers.duplicated().any()`. When true: Raises `GridProximityError(f'{label} grid_feature_id values must be unique')`.
-9. Checks `frame['grid_feature_type'].isna().any() or not frame['grid_feature_type'].eq(feature_type).all()`. When true: Raises `GridProximityError(f'{label} grid_feature_type must be {feature_type}')`.
-10. Checks `frame['spatial_role'].isna().any() or not frame['spatial_role'].eq(SPATIAL_ROLE).all()`. When true: Raises `GridProximityError(f'{label} spatial_role must be PROXY_GEOMETRY')`.
-11. Computes `declared_status` from `frame['geometry_status']`.
-12. Computes `observed_status` from `_observed_geometry_status(frame.geometry)`.
-13. Computes `declared_values` from `set(declared_status.dropna().unique())`.
-14. Checks `declared_status.isna().any() or not declared_values <= GRID_GEOMETRY_STATUSES`. When true: Raises `GridProximityError(f'{label} has unexpected geometry_status values')`.
-15. Checks `not declared_status.astype('object').equals(observed_status)`. When true: Raises `GridProximityError(f'{label} geometry_status does not match the source geometry')`.
-16. Computes `valid_mask` from `declared_status == 'VALID'`.
-17. Computes `valid_types` from `set(frame.loc[valid_mask, 'geometry'].geom_type.dropna())`.
-18. Computes `unsupported` from `sorted((str(value) for value in valid_types - allowed_geometry_types))`.
-19. Checks `unsupported`. When true: Raises `GridProximityError(f'{label} has unsupported VALID geometry types: ' + ', '.join(unsupported))`.
-20. Returns `frame.loc[valid_mask].reset_index(drop=True).copy()`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `identifiers.isna().any()` is true.
-- Rejects or diverts the path when `any((not isinstance(value, str) or not value for value in identifiers.tolist()))` is true.
-- Rejects or diverts the path when `identifiers.duplicated().any()` is true.
-- Rejects or diverts the path when `frame['grid_feature_type'].isna().any() or not frame['grid_feature_type'].eq(feature_type).all()` is true.
-- Rejects or diverts the path when `frame['spatial_role'].isna().any() or not frame['spatial_role'].eq(SPATIAL_ROLE).all()` is true.
-- Rejects or diverts the path when `declared_status.isna().any() or not declared_values <= GRID_GEOMETRY_STATUSES` is true.
-- Rejects or diverts the path when `not declared_status.astype('object').equals(observed_status)` is true.
-- Rejects or diverts the path when `unsupported` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `identifiers.isna().any()`.
+- Guard with a raise path: `any((not isinstance(value, str) or not value for value in identifiers.tolist()))`.
+- Guard with a raise path: `identifiers.duplicated().any()`.
+- Guard with a raise path: `frame['grid_feature_type'].isna().any() or not frame['grid_feature_type'].eq(feature_type).all()`.
+- Guard with a raise path: `frame['spatial_role'].isna().any() or not frame['spatial_role'].eq(SPATIAL_ROLE).all()`.
+- Guard with a raise path: `declared_status.isna().any() or not declared_values <= GRID_GEOMETRY_STATUSES`.
+- Guard with a raise path: `not declared_status.astype('object').equals(observed_status)`.
+- Guard with a raise path: `unsupported`.
+- Explicit raise expressions: `GridProximityError(f'Missing required {label} columns: ' + ', '.join(sorted(missing)))`, `GridProximityError(f'{label} geometry_status does not match the source geometry')`, `GridProximityError(f'{label} grid_feature_id values must be non-empty strings')`, `GridProximityError(f'{label} grid_feature_id values must be unique')`, `GridProximityError(f'{label} grid_feature_id values must not be null')`, `GridProximityError(f'{label} grid_feature_type must be {feature_type}')`, `GridProximityError(f'{label} has unexpected geometry_status values')`, `GridProximityError(f'{label} has unsupported VALID geometry types: ' + ', '.join(unsupported))`, `GridProximityError(f'{label} spatial_role must be PROXY_GEOMETRY')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `frame.loc[valid_mask].reset_index(drop=True).copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `_observed_geometry_status`, `_validate_active_geometry`, `frame.loc[valid_mask, 'geometry'].geom_type.dropna`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `GridProximityError`, `_observed_geometry_status`, `_require_lambert93`, `_validate_active_geometry`, `any`, `declared_status.astype`, `declared_status.astype('object').equals`, `declared_status.dropna`, `declared_status.dropna().unique`, `declared_status.isna`, `declared_status.isna().any`, `frame.loc[valid_mask, 'geometry'].geom_type.dropna`, `frame.loc[valid_mask].reset_index`, `frame.loc[valid_mask].reset_index(drop=True).copy`, `frame['grid_feature_type'].eq`, `frame['grid_feature_type'].eq(feature_type).all`, `frame['grid_feature_type'].isna`, `frame['grid_feature_type'].isna().any`, `frame['spatial_role'].eq`, `frame['spatial_role'].eq(SPATIAL_ROLE).all`, `frame['spatial_role'].isna`, `frame['spatial_role'].isna().any`, `identifiers.duplicated`, `identifiers.duplicated().any`, `identifiers.isna`, `identifiers.isna().any`, `identifiers.tolist`, `isinstance`, `set`, `sorted`, `str`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `_validate_grid`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_enrich_parcel_grid_proximity_from_normalized`
+```python
+def _validate_grid(
+    frame: gpd.GeoDataFrame,
+    *,
+    label: str,
+    required_columns: frozenset[str],
+    feature_type: str,
+    allowed_geometry_types: frozenset[str],
+) -> gpd.GeoDataFrame:
+    missing = required_columns - set(frame.columns)
+    if missing:
+        raise GridProximityError(
+            f"Missing required {label} columns: " + ", ".join(sorted(missing))
+        )
+    _validate_active_geometry(frame, label)
+    _require_lambert93(frame.crs, label)
 
-**Tests**
+    identifiers = frame["grid_feature_id"]
+    if identifiers.isna().any():
+        raise GridProximityError(f"{label} grid_feature_id values must not be null")
+    if any(not isinstance(value, str) or not value for value in identifiers.tolist()):
+        raise GridProximityError(
+            f"{label} grid_feature_id values must be non-empty strings"
+        )
+    if identifiers.duplicated().any():
+        raise GridProximityError(f"{label} grid_feature_id values must be unique")
+    if frame["grid_feature_type"].isna().any() or not frame[
+        "grid_feature_type"
+    ].eq(feature_type).all():
+        raise GridProximityError(
+            f"{label} grid_feature_type must be {feature_type}"
+        )
+    if frame["spatial_role"].isna().any() or not frame["spatial_role"].eq(
+        SPATIAL_ROLE
+    ).all():
+        raise GridProximityError(f"{label} spatial_role must be PROXY_GEOMETRY")
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    declared_status = frame["geometry_status"]
+    observed_status = _observed_geometry_status(frame.geometry)
+    declared_values = set(declared_status.dropna().unique())
+    if declared_status.isna().any() or not declared_values <= GRID_GEOMETRY_STATUSES:
+        raise GridProximityError(f"{label} has unexpected geometry_status values")
+    if not declared_status.astype("object").equals(observed_status):
+        raise GridProximityError(
+            f"{label} geometry_status does not match the source geometry"
+        )
 
-**Business interpretation**
+    valid_mask = declared_status == "VALID"
+    valid_types = set(frame.loc[valid_mask, "geometry"].geom_type.dropna())
+    unsupported = sorted(str(value) for value in valid_types - allowed_geometry_types)
+    if unsupported:
+        raise GridProximityError(
+            f"{label} has unsupported VALID geometry types: "
+            + ", ".join(unsupported)
+        )
+    return frame.loc[valid_mask].reset_index(drop=True).copy()
+```
 
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_finite_real_as_float`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _finite_real_as_float(value: object) -> float | None:
@@ -687,59 +1176,62 @@ def _finite_real_as_float(value: object) -> float | None:
 
 **Purpose**
 
-Implements finite real as float according to the exact implementation and guards in this file.
+Private `grid/source` helper for finite real as float; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `float | None`.
+- Every observed return expression is reproduced without truncation:
+```python
+numeric if isfinite(numeric) else None
 
-**Returns**
+None
 
-- Declared return type: `float | None`. Observed return expression(s): `numeric if isfinite(numeric) else None`; `None`.
+None
+```
 
-**Algorithm**
+**Validation and exceptions**
 
-1. Checks `not isinstance(value, Real) or isinstance(value, bool)`. When true: Returns `None`.
-2. Runs guarded operation: Computes `numeric` from `float(value)`. Handles `(OverflowError, TypeError, ValueError)`.
-3. Returns `numeric if isfinite(numeric) else None`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `float`, `isfinite`, `isinstance`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_is_positive_finite_number` via `_finite_real_as_float`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_distance_values` via `_finite_real_as_float`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_tie_counts` via `_finite_real_as_float`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_is_positive_finite_number`
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_distance_values`
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_tie_counts`
+```python
+def _finite_real_as_float(value: object) -> float | None:
+    if not isinstance(value, Real) or isinstance(value, bool):
+        return None
+    try:
+        numeric = float(value)
+    except (OverflowError, TypeError, ValueError):
+        return None
+    return numeric if isfinite(numeric) else None
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_is_positive_finite_number`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _is_positive_finite_number(value: object) -> bool:
@@ -747,56 +1239,54 @@ def _is_positive_finite_number(value: object) -> bool:
 
 **Purpose**
 
-Returns whether `positive finite number` satisfies the exact predicates and branches listed below.
+Tests whether positive finite number; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `bool`.
+- Every observed return expression is reproduced without truncation:
+```python
+numeric is not None and numeric > 0
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `bool`. Observed return expression(s): `numeric is not None and numeric > 0`.
-
-**Algorithm**
-
-1. Computes `numeric` from `_finite_real_as_float(value)`.
-2. Returns `numeric is not None and numeric > 0`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_finite_real_as_float`.
+- callback/function object: `src/landscout/stages/enrich_grid_proximity.py::_validate_match_integrity` via `frame[voltage_column].map(_is_positive_finite_number)`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_voltage_coverage` via `_is_positive_finite_number`.
+- callback/function object: `src/landscout/stages/enrich_grid_proximity.py::_validate_voltage_table` via `raw_voltage_values.map(_is_positive_finite_number)`.
+- callback/function object: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `valid_lines['voltage_kv'].map(_is_positive_finite_number)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_voltage_coverage`
+```python
+def _is_positive_finite_number(value: object) -> bool:
+    numeric = _finite_real_as_float(value)
+    return numeric is not None and numeric > 0
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_calculation_geometries`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _calculation_geometries(frame: gpd.GeoDataFrame) -> np.ndarray:
@@ -804,57 +1294,54 @@ def _calculation_geometries(frame: gpd.GeoDataFrame) -> np.ndarray:
 
 **Purpose**
 
-Implements calculation geometries according to the exact implementation and guards in this file.
+Private `grid/source` helper for calculation geometries; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `np.ndarray`.
+- Every observed return expression is reproduced without truncation:
+```python
+np.asarray(force_2d(values), dtype=object)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `np.ndarray`. Observed return expression(s): `np.asarray(force_2d(values), dtype=object)`.
-
-**Algorithm**
-
-1. Computes `values` from `np.asarray(frame.geometry.array, dtype=object)`.
-2. Returns `np.asarray(force_2d(values), dtype=object)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `force_2d`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `force_2d`, `np.asarray`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_nearest_feature_rows` via `_calculation_geometries`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `_calculation_geometries`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_nearest_class_rows` via `_calculation_geometries`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `_calculation_geometries`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_enrich_parcel_grid_proximity_from_normalized`
-- `src/landscout/stages/enrich_grid_proximity.py` — `_nearest_feature_rows`
+```python
+def _calculation_geometries(frame: gpd.GeoDataFrame) -> np.ndarray:
+    values = np.asarray(frame.geometry.array, dtype=object)
+    return np.asarray(force_2d(values), dtype=object)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_empty_nearest_result`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _empty_nearest_result(
@@ -865,60 +1352,61 @@ def _empty_nearest_result(
 
 **Purpose**
 
-Implements empty nearest result according to the exact implementation and guards in this file.
+Private `grid/source` helper for empty nearest result; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parcel_count` (`int`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `attribute_columns` (`tuple[str, ...]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+output
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `output`.
-
-**Algorithm**
-
-1. Computes `output` from `pd.DataFrame(index=pd.RangeIndex(parcel_count))`.
-2. Computes `output['distance_m']` from `pd.Series(np.nan, index=output.index, dtype='float64')`.
-3. Computes `output['tie_count']` from `pd.Series(pd.NA, index=output.index, dtype='Int64')`.
-4. Iterates `column` over `attribute_columns`. For each value: Checks `column in {'voltage_kv', 'voltage_upper_bound_kv'}`. When true: Computes `output[column]` from `pd.Series(np.nan, index=output.index, dtype='float64')`. Otherwise: Computes `output[column]` from `pd.Series(pd.NA, index=output.index, dtype='object')`.
-5. Returns `output`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `output['distance_m']`, `output['tie_count']`, `output[column]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `pd.DataFrame`, `pd.RangeIndex`, `pd.Series`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_nearest_feature_rows` via `_empty_nearest_result`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_nearest_feature_rows`
+```python
+def _empty_nearest_result(
+    parcel_count: int,
+    attribute_columns: tuple[str, ...],
+) -> pd.DataFrame:
+    output = pd.DataFrame(index=pd.RangeIndex(parcel_count))
+    output["distance_m"] = pd.Series(np.nan, index=output.index, dtype="float64")
+    output["tie_count"] = pd.Series(pd.NA, index=output.index, dtype="Int64")
+    for column in attribute_columns:
+        if column in {"voltage_kv", "voltage_upper_bound_kv"}:
+            output[column] = pd.Series(np.nan, index=output.index, dtype="float64")
+        else:
+            output[column] = pd.Series(pd.NA, index=output.index, dtype="object")
+    return output
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_nearest_feature_rows`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _nearest_feature_rows(
@@ -932,76 +1420,99 @@ def _nearest_feature_rows(
 
 **Purpose**
 
-Implements nearest feature rows according to the exact implementation and guards in this file.
+Private `grid/source` helper for nearest feature rows; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parcel_geometries` (`np.ndarray`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `attribute_columns` (`tuple[str, ...]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `allow_empty` (`bool`; optional/default `False`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+output
 
-**Returns**
+_empty_nearest_result(parcel_count, attribute_columns)
+```
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `output`; `_empty_nearest_result(parcel_count, attribute_columns)`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Computes `parcel_count` from `len(parcel_geometries)`.
-2. Checks `features.empty`. When true: Checks `allow_empty`. When true: Returns `_empty_nearest_result(parcel_count, attribute_columns)`. Raises `GridProximityError('No VALID grid proxy feature is available')`.
-3. Computes `feature_geometries` from `_calculation_geometries(features)`.
-4. Computes `tree` from `STRtree(feature_geometries)`.
-5. Computes `(indices, distances)` from `tree.query_nearest(parcel_geometries, all_matches=True, return_distance=True)`.
-6. Computes `matches` from `pd.DataFrame({'parcel_position': indices[0], 'feature_position': indices[1], 'distance_m': distances})`.
-7. Computes `matches['grid_feature_id']` from `features.iloc[matches['feature_position'].to_numpy()]['grid_feature_id'].to_numpy()`.
-8. Computes `matches` from `matches.sort_values(['parcel_position', 'distance_m', 'grid_feature_id'], kind='mergesort')`.
-9. Computes `ties` from `matches.groupby('parcel_position', sort=False).size()`.
-10. Computes `selected` from `matches.drop_duplicates('parcel_position', keep='first').sort_values('parcel_position')`.
-11. Checks `selected['parcel_position'].tolist() != list(range(parcel_count))`. When true: Raises `GridProximityError('Nearest-neighbour matching did not cover every parcel')`.
-12. Computes `feature_positions` from `selected['feature_position'].to_numpy()`.
-13. Computes `output` from `features.iloc[feature_positions].loc[:, list(attribute_columns)].copy()`.
-14. Computes `output` from `output.reset_index(drop=True)`.
-15. Calls `output.insert(0, 'tie_count', ties.reindex(range(parcel_count)).to_numpy())` for its validation or side effect.
-16. Calls `output.insert(0, 'distance_m', selected['distance_m'].to_numpy(dtype='float64'))` for its validation or side effect.
-17. Returns `output`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `features.empty` is true.
-- Rejects or diverts the path when `selected['parcel_position'].tolist() != list(range(parcel_count))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `features.empty`.
+- Guard with a raise path: `selected['parcel_position'].tolist() != list(range(parcel_count))`.
+- Explicit raise expressions: `GridProximityError('Nearest-neighbour matching did not cover every parcel')`, `GridProximityError('No VALID grid proxy feature is available')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `features.iloc[feature_positions].loc[:, list(attribute_columns)].copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `STRtree`, `selected['distance_m'].to_numpy`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `matches['grid_feature_id']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `GridProximityError`, `STRtree`, `_calculation_geometries`, `_empty_nearest_result`, `features.iloc[feature_positions].loc[:, list(attribute_columns)].copy`, `features.iloc[matches['feature_position'].to_numpy()]['grid_feature_id'].to_numpy`, `len`, `list`, `matches.drop_duplicates`, `matches.drop_duplicates('parcel_position', keep='first').sort_values`, `matches.groupby`, `matches.groupby('parcel_position', sort=False).size`, `matches.sort_values`, `matches['feature_position'].to_numpy`, `output.insert`, `output.reset_index`, `pd.DataFrame`, `range`, `selected['distance_m'].to_numpy`, `selected['feature_position'].to_numpy`, `selected['parcel_position'].tolist`, `ties.reindex`, `ties.reindex(range(parcel_count)).to_numpy`, `tree.query_nearest`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_voltage_level_table` via `_nearest_feature_rows`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `_nearest_feature_rows`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_enrich_parcel_grid_proximity_from_normalized`
-- `src/landscout/stages/enrich_grid_proximity.py` — `_voltage_level_table`
+```python
+def _nearest_feature_rows(
+    parcel_geometries: np.ndarray,
+    features: gpd.GeoDataFrame,
+    attribute_columns: tuple[str, ...],
+    *,
+    allow_empty: bool = False,
+) -> pd.DataFrame:
+    parcel_count = len(parcel_geometries)
+    if features.empty:
+        if allow_empty:
+            return _empty_nearest_result(parcel_count, attribute_columns)
+        raise GridProximityError("No VALID grid proxy feature is available")
 
-**Tests**
+    feature_geometries = _calculation_geometries(features)
+    tree = STRtree(feature_geometries)
+    indices, distances = tree.query_nearest(
+        parcel_geometries,
+        all_matches=True,
+        return_distance=True,
+    )
+    matches = pd.DataFrame(
+        {
+            "parcel_position": indices[0],
+            "feature_position": indices[1],
+            "distance_m": distances,
+        }
+    )
+    matches["grid_feature_id"] = features.iloc[
+        matches["feature_position"].to_numpy()
+    ]["grid_feature_id"].to_numpy()
+    matches = matches.sort_values(
+        ["parcel_position", "distance_m", "grid_feature_id"],
+        kind="mergesort",
+    )
+    ties = matches.groupby("parcel_position", sort=False).size()
+    selected = matches.drop_duplicates("parcel_position", keep="first").sort_values(
+        "parcel_position"
+    )
+    if selected["parcel_position"].tolist() != list(range(parcel_count)):
+        raise GridProximityError("Nearest-neighbour matching did not cover every parcel")
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    feature_positions = selected["feature_position"].to_numpy()
+    output = features.iloc[feature_positions].loc[:, list(attribute_columns)].copy()
+    output = output.reset_index(drop=True)
+    output.insert(0, "tie_count", ties.reindex(range(parcel_count)).to_numpy())
+    output.insert(0, "distance_m", selected["distance_m"].to_numpy(dtype="float64"))
+    return output
+```
 
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_attach_matches`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _attach_matches(
@@ -1013,57 +1524,52 @@ def _attach_matches(
 
 **Purpose**
 
-Implements attach matches according to the exact implementation and guards in this file.
+Private `grid/source` helper for attach matches; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `matches` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `mapping` (`dict[str, str]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Iterates `(source_column, output_column)` over `mapping.items()`. For each value: Computes `parcels[output_column]` from `matches[source_column].reset_index(drop=True)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `parcels[output_column]`.
+- Input mutation: `parcels[output_column]`.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `mapping.items`, `matches[source_column].reset_index`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `_attach_matches`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_enrich_parcel_grid_proximity_from_normalized`
+```python
+def _attach_matches(
+    parcels: gpd.GeoDataFrame,
+    matches: pd.DataFrame,
+    mapping: dict[str, str],
+) -> None:
+    for source_column, output_column in mapping.items():
+        parcels[output_column] = matches[source_column].reset_index(drop=True)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_distance_values`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_distance_values(values: pd.Series, label: str) -> None:
@@ -1071,62 +1577,57 @@ def _validate_distance_values(values: pd.Series, label: str) -> None:
 
 **Purpose**
 
-Validates and rejects malformed distance values according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent distance values; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `values` (`pd.Series`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `non_null` from `values.dropna()`.
-2. Computes `numeric_values` from `[_finite_real_as_float(value) for value in non_null.tolist()]`.
-3. Checks `any((value is None for value in numeric_values))`. When true: Raises `GridProximityError(f'{label} distances must be numeric and finite')`.
-4. Computes `numeric` from `np.asarray(numeric_values, dtype='float64')`.
-5. Checks `(numeric < 0).any()`. When true: Raises `GridProximityError(f'{label} distances must be finite and >= 0')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `any((value is None for value in numeric_values))` is true.
-- Rejects or diverts the path when `(numeric < 0).any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `any((value is None for value in numeric_values))`.
+- Guard with a raise path: `(numeric < 0).any()`.
+- Explicit raise expressions: `GridProximityError(f'{label} distances must be finite and >= 0')`, `GridProximityError(f'{label} distances must be numeric and finite')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(numeric < 0).any`, `GridProximityError`, `_finite_real_as_float`, `any`, `non_null.tolist`, `np.asarray`, `values.dropna`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_match_integrity` via `_validate_distance_values`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_distance_profile` via `_validate_distance_values`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_distance_profile`
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_match_integrity`
+```python
+def _validate_distance_values(values: pd.Series, label: str) -> None:
+    non_null = values.dropna()
+    numeric_values = [
+        _finite_real_as_float(value) for value in non_null.tolist()
+    ]
+    if any(value is None for value in numeric_values):
+        raise GridProximityError(f"{label} distances must be numeric and finite")
+    numeric = np.asarray(numeric_values, dtype="float64")
+    if (numeric < 0).any():
+        raise GridProximityError(f"{label} distances must be finite and >= 0")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_is_missing_scalar`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _is_missing_scalar(value: object) -> bool:
@@ -1134,57 +1635,61 @@ def _is_missing_scalar(value: object) -> bool:
 
 **Purpose**
 
-Returns whether `missing scalar` satisfies the exact predicates and branches listed below.
+Tests whether missing scalar; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `bool`.
+- Every observed return expression is reproduced without truncation:
+```python
+bool(pd.isna(value))
 
-**Returns**
+True
 
-- Declared return type: `bool`. Observed return expression(s): `bool(pd.isna(value))`; `True`; `False`.
+False
+```
 
-**Algorithm**
+**Validation and exceptions**
 
-1. Checks `value is None`. When true: Returns `True`.
-2. Checks `not is_scalar(value)`. When true: Returns `False`.
-3. Returns `bool(pd.isna(value))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `bool`, `is_scalar`, `pd.isna`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_tie_counts` via `_is_missing_scalar`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_validate_distance_and_ties` via `_is_missing_scalar`.
+- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::parse_ign_voltage` via `_is_missing_scalar`.
+- direct call or construction: `src/landscout/stages/normalize_grid_ign.py::_normalized_precision` via `_is_missing_scalar`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_tie_counts`
+```python
+def _is_missing_scalar(value: object) -> bool:
+    if value is None:
+        return True
+    if not is_scalar(value):
+        return False
+    return bool(pd.isna(value))
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_tie_counts`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_tie_counts(
@@ -1196,62 +1701,73 @@ def _validate_tie_counts(
 
 **Purpose**
 
-Validates and rejects malformed tie counts according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent tie counts; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `values` (`pd.Series`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `matched` (`pd.Series`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `len(values) != len(matched)`. When true: Raises `GridProximityError(f'{label} tie-count state is inconsistent')`.
-2. Iterates `(value, row_is_matched)` over `zip(values.tolist(), matched.to_numpy(dtype='bool'), strict=True)`. For each value: Computes `missing` from `_is_missing_scalar(value)`. Checks `not row_is_matched`. When true: Checks `not missing`. When true: Raises `GridProximityError(f'{label} unmatched rows must have null tie_count')`. Executes `continue` control flow. Checks `missing`. When true: Raises `GridProximityError(f'{label} matched rows require tie_count')`. Executes 2 additional source-ordered statement(s).
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(values) != len(matched)` is true.
-- Rejects or diverts the path when `not row_is_matched` is true.
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `numeric is None or not numeric.is_integer() or numeric < 1` is true.
-- Rejects or diverts the path when `not missing` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(values) != len(matched)`.
+- Guard with a raise path: `not row_is_matched`.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `numeric is None or not numeric.is_integer() or numeric < 1`.
+- Guard with a raise path: `not missing`.
+- Explicit raise expressions: `GridProximityError(f'{label} matched rows require tie_count')`, `GridProximityError(f'{label} tie-count state is inconsistent')`, `GridProximityError(f'{label} tie_count must be a finite integer >= 1')`, `GridProximityError(f'{label} unmatched rows must have null tie_count')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `GridProximityError`, `_finite_real_as_float`, `_is_missing_scalar`, `len`, `matched.to_numpy`, `numeric.is_integer`, `values.tolist`, `zip`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_match_integrity` via `_validate_tie_counts`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_match_integrity`
+```python
+def _validate_tie_counts(
+    values: pd.Series,
+    matched: pd.Series,
+    label: str,
+) -> None:
+    if len(values) != len(matched):
+        raise GridProximityError(f"{label} tie-count state is inconsistent")
+    for value, row_is_matched in zip(
+        values.tolist(), matched.to_numpy(dtype="bool"), strict=True
+    ):
+        missing = _is_missing_scalar(value)
+        if not row_is_matched:
+            if not missing:
+                raise GridProximityError(
+                    f"{label} unmatched rows must have null tie_count"
+                )
+            continue
+        if missing:
+            raise GridProximityError(f"{label} matched rows require tie_count")
+        numeric = _finite_real_as_float(value)
+        if numeric is None or not numeric.is_integer() or numeric < 1:
+            raise GridProximityError(
+                f"{label} tie_count must be a finite integer >= 1"
+            )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_match_integrity`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_match_integrity(
@@ -1270,85 +1786,109 @@ def _validate_match_integrity(
 
 **Purpose**
 
-Validates and rejects malformed match integrity according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent match integrity; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `distance_column` (`str`; required) — linear quantity, normally metres where the name ends in `_m`. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `grid_id_column` (`str`; required) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_id_column` (`str`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `tie_column` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `expect_matches` (`bool`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `voltage_column` (`str | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `unmatched_null_columns` (`tuple[str, ...]`; optional/default `()`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- Every observed return expression is reproduced without truncation:
+```python
+None
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. Observed return expression(s): `None`.
-
-**Algorithm**
-
-1. Computes `required` from `{distance_column, grid_id_column, source_id_column, tie_column}`.
-2. Checks `voltage_column is not None`. When true: Calls `required.add(voltage_column)` for its validation or side effect.
-3. Computes `missing` from `required - set(frame.columns)`.
-4. Checks `missing`. When true: Raises `GridProximityError(f'Missing {label} match columns: ' + ', '.join(sorted(missing)))`.
-5. Computes `distance` from `frame[distance_column]`.
-6. Computes `matched` from `distance.notna()`.
-7. Checks `expect_matches and (not matched.all())`. When true: Raises `GridProximityError(f'{label} requires a match for every parcel')`.
-8. Checks `not expect_matches and matched.any()`. When true: Raises `GridProximityError(f'{label} must be entirely unmatched')`.
-9. Calls `_validate_distance_values(distance, label)` for its validation or side effect.
-10. Calls `_validate_tie_counts(frame[tie_column], matched, label)` for its validation or side effect.
-11. Computes `id_columns` from `(grid_id_column, source_id_column)`.
-12. Checks `expect_matches`. When true: Iterates `column` over `id_columns`. For each value: Checks `frame[column].isna().any()`. When true: Raises `GridProximityError(f'{label} matched rows require {column}')`. Checks `voltage_column is not None and (not frame[voltage_column].map(_is_positive_finite_number).all())`. When true: Raises `GridProximityError(f'{label} voltage must be numeric, finite, and > 0')`. Returns `None`.
-13. Computes `null_columns` from `set(unmatched_null_columns) | set(id_columns)`.
-14. Checks `voltage_column is not None`. When true: Calls `null_columns.add(voltage_column)` for its validation or side effect.
-15. Iterates `column` over `null_columns`. For each value: Checks `column not in frame.columns`. When true: Raises `GridProximityError(f'Missing {label} match column: {column}')`. Checks `frame[column].notna().any()`. When true: Raises `GridProximityError(f'{label} unmatched rows must have null {column}')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `expect_matches and (not matched.all())` is true.
-- Rejects or diverts the path when `not expect_matches and matched.any()` is true.
-- Rejects or diverts the path when `expect_matches` is true.
-- Rejects or diverts the path when `voltage_column is not None and (not frame[voltage_column].map(_is_positive_finite_number).all())` is true.
-- Rejects or diverts the path when `column not in frame.columns` is true.
-- Rejects or diverts the path when `frame[column].notna().any()` is true.
-- Rejects or diverts the path when `frame[column].isna().any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `expect_matches and (not matched.all())`.
+- Guard with a raise path: `not expect_matches and matched.any()`.
+- Guard with a raise path: `expect_matches`.
+- Guard with a raise path: `voltage_column is not None and (not frame[voltage_column].map(_is_positive_finite_number).all())`.
+- Guard with a raise path: `column not in frame.columns`.
+- Guard with a raise path: `frame[column].notna().any()`.
+- Guard with a raise path: `frame[column].isna().any()`.
+- Explicit raise expressions: `GridProximityError(f'Missing {label} match column: {column}')`, `GridProximityError(f'Missing {label} match columns: ' + ', '.join(sorted(missing)))`, `GridProximityError(f'{label} matched rows require {column}')`, `GridProximityError(f'{label} must be entirely unmatched')`, `GridProximityError(f'{label} requires a match for every parcel')`, `GridProximityError(f'{label} unmatched rows must have null {column}')`, `GridProximityError(f'{label} voltage must be numeric, finite, and > 0')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `_validate_distance_values`, `distance.notna`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `GridProximityError`, `_validate_distance_values`, `_validate_tie_counts`, `distance.notna`, `frame[column].isna`, `frame[column].isna().any`, `frame[column].notna`, `frame[column].notna().any`, `frame[voltage_column].map`, `frame[voltage_column].map(_is_positive_finite_number).all`, `matched.all`, `matched.any`, `null_columns.add`, `required.add`, `set`, `sorted`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_voltage_table` via `_validate_match_integrity`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_validate_match_integrity`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_result_contract`
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_voltage_table`
+```python
+def _validate_match_integrity(
+    frame: pd.DataFrame,
+    *,
+    label: str,
+    distance_column: str,
+    grid_id_column: str,
+    source_id_column: str,
+    tie_column: str,
+    expect_matches: bool,
+    voltage_column: str | None = None,
+    unmatched_null_columns: tuple[str, ...] = (),
+) -> None:
+    required = {distance_column, grid_id_column, source_id_column, tie_column}
+    if voltage_column is not None:
+        required.add(voltage_column)
+    missing = required - set(frame.columns)
+    if missing:
+        raise GridProximityError(
+            f"Missing {label} match columns: " + ", ".join(sorted(missing))
+        )
 
-**Tests**
+    distance = frame[distance_column]
+    matched = distance.notna()
+    if expect_matches and not matched.all():
+        raise GridProximityError(f"{label} requires a match for every parcel")
+    if not expect_matches and matched.any():
+        raise GridProximityError(f"{label} must be entirely unmatched")
+    _validate_distance_values(distance, label)
+    _validate_tie_counts(frame[tie_column], matched, label)
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    id_columns = (grid_id_column, source_id_column)
+    if expect_matches:
+        for column in id_columns:
+            if frame[column].isna().any():
+                raise GridProximityError(f"{label} matched rows require {column}")
+        if voltage_column is not None and not frame[voltage_column].map(
+            _is_positive_finite_number
+        ).all():
+            raise GridProximityError(
+                f"{label} voltage must be numeric, finite, and > 0"
+            )
+        return
 
-**Business interpretation**
+    null_columns = set(unmatched_null_columns) | set(id_columns)
+    if voltage_column is not None:
+        null_columns.add(voltage_column)
+    for column in null_columns:
+        if column not in frame.columns:
+            raise GridProximityError(f"Missing {label} match column: {column}")
+        if frame[column].notna().any():
+            raise GridProximityError(
+                f"{label} unmatched rows must have null {column}"
+            )
+```
 
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_voltage_coverage`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_voltage_coverage(
@@ -1358,64 +1898,78 @@ def _validate_voltage_coverage(
 
 **Purpose**
 
-Validates and rejects malformed voltage coverage according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent voltage coverage; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `coverage` (`tuple[VoltageLevelCoverage, ...]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[float, ...]`.
+- Every observed return expression is reproduced without truncation:
+```python
+tuple(levels)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[float, ...]`. Observed return expression(s): `tuple(levels)`.
-
-**Algorithm**
-
-1. Defines `levels` with annotation `list[float]` from `[]`.
-2. Iterates `item` over `coverage`. For each value: Checks `not isinstance(item, VoltageLevelCoverage)`. When true: Raises `GridProximityError('Voltage coverage entries are invalid')`. Checks `not _is_positive_finite_number(item.voltage_kv)`. When true: Raises `GridProximityError('Voltage coverage levels must be numeric, finite, and > 0')`. Checks `not isinstance(item.line_feature_count, Integral) or isinstance(item.line_feature_count, bool) or item.line_feature_count <= 0`. When true: Raises `GridProximityError('Voltage coverage line_feature_count must be an integer > 0')`. Executes 1 additional source-ordered statement(s).
-3. Checks `len(set(levels)) != len(levels)`. When true: Raises `GridProximityError('Voltage coverage levels must be unique')`.
-4. Checks `levels != sorted(levels)`. When true: Raises `GridProximityError('Voltage coverage levels must be ascending')`.
-5. Returns `tuple(levels)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(set(levels)) != len(levels)` is true.
-- Rejects or diverts the path when `levels != sorted(levels)` is true.
-- Rejects or diverts the path when `not isinstance(item, VoltageLevelCoverage)` is true.
-- Rejects or diverts the path when `not _is_positive_finite_number(item.voltage_kv)` is true.
-- Rejects or diverts the path when `not isinstance(item.line_feature_count, Integral) or isinstance(item.line_feature_count, bool) or item.line_feature_count <= 0` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(set(levels)) != len(levels)`.
+- Guard with a raise path: `levels != sorted(levels)`.
+- Guard with a raise path: `not isinstance(item, VoltageLevelCoverage)`.
+- Guard with a raise path: `not _is_positive_finite_number(item.voltage_kv)`.
+- Guard with a raise path: `not isinstance(item.line_feature_count, Integral) or isinstance(item.line_feature_count, bool) or item.line_feature_count <= 0`.
+- Explicit raise expressions: `GridProximityError('Voltage coverage entries are invalid')`, `GridProximityError('Voltage coverage levels must be ascending')`, `GridProximityError('Voltage coverage levels must be numeric, finite, and > 0')`, `GridProximityError('Voltage coverage levels must be unique')`, `GridProximityError('Voltage coverage line_feature_count must be an integer > 0')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `GridProximityError`, `_is_positive_finite_number`, `float`, `isinstance`, `len`, `levels.append`, `set`, `sorted`, `tuple`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_voltage_table` via `_validate_voltage_coverage`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_validate_voltage_coverage`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_result_contract`
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_voltage_table`
+```python
+def _validate_voltage_coverage(
+    coverage: tuple[VoltageLevelCoverage, ...],
+) -> tuple[float, ...]:
+    levels: list[float] = []
+    for item in coverage:
+        if not isinstance(item, VoltageLevelCoverage):
+            raise GridProximityError("Voltage coverage entries are invalid")
+        if not _is_positive_finite_number(item.voltage_kv):
+            raise GridProximityError(
+                "Voltage coverage levels must be numeric, finite, and > 0"
+            )
+        if (
+            not isinstance(item.line_feature_count, Integral)
+            or isinstance(item.line_feature_count, bool)
+            or item.line_feature_count <= 0
+        ):
+            raise GridProximityError(
+                "Voltage coverage line_feature_count must be an integer > 0"
+            )
+        levels.append(float(item.voltage_kv))
+    if len(set(levels)) != len(levels):
+        raise GridProximityError("Voltage coverage levels must be unique")
+    if levels != sorted(levels):
+        raise GridProximityError("Voltage coverage levels must be ascending")
+    return tuple(levels)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_voltage_table`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_voltage_table(
@@ -1427,79 +1981,116 @@ def _validate_voltage_table(
 
 **Purpose**
 
-Validates and rejects malformed voltage table according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent voltage table; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `table` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `parcel_ids` (`pd.Series`; required) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `coverage` (`tuple[VoltageLevelCoverage, ...]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[float, ...]`.
+- Every observed return expression is reproduced without truncation:
+```python
+levels
 
-**Returns**
+levels
+```
 
-- Declared return type: `tuple[float, ...]`. Observed return expression(s): `levels`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Computes `missing` from `set(VOLTAGE_PROXIMITY_COLUMNS) - set(table.columns)`.
-2. Checks `missing`. When true: Raises `GridProximityError('Missing voltage proximity columns: ' + ', '.join(sorted(missing)))`.
-3. Computes `levels` from `_validate_voltage_coverage(coverage)`.
-4. Computes `expected_rows` from `len(parcel_ids) * len(levels)`.
-5. Checks `len(table) != expected_rows`. When true: Raises `GridProximityError('Voltage proximity row count is inconsistent')`.
-6. Checks `table.empty`. When true: Returns `levels`.
-7. Calls `_validate_id_values(table['parcel_id'], 'parcel_id', require_unique=False)` for its validation or side effect.
-8. Computes `raw_voltage_values` from `table['voltage_kv']`.
-9. Checks `not raw_voltage_values.map(_is_positive_finite_number).all()`. When true: Raises `GridProximityError('Voltage proximity levels must be numeric, finite, and > 0')`.
-10. Checks `table.duplicated(['parcel_id', 'voltage_kv']).any()`. When true: Raises `GridProximityError('Voltage proximity parcel/voltage pairs must be unique')`.
-11. Computes `table_levels` from `tuple(sorted({float(value) for value in raw_voltage_values.tolist()}))`.
-12. Checks `table_levels != levels`. When true: Raises `GridProximityError('Voltage proximity levels do not match source coverage')`.
-13. Computes `expected_ids` from `parcel_ids.tolist()`.
-14. Iterates `voltage_kv` over `levels`. For each value: Computes `rows` from `table.loc[raw_voltage_values.map(float) == voltage_kv]`. Checks `len(rows) != len(expected_ids) or rows['parcel_id'].tolist() != expected_ids`. When true: Raises `GridProximityError(f'Voltage proximity does not contain the exact parcel set for {voltage_kv:g} kV')`.
-15. Calls `_validate_match_integrity(table, label='Voltage-level line proximity', distance_column='nearest_line_proxy_distance_m', grid_id_column='nearest_line_grid_feature_id', source_id_column='nearest_line_source_feature_id', tie_column='tie_count', expect_matches=True)` for its validation or side effect.
-16. Iterates `column` over `('source_department_code', 'source_edition', 'source_archive_sha256')`. For each value: Checks `table[column].isna().any()`. When true: Raises `GridProximityError(f'Voltage-level matched rows require {column}')`.
-17. Returns `levels`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `len(table) != expected_rows` is true.
-- Rejects or diverts the path when `not raw_voltage_values.map(_is_positive_finite_number).all()` is true.
-- Rejects or diverts the path when `table.duplicated(['parcel_id', 'voltage_kv']).any()` is true.
-- Rejects or diverts the path when `table_levels != levels` is true.
-- Rejects or diverts the path when `len(rows) != len(expected_ids) or rows['parcel_id'].tolist() != expected_ids` is true.
-- Rejects or diverts the path when `table[column].isna().any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `len(table) != expected_rows`.
+- Guard with a raise path: `not raw_voltage_values.map(_is_positive_finite_number).all()`.
+- Guard with a raise path: `table.duplicated(['parcel_id', 'voltage_kv']).any()`.
+- Guard with a raise path: `table_levels != levels`.
+- Guard with a raise path: `len(rows) != len(expected_ids) or rows['parcel_id'].tolist() != expected_ids`.
+- Guard with a raise path: `table[column].isna().any()`.
+- Explicit raise expressions: `GridProximityError('Missing voltage proximity columns: ' + ', '.join(sorted(missing)))`, `GridProximityError('Voltage proximity levels do not match source coverage')`, `GridProximityError('Voltage proximity levels must be numeric, finite, and > 0')`, `GridProximityError('Voltage proximity parcel/voltage pairs must be unique')`, `GridProximityError('Voltage proximity row count is inconsistent')`, `GridProximityError(f'Voltage proximity does not contain the exact parcel set for {voltage_kv:g} kV')`, `GridProximityError(f'Voltage-level matched rows require {column}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `GridProximityError`, `_validate_id_values`, `_validate_match_integrity`, `_validate_voltage_coverage`, `float`, `len`, `parcel_ids.tolist`, `raw_voltage_values.map`, `raw_voltage_values.map(_is_positive_finite_number).all`, `raw_voltage_values.tolist`, `rows['parcel_id'].tolist`, `set`, `sorted`, `table.duplicated`, `table.duplicated(['parcel_id', 'voltage_kv']).any`, `table[column].isna`, `table[column].isna().any`, `tuple`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_validate_voltage_table`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_result_contract`
+```python
+def _validate_voltage_table(
+    table: pd.DataFrame,
+    parcel_ids: pd.Series,
+    coverage: tuple[VoltageLevelCoverage, ...],
+) -> tuple[float, ...]:
+    missing = set(VOLTAGE_PROXIMITY_COLUMNS) - set(table.columns)
+    if missing:
+        raise GridProximityError(
+            "Missing voltage proximity columns: " + ", ".join(sorted(missing))
+        )
+    levels = _validate_voltage_coverage(coverage)
+    expected_rows = len(parcel_ids) * len(levels)
+    if len(table) != expected_rows:
+        raise GridProximityError("Voltage proximity row count is inconsistent")
+    if table.empty:
+        return levels
 
-**Tests**
+    _validate_id_values(table["parcel_id"], "parcel_id", require_unique=False)
+    raw_voltage_values = table["voltage_kv"]
+    if not raw_voltage_values.map(_is_positive_finite_number).all():
+        raise GridProximityError(
+            "Voltage proximity levels must be numeric, finite, and > 0"
+        )
+    if table.duplicated(["parcel_id", "voltage_kv"]).any():
+        raise GridProximityError("Voltage proximity parcel/voltage pairs must be unique")
+    table_levels = tuple(
+        sorted({float(value) for value in raw_voltage_values.tolist()})
+    )
+    if table_levels != levels:
+        raise GridProximityError(
+            "Voltage proximity levels do not match source coverage"
+        )
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    expected_ids = parcel_ids.tolist()
+    for voltage_kv in levels:
+        rows = table.loc[raw_voltage_values.map(float) == voltage_kv]
+        if len(rows) != len(expected_ids) or rows["parcel_id"].tolist() != expected_ids:
+            raise GridProximityError(
+                f"Voltage proximity does not contain the exact parcel set for {voltage_kv:g} kV"
+            )
 
-**Business interpretation**
+    _validate_match_integrity(
+        table,
+        label="Voltage-level line proximity",
+        distance_column="nearest_line_proxy_distance_m",
+        grid_id_column="nearest_line_grid_feature_id",
+        source_id_column="nearest_line_source_feature_id",
+        tie_column="tie_count",
+        expect_matches=True,
+    )
+    for column in (
+        "source_department_code",
+        "source_edition",
+        "source_archive_sha256",
+    ):
+        if table[column].isna().any():
+            raise GridProximityError(
+                f"Voltage-level matched rows require {column}"
+            )
+    return levels
+```
 
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_null_safe_series_equal`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _null_safe_series_equal(actual: pd.Series, expected: pd.Series) -> bool:
@@ -1507,61 +2098,63 @@ def _null_safe_series_equal(actual: pd.Series, expected: pd.Series) -> bool:
 
 **Purpose**
 
-Implements null safe series equal according to the exact implementation and guards in this file.
+Private `grid/source` helper for null safe series equal; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `actual` (`pd.Series`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `expected` (`pd.Series`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `bool`.
+- Every observed return expression is reproduced without truncation:
+```python
+bool((both_null | equal_values).all())
 
-**Returns**
+False
 
-- Declared return type: `bool`. Observed return expression(s): `bool((both_null | equal_values).all())`; `False`.
+False
+```
 
-**Algorithm**
+**Validation and exceptions**
 
-1. Computes `actual_values` from `actual.reset_index(drop=True)`.
-2. Computes `expected_values` from `expected.reset_index(drop=True)`.
-3. Checks `len(actual_values) != len(expected_values)`. When true: Returns `False`.
-4. Computes `both_null` from `actual_values.isna() & expected_values.isna()`.
-5. Runs guarded operation: Computes `equal_values` from `actual_values.eq(expected_values).fillna(False)`. Handles `(TypeError, ValueError)`.
-6. Returns `bool((both_null | equal_values).all())`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(both_null | equal_values).all`, `actual.reset_index`, `actual_values.eq`, `actual_values.eq(expected_values).fillna`, `actual_values.isna`, `bool`, `expected.reset_index`, `expected_values.isna`, `len`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_exact_representation_consistency` via `_null_safe_series_equal`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_exact_representation_consistency`
+```python
+def _null_safe_series_equal(actual: pd.Series, expected: pd.Series) -> bool:
+    actual_values = actual.reset_index(drop=True)
+    expected_values = expected.reset_index(drop=True)
+    if len(actual_values) != len(expected_values):
+        return False
+    both_null = actual_values.isna() & expected_values.isna()
+    try:
+        equal_values = actual_values.eq(expected_values).fillna(False)
+    except (TypeError, ValueError):
+        return False
+    return bool((both_null | equal_values).all())
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_exact_representation_consistency`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_exact_representation_consistency(
@@ -1573,86 +2166,146 @@ def _validate_exact_representation_consistency(
 
 **Purpose**
 
-Validates and rejects malformed exact representation consistency according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent exact representation consistency; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `voltage_table` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `levels` (`tuple[float, ...]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- Every observed return expression is reproduced without truncation:
+```python
+None
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. Observed return expression(s): `None`.
-
-**Algorithm**
-
-1. Checks `not levels`. When true: Returns `None`.
-2. Computes `distance_column` from `'nearest_line_proxy_distance_m'`.
-3. Computes `grid_id_column` from `'nearest_line_grid_feature_id'`.
-4. Computes `selected_columns` from `('parcel_id', distance_column, grid_id_column, 'nearest_line_source_feature_id', 'voltage_kv', 'tie_count', 'manager_name', 'asset_status_raw', 'source_department_code', 'source_edition', 'source_archive_sha256')`.
-5. Computes `candidates` from `voltage_table.loc[:, list(selected_columns)].copy()`.
-6. Calls `_validate_id_values(candidates[grid_id_column], 'Voltage-level nearest grid_feature_id', require_unique=False)` for its validation or side effect.
-7. Computes `parcel_positions` from `{parcel_id: position for position, parcel_id in enumerate(parcels['parcel_id'].tolist())}`.
-8. Computes `candidates['_parcel_position']` from `candidates['parcel_id'].map(parcel_positions)`.
-9. Checks `candidates['_parcel_position'].isna().any()`. When true: Raises `GridProximityError('Voltage-level proximity contains an unexpected parcel ID')`.
-10. Computes `candidates['_distance']` from `candidates[distance_column].map(float)`.
-11. Computes `candidates['_tie_count']` from `candidates['tie_count'].map(int).astype('object')`.
-12. Computes `ordered` from `candidates.sort_values(['_parcel_position', '_distance', grid_id_column], kind='mergesort')`.
-13. Computes `expected` from `ordered.drop_duplicates('_parcel_position', keep='first')`.
-14. Computes `expected` from `expected.set_index('_parcel_position').reindex(range(len(parcels)))`.
-15. Checks `expected['parcel_id'].isna().any()`. When true: Raises `GridProximityError('Voltage-level proximity does not cover every parcel')`.
-16. Computes `minimum_distance` from `candidates.groupby('_parcel_position', sort=False)['_distance'].transform('min')`.
-17. Computes `tied_level_winners` from `candidates.loc[candidates['_distance'].eq(minimum_distance)]`.
-18. Computes `expected_ties` from `tied_level_winners.groupby('_parcel_position', sort=False)['_tie_count'].agg(lambda values: sum(values.tolist()))`.
-19. Computes `expected_ties` from `expected_ties.reindex(range(len(parcels)))`.
-20. Computes `actual` from `parcels.reset_index(drop=True)`.
-21. Computes `actual_distance` from `actual['nearest_exact_line_proxy_distance_m'].map(float)`.
-22. Checks `not actual_distance.eq(expected['_distance'].reset_index(drop=True)).all()`. When true: Raises `GridProximityError('Global exact-line distance is inconsistent with voltage-level proximity')`.
-23. Computes `field_mapping` from `(('nearest_exact_line_grid_feature_id', grid_id_column), ('nearest_exact_line_source_feature_id', 'nearest_line_source_feature_id'), ('nearest_exact_line_voltage_kv', 'voltage_kv'), ('nearest_exact_line_manager_name', 'manager_name'), ('nearest_exact_line_asset_status_raw', 'asset_status_raw'), ('nearest_exact_line_so…`.
-24. Iterates `(parcel_column, table_column)` over `field_mapping`. For each value: Checks `not _null_safe_series_equal(actual[parcel_column], expected[table_column])`. When true: Raises `GridProximityError(f'Global exact-line {parcel_column} is inconsistent with voltage-level proximity')`.
-25. Computes `actual_ties` from `actual['nearest_exact_line_tie_count'].map(int)`.
-26. Checks `not actual_ties.eq(expected_ties.reset_index(drop=True)).all()`. When true: Raises `GridProximityError('Global exact-line tie count is inconsistent with voltage-level proximity')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `candidates['_parcel_position'].isna().any()` is true.
-- Rejects or diverts the path when `expected['parcel_id'].isna().any()` is true.
-- Rejects or diverts the path when `not actual_distance.eq(expected['_distance'].reset_index(drop=True)).all()` is true.
-- Rejects or diverts the path when `not actual_ties.eq(expected_ties.reset_index(drop=True)).all()` is true.
-- Rejects or diverts the path when `not _null_safe_series_equal(actual[parcel_column], expected[table_column])` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `candidates['_parcel_position'].isna().any()`.
+- Guard with a raise path: `expected['parcel_id'].isna().any()`.
+- Guard with a raise path: `not actual_distance.eq(expected['_distance'].reset_index(drop=True)).all()`.
+- Guard with a raise path: `not actual_ties.eq(expected_ties.reset_index(drop=True)).all()`.
+- Guard with a raise path: `not _null_safe_series_equal(actual[parcel_column], expected[table_column])`.
+- Explicit raise expressions: `GridProximityError('Global exact-line distance is inconsistent with voltage-level proximity')`, `GridProximityError('Global exact-line tie count is inconsistent with voltage-level proximity')`, `GridProximityError('Voltage-level proximity contains an unexpected parcel ID')`, `GridProximityError('Voltage-level proximity does not cover every parcel')`, `GridProximityError(f'Global exact-line {parcel_column} is inconsistent with voltage-level proximity')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `voltage_table.loc[:, list(selected_columns)].copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `actual['nearest_exact_line_proxy_distance_m'].map`, `actual_distance.eq`, `actual_distance.eq(expected['_distance'].reset_index(drop=True)).all`, `candidates.groupby('_parcel_position', sort=False)['_distance'].transform`, `candidates['_distance'].eq`, `candidates[distance_column].map`, `expected['_distance'].reset_index`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `candidates['_distance']`, `candidates['_parcel_position']`, `candidates['_tie_count']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `GridProximityError`, `_null_safe_series_equal`, `_validate_id_values`, `actual['nearest_exact_line_proxy_distance_m'].map`, `actual['nearest_exact_line_tie_count'].map`, `actual_distance.eq`, `actual_distance.eq(expected['_distance'].reset_index(drop=True)).all`, `actual_ties.eq`, `actual_ties.eq(expected_ties.reset_index(drop=True)).all`, `candidates.groupby`, `candidates.groupby('_parcel_position', sort=False)['_distance'].transform`, `candidates.sort_values`, `candidates['_distance'].eq`, `candidates['_parcel_position'].isna`, `candidates['_parcel_position'].isna().any`, `candidates['parcel_id'].map`, `candidates['tie_count'].map`, `candidates['tie_count'].map(int).astype`, `candidates[distance_column].map`, `enumerate`, `expected.set_index`, `expected.set_index('_parcel_position').reindex`, `expected['_distance'].reset_index`, `expected['parcel_id'].isna`, `expected['parcel_id'].isna().any`, `expected_ties.reindex`, `expected_ties.reset_index`, `len`, `list`, `ordered.drop_duplicates`, `parcels.reset_index`, `parcels['parcel_id'].tolist`, `range`, `sum`, `tied_level_winners.groupby`, `tied_level_winners.groupby('_parcel_position', sort=False)['_tie_count'].agg`, `values.tolist`, `voltage_table.loc[:, list(selected_columns)].copy`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_validate_exact_representation_consistency`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_result_contract`
+```python
+def _validate_exact_representation_consistency(
+    parcels: gpd.GeoDataFrame,
+    voltage_table: pd.DataFrame,
+    levels: tuple[float, ...],
+) -> None:
+    if not levels:
+        return
 
-**Tests**
+    distance_column = "nearest_line_proxy_distance_m"
+    grid_id_column = "nearest_line_grid_feature_id"
+    selected_columns = (
+        "parcel_id",
+        distance_column,
+        grid_id_column,
+        "nearest_line_source_feature_id",
+        "voltage_kv",
+        "tie_count",
+        "manager_name",
+        "asset_status_raw",
+        "source_department_code",
+        "source_edition",
+        "source_archive_sha256",
+    )
+    candidates = voltage_table.loc[:, list(selected_columns)].copy()
+    _validate_id_values(
+        candidates[grid_id_column],
+        "Voltage-level nearest grid_feature_id",
+        require_unique=False,
+    )
+    parcel_positions = {
+        parcel_id: position
+        for position, parcel_id in enumerate(parcels["parcel_id"].tolist())
+    }
+    candidates["_parcel_position"] = candidates["parcel_id"].map(parcel_positions)
+    if candidates["_parcel_position"].isna().any():
+        raise GridProximityError(
+            "Voltage-level proximity contains an unexpected parcel ID"
+        )
+    candidates["_distance"] = candidates[distance_column].map(float)
+    candidates["_tie_count"] = candidates["tie_count"].map(int).astype("object")
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    ordered = candidates.sort_values(
+        ["_parcel_position", "_distance", grid_id_column],
+        kind="mergesort",
+    )
+    expected = ordered.drop_duplicates("_parcel_position", keep="first")
+    expected = expected.set_index("_parcel_position").reindex(range(len(parcels)))
+    if expected["parcel_id"].isna().any():
+        raise GridProximityError(
+            "Voltage-level proximity does not cover every parcel"
+        )
 
-**Business interpretation**
+    minimum_distance = candidates.groupby("_parcel_position", sort=False)[
+        "_distance"
+    ].transform("min")
+    tied_level_winners = candidates.loc[
+        candidates["_distance"].eq(minimum_distance)
+    ]
+    expected_ties = tied_level_winners.groupby("_parcel_position", sort=False)[
+        "_tie_count"
+    ].agg(lambda values: sum(values.tolist()))
+    expected_ties = expected_ties.reindex(range(len(parcels)))
 
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
+    actual = parcels.reset_index(drop=True)
+    actual_distance = actual["nearest_exact_line_proxy_distance_m"].map(float)
+    if not actual_distance.eq(expected["_distance"].reset_index(drop=True)).all():
+        raise GridProximityError(
+            "Global exact-line distance is inconsistent with voltage-level proximity"
+        )
 
-**Does NOT prove**
+    field_mapping = (
+        ("nearest_exact_line_grid_feature_id", grid_id_column),
+        ("nearest_exact_line_source_feature_id", "nearest_line_source_feature_id"),
+        ("nearest_exact_line_voltage_kv", "voltage_kv"),
+        ("nearest_exact_line_manager_name", "manager_name"),
+        ("nearest_exact_line_asset_status_raw", "asset_status_raw"),
+        ("nearest_exact_line_source_department_code", "source_department_code"),
+        ("nearest_exact_line_source_edition", "source_edition"),
+        ("nearest_exact_line_source_archive_sha256", "source_archive_sha256"),
+    )
+    for parcel_column, table_column in field_mapping:
+        if not _null_safe_series_equal(
+            actual[parcel_column], expected[table_column]
+        ):
+            raise GridProximityError(
+                f"Global exact-line {parcel_column} is inconsistent with "
+                "voltage-level proximity"
+            )
+
+    actual_ties = actual["nearest_exact_line_tie_count"].map(int)
+    if not actual_ties.eq(expected_ties.reset_index(drop=True)).all():
+        raise GridProximityError(
+            "Global exact-line tie count is inconsistent with voltage-level proximity"
+        )
+```
+
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_result_contract`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_result_contract(result: GridProximityResult) -> tuple[float, ...]:
@@ -1660,69 +2313,110 @@ def _validate_result_contract(result: GridProximityResult) -> tuple[float, ...]:
 
 **Purpose**
 
-Validates and rejects malformed result contract according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent result contract; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `result` (`GridProximityResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[float, ...]`.
+- Every observed return expression is reproduced without truncation:
+```python
+levels
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[float, ...]`. Observed return expression(s): `levels`.
-
-**Algorithm**
-
-1. Computes `parcels` from `result.parcels`.
-2. Calls `_validate_parcels(parcels)` for its validation or side effect.
-3. Computes `required_proximity_columns` from `set(_LINE_OUTPUT_MAPPING.values()) | set(_EXACT_LINE_OUTPUT_MAPPING.values()) | set(_POST_OUTPUT_MAPPING.values())`.
-4. Computes `missing` from `required_proximity_columns - set(parcels.columns)`.
-5. Checks `missing`. When true: Raises `GridProximityError('Missing proximity result columns: ' + ', '.join(sorted(missing)))`.
-6. Computes `levels` from `_validate_voltage_coverage(result.voltage_level_coverage)`.
-7. Calls `_validate_match_integrity(parcels, label='Nearest line proximity', distance_column='nearest_line_proxy_distance_m', grid_id_column='nearest_line_grid_feature_id', source_id_column='nearest_line_source_feature_id', tie_column='nearest_line_tie_count', expect_matches=True)` for its validation or side effect.
-8. Calls `_validate_match_integrity(parcels, label='Nearest post proximity', distance_column='nearest_post_proxy_distance_m', grid_id_column='nearest_post_grid_feature_id', source_id_column='nearest_post_source_feature_id', tie_column='nearest_post_tie_count', expect_matches=True)` for its validation or side effect.
-9. Calls `_validate_match_integrity(parcels, label='Nearest exact-line proximity', distance_column='nearest_exact_line_proxy_distance_m', grid_id_column='nearest_exact_line_grid_feature_id', source_id_column='nearest_exact_line_source_feature_id', tie_column='nearest_exact_line_tie_count', expect_matches=bool(levels), voltage_column='nearest_exact_line_voltage_kv', u…` for its validation or side effect.
-10. Checks `levels and (not parcels['nearest_exact_line_voltage_kv'].map(float).isin(levels).all())`. When true: Raises `GridProximityError('Nearest exact-line voltage does not match source coverage')`.
-11. Calls `_validate_voltage_table(result.voltage_level_proximity, parcels['parcel_id'], result.voltage_level_coverage)` for its validation or side effect.
-12. Calls `_validate_exact_representation_consistency(parcels, result.voltage_level_proximity, levels)` for its validation or side effect.
-13. Returns `levels`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `levels and (not parcels['nearest_exact_line_voltage_kv'].map(float).isin(levels).all())` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `levels and (not parcels['nearest_exact_line_voltage_kv'].map(float).isin(levels).all())`.
+- Explicit raise expressions: `GridProximityError('Missing proximity result columns: ' + ', '.join(sorted(missing)))`, `GridProximityError('Nearest exact-line voltage does not match source coverage')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `GridProximityError`, `_EXACT_LINE_OUTPUT_MAPPING.values`, `_LINE_OUTPUT_MAPPING.values`, `_POST_OUTPUT_MAPPING.values`, `_validate_exact_representation_consistency`, `_validate_match_integrity`, `_validate_parcels`, `_validate_voltage_coverage`, `_validate_voltage_table`, `bool`, `parcels['nearest_exact_line_voltage_kv'].map`, `parcels['nearest_exact_line_voltage_kv'].map(float).isin`, `parcels['nearest_exact_line_voltage_kv'].map(float).isin(levels).all`, `set`, `sorted`, `tuple`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_output_integrity` via `_validate_result_contract`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::profile_grid_proximity` via `_validate_result_contract`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_validate_output_integrity`
-- `src/landscout/stages/enrich_grid_proximity.py` — `profile_grid_proximity`
+```python
+def _validate_result_contract(result: GridProximityResult) -> tuple[float, ...]:
+    parcels = result.parcels
+    _validate_parcels(parcels)
+    required_proximity_columns = (
+        set(_LINE_OUTPUT_MAPPING.values())
+        | set(_EXACT_LINE_OUTPUT_MAPPING.values())
+        | set(_POST_OUTPUT_MAPPING.values())
+    )
+    missing = required_proximity_columns - set(parcels.columns)
+    if missing:
+        raise GridProximityError(
+            "Missing proximity result columns: " + ", ".join(sorted(missing))
+        )
+    levels = _validate_voltage_coverage(result.voltage_level_coverage)
+    _validate_match_integrity(
+        parcels,
+        label="Nearest line proximity",
+        distance_column="nearest_line_proxy_distance_m",
+        grid_id_column="nearest_line_grid_feature_id",
+        source_id_column="nearest_line_source_feature_id",
+        tie_column="nearest_line_tie_count",
+        expect_matches=True,
+    )
+    _validate_match_integrity(
+        parcels,
+        label="Nearest post proximity",
+        distance_column="nearest_post_proxy_distance_m",
+        grid_id_column="nearest_post_grid_feature_id",
+        source_id_column="nearest_post_source_feature_id",
+        tie_column="nearest_post_tie_count",
+        expect_matches=True,
+    )
+    _validate_match_integrity(
+        parcels,
+        label="Nearest exact-line proximity",
+        distance_column="nearest_exact_line_proxy_distance_m",
+        grid_id_column="nearest_exact_line_grid_feature_id",
+        source_id_column="nearest_exact_line_source_feature_id",
+        tie_column="nearest_exact_line_tie_count",
+        expect_matches=bool(levels),
+        voltage_column="nearest_exact_line_voltage_kv",
+        unmatched_null_columns=tuple(_EXACT_LINE_OUTPUT_MAPPING.values()),
+    )
+    if levels and not parcels["nearest_exact_line_voltage_kv"].map(float).isin(
+        levels
+    ).all():
+        raise GridProximityError(
+            "Nearest exact-line voltage does not match source coverage"
+        )
+    _validate_voltage_table(
+        result.voltage_level_proximity,
+        parcels["parcel_id"],
+        result.voltage_level_coverage,
+    )
+    _validate_exact_representation_consistency(
+        parcels,
+        result.voltage_level_proximity,
+        levels,
+    )
+    return levels
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_output_integrity`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_output_integrity(
@@ -1733,68 +2427,68 @@ def _validate_output_integrity(
 
 **Purpose**
 
-Validates and rejects malformed output integrity according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent output integrity; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `source_parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `result` (`GridProximityResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Calls `_validate_result_contract(result)` for its validation or side effect.
-2. Computes `output` from `result.parcels`.
-3. Checks `len(output) != len(source_parcels)`. When true: Raises `GridProximityError('Grid proximity enrichment changed parcel count')`.
-4. Computes `source_ids` from `source_parcels['parcel_id'].reset_index(drop=True)`.
-5. Computes `output_ids` from `output['parcel_id'].reset_index(drop=True)`.
-6. Checks `not source_ids.equals(output_ids)`. When true: Raises `GridProximityError('Grid proximity enrichment changed parcel IDs or order')`.
-7. Computes `source_crs` from `_validated_crs(source_parcels.crs, 'Input parcel')`.
-8. Computes `output_crs` from `_validated_crs(output.crs, 'Output parcel')`.
-9. Checks `not source_crs.equals(output_crs)`. When true: Raises `GridProximityError('Enriched parcel CRS changed')`.
-10. Checks `not output.geometry.geom_equals_exact(source_parcels.geometry.reset_index(drop=True), tolerance=0, align=False).all()`. When true: Raises `GridProximityError('Enriched parcel geometry changed')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(output) != len(source_parcels)` is true.
-- Rejects or diverts the path when `not source_ids.equals(output_ids)` is true.
-- Rejects or diverts the path when `not source_crs.equals(output_crs)` is true.
-- Rejects or diverts the path when `not output.geometry.geom_equals_exact(source_parcels.geometry.reset_index(drop=True), tolerance=0, align=False).all()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(output) != len(source_parcels)`.
+- Guard with a raise path: `not source_ids.equals(output_ids)`.
+- Guard with a raise path: `not source_crs.equals(output_crs)`.
+- Guard with a raise path: `not output.geometry.geom_equals_exact(source_parcels.geometry.reset_index(drop=True), tolerance=0, align=False).all()`.
+- Explicit raise expressions: `GridProximityError('Enriched parcel CRS changed')`, `GridProximityError('Enriched parcel geometry changed')`, `GridProximityError('Grid proximity enrichment changed parcel IDs or order')`, `GridProximityError('Grid proximity enrichment changed parcel count')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `output.geometry.geom_equals_exact`, `output.geometry.geom_equals_exact(source_parcels.geometry.reset_index(drop=True), tolerance=0, align=False).all`, `source_parcels.geometry.reset_index`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `GridProximityError`, `_validate_result_contract`, `_validated_crs`, `len`, `output.geometry.geom_equals_exact`, `output.geometry.geom_equals_exact(source_parcels.geometry.reset_index(drop=True), tolerance=0, align=False).all`, `output['parcel_id'].reset_index`, `source_crs.equals`, `source_ids.equals`, `source_parcels.geometry.reset_index`, `source_parcels['parcel_id'].reset_index`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `_validate_output_integrity`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_enrich_parcel_grid_proximity_from_normalized`
+```python
+def _validate_output_integrity(
+    source_parcels: gpd.GeoDataFrame,
+    result: GridProximityResult,
+) -> None:
+    _validate_result_contract(result)
+    output = result.parcels
+    if len(output) != len(source_parcels):
+        raise GridProximityError("Grid proximity enrichment changed parcel count")
+    source_ids = source_parcels["parcel_id"].reset_index(drop=True)
+    output_ids = output["parcel_id"].reset_index(drop=True)
+    if not source_ids.equals(output_ids):
+        raise GridProximityError("Grid proximity enrichment changed parcel IDs or order")
+    source_crs = _validated_crs(source_parcels.crs, "Input parcel")
+    output_crs = _validated_crs(output.crs, "Output parcel")
+    if not source_crs.equals(output_crs):
+        raise GridProximityError("Enriched parcel CRS changed")
+    if not output.geometry.geom_equals_exact(
+        source_parcels.geometry.reset_index(drop=True), tolerance=0, align=False
+    ).all():
+        raise GridProximityError("Enriched parcel geometry changed")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_voltage_level_table`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _voltage_level_table(
@@ -1806,62 +2500,105 @@ def _voltage_level_table(
 
 **Purpose**
 
-Implements voltage level table according to the exact implementation and guards in this file.
+Private `grid/source` helper for voltage level table; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parcel_ids` (`pd.Series`; required) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `parcel_geometries` (`np.ndarray`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `exact_lines` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[pd.DataFrame, tuple[VoltageLevelCoverage, ...]]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(pd.concat(tables, ignore_index=True), tuple(coverage))
 
-**Returns**
+(empty, ())
+```
 
-- Declared return type: `tuple[pd.DataFrame, tuple[VoltageLevelCoverage, ...]]`. Observed return expression(s): `(pd.concat(tables, ignore_index=True), tuple(coverage))`; `(empty, ())`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Computes `levels` from `tuple(sorted((float(value) for value in exact_lines['voltage_kv'].unique())))`.
-2. Defines `tables` with annotation `list[pd.DataFrame]` from `[]`.
-3. Defines `coverage` with annotation `list[VoltageLevelCoverage]` from `[]`.
-4. Iterates `voltage_kv` over `levels`. For each value: Computes `level_lines` from `exact_lines.loc[exact_lines['voltage_kv'] == voltage_kv].copy()`. Calls `coverage.append(VoltageLevelCoverage(voltage_kv=voltage_kv, line_feature_count=len(level_lines)))` for its validation or side effect. Computes `nearest` from `_nearest_feature_rows(parcel_geometries, level_lines, ('grid_feature_id', 'source_feature_id', 'manager_name', 'asset_status_raw', 'source_department_code', 'source_edition', 'source_archive_sha256'))`. Executes 2 additional source-ordered statement(s).
-5. Checks `not tables`. When true: Computes `empty` from `pd.DataFrame(columns=list(VOLTAGE_PROXIMITY_COLUMNS))`. Computes `empty['voltage_kv']` from `empty['voltage_kv'].astype('float64')`. Computes `empty['nearest_line_proxy_distance_m']` from `empty['nearest_line_proxy_distance_m'].astype('float64')`. Executes 2 additional source-ordered statement(s).
-6. Returns `(pd.concat(tables, ignore_index=True), tuple(coverage))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `exact_lines.loc[exact_lines['voltage_kv'] == voltage_kv].copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `empty['nearest_line_proxy_distance_m'].astype`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `empty['nearest_line_proxy_distance_m']`, `empty['tie_count']`, `empty['voltage_kv']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `VoltageLevelCoverage`, `_nearest_feature_rows`, `coverage.append`, `empty['nearest_line_proxy_distance_m'].astype`, `empty['tie_count'].astype`, `empty['voltage_kv'].astype`, `exact_lines.loc[exact_lines['voltage_kv'] == voltage_kv].copy`, `exact_lines['voltage_kv'].unique`, `float`, `len`, `list`, `parcel_ids.reset_index`, `pd.DataFrame`, `pd.concat`, `sorted`, `tables.append`, `tuple`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `_voltage_level_table`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `_enrich_parcel_grid_proximity_from_normalized`
+```python
+def _voltage_level_table(
+    parcel_ids: pd.Series,
+    parcel_geometries: np.ndarray,
+    exact_lines: gpd.GeoDataFrame,
+) -> tuple[pd.DataFrame, tuple[VoltageLevelCoverage, ...]]:
+    levels = tuple(sorted(float(value) for value in exact_lines["voltage_kv"].unique()))
+    tables: list[pd.DataFrame] = []
+    coverage: list[VoltageLevelCoverage] = []
+    for voltage_kv in levels:
+        level_lines = exact_lines.loc[exact_lines["voltage_kv"] == voltage_kv].copy()
+        coverage.append(
+            VoltageLevelCoverage(
+                voltage_kv=voltage_kv,
+                line_feature_count=len(level_lines),
+            )
+        )
+        nearest = _nearest_feature_rows(
+            parcel_geometries,
+            level_lines,
+            (
+                "grid_feature_id",
+                "source_feature_id",
+                "manager_name",
+                "asset_status_raw",
+                "source_department_code",
+                "source_edition",
+                "source_archive_sha256",
+            ),
+        )
+        table = pd.DataFrame(
+            {
+                "parcel_id": parcel_ids.reset_index(drop=True),
+                "voltage_kv": voltage_kv,
+                "nearest_line_proxy_distance_m": nearest["distance_m"],
+                "nearest_line_grid_feature_id": nearest["grid_feature_id"],
+                "nearest_line_source_feature_id": nearest["source_feature_id"],
+                "tie_count": nearest["tie_count"],
+                "manager_name": nearest["manager_name"],
+                "asset_status_raw": nearest["asset_status_raw"],
+                "source_department_code": nearest["source_department_code"],
+                "source_edition": nearest["source_edition"],
+                "source_archive_sha256": nearest["source_archive_sha256"],
+            }
+        )
+        tables.append(table.loc[:, list(VOLTAGE_PROXIMITY_COLUMNS)])
 
-**Tests**
+    if not tables:
+        empty = pd.DataFrame(columns=list(VOLTAGE_PROXIMITY_COLUMNS))
+        empty["voltage_kv"] = empty["voltage_kv"].astype("float64")
+        empty["nearest_line_proxy_distance_m"] = empty[
+            "nearest_line_proxy_distance_m"
+        ].astype("float64")
+        empty["tie_count"] = empty["tie_count"].astype("Int64")
+        return empty, ()
+    return pd.concat(tables, ignore_index=True), tuple(coverage)
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_enrich_parcel_grid_proximity_from_normalized`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _enrich_parcel_grid_proximity_from_normalized(
@@ -1875,145 +2612,127 @@ def _enrich_parcel_grid_proximity_from_normalized(
 
 Attach nearest IGN proxy matches using planar XY distance in EPSG:2154. IGN Z values are removed from calculation-only copies and do not affect horizontal proximity. Source parcel and normalized IGN geometries are not mutated. Distances describe only the nearest feature inside loaded proxy coverage and do not establish connection feasibility.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `electric_lines` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `transformation_posts` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `GridProximityResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `GridProximityResult`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Calls `_validate_parcels(parcels)` for its validation or side effect.
-2. Computes `valid_lines` from `_validate_grid(electric_lines, label='Electric-line grid', required_columns=LINE_REQUIRED_COLUMNS, feature_type='ELECTRIC_LINE', allowed_geometry_types=LINE_GEOMETRY_TYPES)`.
-3. Computes `valid_posts` from `_validate_grid(transformation_posts, label='Transformation-post grid', required_columns=POST_REQUIRED_COLUMNS, feature_type='TRANSFORMATION_POST', allowed_geometry_types=POST_GEOMETRY_TYPES)`.
-4. Checks `valid_lines.empty`. When true: Raises `GridProximityError('No VALID electric-line proxy is available')`.
-5. Checks `valid_posts.empty`. When true: Raises `GridProximityError('No VALID transformation-post proxy is available')`.
-6. Computes `output` from `parcels.reset_index(drop=True).copy()`.
-7. Computes `calculation_parcels` from `output.to_crs(CALCULATION_CRS)`.
-8. Computes `parcel_geometries` from `_calculation_geometries(calculation_parcels)`.
-9. Computes `nearest_line` from `_nearest_feature_rows(parcel_geometries, valid_lines, _LINE_MATCH_COLUMNS)`.
-10. Calls `_attach_matches(output, nearest_line, _LINE_OUTPUT_MAPPING)` for its validation or side effect.
-11. Computes `exact_mask` from `(valid_lines['voltage_status'] == 'EXACT') & valid_lines['voltage_kv'].map(_is_positive_finite_number)`.
-12. Computes `exact_lines` from `valid_lines.loc[exact_mask].reset_index(drop=True).copy()`.
-13. Computes `exact_lines['voltage_kv']` from `exact_lines['voltage_kv'].map(float).astype('float64')`.
-14. Computes `nearest_exact` from `_nearest_feature_rows(parcel_geometries, exact_lines, _LINE_MATCH_COLUMNS, allow_empty=True)`.
-15. Calls `_attach_matches(output, nearest_exact, _EXACT_LINE_OUTPUT_MAPPING)` for its validation or side effect.
-16. Computes `nearest_post` from `_nearest_feature_rows(parcel_geometries, valid_posts, _POST_MATCH_COLUMNS)`.
-17. Calls `_attach_matches(output, nearest_post, _POST_OUTPUT_MAPPING)` for its validation or side effect.
-18. Computes `(voltage_table, voltage_coverage)` from `_voltage_level_table(output['parcel_id'], parcel_geometries, exact_lines)`.
-19. Computes `result` from `GridProximityResult(parcels=output, voltage_level_proximity=voltage_table, voltage_level_coverage=voltage_coverage)`.
-20. Calls `_validate_output_integrity(parcels, result)` for its validation or side effect.
-21. Returns `result`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `valid_lines.empty` is true.
-- Rejects or diverts the path when `valid_posts.empty` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `valid_lines.empty`.
+- Guard with a raise path: `valid_posts.empty`.
+- Explicit raise expressions: `GridProximityError('No VALID electric-line proxy is available')`, `GridProximityError('No VALID transformation-post proxy is available')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `output.to_crs`, `parcels.reset_index(drop=True).copy`, `valid_lines.loc[exact_mask].reset_index(drop=True).copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `output.to_crs`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `exact_lines['voltage_kv']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `GridProximityError`, `GridProximityResult`, `_attach_matches`, `_calculation_geometries`, `_nearest_feature_rows`, `_validate_grid`, `_validate_output_integrity`, `_validate_parcels`, `_voltage_level_table`, `exact_lines['voltage_kv'].map`, `exact_lines['voltage_kv'].map(float).astype`, `output.to_crs`, `parcels.reset_index`, `parcels.reset_index(drop=True).copy`, `valid_lines.loc[exact_mask].reset_index`, `valid_lines.loc[exact_mask].reset_index(drop=True).copy`, `valid_lines['voltage_kv'].map`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `_enrich_parcel_grid_proximity_from_normalized`.
+- import/re-export: `tests/unit/test_assess_grid_coverage.py::<module>` via `from landscout.stages.enrich_grid_proximity import (
+    _enrich_parcel_grid_proximity_from_normalized as enrich_parcel_grid_proximity,
+)`.
+- import/re-export: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.stages.enrich_grid_proximity import (
+    _enrich_parcel_grid_proximity_from_normalized as enrich_parcel_grid_proximity,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `enrich_parcel_grid_proximity`
-- `tests/unit/test_assess_grid_coverage.py` — `_proximity`
-- `tests/unit/test_assess_grid_coverage.py` — `test_geographic_parcel_storage_crs_and_geometry_are_preserved`
-- `tests/unit/test_enrich_grid_proximity.py` — `_two_parcel_two_voltage_result`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_bad_parcel_geometry_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_cross_voltage_tie_uses_lexical_global_feature_id`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_distance_profile_is_threshold_free_and_tracks_ties`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_duplicate_grid_feature_id_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_duplicate_parcel_id_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_epsg2154_parcel_input_remains_epsg2154`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_epsg4326_input_is_calculated_in_lambert93_and_preserved`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_invalid_exact_voltage_values_are_not_used_as_exact`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_invalid_parcel_id_hygiene_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_line_tie_is_counted_and_lexical_feature_id_wins`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_missing_crs_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_missing_parcel_column_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_nearest_any_line_preserves_every_voltage_status`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_nearest_exact_and_voltage_table_exclude_nonexact_lines`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_no_valid_required_grid_feature_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_nonvalid_grid_geometries_are_excluded_without_row_loss`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_null_parcel_id_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_post_distance_uses_parcel_and_post_polygons`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_profile_allows_consistent_missing_manager_and_asset_status`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_profile_rejects_nonnull_exact_field_without_exact_coverage`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_semantically_wrong_parcel_geometry_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_separated_distance_uses_parcel_edge_not_centroid`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_supported_multi_geometries_are_accepted`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_supported_parcel_polygon_geometry_is_preserved`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_touching_line_has_zero_distance`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_unsupported_valid_grid_geometry_type_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_valid_parcel_id_is_preserved_exactly`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_wrong_grid_crs_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_wrong_grid_feature_type_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_wrong_spatial_role_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py` — `test_z_line_has_same_horizontal_distance_as_xy_line`
+```python
+def _enrich_parcel_grid_proximity_from_normalized(
+    parcels: gpd.GeoDataFrame,
+    electric_lines: gpd.GeoDataFrame,
+    transformation_posts: gpd.GeoDataFrame,
+) -> GridProximityResult:
+    """Attach nearest IGN proxy matches using planar XY distance in EPSG:2154.
 
-**Tests**
+    IGN Z values are removed from calculation-only copies and do not affect
+    horizontal proximity. Source parcel and normalized IGN geometries are not
+    mutated. Distances describe only the nearest feature inside loaded proxy
+    coverage and do not establish connection feasibility.
+    """
 
-- `tests/unit/test_assess_grid_coverage.py::test_geographic_parcel_storage_crs_and_geometry_are_preserved`
-- `tests/unit/test_enrich_grid_proximity.py::test_bad_parcel_geometry_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py::test_cross_voltage_tie_uses_lexical_global_feature_id`
-- `tests/unit/test_enrich_grid_proximity.py::test_distance_profile_is_threshold_free_and_tracks_ties`
-- `tests/unit/test_enrich_grid_proximity.py::test_duplicate_grid_feature_id_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py::test_duplicate_parcel_id_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py::test_epsg2154_parcel_input_remains_epsg2154`
-- `tests/unit/test_enrich_grid_proximity.py::test_epsg4326_input_is_calculated_in_lambert93_and_preserved`
-- `tests/unit/test_enrich_grid_proximity.py::test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved`
-- `tests/unit/test_enrich_grid_proximity.py::test_invalid_exact_voltage_values_are_not_used_as_exact`
-- `tests/unit/test_enrich_grid_proximity.py::test_invalid_parcel_id_hygiene_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py::test_line_tie_is_counted_and_lexical_feature_id_wins`
-- `tests/unit/test_enrich_grid_proximity.py::test_missing_crs_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py::test_missing_parcel_column_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py::test_nearest_any_line_preserves_every_voltage_status`
-- `tests/unit/test_enrich_grid_proximity.py::test_nearest_exact_and_voltage_table_exclude_nonexact_lines`
-- `tests/unit/test_enrich_grid_proximity.py::test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table`
-- `tests/unit/test_enrich_grid_proximity.py::test_no_valid_required_grid_feature_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py::test_nonvalid_grid_geometries_are_excluded_without_row_loss`
-- `tests/unit/test_enrich_grid_proximity.py::test_null_parcel_id_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py::test_post_distance_uses_parcel_and_post_polygons`
-- `tests/unit/test_enrich_grid_proximity.py::test_profile_allows_consistent_missing_manager_and_asset_status`
-- `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage`
-- `tests/unit/test_enrich_grid_proximity.py::test_semantically_wrong_parcel_geometry_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py::test_separated_distance_uses_parcel_edge_not_centroid`
-- `tests/unit/test_enrich_grid_proximity.py::test_supported_multi_geometries_are_accepted`
-- `tests/unit/test_enrich_grid_proximity.py::test_supported_parcel_polygon_geometry_is_preserved`
-- `tests/unit/test_enrich_grid_proximity.py::test_touching_line_has_zero_distance`
-- `tests/unit/test_enrich_grid_proximity.py::test_unsupported_valid_grid_geometry_type_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py::test_valid_parcel_id_is_preserved_exactly`
-- `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_crs_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_feature_type_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py::test_wrong_spatial_role_is_rejected`
-- `tests/unit/test_enrich_grid_proximity.py::test_z_line_has_same_horizontal_distance_as_xy_line`
+    _validate_parcels(parcels)
+    valid_lines = _validate_grid(
+        electric_lines,
+        label="Electric-line grid",
+        required_columns=LINE_REQUIRED_COLUMNS,
+        feature_type="ELECTRIC_LINE",
+        allowed_geometry_types=LINE_GEOMETRY_TYPES,
+    )
+    valid_posts = _validate_grid(
+        transformation_posts,
+        label="Transformation-post grid",
+        required_columns=POST_REQUIRED_COLUMNS,
+        feature_type="TRANSFORMATION_POST",
+        allowed_geometry_types=POST_GEOMETRY_TYPES,
+    )
+    if valid_lines.empty:
+        raise GridProximityError("No VALID electric-line proxy is available")
+    if valid_posts.empty:
+        raise GridProximityError("No VALID transformation-post proxy is available")
 
-**Business interpretation**
+    output = parcels.reset_index(drop=True).copy()
+    calculation_parcels = output.to_crs(CALCULATION_CRS)
+    parcel_geometries = _calculation_geometries(calculation_parcels)
 
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
+    nearest_line = _nearest_feature_rows(
+        parcel_geometries,
+        valid_lines,
+        _LINE_MATCH_COLUMNS,
+    )
+    _attach_matches(output, nearest_line, _LINE_OUTPUT_MAPPING)
 
-**Does NOT prove**
+    exact_mask = (valid_lines["voltage_status"] == "EXACT") & valid_lines[
+        "voltage_kv"
+    ].map(_is_positive_finite_number)
+    exact_lines = valid_lines.loc[exact_mask].reset_index(drop=True).copy()
+    exact_lines["voltage_kv"] = exact_lines["voltage_kv"].map(float).astype("float64")
+    nearest_exact = _nearest_feature_rows(
+        parcel_geometries,
+        exact_lines,
+        _LINE_MATCH_COLUMNS,
+        allow_empty=True,
+    )
+    _attach_matches(output, nearest_exact, _EXACT_LINE_OUTPUT_MAPPING)
+
+    nearest_post = _nearest_feature_rows(
+        parcel_geometries,
+        valid_posts,
+        _POST_MATCH_COLUMNS,
+    )
+    _attach_matches(output, nearest_post, _POST_OUTPUT_MAPPING)
+
+    voltage_table, voltage_coverage = _voltage_level_table(
+        output["parcel_id"], parcel_geometries, exact_lines
+    )
+    result = GridProximityResult(
+        parcels=output,
+        voltage_level_proximity=voltage_table,
+        voltage_level_coverage=voltage_coverage,
+    )
+    _validate_output_integrity(parcels, result)
+    return result
+```
+
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `enrich_parcel_grid_proximity`
 
-**Signature**
+**Exact signature**
 
 ```python
 def enrich_parcel_grid_proximity(
@@ -2027,58 +2746,142 @@ def enrich_parcel_grid_proximity(
 
 Compute proximity from one physically revalidated IGN source bundle.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `electricity_source` (`IgnBdTopoElectricityData`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_config` (`IgnBdTopoSourceConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `GridProximityResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+_enrich_parcel_grid_proximity_from_normalized(parcels, normalized.electric_lines, normalized.transformation_posts)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `GridProximityResult`. Observed return expression(s): `_enrich_parcel_grid_proximity_from_normalized(parcels, normalized.electric_lines, normalized.transformation_posts)`.
-
-**Algorithm**
-
-1. Runs guarded operation: Checks `not isinstance(parcels, gpd.GeoDataFrame)`. When true: Raises `GridProximityError('parcels must be a GeoDataFrame with active geometry')`. Checks `type(electricity_source) is not IgnBdTopoElectricityData`. When true: Raises `GridProximityError('electricity source must be an IgnBdTopoElectricityData')`. Checks `type(source_config) is not IgnBdTopoSourceConfig`. When true: Raises `GridProximityError('source_config must be an IgnBdTopoSourceConfig')`. Calls `_validate_parcels(parcels)` for its validation or side effect. Executes 3 additional source-ordered statement(s). Handles `GridProximityError`, `Exception`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(parcels, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `type(electricity_source) is not IgnBdTopoElectricityData` is true.
-- Rejects or diverts the path when `type(source_config) is not IgnBdTopoSourceConfig` is true.
-- Rejects or diverts the path when `type(normalized) is not NormalizedIgnElectricityData` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(parcels, gpd.GeoDataFrame)`.
+- Guard with a raise path: `type(electricity_source) is not IgnBdTopoElectricityData`.
+- Guard with a raise path: `type(source_config) is not IgnBdTopoSourceConfig`.
+- Guard with a raise path: `type(normalized) is not NormalizedIgnElectricityData`.
+- Explicit raise expressions: `GridProximityError('IGN electricity normalization returned an invalid result')`, `GridProximityError('Parcel-to-grid proximity cannot be computed safely')`, `GridProximityError('electricity source must be an IgnBdTopoElectricityData')`, `GridProximityError('parcels must be a GeoDataFrame with active geometry')`, `GridProximityError('source_config must be an IgnBdTopoSourceConfig')`, `re-raise`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `GridProximityError`, `_enrich_parcel_grid_proximity_from_normalized`, `_validate_parcels`, `isinstance`, `normalize_ign_electricity`, `type`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_grid_proximity import (
+    DistanceProfile,
+    GridProximityError,
+    GridProximityProfile,
+    GridProximityResult,
+    VoltageLevelCoverage,
+    VoltageLevelDistanceProfile,
+    enrich_parcel_grid_proximity,
+    profile_grid_proximity,
+)`.
+- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::assess_grid_coverage` via `enrich_parcel_grid_proximity`.
+- import/re-export: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.stages.enrich_grid_proximity import (
+    GridProximityResult,
+    VoltageLevelCoverage,
+    enrich_parcel_grid_proximity,
+    profile_grid_proximity,
+)`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::_proximity` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_assess_grid_coverage.py::test_geographic_parcel_storage_crs_and_geometry_are_preserved` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::_two_parcel_two_voltage_result` via `enrich_parcel_grid_proximity`.
+- property/attribute access: `tests/unit/test_enrich_grid_proximity.py::test_clean_high_level_api_is_exported` via `stages.enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_separated_distance_uses_parcel_edge_not_centroid` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_touching_line_has_zero_distance` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_post_distance_uses_parcel_and_post_polygons` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_epsg4326_input_is_calculated_in_lambert93_and_preserved` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_epsg2154_parcel_input_remains_epsg2154` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_valid_parcel_id_is_preserved_exactly` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_invalid_parcel_id_hygiene_is_rejected` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_supported_parcel_polygon_geometry_is_preserved` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_semantically_wrong_parcel_geometry_is_rejected` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_missing_crs_is_rejected` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_crs_is_rejected` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_z_line_has_same_horizontal_distance_as_xy_line` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_line_tie_is_counted_and_lexical_feature_id_wins` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_cross_voltage_tie_uses_lexical_global_feature_id` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nonvalid_grid_geometries_are_excluded_without_row_loss` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_grid_feature_type_is_rejected` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_grid_feature_id_is_rejected` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_wrong_spatial_role_is_rejected` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_unsupported_valid_grid_geometry_type_is_rejected` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_supported_multi_geometries_are_accepted` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nearest_any_line_preserves_every_voltage_status` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_nearest_exact_and_voltage_table_exclude_nonexact_lines` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_invalid_exact_voltage_values_are_not_used_as_exact` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_missing_parcel_column_is_rejected` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_null_parcel_id_is_rejected` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_duplicate_parcel_id_is_rejected` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_bad_parcel_geometry_is_rejected` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_inputs_are_not_mutated_and_parcel_order_and_ids_are_preserved` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_distance_profile_is_threshold_free_and_tracks_ties` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_allows_consistent_missing_manager_and_asset_status` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage` via `enrich_parcel_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_no_valid_required_grid_feature_is_rejected` via `enrich_parcel_grid_proximity`.
+- import/re-export: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.stages import (
+    enrich_parcel_grid_proximity as public_enrich_parcel_grid_proximity,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/assess_grid_coverage.py` — `assess_grid_coverage`
+```python
+def enrich_parcel_grid_proximity(
+    parcels: gpd.GeoDataFrame,
+    electricity_source: IgnBdTopoElectricityData,
+    source_config: IgnBdTopoSourceConfig,
+) -> GridProximityResult:
+    """Compute proximity from one physically revalidated IGN source bundle."""
 
-**Tests**
+    try:
+        if not isinstance(parcels, gpd.GeoDataFrame):
+            raise GridProximityError(
+                "parcels must be a GeoDataFrame with active geometry"
+            )
+        if type(electricity_source) is not IgnBdTopoElectricityData:
+            raise GridProximityError(
+                "electricity source must be an IgnBdTopoElectricityData"
+            )
+        if type(source_config) is not IgnBdTopoSourceConfig:
+            raise GridProximityError(
+                "source_config must be an IgnBdTopoSourceConfig"
+            )
+        _validate_parcels(parcels)
+        normalized = normalize_ign_electricity(electricity_source, source_config)
+        if type(normalized) is not NormalizedIgnElectricityData:
+            raise GridProximityError(
+                "IGN electricity normalization returned an invalid result"
+            )
+        return _enrich_parcel_grid_proximity_from_normalized(
+            parcels,
+            normalized.electric_lines,
+            normalized.transformation_posts,
+        )
+    except GridProximityError:
+        raise
+    except Exception as error:
+        raise GridProximityError(
+            "Parcel-to-grid proximity cannot be computed safely"
+        ) from error
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_distance_profile`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _distance_profile(distances: pd.Series, ties: pd.Series) -> DistanceProfile:
@@ -2086,62 +2889,92 @@ def _distance_profile(distances: pd.Series, ties: pd.Series) -> DistanceProfile:
 
 **Purpose**
 
-Implements distance profile according to the exact implementation and guards in this file.
+Private `grid/source` helper for distance profile; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `distances` (`pd.Series`; required) — linear quantity, normally metres where the name ends in `_m`. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `ties` (`pd.Series`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `DistanceProfile`.
+- Every observed return expression is reproduced without truncation:
+```python
+DistanceProfile(count=len(values), missing_count=missing_count, minimum=float(values.min()), p01=float(values.quantile(0.01)), p05=float(values.quantile(0.05)), p10=float(values.quantile(0.1)), p25=float(values.quantile(0.25)), p50=float(values.quantile(0.5)), p75=float(values.quantile(0.75)), p90=float(values.quantile(0.9)), p95=float(values.quantile(0.95)), p99=float(values.quantile(0.99)), maximum=float(values.max()), zero_distance_count=int(values.eq(0).sum()), tie_count=sum((value > 1 for value in matched_ties.tolist())))
 
-**Returns**
+DistanceProfile(count=0, missing_count=missing_count, minimum=None, p01=None, p05=None, p10=None, p25=None, p50=None, p75=None, p90=None, p95=None, p99=None, maximum=None, zero_distance_count=0, tie_count=0)
+```
 
-- Declared return type: `DistanceProfile`. Observed return expression(s): `DistanceProfile(count=len(values), missing_count=missing_count, minimum=float(values.min()), p01=float(values.quantile(0.01)), p05=float(values.quantile(0.05)), p10=float(values.quantile(0.1)), p25=float(values.quantile(0.25)), p50=float(values.quantile(0.5)), p75=float(values.quantile(0.75)), p90=float(values.quantile(0.9)), p95=float(values.quantile(0.95)), p99=float(values.quantile(0.99)), max…`; `DistanceProfile(count=0, missing_count=missing_count, minimum=None, p01=None, p05=None, p10=None, p25=None, p50=None, p75=None, p90=None, p95=None, p99=None, maximum=None, zero_distance_count=0, tie_count=0)`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Calls `_validate_distance_values(distances, 'Profile')` for its validation or side effect.
-2. Computes `values` from `distances.dropna().astype('float64')`.
-3. Computes `missing_count` from `int(distances.isna().sum())`.
-4. Checks `values.empty`. When true: Returns `DistanceProfile(count=0, missing_count=missing_count, minimum=None, p01=None, p05=None, p10=None, p25=None, p50=None, p75=None, p90=None, p95=None, p99=None, maximum=None, zero_distance_count=0, tie_count=0)`.
-5. Computes `matched_ties` from `ties.loc[distances.notna()]`.
-6. Checks `matched_ties.isna().any()`. When true: Raises `GridProximityError('Matched distance rows require tie counts')`.
-7. Returns `DistanceProfile(count=len(values), missing_count=missing_count, minimum=float(values.min()), p01=float(values.quantile(0.01)), p05=float(values.quantile(0.05)), p10=float(values.quantile(0.1)), p25=float(values.quantile(0.25)), p50=float(values.quantile(0.5)), p75=float(values.quantile(0.75)), p90=float(values.quantile(0.9)), p95=float(values.quantile(0.95)…`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `matched_ties.isna().any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `GridProximityError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `matched_ties.isna().any()`.
+- Explicit raise expressions: `GridProximityError('Matched distance rows require tie counts')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `DistanceProfile`, `_validate_distance_values`, `distances.dropna`, `distances.dropna().astype`, `distances.isna`, `distances.isna().sum`, `distances.notna`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `DistanceProfile`, `GridProximityError`, `_validate_distance_values`, `distances.dropna`, `distances.dropna().astype`, `distances.isna`, `distances.isna().sum`, `distances.notna`, `float`, `int`, `len`, `matched_ties.isna`, `matched_ties.isna().any`, `matched_ties.tolist`, `sum`, `values.eq`, `values.eq(0).sum`, `values.max`, `values.min`, `values.quantile`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::profile_grid_proximity` via `_distance_profile`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_grid_proximity.py` — `profile_grid_proximity`
+```python
+def _distance_profile(distances: pd.Series, ties: pd.Series) -> DistanceProfile:
+    _validate_distance_values(distances, "Profile")
+    values = distances.dropna().astype("float64")
+    missing_count = int(distances.isna().sum())
+    if values.empty:
+        return DistanceProfile(
+            count=0,
+            missing_count=missing_count,
+            minimum=None,
+            p01=None,
+            p05=None,
+            p10=None,
+            p25=None,
+            p50=None,
+            p75=None,
+            p90=None,
+            p95=None,
+            p99=None,
+            maximum=None,
+            zero_distance_count=0,
+            tie_count=0,
+        )
+    matched_ties = ties.loc[distances.notna()]
+    if matched_ties.isna().any():
+        raise GridProximityError("Matched distance rows require tie counts")
+    return DistanceProfile(
+        count=len(values),
+        missing_count=missing_count,
+        minimum=float(values.min()),
+        p01=float(values.quantile(0.01)),
+        p05=float(values.quantile(0.05)),
+        p10=float(values.quantile(0.10)),
+        p25=float(values.quantile(0.25)),
+        p50=float(values.quantile(0.50)),
+        p75=float(values.quantile(0.75)),
+        p90=float(values.quantile(0.90)),
+        p95=float(values.quantile(0.95)),
+        p99=float(values.quantile(0.99)),
+        maximum=float(values.max()),
+        zero_distance_count=int(values.eq(0).sum()),
+        tie_count=sum(value > 1 for value in matched_ties.tolist()),
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `profile_grid_proximity`
 
-**Signature**
+**Exact signature**
 
 ```python
 def profile_grid_proximity(result: GridProximityResult) -> GridProximityProfile:
@@ -2151,127 +2984,453 @@ def profile_grid_proximity(result: GridProximityResult) -> GridProximityProfile:
 
 Profile proximity distances without thresholds or suitability labels.
 
-**Inputs**
+**Return contract**
 
-- `result` (`GridProximityResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `GridProximityProfile`.
+- Every observed return expression is reproduced without truncation:
+```python
+GridProximityProfile(parcel_count=len(parcels), nearest_line=_distance_profile(parcels['nearest_line_proxy_distance_m'], parcels['nearest_line_tie_count']), nearest_exact_line=_distance_profile(parcels['nearest_exact_line_proxy_distance_m'], parcels['nearest_exact_line_tie_count']), nearest_post=_distance_profile(parcels['nearest_post_proxy_distance_m'], parcels['nearest_post_tie_count']), voltage_levels=tuple(voltage_profiles))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `GridProximityProfile`. Observed return expression(s): `GridProximityProfile(parcel_count=len(parcels), nearest_line=_distance_profile(parcels['nearest_line_proxy_distance_m'], parcels['nearest_line_tie_count']), nearest_exact_line=_distance_profile(parcels['nearest_exact_line_proxy_distance_m'], parcels['nearest_exact_line_tie_count']), nearest_post=_distance_profile(parcels['nearest_post_proxy_distance_m'], parcels['nearest_post_tie_count']), voltag…`.
-
-**Algorithm**
-
-1. Calls `_validate_result_contract(result)` for its validation or side effect.
-2. Computes `parcels` from `result.parcels`.
-3. Computes `coverage` from `{float(item.voltage_kv): item.line_feature_count for item in result.voltage_level_coverage}`.
-4. Defines `voltage_profiles` with annotation `list[VoltageLevelDistanceProfile]` from `[]`.
-5. Computes `table` from `result.voltage_level_proximity`.
-6. Computes `observed_levels` from `tuple(coverage)`.
-7. Iterates `voltage_kv` over `observed_levels`. For each value: Computes `rows` from `table.loc[table['voltage_kv'] == voltage_kv]`. Computes `distance` from `_distance_profile(rows['nearest_line_proxy_distance_m'], rows['tie_count'])`. Calls `voltage_profiles.append(VoltageLevelDistanceProfile(voltage_kv=voltage_kv, line_feature_count=coverage[voltage_kv], parcel_proximity_count=len(rows), distance=distance))` for its validation or side effect.
-8. Returns `GridProximityProfile(parcel_count=len(parcels), nearest_line=_distance_profile(parcels['nearest_line_proxy_distance_m'], parcels['nearest_line_tie_count']), nearest_exact_line=_distance_profile(parcels['nearest_exact_line_proxy_distance_m'], parcels['nearest_exact_line_tie_count']), nearest_post=_distance_profile(parcels['nearest_post_proxy_distance_m'], pa…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `VoltageLevelDistanceProfile`, `_distance_profile`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `GridProximityProfile`, `VoltageLevelDistanceProfile`, `_distance_profile`, `_validate_result_contract`, `float`, `len`, `tuple`, `voltage_profiles.append`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_grid_proximity import (
+    DistanceProfile,
+    GridProximityError,
+    GridProximityProfile,
+    GridProximityResult,
+    VoltageLevelCoverage,
+    VoltageLevelDistanceProfile,
+    enrich_parcel_grid_proximity,
+    profile_grid_proximity,
+)`.
+- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_assessment_result` via `profile_grid_proximity`.
+- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` via `profile_grid_proximity`.
+- import/re-export: `src/landscout/stages/assess_grid_coverage.py::<module>` via `from landscout.stages.enrich_grid_proximity import (
+    GridProximityResult,
+    VoltageLevelCoverage,
+    enrich_parcel_grid_proximity,
+    profile_grid_proximity,
+)`.
+- property/attribute access: `tests/unit/test_enrich_grid_proximity.py::test_clean_high_level_api_is_exported` via `stages.profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_cross_voltage_tie_uses_lexical_global_feature_id` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_no_exact_voltage_preserves_parcels_and_returns_empty_long_table` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_distance_profile_is_threshold_free_and_tracks_ties` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_voltage_cartesian_row` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_unknown_voltage_parcel_with_same_total_count` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_duplicate_parcel_voltage_pair` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_voltage_rows_out_of_parcel_order` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_distance` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_identity` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_metadata` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_inconsistent_global_exact_tie_count` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_required_match_tie_count` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_tie_count` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_main_match_feature_id` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_required_match_distance` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_exact_match_voltage` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_result_parcel_id` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_required_proximity_column` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nondeterministic_or_duplicate_coverage` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_voltage_coverage_level` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_voltage_coverage_feature_count` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_invalid_long_table_voltage` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_missing_long_table_match_lineage` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_bad_long_table_distance` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_allows_consistent_missing_manager_and_asset_status` via `profile_grid_proximity`.
+- direct call or construction: `tests/unit/test_enrich_grid_proximity.py::test_profile_rejects_nonnull_exact_field_without_exact_coverage` via `profile_grid_proximity`.
+- import/re-export: `tests/unit/test_enrich_grid_proximity.py::<module>` via `from landscout.stages import (
+    GridProximityError,
+    GridProximityResult,
+    VoltageLevelCoverage,
+    profile_grid_proximity,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/assess_grid_coverage.py` — `_assess_grid_coverage_from_proximity`
-- `src/landscout/stages/assess_grid_coverage.py` — `_validate_assessment_result`
+```python
+def profile_grid_proximity(result: GridProximityResult) -> GridProximityProfile:
+    """Profile proximity distances without thresholds or suitability labels."""
 
-**Tests**
+    _validate_result_contract(result)
+    parcels = result.parcels
+    coverage = {
+        float(item.voltage_kv): item.line_feature_count
+        for item in result.voltage_level_coverage
+    }
+    voltage_profiles: list[VoltageLevelDistanceProfile] = []
+    table = result.voltage_level_proximity
+    observed_levels = tuple(coverage)
+    for voltage_kv in observed_levels:
+        rows = table.loc[table["voltage_kv"] == voltage_kv]
+        distance = _distance_profile(
+            rows["nearest_line_proxy_distance_m"], rows["tie_count"]
+        )
+        voltage_profiles.append(
+            VoltageLevelDistanceProfile(
+                voltage_kv=voltage_kv,
+                line_feature_count=coverage[voltage_kv],
+                parcel_proximity_count=len(rows),
+                distance=distance,
+            )
+        )
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    return GridProximityProfile(
+        parcel_count=len(parcels),
+        nearest_line=_distance_profile(
+            parcels["nearest_line_proxy_distance_m"],
+            parcels["nearest_line_tie_count"],
+        ),
+        nearest_exact_line=_distance_profile(
+            parcels["nearest_exact_line_proxy_distance_m"],
+            parcels["nearest_exact_line_tie_count"],
+        ),
+        nearest_post=_distance_profile(
+            parcels["nearest_post_proxy_distance_m"],
+            parcels["nearest_post_tie_count"],
+        ),
+        voltage_levels=tuple(voltage_profiles),
+    )
+```
 
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
+
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+### Frame-preservation and semantic notes
 
-| Column or keyed label | Contract observed here | Semantic boundary |
+- The parcel output preserves the complete input parcel frame and appends nearest-line, nearest-exact-line, nearest-transformation-post proxy, tie, voltage-representation, policy-lineage, and scope fields. Distance values are geometry-derived proxy facts in metres; they do not establish capacity or connection feasibility.
+- The voltage-level table is a separate parcel-by-voltage result. Null nearest-feature fields are required where a class has no eligible geometry; tie counts and match flags distinguish absence from a measured match.
+
+### `PARCEL_REQUIRED_COLUMNS` — required input frame fields (unordered when stored as a set)
+
+```python
+PARCEL_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry"})
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
+| 2 | `parcel_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+
+### `LINE_REQUIRED_COLUMNS` — required input frame fields (unordered when stored as a set)
+
+```python
+LINE_REQUIRED_COLUMNS = frozenset(
+    {
+        "grid_feature_id",
+        "grid_feature_type",
+        "source_feature_id",
+        "source_department_code",
+        "source_edition",
+        "source_archive_sha256",
+        "source_layer",
+        "spatial_role",
+        "geometry_status",
+        "voltage_raw",
+        "voltage_status",
+        "voltage_kv",
+        "voltage_upper_bound_kv",
+        "manager_name",
+        "asset_status_raw",
+        "geometry",
+    }
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `asset_status_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 2 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
+| 3 | `geometry_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 4 | `grid_feature_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 5 | `grid_feature_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `manager_name` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 8 | `source_department_code` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 9 | `source_edition` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 10 | `source_feature_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 11 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 12 | `spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `voltage_kv` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 14 | `voltage_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 15 | `voltage_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 16 | `voltage_upper_bound_kv` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+
+### `POST_REQUIRED_COLUMNS` — required input frame fields (unordered when stored as a set)
+
+```python
+POST_REQUIRED_COLUMNS = frozenset(
+    {
+        "grid_feature_id",
+        "grid_feature_type",
+        "source_feature_id",
+        "source_department_code",
+        "source_edition",
+        "source_archive_sha256",
+        "source_layer",
+        "spatial_role",
+        "geometry_status",
+        "name",
+        "importance_raw",
+        "asset_status_raw",
+        "geometry",
+    }
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `asset_status_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 2 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
+| 3 | `geometry_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 4 | `grid_feature_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 5 | `grid_feature_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `importance_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 7 | `name` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 9 | `source_department_code` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 10 | `source_edition` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 11 | `source_feature_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 12 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 13 | `spatial_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+
+### `VOLTAGE_PROXIMITY_COLUMNS` — canonical or derived frame-column schema
+
+```python
+VOLTAGE_PROXIMITY_COLUMNS = (
+    "parcel_id",
+    "voltage_kv",
+    "nearest_line_proxy_distance_m",
+    "nearest_line_grid_feature_id",
+    "nearest_line_source_feature_id",
+    "tie_count",
+    "manager_name",
+    "asset_status_raw",
+    "source_department_code",
+    "source_edition",
+    "source_archive_sha256",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `parcel_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 2 | `voltage_kv` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 3 | `nearest_line_proxy_distance_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 4 | `nearest_line_grid_feature_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 5 | `nearest_line_source_feature_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 6 | `tie_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 7 | `manager_name` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `asset_status_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 9 | `source_department_code` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 10 | `source_edition` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 11 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+
+### `_LINE_MATCH_COLUMNS` — canonical or derived frame-column schema
+
+```python
+_LINE_MATCH_COLUMNS = (
+    "grid_feature_id",
+    "source_feature_id",
+    "voltage_raw",
+    "voltage_status",
+    "voltage_kv",
+    "voltage_upper_bound_kv",
+    "manager_name",
+    "asset_status_raw",
+    "source_department_code",
+    "source_edition",
+    "source_archive_sha256",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `grid_feature_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 2 | `source_feature_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 3 | `voltage_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 4 | `voltage_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | derived factual classification | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 5 | `voltage_kv` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 6 | `voltage_upper_bound_kv` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 7 | `manager_name` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `asset_status_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 9 | `source_department_code` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 10 | `source_edition` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 11 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+
+### `_POST_MATCH_COLUMNS` — canonical or derived frame-column schema
+
+```python
+_POST_MATCH_COLUMNS = (
+    "grid_feature_id",
+    "source_feature_id",
+    "name",
+    "importance_raw",
+    "asset_status_raw",
+    "source_department_code",
+    "source_edition",
+    "source_archive_sha256",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `grid_feature_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 2 | `source_feature_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 3 | `name` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `importance_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 5 | `asset_status_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 6 | `source_department_code` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 7 | `source_edition` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 8 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+
+### `_LINE_OUTPUT_MAPPING` — mapping between source/input and output keys or columns
+
+```python
+_LINE_OUTPUT_MAPPING = {
+    "distance_m": "nearest_line_proxy_distance_m",
+    "grid_feature_id": "nearest_line_grid_feature_id",
+    "source_feature_id": "nearest_line_source_feature_id",
+    "tie_count": "nearest_line_tie_count",
+    "voltage_raw": "nearest_line_voltage_raw",
+    "voltage_status": "nearest_line_voltage_status",
+    "voltage_kv": "nearest_line_voltage_kv",
+    "voltage_upper_bound_kv": "nearest_line_voltage_upper_bound_kv",
+    "manager_name": "nearest_line_manager_name",
+    "asset_status_raw": "nearest_line_asset_status_raw",
+    "source_department_code": "nearest_line_source_department_code",
+    "source_edition": "nearest_line_source_edition",
+    "source_archive_sha256": "nearest_line_source_archive_sha256",
+}
+```
+
+| Source/input key or column | Target/output key or column | Contract |
 |---|---|---|
-| `_distance` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `_parcel_position` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `_tie_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `asset_status_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `distance_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
-| `feature_position` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry` | Logical dtype: GeoPandas active geometry dtype. Nullability: nullable only where the source-stage geometry-status contract explicitly preserves nulls. | source or preserved spatial geometry; never itself a suitability or legal conclusion. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `grid_feature_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `grid_feature_type` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `importance_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `kind` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `manager_name` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `name` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_exact_line_proxy_distance_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_exact_line_tie_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_exact_line_voltage_kv` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_line_grid_feature_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_line_proxy_distance_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_line_source_feature_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_line_tie_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_post_proxy_distance_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
-| `nearest_post_tie_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_position` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_archive_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `source_department_code` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_edition` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_feature_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `spatial_role` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `tie_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `voltage_kv` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `voltage_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `voltage_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `voltage_upper_bound_kv` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
+| `distance_m` | `nearest_line_proxy_distance_m` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `grid_feature_id` | `nearest_line_grid_feature_id` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `source_feature_id` | `nearest_line_source_feature_id` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `tie_count` | `nearest_line_tie_count` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `voltage_raw` | `nearest_line_voltage_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `voltage_status` | `nearest_line_voltage_status` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `voltage_kv` | `nearest_line_voltage_kv` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `voltage_upper_bound_kv` | `nearest_line_voltage_upper_bound_kv` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `manager_name` | `nearest_line_manager_name` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `asset_status_raw` | `nearest_line_asset_status_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `source_department_code` | `nearest_line_source_department_code` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `source_edition` | `nearest_line_source_edition` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `source_archive_sha256` | `nearest_line_source_archive_sha256` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+
+### `_EXACT_LINE_OUTPUT_MAPPING` — mapping between source/input and output keys or columns
+
+```python
+_EXACT_LINE_OUTPUT_MAPPING = {
+    "distance_m": "nearest_exact_line_proxy_distance_m",
+    "grid_feature_id": "nearest_exact_line_grid_feature_id",
+    "source_feature_id": "nearest_exact_line_source_feature_id",
+    "tie_count": "nearest_exact_line_tie_count",
+    "voltage_kv": "nearest_exact_line_voltage_kv",
+    "manager_name": "nearest_exact_line_manager_name",
+    "asset_status_raw": "nearest_exact_line_asset_status_raw",
+    "source_department_code": "nearest_exact_line_source_department_code",
+    "source_edition": "nearest_exact_line_source_edition",
+    "source_archive_sha256": "nearest_exact_line_source_archive_sha256",
+}
+```
+
+| Source/input key or column | Target/output key or column | Contract |
+|---|---|---|
+| `distance_m` | `nearest_exact_line_proxy_distance_m` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `grid_feature_id` | `nearest_exact_line_grid_feature_id` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `source_feature_id` | `nearest_exact_line_source_feature_id` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `tie_count` | `nearest_exact_line_tie_count` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `voltage_kv` | `nearest_exact_line_voltage_kv` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `manager_name` | `nearest_exact_line_manager_name` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `asset_status_raw` | `nearest_exact_line_asset_status_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `source_department_code` | `nearest_exact_line_source_department_code` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `source_edition` | `nearest_exact_line_source_edition` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `source_archive_sha256` | `nearest_exact_line_source_archive_sha256` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+
+### `_POST_OUTPUT_MAPPING` — mapping between source/input and output keys or columns
+
+```python
+_POST_OUTPUT_MAPPING = {
+    "distance_m": "nearest_post_proxy_distance_m",
+    "grid_feature_id": "nearest_post_grid_feature_id",
+    "source_feature_id": "nearest_post_source_feature_id",
+    "tie_count": "nearest_post_tie_count",
+    "name": "nearest_post_name",
+    "importance_raw": "nearest_post_importance_raw",
+    "asset_status_raw": "nearest_post_asset_status_raw",
+    "source_department_code": "nearest_post_source_department_code",
+    "source_edition": "nearest_post_source_edition",
+    "source_archive_sha256": "nearest_post_source_archive_sha256",
+}
+```
+
+| Source/input key or column | Target/output key or column | Contract |
+|---|---|---|
+| `distance_m` | `nearest_post_proxy_distance_m` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `grid_feature_id` | `nearest_post_grid_feature_id` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `source_feature_id` | `nearest_post_source_feature_id` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `tie_count` | `nearest_post_tie_count` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `name` | `nearest_post_name` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `importance_raw` | `nearest_post_importance_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `asset_status_raw` | `nearest_post_asset_status_raw` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `source_department_code` | `nearest_post_source_department_code` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `source_edition` | `nearest_post_source_edition` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+| `source_archive_sha256` | `nearest_post_source_archive_sha256` | Explicit mapping; the implementation determines whether values are copied, renamed, or transformed. |
+
+
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `grid` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the grid/source flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -2279,8 +3438,8 @@ This file contributes to LandScout's `grid` evidence flow as described by its pu
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

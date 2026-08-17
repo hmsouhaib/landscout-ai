@@ -4,9 +4,9 @@
 
 - Repository path: `tests/unit/test_profile_shape.py`
 - File type: Python test
-- Primary responsibility: Provides complete unit and regression coverage for the `profile_shape` contracts exercised in this file.
-- Layer / domain: `unit/regression test` / `test`
-- Public or internal role: Internal test support; not a production API.
+- Layer: unit/regression test
+- Domain: test
+- Responsibility: Provides complete unit and regression coverage for the `profile_shape` contracts exercised in this file.
 - Source SHA256: `c571ddbee0b9ae0676cd75a637e01c08c8f3b8562f75d4a7e104e9ec891b9086`
 
 ## 1. Purpose
@@ -15,38 +15,57 @@ Provides complete unit and regression coverage for the `profile_shape` contracts
 
 ## 2. Position in LandScout architecture
 
-This file is a `unit/regression test` artifact in the `test` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **unit/regression test** layer and the **test** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- None.
+- `None.`
 
-### Third-party
+### Third-party packages
 
-- `import geopandas as gpd` — required by the implementation paths and symbols documented below.
-- `import pandas as pd` — required by the implementation paths and symbols documented below.
-- `import pytest` — required by the implementation paths and symbols documented below.
-- `from shapely.geometry import Point` — required by the implementation paths and symbols documented below.
+- `import geopandas as gpd`
+- `import pandas as pd`
+- `import pytest`
+- `from shapely.geometry import Point`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout.stages.profile_shape import ( PROFILE_METRICS, ShapeProfileError, profile_shape_distribution, )` — required by the implementation paths and symbols documented below.
+- `from landscout.stages.profile_shape import (
+    PROFILE_METRICS,
+    ShapeProfileError,
+    profile_shape_distribution,
+)`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-No module-level meaningful constant is defined. Literal domains enforced inside functions are documented with those functions.
+### A. Python constants
+
+No meaningful module constant is declared.
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
-No class, model, or dataclass is declared in this file.
+No class/model/dataclass is declared.
 
 ## 6. Functions and methods
 
 ### `_with_error_row`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _with_error_row(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -54,867 +73,998 @@ def _with_error_row(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 **Purpose**
 
-Implements with error row according to the exact implementation and guards in this file.
+Private `test` helper for with error row; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+mixed
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `mixed`.
-
-**Algorithm**
-
-1. Computes `mixed` from `parcels.copy()`.
-2. Computes `mixed.loc[9, 'shape_status']` from `'ERROR'`.
-3. Iterates `column` over `(*PROFILE_METRICS, 'centroid_lat', 'centroid_lon')`. For each value: Computes `mixed.loc[9, column]` from `None`.
-4. Returns `mixed`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `parcels.copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `mixed.loc[9, 'shape_status']`, `mixed.loc[9, column]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `parcels.copy`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_mixed_valid_and_error_rows_are_counted` via `_with_error_row`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_percentiles` via `_with_error_row`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_buckets` via `_with_error_row`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_scenario_percentages_use_valid_count` via `_with_error_row`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_profile_shape.py` — `test_error_rows_are_excluded_from_buckets`
-- `tests/unit/test_profile_shape.py` — `test_error_rows_are_excluded_from_percentiles`
-- `tests/unit/test_profile_shape.py` — `test_mixed_valid_and_error_rows_are_counted`
-- `tests/unit/test_profile_shape.py` — `test_scenario_percentages_use_valid_count`
+```python
+def _with_error_row(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    mixed = parcels.copy()
+    mixed.loc[9, "shape_status"] = "ERROR"
+    for column in (*PROFILE_METRICS, "centroid_lat", "centroid_lon"):
+        mixed.loc[9, column] = None
+    return mixed
+```
 
-**Tests**
-
-- `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_buckets`
-- `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_percentiles`
-- `tests/unit/test_profile_shape.py::test_mixed_valid_and_error_rows_are_counted`
-- `tests/unit/test_profile_shape.py::test_scenario_percentages_use_valid_count`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
-### `parcels`
+### `parcels` — pytest fixture
 
-**Signature**
+- Scope: `function` (decorator `pytest.fixture`).
+- Returned/yielded object expression(s): `gpd.GeoDataFrame({'parcel_id': [f'parcel-{index}' for index in range(count)], 'shape_status': ['VALID'] * count, 'area_m2': [100.0 * (index + 1) for index in range(count)], 'length_m': [4.0, 17.5, 42.0, 76.5, 132.0, 216.0, 420.0, 900.0, 1650.0, 300.0], 'width_m': [4.0, 7.0, 12.0, 17.0, 22.0, 27.0, 35.0, 45.0, 55.0, 60.0], 'length_width_ratio': [1.0, 2.5, 3.5, 4.5, 6.0, 8.0, 12.0, 20.0, 30.0, 5.0], 'compactness': [0.02, 0.07, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85], 'centroid_lat': [43.0 + index / 100 for index in range(count)], 'centroid_lon': [2.0 + index / 100 for index in range(count)]}, geometry=[Point(2.0 + index / 100, 43.0) for index in range(count)], crs='EPSG:4326')`.
+- Tests requesting it by parameter injection: `_with_error_row`, `test_percentile_calculation`, `test_bucket_counts_sum_to_input_count`, `test_existing_all_valid_behavior_is_unchanged`, `test_diagnostic_scenario_counts`, `test_input_is_not_mutated`, `test_missing_metric_fails`, `test_null_parcel_id_fails`, `test_duplicate_parcel_id_fails`, `test_missing_crs_fails`, `test_null_metric_on_valid_shape_fails`, `test_mixed_valid_and_error_rows_are_counted`, `test_error_rows_are_excluded_from_percentiles`, `test_error_rows_are_excluded_from_buckets`, `test_scenario_percentages_use_valid_count`, `test_unexpected_shape_status_fails`, `test_non_finite_metric_on_valid_row_fails`, `test_zero_valid_rows_fails_clearly`, `test_valid_shape_metrics_require_physical_domains`, `test_valid_shape_length_must_not_be_less_than_width`, `test_valid_shape_ratio_must_match_length_divided_by_width`, `test_valid_shape_metrics_reject_bool_and_numeric_strings`.
+
+**Complete fixture implementation**
 
 ```python
 def parcels() -> gpd.GeoDataFrame:
+    count = 10
+    return gpd.GeoDataFrame(
+        {
+            "parcel_id": [f"parcel-{index}" for index in range(count)],
+            "shape_status": ["VALID"] * count,
+            "area_m2": [100.0 * (index + 1) for index in range(count)],
+            "length_m": [4.0, 17.5, 42.0, 76.5, 132.0, 216.0, 420.0, 900.0, 1650.0, 300.0],
+            "width_m": [4.0, 7.0, 12.0, 17.0, 22.0, 27.0, 35.0, 45.0, 55.0, 60.0],
+            "length_width_ratio": [1.0, 2.5, 3.5, 4.5, 6.0, 8.0, 12.0, 20.0, 30.0, 5.0],
+            "compactness": [0.02, 0.07, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85],
+            "centroid_lat": [43.0 + index / 100 for index in range(count)],
+            "centroid_lon": [2.0 + index / 100 for index in range(count)],
+        },
+        geometry=[Point(2.0 + index / 100, 43.0) for index in range(count)],
+        crs="EPSG:4326",
+    )
 ```
-
-**Purpose**
-
-Implements parcels according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- No parameters.
-
-**Returns**
-
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `gpd.GeoDataFrame({'parcel_id': [f'parcel-{index}' for index in range(count)], 'shape_status': ['VALID'] * count, 'area_m2': [100.0 * (index + 1) for index in range(count)], 'length_m': [4.0, 17.5, 42.0, 76.5, 132.0, 216.0, 420.0, 900.0, 1650.0, 300.0], 'width_m': [4.0, 7.0, 12.0, 17.0, 22.0, 27.0, 35.0, 45.0, 55.0, 60.0], 'length_width_ratio': [1.0, 2.5, 3.5, 4.5, 6.0, 8.0, 12.0, 20.0, 30.0, 5.0]…`.
-
-**Algorithm**
-
-1. Computes `count` from `10`.
-2. Returns `gpd.GeoDataFrame({'parcel_id': [f'parcel-{index}' for index in range(count)], 'shape_status': ['VALID'] * count, 'area_m2': [100.0 * (index + 1) for index in range(count)], 'length_m': [4.0, 17.5, 42.0, 76.5, 132.0, 216.0, 420.0, 900.0, 1650.0, 300.0], 'width_m': [4.0, 7.0, 12.0, 17.0, 22.0, 27.0, 35.0, 45.0, 55.0, 60.0], 'length_width_ratio': [1.0, 2.5, 3.…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `Point`, `gpd.GeoDataFrame`, `range`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_percentile_calculation`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+area = profile.distributions["area_m2"]
+```
+
+**Action**
+
+```python
+profile = profile_shape_distribution(parcels)
+```
+
+**Expected result**
+
+```python
+assert area["min"] == pytest.approx(100.0)
+assert area["p50"] == pytest.approx(550.0)
+assert area["max"] == pytest.approx(1000.0)
+assert set(area) == {
+        "min",
+        "p01",
+        "p05",
+        "p10",
+        "p25",
+        "p50",
+        "p75",
+        "p90",
+        "p95",
+        "p99",
+        "max",
+    }
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_percentile_calculation(parcels: gpd.GeoDataFrame) -> None:
+    profile = profile_shape_distribution(parcels)
+
+    area = profile.distributions["area_m2"]
+    assert area["min"] == pytest.approx(100.0)
+    assert area["p50"] == pytest.approx(550.0)
+    assert area["max"] == pytest.approx(1000.0)
+    assert set(area) == {
+        "min",
+        "p01",
+        "p05",
+        "p10",
+        "p25",
+        "p50",
+        "p75",
+        "p90",
+        "p95",
+        "p99",
+        "max",
+    }
 ```
-
-**Purpose**
-
-Protects the `percentile calculation` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `profile` from `profile_shape_distribution(parcels)`.
-- Computes `area` from `profile.distributions['area_m2']`.
-
-**Action**
-
-- Calls `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: `assert area['min'] == pytest.approx(100.0)`; `assert area['p50'] == pytest.approx(550.0)`; `assert area['max'] == pytest.approx(1000.0)`; `assert set(area) == {'min', 'p01', 'p05', 'p10', 'p25', 'p50', 'p75', 'p90', 'p95', 'p99', 'max'}`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `percentile calculation` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `profile_shape_distribution`, `pytest.approx`, `set`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_bucket_counts_sum_to_input_count`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+profile = profile_shape_distribution(parcels)
+```
+
+**Expected result**
+
+```python
+assert sum(profile.width_buckets.values()) == len(parcels)
+assert sum(profile.ratio_buckets.values()) == len(parcels)
+assert sum(profile.compactness_buckets.values()) == len(parcels)
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_bucket_counts_sum_to_input_count(parcels: gpd.GeoDataFrame) -> None:
+    profile = profile_shape_distribution(parcels)
+
+    assert sum(profile.width_buckets.values()) == len(parcels)
+    assert sum(profile.ratio_buckets.values()) == len(parcels)
+    assert sum(profile.compactness_buckets.values()) == len(parcels)
 ```
-
-**Purpose**
-
-Protects the `bucket counts sum to input count` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `profile` from `profile_shape_distribution(parcels)`.
-
-**Action**
-
-- Calls `profile.compactness_buckets.values`, `profile.ratio_buckets.values`, `profile.width_buckets.values`, `profile_shape_distribution`, `sum`.
-
-**Expected result**
-
-- Direct assertions: `assert sum(profile.width_buckets.values()) == len(parcels)`; `assert sum(profile.ratio_buckets.values()) == len(parcels)`; `assert sum(profile.compactness_buckets.values()) == len(parcels)`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `bucket counts sum to input count` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `len`, `profile.compactness_buckets.values`, `profile.ratio_buckets.values`, `profile.width_buckets.values`, `profile_shape_distribution`, `sum`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_existing_all_valid_behavior_is_unchanged`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+profile = profile_shape_distribution(parcels)
+```
+
+**Expected result**
+
+```python
+assert profile.input_count == 10
+assert profile.valid_count == 10
+assert profile.error_count == 0
+assert profile.distributions["area_m2"]["max"] == pytest.approx(1000.0)
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_existing_all_valid_behavior_is_unchanged(parcels: gpd.GeoDataFrame) -> None:
+    profile = profile_shape_distribution(parcels)
+
+    assert profile.input_count == 10
+    assert profile.valid_count == 10
+    assert profile.error_count == 0
+    assert profile.distributions["area_m2"]["max"] == pytest.approx(1000.0)
 ```
-
-**Purpose**
-
-Protects the `existing all valid behavior is unchanged` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `profile` from `profile_shape_distribution(parcels)`.
-
-**Action**
-
-- Calls `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: `assert profile.input_count == 10`; `assert profile.valid_count == 10`; `assert profile.error_count == 0`; `assert profile.distributions['area_m2']['max'] == pytest.approx(1000.0)`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `existing all valid behavior is unchanged` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `profile_shape_distribution`, `pytest.approx`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_diagnostic_scenario_counts`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+profile = profile_shape_distribution(parcels)
+```
+
+**Expected result**
+
+```python
+assert profile.scenarios["A"].retained_count == 8
+assert profile.scenarios["B"].retained_count == 7
+assert profile.scenarios["C"].retained_count == 6
+assert profile.scenarios["D"].retained_count == 4
+assert profile.scenarios["E"].retained_count == 2
+assert profile.scenarios["F"].retained_count == 1
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_diagnostic_scenario_counts(parcels: gpd.GeoDataFrame) -> None:
+    profile = profile_shape_distribution(parcels)
+
+    assert profile.scenarios["A"].retained_count == 8
+    assert profile.scenarios["B"].retained_count == 7
+    assert profile.scenarios["C"].retained_count == 6
+    assert profile.scenarios["D"].retained_count == 4
+    assert profile.scenarios["E"].retained_count == 2
+    assert profile.scenarios["F"].retained_count == 1
 ```
-
-**Purpose**
-
-Protects the `diagnostic scenario counts` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `profile` from `profile_shape_distribution(parcels)`.
-
-**Action**
-
-- Calls `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: `assert profile.scenarios['A'].retained_count == 8`; `assert profile.scenarios['B'].retained_count == 7`; `assert profile.scenarios['C'].retained_count == 6`; `assert profile.scenarios['D'].retained_count == 4`; `assert profile.scenarios['E'].retained_count == 2`; `assert profile.scenarios['F'].retained_count == 1`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `diagnostic scenario counts` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `profile_shape_distribution`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_input_is_not_mutated`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+original = parcels.copy(deep=True)
+pd.testing.assert_frame_equal(parcels, original)
+```
+
+**Action**
+
+```python
+profile_shape_distribution(parcels)
+```
+
+**Expected result**
+
+```python
+# Completion without an exception is the asserted outcome.
+```
+
+**Regression protected**
+
+Pins the exact framework interaction and outcome reproduced in the complete test source.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_input_is_not_mutated(parcels: gpd.GeoDataFrame) -> None:
+    original = parcels.copy(deep=True)
+
+    profile_shape_distribution(parcels)
+
+    pd.testing.assert_frame_equal(parcels, original)
 ```
-
-**Purpose**
-
-Protects the `input is not mutated` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `original` from `parcels.copy(deep=True)`.
-
-**Action**
-
-- Calls `parcels.copy`, `pd.testing.assert_frame_equal`, `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `input is not mutated` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `parcels.copy`, `pd.testing.assert_frame_equal`, `profile_shape_distribution`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_missing_metric_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+without_width = parcels.drop(columns=["width_m"])
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ShapeProfileError, match="width_m"):
+        profile_shape_distribution(without_width)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_missing_metric_fails(parcels: gpd.GeoDataFrame) -> None:
+    without_width = parcels.drop(columns=["width_m"])
+
+    with pytest.raises(ShapeProfileError, match="width_m"):
+        profile_shape_distribution(without_width)
 ```
-
-**Purpose**
-
-Protects the `missing metric fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `without_width` from `parcels.drop(columns=['width_m'])`.
-- Enters managed context(s) `pytest.raises(ShapeProfileError, match='width_m')` and executes: Calls `profile_shape_distribution(without_width)` for its validation or side effect.
-
-**Action**
-
-- Calls `parcels.drop`, `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ShapeProfileError, match='width_m'): profile_shape_distribution(without_width)`.
-
-**Regression protected**
-
-- Protects the exact `missing metric fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `parcels.drop`, `profile_shape_distribution`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_null_parcel_id_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+with_null = parcels.copy()
+with_null.loc[0, "parcel_id"] = None
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ShapeProfileError, match="null"):
+        profile_shape_distribution(with_null)
+```
+
+**Regression protected**
+
+Pins true-null handling and prevents textual or malformed null-like values from changing the contract.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_null_parcel_id_fails(parcels: gpd.GeoDataFrame) -> None:
+    with_null = parcels.copy()
+    with_null.loc[0, "parcel_id"] = None
+
+    with pytest.raises(ShapeProfileError, match="null"):
+        profile_shape_distribution(with_null)
 ```
-
-**Purpose**
-
-Protects the `null parcel id fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `with_null` from `parcels.copy()`.
-- Computes `with_null.loc[0, 'parcel_id']` from `None`.
-- Enters managed context(s) `pytest.raises(ShapeProfileError, match='null')` and executes: Calls `profile_shape_distribution(with_null)` for its validation or side effect.
-
-**Action**
-
-- Calls `parcels.copy`, `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ShapeProfileError, match='null'): profile_shape_distribution(with_null)`.
-
-**Regression protected**
-
-- Protects the exact `null parcel id fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `parcels.copy`, `profile_shape_distribution`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_duplicate_parcel_id_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+with_duplicate = parcels.copy()
+with_duplicate.loc[1, "parcel_id"] = with_duplicate.loc[0, "parcel_id"]
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ShapeProfileError, match="unique"):
+        profile_shape_distribution(with_duplicate)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_duplicate_parcel_id_fails(parcels: gpd.GeoDataFrame) -> None:
+    with_duplicate = parcels.copy()
+    with_duplicate.loc[1, "parcel_id"] = with_duplicate.loc[0, "parcel_id"]
+
+    with pytest.raises(ShapeProfileError, match="unique"):
+        profile_shape_distribution(with_duplicate)
 ```
-
-**Purpose**
-
-Protects the `duplicate parcel id fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `with_duplicate` from `parcels.copy()`.
-- Computes `with_duplicate.loc[1, 'parcel_id']` from `with_duplicate.loc[0, 'parcel_id']`.
-- Enters managed context(s) `pytest.raises(ShapeProfileError, match='unique')` and executes: Calls `profile_shape_distribution(with_duplicate)` for its validation or side effect.
-
-**Action**
-
-- Calls `parcels.copy`, `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ShapeProfileError, match='unique'): profile_shape_distribution(with_duplicate)`.
-
-**Regression protected**
-
-- Protects the exact `duplicate parcel id fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `parcels.copy`, `profile_shape_distribution`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_missing_crs_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+without_crs = parcels.set_crs(None, allow_override=True)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ShapeProfileError, match="CRS"):
+        profile_shape_distribution(without_crs)
+```
+
+**Regression protected**
+
+Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_missing_crs_fails(parcels: gpd.GeoDataFrame) -> None:
+    without_crs = parcels.set_crs(None, allow_override=True)
+
+    with pytest.raises(ShapeProfileError, match="CRS"):
+        profile_shape_distribution(without_crs)
 ```
-
-**Purpose**
-
-Protects the `missing crs fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `without_crs` from `parcels.set_crs(None, allow_override=True)`.
-- Enters managed context(s) `pytest.raises(ShapeProfileError, match='CRS')` and executes: Calls `profile_shape_distribution(without_crs)` for its validation or side effect.
-
-**Action**
-
-- Calls `parcels.set_crs`, `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ShapeProfileError, match='CRS'): profile_shape_distribution(without_crs)`.
-
-**Regression protected**
-
-- Protects the exact `missing crs fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `parcels.set_crs`, `profile_shape_distribution`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_null_metric_on_valid_shape_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+with_null_metric = parcels.copy()
+with_null_metric.loc[0, "compactness"] = None
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ShapeProfileError, match="complete"):
+        profile_shape_distribution(with_null_metric)
+```
+
+**Regression protected**
+
+Pins true-null handling and prevents textual or malformed null-like values from changing the contract.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_null_metric_on_valid_shape_fails(parcels: gpd.GeoDataFrame) -> None:
+    with_null_metric = parcels.copy()
+    with_null_metric.loc[0, "compactness"] = None
+
+    with pytest.raises(ShapeProfileError, match="complete"):
+        profile_shape_distribution(with_null_metric)
 ```
-
-**Purpose**
-
-Protects the `null metric on valid shape fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `with_null_metric` from `parcels.copy()`.
-- Computes `with_null_metric.loc[0, 'compactness']` from `None`.
-- Enters managed context(s) `pytest.raises(ShapeProfileError, match='complete')` and executes: Calls `profile_shape_distribution(with_null_metric)` for its validation or side effect.
-
-**Action**
-
-- Calls `parcels.copy`, `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ShapeProfileError, match='complete'): profile_shape_distribution(with_null_metric)`.
-
-**Regression protected**
-
-- Protects the exact `null metric on valid shape fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `parcels.copy`, `profile_shape_distribution`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_mixed_valid_and_error_rows_are_counted`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+profile = profile_shape_distribution(_with_error_row(parcels))
+```
+
+**Expected result**
+
+```python
+assert profile.input_count == 10
+assert profile.valid_count == 9
+assert profile.error_count == 1
+assert profile.input_count == profile.valid_count + profile.error_count
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_mixed_valid_and_error_rows_are_counted(parcels: gpd.GeoDataFrame) -> None:
+    profile = profile_shape_distribution(_with_error_row(parcels))
+
+    assert profile.input_count == 10
+    assert profile.valid_count == 9
+    assert profile.error_count == 1
+    assert profile.input_count == profile.valid_count + profile.error_count
 ```
-
-**Purpose**
-
-Protects the `mixed valid and error rows are counted` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `profile` from `profile_shape_distribution(_with_error_row(parcels))`.
-
-**Action**
-
-- Calls `_with_error_row`, `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: `assert profile.input_count == 10`; `assert profile.valid_count == 9`; `assert profile.error_count == 1`; `assert profile.input_count == profile.valid_count + profile.error_count`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `mixed valid and error rows are counted` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_with_error_row`, `profile_shape_distribution`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_error_rows_are_excluded_from_percentiles`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+profile = profile_shape_distribution(_with_error_row(parcels))
+```
+
+**Expected result**
+
+```python
+assert profile.distributions["area_m2"]["max"] == pytest.approx(900.0)
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_error_rows_are_excluded_from_percentiles(parcels: gpd.GeoDataFrame) -> None:
+    profile = profile_shape_distribution(_with_error_row(parcels))
+
+    assert profile.distributions["area_m2"]["max"] == pytest.approx(900.0)
 ```
-
-**Purpose**
-
-Protects the `error rows are excluded from percentiles` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `profile` from `profile_shape_distribution(_with_error_row(parcels))`.
-
-**Action**
-
-- Calls `_with_error_row`, `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: `assert profile.distributions['area_m2']['max'] == pytest.approx(900.0)`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `error rows are excluded from percentiles` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_with_error_row`, `profile_shape_distribution`, `pytest.approx`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_error_rows_are_excluded_from_buckets`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+profile = profile_shape_distribution(_with_error_row(parcels))
+```
+
+**Expected result**
+
+```python
+assert sum(profile.width_buckets.values()) == profile.valid_count == 9
+assert sum(profile.ratio_buckets.values()) == profile.valid_count
+assert sum(profile.compactness_buckets.values()) == profile.valid_count
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_error_rows_are_excluded_from_buckets(parcels: gpd.GeoDataFrame) -> None:
+    profile = profile_shape_distribution(_with_error_row(parcels))
+
+    assert sum(profile.width_buckets.values()) == profile.valid_count == 9
+    assert sum(profile.ratio_buckets.values()) == profile.valid_count
+    assert sum(profile.compactness_buckets.values()) == profile.valid_count
 ```
-
-**Purpose**
-
-Protects the `error rows are excluded from buckets` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `profile` from `profile_shape_distribution(_with_error_row(parcels))`.
-
-**Action**
-
-- Calls `_with_error_row`, `profile.compactness_buckets.values`, `profile.ratio_buckets.values`, `profile.width_buckets.values`, `profile_shape_distribution`, `sum`.
-
-**Expected result**
-
-- Direct assertions: `assert sum(profile.width_buckets.values()) == profile.valid_count == 9`; `assert sum(profile.ratio_buckets.values()) == profile.valid_count`; `assert sum(profile.compactness_buckets.values()) == profile.valid_count`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `error rows are excluded from buckets` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_with_error_row`, `profile.compactness_buckets.values`, `profile.ratio_buckets.values`, `profile.width_buckets.values`, `profile_shape_distribution`, `sum`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_scenario_percentages_use_valid_count`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+profile = profile_shape_distribution(_with_error_row(parcels))
+```
+
+**Expected result**
+
+```python
+assert profile.scenarios["A"].retained_count == 7
+assert profile.scenarios["A"].retained_percentage == pytest.approx(7 / 9 * 100)
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_scenario_percentages_use_valid_count(parcels: gpd.GeoDataFrame) -> None:
+    profile = profile_shape_distribution(_with_error_row(parcels))
+
+    assert profile.scenarios["A"].retained_count == 7
+    assert profile.scenarios["A"].retained_percentage == pytest.approx(7 / 9 * 100)
 ```
-
-**Purpose**
-
-Protects the `scenario percentages use valid count` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `profile` from `profile_shape_distribution(_with_error_row(parcels))`.
-
-**Action**
-
-- Calls `_with_error_row`, `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: `assert profile.scenarios['A'].retained_count == 7`; `assert profile.scenarios['A'].retained_percentage == pytest.approx(7 / 9 * 100)`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `scenario percentages use valid count` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_with_error_row`, `profile_shape_distribution`, `pytest.approx`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_unexpected_shape_status_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+unexpected = parcels.copy()
+unexpected.loc[0, "shape_status"] = "UNKNOWN"
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ShapeProfileError, match="Unexpected"):
+        profile_shape_distribution(unexpected)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_unexpected_shape_status_fails(parcels: gpd.GeoDataFrame) -> None:
+    unexpected = parcels.copy()
+    unexpected.loc[0, "shape_status"] = "UNKNOWN"
+
+    with pytest.raises(ShapeProfileError, match="Unexpected"):
+        profile_shape_distribution(unexpected)
 ```
-
-**Purpose**
-
-Protects the `unexpected shape status fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `unexpected` from `parcels.copy()`.
-- Computes `unexpected.loc[0, 'shape_status']` from `'UNKNOWN'`.
-- Enters managed context(s) `pytest.raises(ShapeProfileError, match='Unexpected')` and executes: Calls `profile_shape_distribution(unexpected)` for its validation or side effect.
-
-**Action**
-
-- Calls `parcels.copy`, `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ShapeProfileError, match='Unexpected'): profile_shape_distribution(unexpected)`.
-
-**Regression protected**
-
-- Protects the exact `unexpected shape status fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `parcels.copy`, `profile_shape_distribution`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_non_finite_metric_on_valid_row_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+non_finite = parcels.copy()
+non_finite.loc[0, "length_m"] = float("inf")
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ShapeProfileError, match="finite"):
+        profile_shape_distribution(non_finite)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_non_finite_metric_on_valid_row_fails(parcels: gpd.GeoDataFrame) -> None:
+    non_finite = parcels.copy()
+    non_finite.loc[0, "length_m"] = float("inf")
+
+    with pytest.raises(ShapeProfileError, match="finite"):
+        profile_shape_distribution(non_finite)
 ```
-
-**Purpose**
-
-Protects the `non finite metric on valid row fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `non_finite` from `parcels.copy()`.
-- Computes `non_finite.loc[0, 'length_m']` from `float('inf')`.
-- Enters managed context(s) `pytest.raises(ShapeProfileError, match='finite')` and executes: Calls `profile_shape_distribution(non_finite)` for its validation or side effect.
-
-**Action**
-
-- Calls `float`, `parcels.copy`, `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ShapeProfileError, match='finite'): profile_shape_distribution(non_finite)`.
-
-**Regression protected**
-
-- Protects the exact `non finite metric on valid row fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `float`, `parcels.copy`, `profile_shape_distribution`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_zero_valid_rows_fails_clearly`
 
-**Signature**
-
-```python
-def test_zero_valid_rows_fails_clearly(parcels: gpd.GeoDataFrame) -> None:
-```
-
 **Purpose**
 
-Protects the `zero valid rows fails clearly` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: `parcels`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `errors_only` from `parcels.copy()`.
-- Computes `errors_only['shape_status']` from `'ERROR'`.
-- Enters managed context(s) `pytest.raises(ShapeProfileError, match='At least one VALID')` and executes: Calls `profile_shape_distribution(errors_only)` for its validation or side effect.
+```python
+errors_only = parcels.copy()
+errors_only["shape_status"] = "ERROR"
+```
 
 **Action**
 
-- Calls `parcels.copy`, `profile_shape_distribution`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ShapeProfileError, match='At least one VALID'): profile_shape_distribution(errors_only)`.
+```python
+with pytest.raises(ShapeProfileError, match="At least one VALID"):
+        profile_shape_distribution(errors_only)
+```
 
 **Regression protected**
 
-- Protects the exact `zero valid rows fails clearly` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
 
-**Calls**
+**Complete test implementation**
 
-- `parcels.copy`, `profile_shape_distribution`, `pytest.raises`.
+```python
+def test_zero_valid_rows_fails_clearly(parcels: gpd.GeoDataFrame) -> None:
+    errors_only = parcels.copy()
+    errors_only["shape_status"] = "ERROR"
 
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    with pytest.raises(ShapeProfileError, match="At least one VALID"):
+        profile_shape_distribution(errors_only)
+```
 
 ### `test_valid_shape_metrics_require_physical_domains`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: `column`, `message`, `value`.
+
+**Setup**
+
+```python
+invalid = parcels.copy()
+invalid.loc[0, column] = value
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ShapeProfileError, match=message):
+        profile_shape_distribution(invalid)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_valid_shape_metrics_require_physical_domains(
@@ -923,241 +1073,207 @@ def test_valid_shape_metrics_require_physical_domains(
     value: float,
     message: str,
 ) -> None:
+    invalid = parcels.copy()
+    invalid.loc[0, column] = value
+
+    with pytest.raises(ShapeProfileError, match=message):
+        profile_shape_distribution(invalid)
 ```
-
-**Purpose**
-
-Protects the `valid shape metrics require physical domains` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `column`, `value`, `message`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `invalid` from `parcels.copy()`.
-- Computes `invalid.loc[0, column]` from `value`.
-- Enters managed context(s) `pytest.raises(ShapeProfileError, match=message)` and executes: Calls `profile_shape_distribution(invalid)` for its validation or side effect.
-
-**Action**
-
-- Calls `parcels.copy`, `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ShapeProfileError, match=message): profile_shape_distribution(invalid)`.
-
-**Regression protected**
-
-- Protects the exact `valid shape metrics require physical domains` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `parcels.copy`, `profile_shape_distribution`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_valid_shape_length_must_not_be_less_than_width`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+invalid = parcels.copy()
+invalid.loc[0, "length_m"] = 3
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ShapeProfileError, match="length_m must be at least width_m"):
+        profile_shape_distribution(invalid)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_valid_shape_length_must_not_be_less_than_width(
     parcels: gpd.GeoDataFrame,
 ) -> None:
+    invalid = parcels.copy()
+    invalid.loc[0, "length_m"] = 3
+
+    with pytest.raises(ShapeProfileError, match="length_m must be at least width_m"):
+        profile_shape_distribution(invalid)
 ```
-
-**Purpose**
-
-Protects the `valid shape length must not be less than width` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `invalid` from `parcels.copy()`.
-- Computes `invalid.loc[0, 'length_m']` from `3`.
-- Enters managed context(s) `pytest.raises(ShapeProfileError, match='length_m must be at least width_m')` and executes: Calls `profile_shape_distribution(invalid)` for its validation or side effect.
-
-**Action**
-
-- Calls `parcels.copy`, `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ShapeProfileError, match='length_m must be at least width_m'): profile_shape_distribution(invalid)`.
-
-**Regression protected**
-
-- Protects the exact `valid shape length must not be less than width` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `parcels.copy`, `profile_shape_distribution`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_valid_shape_ratio_must_match_length_divided_by_width`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+invalid = parcels.copy()
+invalid.loc[0, "length_width_ratio"] = 2
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ShapeProfileError, match="must equal length_m / width_m"):
+        profile_shape_distribution(invalid)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_valid_shape_ratio_must_match_length_divided_by_width(
     parcels: gpd.GeoDataFrame,
 ) -> None:
+    invalid = parcels.copy()
+    invalid.loc[0, "length_width_ratio"] = 2
+
+    with pytest.raises(ShapeProfileError, match="must equal length_m / width_m"):
+        profile_shape_distribution(invalid)
 ```
-
-**Purpose**
-
-Protects the `valid shape ratio must match length divided by width` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `invalid` from `parcels.copy()`.
-- Computes `invalid.loc[0, 'length_width_ratio']` from `2`.
-- Enters managed context(s) `pytest.raises(ShapeProfileError, match='must equal length_m / width_m')` and executes: Calls `profile_shape_distribution(invalid)` for its validation or side effect.
-
-**Action**
-
-- Calls `parcels.copy`, `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ShapeProfileError, match='must equal length_m / width_m'): profile_shape_distribution(invalid)`.
-
-**Regression protected**
-
-- Protects the exact `valid shape ratio must match length divided by width` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `parcels.copy`, `profile_shape_distribution`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_valid_shape_metrics_reject_bool_and_numeric_strings`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: `value`.
+
+**Setup**
+
+```python
+invalid = parcels.copy()
+invalid["area_m2"] = invalid["area_m2"].astype(object)
+invalid.loc[0, "area_m2"] = value
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ShapeProfileError, match="numeric and finite"):
+        profile_shape_distribution(invalid)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_valid_shape_metrics_reject_bool_and_numeric_strings(
     parcels: gpd.GeoDataFrame,
     value: object,
 ) -> None:
+    invalid = parcels.copy()
+    invalid["area_m2"] = invalid["area_m2"].astype(object)
+    invalid.loc[0, "area_m2"] = value
+
+    with pytest.raises(ShapeProfileError, match="numeric and finite"):
+        profile_shape_distribution(invalid)
 ```
 
-**Purpose**
-
-Protects the `valid shape metrics reject bool and numeric strings` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `value`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `invalid` from `parcels.copy()`.
-- Computes `invalid['area_m2']` from `invalid['area_m2'].astype(object)`.
-- Computes `invalid.loc[0, 'area_m2']` from `value`.
-- Enters managed context(s) `pytest.raises(ShapeProfileError, match='numeric and finite')` and executes: Calls `profile_shape_distribution(invalid)` for its validation or side effect.
-
-**Action**
-
-- Calls `invalid['area_m2'].astype`, `parcels.copy`, `profile_shape_distribution`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ShapeProfileError, match='numeric and finite'): profile_shape_distribution(invalid)`.
-
-**Regression protected**
-
-- Protects the exact `valid shape metrics reject bool and numeric strings` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `invalid['area_m2'].astype`, `parcels.copy`, `profile_shape_distribution`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `A` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `B` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `C` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `D` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `E` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `F` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `centroid_lat` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `centroid_lon` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `columns` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `compactness` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `length_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
-| `length_width_ratio` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `max` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `min` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `p50` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `shape_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `width_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `test` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the test flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -1165,8 +1281,8 @@ This file contributes to LandScout's `test` evidence flow as described by its pu
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

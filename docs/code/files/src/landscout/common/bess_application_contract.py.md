@@ -4,9 +4,9 @@
 
 - Repository path: `src/landscout/common/bess_application_contract.py`
 - File type: Python source
-- Primary responsibility: Enforces intrinsic BESS planning feature-catalog and factual-relation contracts shared by application and aggregation stages.
-- Layer / domain: `internal common contract/utility` / `common`
-- Public or internal role: Module symbols without a package re-export are internal unless imported directly by repository code.
+- Layer: internal common contract
+- Domain: common contract
+- Responsibility: Enforces intrinsic BESS planning feature-catalog and factual-relation contracts shared by application and aggregation stages.
 - Source SHA256: `710ddf6051636362585071089a566d8386844767b0cd8a00c1e6e877a2ca1d6b`
 
 ## 1. Purpose
@@ -15,62 +15,254 @@ Enforces intrinsic BESS planning feature-catalog and factual-relation contracts 
 
 ## 2. Position in LandScout architecture
 
-This file is a `internal common contract/utility` artifact in the `common` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **internal common contract** layer and the **common contract** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from __future__ import annotations` — required by the implementation paths and symbols documented below.
-- `import math` — required by the implementation paths and symbols documented below.
-- `import re` — required by the implementation paths and symbols documented below.
-- `from numbers import Integral, Real` — required by the implementation paths and symbols documented below.
-- `from pathlib import PurePosixPath, PureWindowsPath` — required by the implementation paths and symbols documented below.
-- `from typing import Literal, cast` — required by the implementation paths and symbols documented below.
-- `from urllib.parse import urlsplit` — required by the implementation paths and symbols documented below.
+- `from __future__ import annotations`
+- `import math`
+- `import re`
+- `from numbers import Integral, Real`
+- `from pathlib import PurePosixPath, PureWindowsPath`
+- `from typing import Literal, cast`
+- `from urllib.parse import urlsplit`
 
-### Third-party
+### Third-party packages
 
-- `import geopandas as gpd` — required by the implementation paths and symbols documented below.
-- `import pandas as pd` — required by the implementation paths and symbols documented below.
-- `from pyproj import CRS` — required by the implementation paths and symbols documented below.
-- `from shapely import get_coordinate_dimension, get_parts` — required by the implementation paths and symbols documented below.
-- `from shapely.geometry.base import BaseGeometry` — required by the implementation paths and symbols documented below.
+- `import geopandas as gpd`
+- `import pandas as pd`
+- `from pyproj import CRS`
+- `from shapely import get_coordinate_dimension, get_parts`
+- `from shapely.geometry.base import BaseGeometry`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout.common.planning_feature_contract import ( validate_intrinsic_planning_feature_relations, )` — required by the implementation paths and symbols documented below.
-- `from landscout.common.planning_feature_schema import ( GeometryKind, feature_columns, feature_dtypes, relation_columns, relation_dtypes, validate_canonical_frame_schema, )` — required by the implementation paths and symbols documented below.
-- `from landscout.common.planning_overlay import technical_overlay_tolerance` — required by the implementation paths and symbols documented below.
+- `from landscout.common.planning_feature_contract import (
+    validate_intrinsic_planning_feature_relations,
+)`
+- `from landscout.common.planning_feature_schema import (
+    GeometryKind,
+    feature_columns,
+    feature_dtypes,
+    relation_columns,
+    relation_dtypes,
+    validate_canonical_frame_schema,
+)`
+- `from landscout.common.planning_overlay import technical_overlay_tolerance`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `APPLICATION_SCOPE` | `"FEATURE_AND_RELATION_POLICY_PROPAGATION_ONLY"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `POLICY_SCOPE` | `"OFFICIAL_CNIG_CODE_MEANING_ONLY"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `POLICY_COLUMNS` | `( "bess_cnig_policy_application_status", "bess_cnig_precheck_status", "bess_cnig_precheck_confidence", "bess_cnig_status_priority", "bess_cnig_rationale", "bess_cnig_required_human_action", "bess_cnig_limitations", "bess_cnig_application_scope", "bess_cnig_policy_scope", "bess_cnig_local_feature_text_interpreted", "bess_cnig_local_regulation_content_interpreted", "bess_cnig_legal_conclusion_produced", "bess_cnig_parcel_status_aggregated", "bess_cnig_parcel_rejection_performed", "bess_cnig_score_calculated", "bess_cnig_policy_profile", "bess_cnig_policy_sha256", "bess_cnig_policy_result_sha256", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `DECISION_COLUMNS` | `( "bess_cnig_precheck_status", "bess_cnig_precheck_confidence", "bess_cnig_status_priority", "bess_cnig_rationale", "bess_cnig_required_human_action", "bess_cnig_limitations", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `FLAG_COLUMNS` | `( "bess_cnig_local_feature_text_interpreted", "bess_cnig_local_regulation_content_interpreted", "bess_cnig_legal_conclusion_produced", "bess_cnig_parcel_status_aggregated", "bess_cnig_parcel_rejection_performed", "bess_cnig_score_calculated", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `STRING_POLICY_COLUMNS` | `tuple( column for column in POLICY_COLUMNS if column not in {"bess_cnig_status_priority", *FLAG_COLUMNS} )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `POLICY_SUFFIX_DTYPES` | `{ **{column: "str" for column in STRING_POLICY_COLUMNS}, "bess_cnig_status_priority": "Int64", **{column: "bool" for column in FLAG_COLUMNS}, }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `ALLOWED_PRECHECK_STATUSES` | `frozenset( { "LIKELY_MATERIAL_CONSTRAINT", "MATERIAL_REVIEW_REQUIRED", "DESIGN_REVIEW_REQUIRED", "CONTEXT_REVIEW_REQUIRED", "UNKNOWN", } )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `ALLOWED_CONFIDENCES` | `frozenset({"HIGH", "MEDIUM", "LOW"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `ALLOWED_FEATURE_FAMILIES` | `frozenset({"PRESCRIPTION", "INFORMATION"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `NULL_LITERALS` | `frozenset({"None", "nan", "<NA>"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `CODE_PATTERN` | `re.compile(r"[0-9]{2}")` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `SHA_PATTERN` | `re.compile(r"[0-9a-f]{64}")` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_FEATURE_SPECS` | `{ "SURFACE": ( frozenset({"prescription_surface", "information_surface"}), frozenset({"Polygon", "MultiPolygon"}), "feature_area_m2", ), "LINE": ( frozenset({"prescription_line", "information_line"}), frozenset({"LineString", "MultiLineString"}), "feature_length_m", ), "POINT": ( frozenset({"prescription_point", "information_point"}), frozenset({"Point", "MultiPoint"}), "point_member_count", ), }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `APPLICATION_SCOPE`
+
+```python
+APPLICATION_SCOPE = "FEATURE_AND_RELATION_POLICY_PROPAGATION_ONLY"
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/apply_bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import/re-export).
+
+#### `POLICY_SCOPE`
+
+```python
+POLICY_SCOPE = "OFFICIAL_CNIG_CODE_MEANING_ONLY"
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` (import/re-export), `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import/re-export).
+
+#### `POLICY_COLUMNS`
+
+```python
+POLICY_COLUMNS = (
+    "bess_cnig_policy_application_status",
+    "bess_cnig_precheck_status",
+    "bess_cnig_precheck_confidence",
+    "bess_cnig_status_priority",
+    "bess_cnig_rationale",
+    "bess_cnig_required_human_action",
+    "bess_cnig_limitations",
+    "bess_cnig_application_scope",
+    "bess_cnig_policy_scope",
+    "bess_cnig_local_feature_text_interpreted",
+    "bess_cnig_local_regulation_content_interpreted",
+    "bess_cnig_legal_conclusion_produced",
+    "bess_cnig_parcel_status_aggregated",
+    "bess_cnig_parcel_rejection_performed",
+    "bess_cnig_score_calculated",
+    "bess_cnig_policy_profile",
+    "bess_cnig_policy_sha256",
+    "bess_cnig_policy_result_sha256",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` (value argument/reference), `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` (value argument/reference), `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` (value argument/reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import/re-export), `tests/unit/test_aggregate_bess_planning_feature_policy.py::<module>` (import/re-export), `tests/unit/test_apply_bess_planning_feature_policy.py::test_policy_suffix_has_one_exact_deterministic_dtype_schema` (value argument/reference), `tests/unit/test_apply_bess_planning_feature_policy.py::test_valid_empty_optional_application_catalog_retains_schema_and_crs` (value argument/reference), `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_and_relation_inputs_are_preserved_and_not_mutated` (value argument/reference), `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_normalized_facts_rows_index_crs_and_geometry_are_preserved` (value argument/reference).
+
+#### `DECISION_COLUMNS`
+
+```python
+DECISION_COLUMNS = (
+    "bess_cnig_precheck_status",
+    "bess_cnig_precheck_confidence",
+    "bess_cnig_status_priority",
+    "bess_cnig_rationale",
+    "bess_cnig_required_human_action",
+    "bess_cnig_limitations",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+
+#### `FLAG_COLUMNS`
+
+```python
+FLAG_COLUMNS = (
+    "bess_cnig_local_feature_text_interpreted",
+    "bess_cnig_local_regulation_content_interpreted",
+    "bess_cnig_legal_conclusion_produced",
+    "bess_cnig_parcel_status_aggregated",
+    "bess_cnig_parcel_rejection_performed",
+    "bess_cnig_score_calculated",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import/re-export).
+
+#### `STRING_POLICY_COLUMNS`
+
+```python
+STRING_POLICY_COLUMNS = tuple(
+    column
+    for column in POLICY_COLUMNS
+    if column not in {"bess_cnig_status_priority", *FLAG_COLUMNS}
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import/re-export).
+
+#### `POLICY_SUFFIX_DTYPES`
+
+```python
+POLICY_SUFFIX_DTYPES = {
+    **{column: "str" for column in STRING_POLICY_COLUMNS},
+    "bess_cnig_status_priority": "Int64",
+    **{column: "bool" for column in FLAG_COLUMNS},
+}
+```
+
+Canonical Pandas/GeoPandas dtype contract aligned with the named schema. Consumers include `tests/unit/test_aggregate_bess_planning_feature_policy.py::<module>` (import/re-export).
+
+#### `ALLOWED_PRECHECK_STATUSES`
+
+```python
+ALLOWED_PRECHECK_STATUSES = frozenset(
+    {
+        "LIKELY_MATERIAL_CONSTRAINT",
+        "MATERIAL_REVIEW_REQUIRED",
+        "DESIGN_REVIEW_REQUIRED",
+        "CONTEXT_REVIEW_REQUIRED",
+        "UNKNOWN",
+    }
+)
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` (import/re-export).
+
+#### `ALLOWED_CONFIDENCES`
+
+```python
+ALLOWED_CONFIDENCES = frozenset({"HIGH", "MEDIUM", "LOW"})
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` (import/re-export).
+
+#### `ALLOWED_FEATURE_FAMILIES`
+
+```python
+ALLOWED_FEATURE_FAMILIES = frozenset({"PRESCRIPTION", "INFORMATION"})
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+
+#### `NULL_LITERALS`
+
+```python
+NULL_LITERALS = frozenset({"None", "nan", "<NA>"})
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` (import/re-export).
+
+#### `CODE_PATTERN`
+
+```python
+CODE_PATTERN = re.compile(r"[0-9]{2}")
+```
+
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+
+#### `SHA_PATTERN`
+
+```python
+SHA_PATTERN = re.compile(r"[0-9a-f]{64}")
+```
+
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+
+#### `_FEATURE_SPECS`
+
+```python
+_FEATURE_SPECS = {
+    "SURFACE": (
+        frozenset({"prescription_surface", "information_surface"}),
+        frozenset({"Polygon", "MultiPolygon"}),
+        "feature_area_m2",
+    ),
+    "LINE": (
+        frozenset({"prescription_line", "information_line"}),
+        frozenset({"LineString", "MultiLineString"}),
+        "feature_length_m",
+    ),
+    "POINT": (
+        frozenset({"prescription_point", "information_point"}),
+        frozenset({"Point", "MultiPoint"}),
+        "point_member_count",
+    ),
+}
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+
+### B. Type aliases and closed domains
+
+#### `ApplicationStatus`
+
+```python
+ApplicationStatus = Literal["APPLIED_EXACT_POLICY", "UNRESOLVED_CODE_PAIR"]
+```
+
+BESS CNIG application state: exact policy applied or unresolved code pair. Enforced/consumed by `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import/re-export).
+
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
-No class, model, or dataclass is declared in this file.
+No class/model/dataclass is declared.
 
 ## 6. Functions and methods
 
 ### `_null_value`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _null_value(value: object) -> object:
@@ -78,58 +270,66 @@ def _null_value(value: object) -> object:
 
 **Purpose**
 
-Implements null value according to the exact implementation and guards in this file.
+Private `common contract` helper for null value; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `object`.
+- Every observed return expression is reproduced without truncation:
+```python
+value
 
-**Returns**
+None
 
-- Declared return type: `object`. Observed return expression(s): `value`; `None`.
+None
+```
 
-**Algorithm**
+**Validation and exceptions**
 
-1. Checks `value is None or value is pd.NA`. When true: Returns `None`.
-2. Checks `isinstance(value, float) and math.isnan(value)`. When true: Returns `None`.
-3. Returns `value`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `isinstance`, `math.isnan`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_optional_official_string` via `_null_value`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_null_value`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_canonical_value` via `_null_value`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_local_domains` via `_null_value`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_canonical_value` via `_null_value`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_null_safe_equal` via `_null_value`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_null_safe_equal` via `_null_value`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_canonical_value` via `_null_value`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_table_rows` via `_null_value`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/bess_application_contract.py` — `_optional_official_string`
-- `src/landscout/common/bess_application_contract.py` — `validate_bess_application_policy_frame`
+```python
+def _null_value(value: object) -> object:
+    if value is None or value is pd.NA:
+        return None
+    if isinstance(value, float) and math.isnan(value):
+        return None
+    return value
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_exact_string`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _exact_string(value: object, label: str) -> str:
@@ -137,61 +337,73 @@ def _exact_string(value: object, label: str) -> str:
 
 **Purpose**
 
-Implements exact string according to the exact implementation and guards in this file.
+Private `common contract` helper for exact string; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+value
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `value`.
-
-**Algorithm**
-
-1. Checks `not isinstance(value, str) or not value or value != value.strip()`. When true: Raises `ValueError(f'{label} must be an exact non-empty string')`.
-2. Returns `value`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(value, str) or not value or value != value.strip()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(value, str) or not value or value != value.strip()`.
+- Explicit raise expressions: `ValueError(f'{label} must be an exact non-empty string')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `isinstance`, `value.strip`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_sha256` via `_exact_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_optional_official_string` via `_exact_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_exact_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_relation_identity_string` via `_exact_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::BessPlanningFeatureApplicationArtifactManifest._validate_manifest` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_optional_exact_string` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::PolicySourceLock._validate_lock` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::PolicyEntry._validate_entry` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyConfig._validate_policy` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyArtifactManifest._validate_manifest` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_table_rows` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_official_text` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeProfile._validate_profile` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_strict_string` via `_exact_string`.
+- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::<module>` via `AfterValidator(_exact_string)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/bess_application_contract.py` — `_optional_official_string`
-- `src/landscout/common/bess_application_contract.py` — `_relation_identity_string`
-- `src/landscout/common/bess_application_contract.py` — `_sha256`
-- `src/landscout/common/bess_application_contract.py` — `validate_bess_application_feature_catalogs`
-- `src/landscout/common/bess_application_contract.py` — `validate_bess_application_policy_frame`
+```python
+def _exact_string(value: object, label: str) -> str:
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise ValueError(f"{label} must be an exact non-empty string")
+    return value
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _sha256(value: object, label: str) -> str:
@@ -199,59 +411,66 @@ def _sha256(value: object, label: str) -> str:
 
 **Purpose**
 
-Implements sha256 according to the exact implementation and guards in this file.
+Private `common contract` helper for sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+exact
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `exact`.
-
-**Algorithm**
-
-1. Computes `exact` from `_exact_string(value, label)`.
-2. Checks `SHA_PATTERN.fullmatch(exact) is None`. When true: Raises `ValueError(f'{label} must be a lowercase SHA256')`.
-3. Returns `exact`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `SHA_PATTERN.fullmatch(exact) is None` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `SHA_PATTERN.fullmatch(exact) is None`.
+- Explicit raise expressions: `ValueError(f'{label} must be a lowercase SHA256')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `SHA_PATTERN.fullmatch`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `SHA_PATTERN.fullmatch`, `ValueError`, `_exact_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_validate_official_row` via `_sha256`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_sha256`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::_load_cached_download` via `_sha256`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_sha256`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_sha256`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_load_cached_archive` via `_sha256`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_sha256`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `_sha256`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `_sha256`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_sha256`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_sha256`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_sha256`.
+- direct call or construction: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu._sha256`.
+- property/attribute access: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu._sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/bess_application_contract.py` — `_validate_official_row`
-- `src/landscout/common/bess_application_contract.py` — `validate_bess_application_policy_frame`
+```python
+def _sha256(value: object, label: str) -> str:
+    exact = _exact_string(value, label)
+    if SHA_PATTERN.fullmatch(exact) is None:
+        raise ValueError(f"{label} must be a lowercase SHA256")
+    return exact
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_optional_official_string`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _optional_official_string(value: object, label: str) -> str | None:
@@ -259,59 +478,57 @@ def _optional_official_string(value: object, label: str) -> str | None:
 
 **Purpose**
 
-Implements optional official string according to the exact implementation and guards in this file.
+Private `common contract` helper for optional official string; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str | None`.
+- Every observed return expression is reproduced without truncation:
+```python
+exact
 
-**Returns**
+None
+```
 
-- Declared return type: `str | None`. Observed return expression(s): `exact`; `None`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Checks `_null_value(value) is None`. When true: Returns `None`.
-2. Computes `exact` from `_exact_string(value, label)`.
-3. Checks `exact in NULL_LITERALS`. When true: Raises `ValueError(f'{label} must not be a textual null sentinel')`.
-4. Returns `exact`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `exact in NULL_LITERALS` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `exact in NULL_LITERALS`.
+- Explicit raise expressions: `ValueError(f'{label} must not be a textual null sentinel')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `_exact_string`, `_null_value`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_validate_official_row` via `_optional_official_string`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/bess_application_contract.py` — `_validate_official_row`
+```python
+def _optional_official_string(value: object, label: str) -> str | None:
+    if _null_value(value) is None:
+        return None
+    exact = _exact_string(value, label)
+    if exact in NULL_LITERALS:
+        raise ValueError(f"{label} must not be a textual null sentinel")
+    return exact
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_validate_official_row`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_official_row(
@@ -327,79 +544,99 @@ def _validate_official_row(
 
 **Purpose**
 
-Validates and rejects malformed official row according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent official row; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `row` (`dict[str, object]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_document_id` (`str`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_archive_sha256` (`str`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `cnig_profile` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `cnig_profile_sha256` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `row['source_document_id'] != source_document_id`. When true: Raises `ValueError(f'{label} source document lineage differs from envelope')`.
-2. Checks `row['source_archive_sha256'] != source_archive_sha256`. When true: Raises `ValueError(f'{label} source archive lineage differs from envelope')`.
-3. Calls `_sha256(row['source_archive_sha256'], f'{label} source archive SHA256')` for its validation or side effect.
-4. Checks `row['official_code_profile'] != cnig_profile`. When true: Raises `ValueError(f'{label} official profile lineage differs from envelope')`.
-5. Checks `row['official_code_profile_sha256'] != cnig_profile_sha256`. When true: Raises `ValueError(f'{label} official profile SHA256 lineage differs')`.
-6. Calls `_sha256(row['official_code_profile_sha256'], f'{label} official profile SHA256')` for its validation or side effect.
-7. Computes `official_status` from `row['official_code_status']`.
-8. Computes `label_value` from `_optional_official_string(row['official_code_label'], f'{label} official label')`.
-9. Computes `legal` from `_optional_official_string(row['official_legal_reference'], f'{label} official legal reference')`.
-10. Computes `regulation` from `_optional_official_string(row['official_regulation_reference'], f'{label} official regulation reference')`.
-11. Computes `source_url` from `_optional_official_string(row['official_code_source_url'], f'{label} official source URL')`.
-12. Checks `official_status == 'RESOLVED_OFFICIAL'`. When true: Checks `label_value is None or source_url is None`. When true: Raises `ValueError(f'{label} resolved official meaning is incomplete')`. Computes `parsed_url` from `urlsplit(source_url)`. Checks `parsed_url.scheme != 'https' or not parsed_url.netloc`. When true: Raises `ValueError(f'{label} official source URL must be exact HTTPS')`. Otherwise: Checks `official_status == 'UNKNOWN_CODE_PAIR'`. When true: Checks `any((value is not None for value in (label_value, legal, regulation, source_url)))`. When true: Raises `ValueError(f'{label} unknown official meaning must remain null')`. Otherwise: Raises `ValueError(f'{label} official-code status is invalid')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `row['source_document_id'] != source_document_id` is true.
-- Rejects or diverts the path when `row['source_archive_sha256'] != source_archive_sha256` is true.
-- Rejects or diverts the path when `row['official_code_profile'] != cnig_profile` is true.
-- Rejects or diverts the path when `row['official_code_profile_sha256'] != cnig_profile_sha256` is true.
-- Rejects or diverts the path when `official_status == 'RESOLVED_OFFICIAL'` is true.
-- Rejects or diverts the path when `label_value is None or source_url is None` is true.
-- Rejects or diverts the path when `parsed_url.scheme != 'https' or not parsed_url.netloc` is true.
-- Rejects or diverts the path when `official_status == 'UNKNOWN_CODE_PAIR'` is true.
-- Rejects or diverts the path when `any((value is not None for value in (label_value, legal, regulation, source_url)))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `row['source_document_id'] != source_document_id`.
+- Guard with a raise path: `row['source_archive_sha256'] != source_archive_sha256`.
+- Guard with a raise path: `row['official_code_profile'] != cnig_profile`.
+- Guard with a raise path: `row['official_code_profile_sha256'] != cnig_profile_sha256`.
+- Guard with a raise path: `official_status == 'RESOLVED_OFFICIAL'`.
+- Guard with a raise path: `label_value is None or source_url is None`.
+- Guard with a raise path: `parsed_url.scheme != 'https' or not parsed_url.netloc`.
+- Guard with a raise path: `official_status == 'UNKNOWN_CODE_PAIR'`.
+- Guard with a raise path: `any((value is not None for value in (label_value, legal, regulation, source_url)))`.
+- Explicit raise expressions: `ValueError(f'{label} official profile SHA256 lineage differs')`, `ValueError(f'{label} official profile lineage differs from envelope')`, `ValueError(f'{label} official source URL must be exact HTTPS')`, `ValueError(f'{label} official-code status is invalid')`, `ValueError(f'{label} resolved official meaning is incomplete')`, `ValueError(f'{label} source archive lineage differs from envelope')`, `ValueError(f'{label} source document lineage differs from envelope')`, `ValueError(f'{label} unknown official meaning must remain null')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `_optional_official_string`, `_sha256`, `any`, `urlsplit`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_validate_official_row`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/bess_application_contract.py` — `validate_bess_application_policy_frame`
+```python
+def _validate_official_row(
+    row: dict[str, object],
+    *,
+    label: str,
+    source_document_id: str,
+    source_archive_sha256: str,
+    cnig_profile: str,
+    cnig_profile_sha256: str,
+) -> None:
+    if row["source_document_id"] != source_document_id:
+        raise ValueError(f"{label} source document lineage differs from envelope")
+    if row["source_archive_sha256"] != source_archive_sha256:
+        raise ValueError(f"{label} source archive lineage differs from envelope")
+    _sha256(row["source_archive_sha256"], f"{label} source archive SHA256")
+    if row["official_code_profile"] != cnig_profile:
+        raise ValueError(f"{label} official profile lineage differs from envelope")
+    if row["official_code_profile_sha256"] != cnig_profile_sha256:
+        raise ValueError(f"{label} official profile SHA256 lineage differs")
+    _sha256(row["official_code_profile_sha256"], f"{label} official profile SHA256")
+    official_status = row["official_code_status"]
+    label_value = _optional_official_string(
+        row["official_code_label"], f"{label} official label"
+    )
+    legal = _optional_official_string(
+        row["official_legal_reference"], f"{label} official legal reference"
+    )
+    regulation = _optional_official_string(
+        row["official_regulation_reference"],
+        f"{label} official regulation reference",
+    )
+    source_url = _optional_official_string(
+        row["official_code_source_url"], f"{label} official source URL"
+    )
+    if official_status == "RESOLVED_OFFICIAL":
+        if label_value is None or source_url is None:
+            raise ValueError(f"{label} resolved official meaning is incomplete")
+        parsed_url = urlsplit(source_url)
+        if parsed_url.scheme != "https" or not parsed_url.netloc:
+            raise ValueError(f"{label} official source URL must be exact HTTPS")
+    elif official_status == "UNKNOWN_CODE_PAIR":
+        if any(
+            value is not None for value in (label_value, legal, regulation, source_url)
+        ):
+            raise ValueError(f"{label} unknown official meaning must remain null")
+    else:
+        raise ValueError(f"{label} official-code status is invalid")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `validate_bess_application_policy_frame`
 
-**Signature**
+**Exact signature**
 
 ```python
 def validate_bess_application_policy_frame(
@@ -420,92 +657,181 @@ def validate_bess_application_policy_frame(
 
 Validate the complete canonical application suffix and every row.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_profile` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_sha256` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_result_sha256` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_document_id` (`str`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_archive_sha256` (`str`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `cnig_profile` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `cnig_profile_sha256` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Calls `_exact_string(source_document_id, f'{label} source document identity')` for its validation or side effect.
-2. Calls `_sha256(source_archive_sha256, f'{label} source archive SHA256')` for its validation or side effect.
-3. Calls `_exact_string(cnig_profile, f'{label} CNIG profile')` for its validation or side effect.
-4. Calls `_sha256(cnig_profile_sha256, f'{label} CNIG profile SHA256')` for its validation or side effect.
-5. Checks `not isinstance(frame, pd.DataFrame)`. When true: Raises `TypeError(f'{label} must be a DataFrame')`.
-6. Checks `frame.columns.duplicated().any()`. When true: Raises `ValueError(f'{label} contains duplicate columns')`.
-7. Checks `tuple(frame.columns[-len(POLICY_COLUMNS):]) != POLICY_COLUMNS`. When true: Raises `ValueError(f'{label} policy schema is invalid')`.
-8. Iterates `(column, expected_dtype)` over `POLICY_SUFFIX_DTYPES.items()`. For each value: Checks `str(frame[column].dtype) != expected_dtype`. When true: Raises `ValueError(f'{label} policy dtype is invalid for {column}')`.
-9. Computes `required` from `{'feature_family', 'type_code_raw', 'subtype_code_raw', 'official_code_status', 'official_code_label', 'official_legal_reference', 'official_regulation_reference', 'official_code_source_url', 'official_code_profile', 'official_code_profile_sha256', 'source_document_id', 'source_archive_sha256', *POLICY_COLUMNS}`.
-10. Checks `not required.issubset(frame.columns)`. When true: Raises `ValueError(f'{label} application identity schema is incomplete')`.
-11. Iterates `row` over `frame.to_dict('records')`. For each value: Calls `_validate_official_row(row, label=label, source_document_id=source_document_id, source_archive_sha256=source_archive_sha256, cnig_profile=cnig_profile, cnig_profile_sha256=cnig_profile_sha256)` for its validation or side effect. Checks `row['feature_family'] not in ALLOWED_FEATURE_FAMILIES`. When true: Raises `ValueError(f'{label} feature family is invalid')`. Iterates `column` over `('type_code_raw', 'subtype_code_raw')`. For each value: Computes `value` from `row[column]`. Checks `not isinstance(value, str) or CODE_PATTERN.fullmatch(value) is None`. When true: Raises `ValueError(f'{label} {column} is not an exact two-digit code')`. Executes 8 additional source-ordered statement(s).
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(frame, pd.DataFrame)` is true.
-- Rejects or diverts the path when `frame.columns.duplicated().any()` is true.
-- Rejects or diverts the path when `tuple(frame.columns[-len(POLICY_COLUMNS):]) != POLICY_COLUMNS` is true.
-- Rejects or diverts the path when `not required.issubset(frame.columns)` is true.
-- Rejects or diverts the path when `str(frame[column].dtype) != expected_dtype` is true.
-- Rejects or diverts the path when `row['feature_family'] not in ALLOWED_FEATURE_FAMILIES` is true.
-- Rejects or diverts the path when `application_status == 'APPLIED_EXACT_POLICY'` is true.
-- Rejects or diverts the path when `row['bess_cnig_application_scope'] != APPLICATION_SCOPE` is true.
-- Rejects or diverts the path when `row['bess_cnig_policy_scope'] != POLICY_SCOPE` is true.
-- Rejects or diverts the path when `any((row[column] is not False for column in FLAG_COLUMNS))` is true.
-- Rejects or diverts the path when `not isinstance(value, str) or CODE_PATTERN.fullmatch(value) is None` is true.
-- Rejects or diverts the path when `official_status != 'RESOLVED_OFFICIAL'` is true.
-- Rejects or diverts the path when `any((_null_value(row[column]) is None for column in DECISION_COLUMNS))` is true.
-- Rejects or diverts the path when `row['bess_cnig_precheck_status'] not in ALLOWED_PRECHECK_STATUSES` is true.
-- Rejects or diverts the path when `row['bess_cnig_precheck_confidence'] not in ALLOWED_CONFIDENCES` is true.
-- Rejects or diverts the path when `isinstance(priority, bool) or not isinstance(priority, Integral) or int(priority) <= 0` is true.
-- Rejects or diverts the path when `application_status == 'UNRESOLVED_CODE_PAIR'` is true.
-- Rejects or diverts the path when `isinstance(value, str) and value in NULL_LITERALS` is true.
-- Rejects or diverts the path when `actual != expected` is true.
-- Rejects or diverts the path when `official_status != 'UNKNOWN_CODE_PAIR'` is true.
-- Rejects or diverts the path when `any((_null_value(row[column]) is not None for column in DECISION_COLUMNS))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `TypeError`, `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(frame, pd.DataFrame)`.
+- Guard with a raise path: `frame.columns.duplicated().any()`.
+- Guard with a raise path: `tuple(frame.columns[-len(POLICY_COLUMNS):]) != POLICY_COLUMNS`.
+- Guard with a raise path: `not required.issubset(frame.columns)`.
+- Guard with a raise path: `str(frame[column].dtype) != expected_dtype`.
+- Guard with a raise path: `row['feature_family'] not in ALLOWED_FEATURE_FAMILIES`.
+- Guard with a raise path: `application_status == 'APPLIED_EXACT_POLICY'`.
+- Guard with a raise path: `row['bess_cnig_application_scope'] != APPLICATION_SCOPE`.
+- Guard with a raise path: `row['bess_cnig_policy_scope'] != POLICY_SCOPE`.
+- Guard with a raise path: `any((row[column] is not False for column in FLAG_COLUMNS))`.
+- Guard with a raise path: `not isinstance(value, str) or CODE_PATTERN.fullmatch(value) is None`.
+- Guard with a raise path: `official_status != 'RESOLVED_OFFICIAL'`.
+- Guard with a raise path: `any((_null_value(row[column]) is None for column in DECISION_COLUMNS))`.
+- Guard with a raise path: `row['bess_cnig_precheck_status'] not in ALLOWED_PRECHECK_STATUSES`.
+- Guard with a raise path: `row['bess_cnig_precheck_confidence'] not in ALLOWED_CONFIDENCES`.
+- Guard with a raise path: `isinstance(priority, bool) or not isinstance(priority, Integral) or int(priority) <= 0`.
+- Guard with a raise path: `application_status == 'UNRESOLVED_CODE_PAIR'`.
+- Guard with a raise path: `isinstance(value, str) and value in NULL_LITERALS`.
+- Guard with a raise path: `actual != expected`.
+- Guard with a raise path: `official_status != 'UNKNOWN_CODE_PAIR'`.
+- Guard with a raise path: `any((_null_value(row[column]) is not None for column in DECISION_COLUMNS))`.
+- Explicit raise expressions: `TypeError(f'{label} must be a DataFrame')`, `ValueError(f'{label} application identity schema is incomplete')`, `ValueError(f'{label} application scope is invalid')`, `ValueError(f'{label} application status is invalid')`, `ValueError(f'{label} applied policy row has a missing decision')`, `ValueError(f'{label} boundary flags must be false')`, `ValueError(f'{label} confidence is outside the domain')`, `ValueError(f'{label} contains a literal missing-value replacement')`, `ValueError(f'{label} contains duplicate columns')`, `ValueError(f'{label} feature family is invalid')`, `ValueError(f'{label} official status contradicts its application status')`, `ValueError(f'{label} policy dtype is invalid for {column}')`, `ValueError(f'{label} policy schema is invalid')`, `ValueError(f'{label} policy scope is invalid')`, `ValueError(f'{label} precheck status is outside the domain')`, `ValueError(f'{label} priority must be a positive integer')`, `ValueError(f'{label} unresolved row has an invented decision')`, `ValueError(f'{label} {column} is not an exact two-digit code')`, `ValueError(f'{label} {lineage_label} lineage is invalid')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `CODE_PATTERN.fullmatch`, `POLICY_SUFFIX_DTYPES.items`, `TypeError`, `ValueError`, `_exact_string`, `_null_value`, `_sha256`, `_validate_official_row`, `any`, `frame.columns.duplicated`, `frame.columns.duplicated().any`, `frame.to_dict`, `int`, `isinstance`, `len`, `required.issubset`, `str`, `tuple`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `validate_bess_application_policy_frame`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `validate_bess_application_policy_frame`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/bess_application_contract.py` — `validate_bess_application_feature_catalogs`
-- `src/landscout/common/bess_application_contract.py` — `validate_bess_application_relation_frame`
+```python
+def validate_bess_application_policy_frame(
+    frame: pd.DataFrame,
+    *,
+    label: str,
+    policy_profile: str,
+    policy_sha256: str,
+    policy_result_sha256: str,
+    source_document_id: str,
+    source_archive_sha256: str,
+    cnig_profile: str,
+    cnig_profile_sha256: str,
+) -> None:
+    """Validate the complete canonical application suffix and every row."""
 
-**Tests**
+    _exact_string(source_document_id, f"{label} source document identity")
+    _sha256(source_archive_sha256, f"{label} source archive SHA256")
+    _exact_string(cnig_profile, f"{label} CNIG profile")
+    _sha256(cnig_profile_sha256, f"{label} CNIG profile SHA256")
+    if not isinstance(frame, pd.DataFrame):
+        raise TypeError(f"{label} must be a DataFrame")
+    if frame.columns.duplicated().any():
+        raise ValueError(f"{label} contains duplicate columns")
+    if tuple(frame.columns[-len(POLICY_COLUMNS) :]) != POLICY_COLUMNS:
+        raise ValueError(f"{label} policy schema is invalid")
+    for column, expected_dtype in POLICY_SUFFIX_DTYPES.items():
+        if str(frame[column].dtype) != expected_dtype:
+            raise ValueError(f"{label} policy dtype is invalid for {column}")
+    required = {
+        "feature_family",
+        "type_code_raw",
+        "subtype_code_raw",
+        "official_code_status",
+        "official_code_label",
+        "official_legal_reference",
+        "official_regulation_reference",
+        "official_code_source_url",
+        "official_code_profile",
+        "official_code_profile_sha256",
+        "source_document_id",
+        "source_archive_sha256",
+        *POLICY_COLUMNS,
+    }
+    if not required.issubset(frame.columns):
+        raise ValueError(f"{label} application identity schema is incomplete")
+    for row in frame.to_dict("records"):
+        _validate_official_row(
+            row,
+            label=label,
+            source_document_id=source_document_id,
+            source_archive_sha256=source_archive_sha256,
+            cnig_profile=cnig_profile,
+            cnig_profile_sha256=cnig_profile_sha256,
+        )
+        if row["feature_family"] not in ALLOWED_FEATURE_FAMILIES:
+            raise ValueError(f"{label} feature family is invalid")
+        for column in ("type_code_raw", "subtype_code_raw"):
+            value = row[column]
+            if not isinstance(value, str) or CODE_PATTERN.fullmatch(value) is None:
+                raise ValueError(f"{label} {column} is not an exact two-digit code")
+        application_status = row["bess_cnig_policy_application_status"]
+        official_status = row["official_code_status"]
+        if application_status == "APPLIED_EXACT_POLICY":
+            if official_status != "RESOLVED_OFFICIAL":
+                raise ValueError(
+                    f"{label} official status contradicts its application status"
+                )
+            if any(_null_value(row[column]) is None for column in DECISION_COLUMNS):
+                raise ValueError(f"{label} applied policy row has a missing decision")
+            if row["bess_cnig_precheck_status"] not in ALLOWED_PRECHECK_STATUSES:
+                raise ValueError(f"{label} precheck status is outside the domain")
+            if row["bess_cnig_precheck_confidence"] not in ALLOWED_CONFIDENCES:
+                raise ValueError(f"{label} confidence is outside the domain")
+            priority = row["bess_cnig_status_priority"]
+            if (
+                isinstance(priority, bool)
+                or not isinstance(priority, Integral)
+                or int(priority) <= 0
+            ):
+                raise ValueError(f"{label} priority must be a positive integer")
+            for column in (
+                "bess_cnig_rationale",
+                "bess_cnig_required_human_action",
+                "bess_cnig_limitations",
+            ):
+                _exact_string(row[column], f"{label} {column}")
+        elif application_status == "UNRESOLVED_CODE_PAIR":
+            if official_status != "UNKNOWN_CODE_PAIR":
+                raise ValueError(
+                    f"{label} official status contradicts its application status"
+                )
+            if any(_null_value(row[column]) is not None for column in DECISION_COLUMNS):
+                raise ValueError(f"{label} unresolved row has an invented decision")
+        else:
+            raise ValueError(f"{label} application status is invalid")
+        for column in STRING_POLICY_COLUMNS:
+            value = row[column]
+            if isinstance(value, str) and value in NULL_LITERALS:
+                raise ValueError(
+                    f"{label} contains a literal missing-value replacement"
+                )
+        if row["bess_cnig_application_scope"] != APPLICATION_SCOPE:
+            raise ValueError(f"{label} application scope is invalid")
+        if row["bess_cnig_policy_scope"] != POLICY_SCOPE:
+            raise ValueError(f"{label} policy scope is invalid")
+        if any(row[column] is not False for column in FLAG_COLUMNS):
+            raise ValueError(f"{label} boundary flags must be false")
+        for actual, expected, lineage_label in (
+            (row["bess_cnig_policy_profile"], policy_profile, "policy profile"),
+            (row["bess_cnig_policy_sha256"], policy_sha256, "policy SHA256"),
+            (
+                row["bess_cnig_policy_result_sha256"],
+                policy_result_sha256,
+                "policy result SHA256",
+            ),
+        ):
+            if actual != expected:
+                raise ValueError(f"{label} {lineage_label} lineage is invalid")
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_relation_identity_string`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _relation_identity_string(value: object, label: str) -> str:
@@ -513,60 +839,55 @@ def _relation_identity_string(value: object, label: str) -> str:
 
 **Purpose**
 
-Implements relation identity string according to the exact implementation and guards in this file.
+Private `common contract` helper for relation identity string; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+exact
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `exact`.
-
-**Algorithm**
-
-1. Computes `exact` from `_exact_string(value, label)`.
-2. Checks `exact in NULL_LITERALS`. When true: Raises `ValueError(f'{label} must not be a textual null sentinel')`.
-3. Returns `exact`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `exact in NULL_LITERALS` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `exact in NULL_LITERALS`.
+- Explicit raise expressions: `ValueError(f'{label} must not be a textual null sentinel')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `_exact_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_portable_feature_id` via `_relation_identity_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_relation_identity_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `_relation_identity_string`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/bess_application_contract.py` — `_portable_feature_id`
-- `src/landscout/common/bess_application_contract.py` — `validate_bess_application_feature_catalogs`
-- `src/landscout/common/bess_application_contract.py` — `validate_bess_application_relation_frame`
+```python
+def _relation_identity_string(value: object, label: str) -> str:
+    exact = _exact_string(value, label)
+    if exact in NULL_LITERALS:
+        raise ValueError(f"{label} must not be a textual null sentinel")
+    return exact
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_portable_feature_id`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _portable_feature_id(value: object, label: str) -> str:
@@ -574,59 +895,57 @@ def _portable_feature_id(value: object, label: str) -> str:
 
 **Purpose**
 
-Implements portable feature id according to the exact implementation and guards in this file.
+Private `common contract` helper for portable feature id; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+feature_id
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `feature_id`.
-
-**Algorithm**
-
-1. Computes `feature_id` from `_relation_identity_string(value, label)`.
-2. Checks `PurePosixPath(feature_id).is_absolute() or PureWindowsPath(feature_id).is_absolute()`. When true: Raises `ValueError(f'{label} must not be an absolute path')`.
-3. Returns `feature_id`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `PurePosixPath(feature_id).is_absolute() or PureWindowsPath(feature_id).is_absolute()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `PurePosixPath(feature_id).is_absolute() or PureWindowsPath(feature_id).is_absolute()`.
+- Explicit raise expressions: `ValueError(f'{label} must not be an absolute path')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PurePosixPath`, `PurePosixPath(feature_id).is_absolute`, `PureWindowsPath`, `PureWindowsPath(feature_id).is_absolute`, `ValueError`, `_relation_identity_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_portable_feature_id`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `_portable_feature_id`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/bess_application_contract.py` — `validate_bess_application_feature_catalogs`
-- `src/landscout/common/bess_application_contract.py` — `validate_bess_application_relation_frame`
+```python
+def _portable_feature_id(value: object, label: str) -> str:
+    feature_id = _relation_identity_string(value, label)
+    if (
+        PurePosixPath(feature_id).is_absolute()
+        or PureWindowsPath(feature_id).is_absolute()
+    ):
+        raise ValueError(f"{label} must not be an absolute path")
+    return feature_id
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_status_priority_mapping`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _status_priority_mapping(
@@ -636,62 +955,76 @@ def _status_priority_mapping(
 
 **Purpose**
 
-Implements status priority mapping according to the exact implementation and guards in this file.
+Private `common contract` helper for status priority mapping; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[dict[int, str], dict[str, int]]`.
+- Every observed return expression is reproduced without truncation:
+```python
+({priority: next(iter(statuses)) for priority, statuses in priority_to_statuses.items()}, {status: next(iter(priorities)) for status, priorities in status_to_priorities.items()})
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[dict[int, str], dict[str, int]]`. Observed return expression(s): `({priority: next(iter(statuses)) for priority, statuses in priority_to_statuses.items()}, {status: next(iter(priorities)) for status, priorities in status_to_priorities.items()})`.
-
-**Algorithm**
-
-1. Defines `priority_to_statuses` with annotation `dict[int, set[str]]` from `{}`.
-2. Defines `status_to_priorities` with annotation `dict[str, set[int]]` from `{}`.
-3. Computes `applied` from `frame[frame['bess_cnig_policy_application_status'] == 'APPLIED_EXACT_POLICY']`.
-4. Iterates `row` over `applied.to_dict('records')`. For each value: Computes `priority` from `int(row['bess_cnig_status_priority'])`. Computes `status` from `str(row['bess_cnig_precheck_status'])`. Calls `priority_to_statuses.setdefault(priority, set()).add(status)` for its validation or side effect. Executes 1 additional source-ordered statement(s).
-5. Checks `any((len(statuses) != 1 for statuses in priority_to_statuses.values())) or any((len(priorities) != 1 for priorities in status_to_priorities.values()))`. When true: Raises `ValueError(f'{label} status/priority mapping is not one-to-one')`.
-6. Returns `({priority: next(iter(statuses)) for priority, statuses in priority_to_statuses.items()}, {status: next(iter(priorities)) for status, priorities in status_to_priorities.items()})`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `any((len(statuses) != 1 for statuses in priority_to_statuses.values())) or any((len(priorities) != 1 for priorities in status_to_priorities.values()))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `any((len(statuses) != 1 for statuses in priority_to_statuses.values())) or any((len(priorities) != 1 for priorities in status_to_priorities.values()))`.
+- Explicit raise expressions: `ValueError(f'{label} status/priority mapping is not one-to-one')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `any`, `applied.to_dict`, `int`, `iter`, `len`, `next`, `priority_to_statuses.items`, `priority_to_statuses.setdefault`, `priority_to_statuses.setdefault(priority, set()).add`, `priority_to_statuses.values`, `set`, `status_to_priorities.items`, `status_to_priorities.setdefault`, `status_to_priorities.setdefault(status, set()).add`, `status_to_priorities.values`, `str`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_status_priority_mapping`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `_status_priority_mapping`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/bess_application_contract.py` — `validate_bess_application_feature_catalogs`
-- `src/landscout/common/bess_application_contract.py` — `validate_bess_application_relation_frame`
+```python
+def _status_priority_mapping(
+    frame: pd.DataFrame, label: str
+) -> tuple[dict[int, str], dict[str, int]]:
+    priority_to_statuses: dict[int, set[str]] = {}
+    status_to_priorities: dict[str, set[int]] = {}
+    applied = frame[
+        frame["bess_cnig_policy_application_status"] == "APPLIED_EXACT_POLICY"
+    ]
+    for row in applied.to_dict("records"):
+        priority = int(row["bess_cnig_status_priority"])
+        status = str(row["bess_cnig_precheck_status"])
+        priority_to_statuses.setdefault(priority, set()).add(status)
+        status_to_priorities.setdefault(status, set()).add(priority)
+    if any(len(statuses) != 1 for statuses in priority_to_statuses.values()) or any(
+        len(priorities) != 1 for priorities in status_to_priorities.values()
+    ):
+        raise ValueError(f"{label} status/priority mapping is not one-to-one")
+    return (
+        {
+            priority: next(iter(statuses))
+            for priority, statuses in priority_to_statuses.items()
+        },
+        {
+            status: next(iter(priorities))
+            for status, priorities in status_to_priorities.items()
+        },
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `_feature_metric`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _feature_metric(value: object, expected: float, label: str) -> None:
@@ -699,62 +1032,57 @@ def _feature_metric(value: object, expected: float, label: str) -> None:
 
 **Purpose**
 
-Implements feature metric according to the exact implementation and guards in this file.
+Private `common contract` helper for feature metric; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `expected` (`float`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `isinstance(value, bool) or not isinstance(value, Real)`. When true: Raises `TypeError(f'{label} must be numeric')`.
-2. Computes `number` from `float(value)`.
-3. Checks `not math.isfinite(number) or number <= 0`. When true: Raises `ValueError(f'{label} must be finite and positive')`.
-4. Checks `abs(number - expected) > technical_overlay_tolerance(max(abs(number), abs(expected)))`. When true: Raises `ValueError(f'{label} is inconsistent with feature geometry')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `isinstance(value, bool) or not isinstance(value, Real)` is true.
-- Rejects or diverts the path when `not math.isfinite(number) or number <= 0` is true.
-- Rejects or diverts the path when `abs(number - expected) > technical_overlay_tolerance(max(abs(number), abs(expected)))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `TypeError`, `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `isinstance(value, bool) or not isinstance(value, Real)`.
+- Guard with a raise path: `not math.isfinite(number) or number <= 0`.
+- Guard with a raise path: `abs(number - expected) > technical_overlay_tolerance(max(abs(number), abs(expected)))`.
+- Explicit raise expressions: `TypeError(f'{label} must be numeric')`, `ValueError(f'{label} is inconsistent with feature geometry')`, `ValueError(f'{label} must be finite and positive')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `TypeError`, `ValueError`, `abs`, `float`, `isinstance`, `math.isfinite`, `max`, `technical_overlay_tolerance`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_feature_metric`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/bess_application_contract.py` — `validate_bess_application_feature_catalogs`
+```python
+def _feature_metric(value: object, expected: float, label: str) -> None:
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise TypeError(f"{label} must be numeric")
+    number = float(value)
+    if not math.isfinite(number) or number <= 0:
+        raise ValueError(f"{label} must be finite and positive")
+    if abs(number - expected) > technical_overlay_tolerance(
+        max(abs(number), abs(expected))
+    ):
+        raise ValueError(f"{label} is inconsistent with feature geometry")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `validate_bess_application_feature_catalogs`
 
-**Signature**
+**Exact signature**
 
 ```python
 def validate_bess_application_feature_catalogs(
@@ -776,79 +1104,204 @@ def validate_bess_application_feature_catalogs(
 
 Validate all intrinsic feature facts, identities, geometry, and mappings.
 
-**Inputs**
+**Return contract**
 
-- `surface` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `line` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `point` (`gpd.GeoDataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_profile` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_sha256` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_result_sha256` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_document_id` (`str`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_archive_sha256` (`str`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `cnig_profile` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `cnig_profile_sha256` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[dict[int, str], dict[str, int]]`.
+- Every observed return expression is reproduced without truncation:
+```python
+_status_priority_mapping(combined, 'feature document-wide')
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[dict[int, str], dict[str, int]]`. Observed return expression(s): `_status_priority_mapping(combined, 'feature document-wide')`.
-
-**Algorithm**
-
-1. Defines `feature_ids` with annotation `list[str]` from `[]`.
-2. Defines `applied_frames` with annotation `list[pd.DataFrame]` from `[]`.
-3. Iterates `(frame, kind, label)` over `((surface, 'SURFACE', 'surface features'), (line, 'LINE', 'line features'), (point, 'POINT', 'point features'))`. For each value: Computes `geometry_kind` from `cast(GeometryKind, kind)`. Computes `suffix_dtypes` from `tuple((POLICY_SUFFIX_DTYPES[column] for column in POLICY_COLUMNS))`. Calls `validate_canonical_frame_schema(frame, columns=feature_columns(geometry_kind, POLICY_COLUMNS), dtypes=feature_dtypes(geometry_kind, suffix_dtypes, frame), label=label, geospatial=True)` for its validation or side effect. Executes 7 additional source-ordered statement(s).
-4. Checks `len(feature_ids) != len(set(feature_ids))`. When true: Raises `ValueError('planning feature identity must be globally unique')`.
-5. Computes `combined` from `pd.concat(applied_frames, ignore_index=True)`.
-6. Returns `_status_priority_mapping(combined, 'feature document-wide')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(feature_ids) != len(set(feature_ids))` is true.
-- Rejects or diverts the path when `not required.issubset(frame.columns)` is true.
-- Rejects or diverts the path when `frame.geometry.name != 'geometry' or frame.crs is None` is true.
-- Rejects or diverts the path when `not CRS.from_user_input(frame.crs).equals(CRS.from_epsg(2154))` is true.
-- Rejects or diverts the path when `document_id != source_document_id` is true.
-- Rejects or diverts the path when `not equivalent_source_crs` is true.
-- Rejects or diverts the path when `logical_layer not in allowed_layers` is true.
-- Rejects or diverts the path when `row['feature_family'] != expected_family` is true.
-- Rejects or diverts the path when `row['geometry_kind'] != kind` is true.
-- Rejects or diverts the path when `feature_id != expected_id` is true.
-- Rejects or diverts the path when `not isinstance(geometry, BaseGeometry) or geometry.is_empty or (not geometry.is_valid) or (geometry.geom_type not in geometry_types)` is true.
-- Rejects or diverts the path when `int(get_coordinate_dimension(geometry)) != 2` is true.
-- Rejects or diverts the path when `isinstance(count, bool) or not isinstance(count, Integral) or int(count) <= 0 or (int(count) != len(get_parts(geometry)))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(feature_ids) != len(set(feature_ids))`.
+- Guard with a raise path: `not required.issubset(frame.columns)`.
+- Guard with a raise path: `frame.geometry.name != 'geometry' or frame.crs is None`.
+- Guard with a raise path: `not CRS.from_user_input(frame.crs).equals(CRS.from_epsg(2154))`.
+- Guard with a raise path: `document_id != source_document_id`.
+- Guard with a raise path: `not equivalent_source_crs`.
+- Guard with a raise path: `logical_layer not in allowed_layers`.
+- Guard with a raise path: `row['feature_family'] != expected_family`.
+- Guard with a raise path: `row['geometry_kind'] != kind`.
+- Guard with a raise path: `feature_id != expected_id`.
+- Guard with a raise path: `not isinstance(geometry, BaseGeometry) or geometry.is_empty or (not geometry.is_valid) or (geometry.geom_type not in geometry_types)`.
+- Guard with a raise path: `int(get_coordinate_dimension(geometry)) != 2`.
+- Guard with a raise path: `isinstance(count, bool) or not isinstance(count, Integral) or int(count) <= 0 or (int(count) != len(get_parts(geometry)))`.
+- Explicit raise expressions: `ValueError('CRS is not EPSG:2154')`, `ValueError('active geometry or CRS is missing')`, `ValueError('planning feature identity must be globally unique')`, `ValueError('point member count is inconsistent with feature geometry')`, `ValueError(f'{label} factual schema is incomplete')`, `ValueError(f'{label} family and logical layer are inconsistent')`, `ValueError(f'{label} geometry is invalid for {kind}')`, `ValueError(f'{label} geometry kind is invalid')`, `ValueError(f'{label} geometry must be canonical 2D')`, `ValueError(f'{label} logical layer is invalid')`, `ValueError(f'{label} must use active geometry and EPSG:2154')`, `ValueError(f'{label} planning feature identity differs from GPU namespace')`, `ValueError(f'{label} source CRS is invalid')`, `ValueError(f'{label} source CRS is not canonical Lambert-93')`, `ValueError(f'{label} source document lineage differs')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `CRS.from_epsg`, `CRS.from_user_input`, `CRS.from_user_input(frame.crs).equals`, `CRS.from_user_input(source_crs).equals`, `ValueError`, `_exact_string`, `_feature_metric`, `_portable_feature_id`, `_relation_identity_string`, `_status_priority_mapping`, `applied_frames.append`, `cast`, `feature_columns`, `feature_dtypes`, `feature_ids.append`, `float`, `frame.to_dict`, `get_coordinate_dimension`, `get_parts`, `int`, `isinstance`, `len`, `pd.concat`, `required.issubset`, `set`, `str`, `str(logical_layer).startswith`, `tuple`, `validate_bess_application_policy_frame`, `validate_canonical_frame_schema`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `validate_bess_application_feature_catalogs`.
+- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.common.bess_application_contract import (
+    APPLICATION_SCOPE,
+    FLAG_COLUMNS,
+    POLICY_COLUMNS,
+    POLICY_SCOPE,
+    STRING_POLICY_COLUMNS,
+    ApplicationStatus,
+    validate_bess_application_feature_catalogs,
+    validate_bess_application_relation_frame,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/apply_bess_planning_feature_policy.py` — `_validate_result_envelope`
+```python
+def validate_bess_application_feature_catalogs(
+    surface: gpd.GeoDataFrame,
+    line: gpd.GeoDataFrame,
+    point: gpd.GeoDataFrame,
+    *,
+    policy_profile: str,
+    policy_sha256: str,
+    policy_result_sha256: str,
+    source_document_id: str,
+    source_archive_sha256: str,
+    cnig_profile: str,
+    cnig_profile_sha256: str,
+) -> tuple[dict[int, str], dict[str, int]]:
+    """Validate all intrinsic feature facts, identities, geometry, and mappings."""
 
-**Tests**
+    feature_ids: list[str] = []
+    applied_frames: list[pd.DataFrame] = []
+    for frame, kind, label in (
+        (surface, "SURFACE", "surface features"),
+        (line, "LINE", "line features"),
+        (point, "POINT", "point features"),
+    ):
+        geometry_kind = cast(GeometryKind, kind)
+        suffix_dtypes = tuple(POLICY_SUFFIX_DTYPES[column] for column in POLICY_COLUMNS)
+        validate_canonical_frame_schema(
+            frame,
+            columns=feature_columns(geometry_kind, POLICY_COLUMNS),
+            dtypes=feature_dtypes(geometry_kind, suffix_dtypes, frame),
+            label=label,
+            geospatial=True,
+        )
+        validate_bess_application_policy_frame(
+            frame,
+            label=label,
+            policy_profile=policy_profile,
+            policy_sha256=policy_sha256,
+            policy_result_sha256=policy_result_sha256,
+            source_document_id=source_document_id,
+            source_archive_sha256=source_archive_sha256,
+            cnig_profile=cnig_profile,
+            cnig_profile_sha256=cnig_profile_sha256,
+        )
+        required = {
+            "planning_feature_id",
+            "source_feature_id",
+            "source_document_id",
+            "logical_layer",
+            "feature_family",
+            "geometry_kind",
+            "source_crs",
+            "geometry",
+            _FEATURE_SPECS[kind][2],
+        }
+        if not required.issubset(frame.columns):
+            raise ValueError(f"{label} factual schema is incomplete")
+        try:
+            if frame.geometry.name != "geometry" or frame.crs is None:
+                raise ValueError("active geometry or CRS is missing")
+            if not CRS.from_user_input(frame.crs).equals(CRS.from_epsg(2154)):
+                raise ValueError("CRS is not EPSG:2154")
+        except Exception as error:
+            raise ValueError(
+                f"{label} must use active geometry and EPSG:2154"
+            ) from error
+        allowed_layers, geometry_types, metric_column = _FEATURE_SPECS[kind]
+        for row in frame.to_dict("records"):
+            feature_id = _portable_feature_id(
+                row["planning_feature_id"], f"{label} planning feature identity"
+            )
+            source_id = _relation_identity_string(
+                row["source_feature_id"], f"{label} source feature identity"
+            )
+            document_id = _relation_identity_string(
+                row["source_document_id"], f"{label} source document identity"
+            )
+            if document_id != source_document_id:
+                raise ValueError(f"{label} source document lineage differs")
+            source_crs = _exact_string(row["source_crs"], f"{label} source CRS")
+            try:
+                equivalent_source_crs = CRS.from_user_input(source_crs).equals(
+                    CRS.from_epsg(2154), ignore_axis_order=True
+                )
+            except Exception as error:
+                raise ValueError(f"{label} source CRS is invalid") from error
+            if not equivalent_source_crs:
+                raise ValueError(f"{label} source CRS is not canonical Lambert-93")
+            logical_layer = row["logical_layer"]
+            if logical_layer not in allowed_layers:
+                raise ValueError(f"{label} logical layer is invalid")
+            expected_family = (
+                "PRESCRIPTION"
+                if str(logical_layer).startswith("prescription_")
+                else "INFORMATION"
+            )
+            if row["feature_family"] != expected_family:
+                raise ValueError(f"{label} family and logical layer are inconsistent")
+            if row["geometry_kind"] != kind:
+                raise ValueError(f"{label} geometry kind is invalid")
+            expected_id = f"GPU:{document_id}:{logical_layer}:{source_id}"
+            if feature_id != expected_id:
+                raise ValueError(
+                    f"{label} planning feature identity differs from GPU namespace"
+                )
+            geometry = row["geometry"]
+            if (
+                not isinstance(geometry, BaseGeometry)
+                or geometry.is_empty
+                or not geometry.is_valid
+                or geometry.geom_type not in geometry_types
+            ):
+                raise ValueError(f"{label} geometry is invalid for {kind}")
+            if int(get_coordinate_dimension(geometry)) != 2:
+                raise ValueError(f"{label} geometry must be canonical 2D")
+            if kind == "SURFACE":
+                _feature_metric(row[metric_column], float(geometry.area), metric_column)
+            elif kind == "LINE":
+                _feature_metric(
+                    row[metric_column], float(geometry.length), metric_column
+                )
+            else:
+                count = row[metric_column]
+                if (
+                    isinstance(count, bool)
+                    or not isinstance(count, Integral)
+                    or int(count) <= 0
+                    or int(count) != len(get_parts(geometry))
+                ):
+                    raise ValueError(
+                        "point member count is inconsistent with feature geometry"
+                    )
+            feature_ids.append(feature_id)
+        applied_frames.append(frame)
+    if len(feature_ids) != len(set(feature_ids)):
+        raise ValueError("planning feature identity must be globally unique")
+    combined = pd.concat(applied_frames, ignore_index=True)
+    return _status_priority_mapping(combined, "feature document-wide")
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
 ### `validate_bess_application_relation_frame`
 
-**Signature**
+**Exact signature**
 
 ```python
 def validate_bess_application_relation_frame(
@@ -869,139 +1322,267 @@ def validate_bess_application_relation_frame(
 
 Validate canonical application rows and the complete relation identity.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_profile` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_sha256` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_result_sha256` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_document_id` (`str`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_archive_sha256` (`str`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `cnig_profile` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `cnig_profile_sha256` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[dict[int, str], dict[str, int]]`.
+- Every observed return expression is reproduced without truncation:
+```python
+_status_priority_mapping(frame, f'{label} document-wide')
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[dict[int, str], dict[str, int]]`. Observed return expression(s): `_status_priority_mapping(frame, f'{label} document-wide')`.
-
-**Algorithm**
-
-1. Computes `suffix_dtypes` from `tuple((POLICY_SUFFIX_DTYPES[column] for column in POLICY_COLUMNS))`.
-2. Calls `validate_canonical_frame_schema(frame, columns=relation_columns(POLICY_COLUMNS), dtypes=relation_dtypes(suffix_dtypes), label=label, geospatial=False)` for its validation or side effect.
-3. Calls `validate_bess_application_policy_frame(frame, label=label, policy_profile=policy_profile, policy_sha256=policy_sha256, policy_result_sha256=policy_result_sha256, source_document_id=source_document_id, source_archive_sha256=source_archive_sha256, cnig_profile=cnig_profile, cnig_profile_sha256=cnig_profile_sha256)` for its validation or side effect.
-4. Computes `required` from `{'parcel_id', 'planning_feature_id', 'relation_type'}`.
-5. Checks `not required.issubset(frame.columns)`. When true: Raises `ValueError(f'{label} relation identity schema is incomplete')`.
-6. Iterates `row` over `frame.to_dict('records')`. For each value: Calls `_relation_identity_string(row['parcel_id'], f'{label} parcel identity')` for its validation or side effect. Computes `feature_id` from `_portable_feature_id(row['planning_feature_id'], f'{label} Feature ID identity')`. Asserts `feature_id`.
-7. Checks `frame.duplicated(['parcel_id', 'planning_feature_id']).any()`. When true: Raises `ValueError(f'{label} contains a duplicate parcel/feature relation pair')`.
-8. Calls `validate_intrinsic_planning_feature_relations(frame)` for its validation or side effect.
-9. Returns `_status_priority_mapping(frame, f'{label} document-wide')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not required.issubset(frame.columns)` is true.
-- Rejects or diverts the path when `frame.duplicated(['parcel_id', 'planning_feature_id']).any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not required.issubset(frame.columns)`.
+- Guard with a raise path: `frame.duplicated(['parcel_id', 'planning_feature_id']).any()`.
+- Explicit raise expressions: `ValueError(f'{label} contains a duplicate parcel/feature relation pair')`, `ValueError(f'{label} relation identity schema is incomplete')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `_portable_feature_id`, `_relation_identity_string`, `_status_priority_mapping`, `frame.duplicated`, `frame.duplicated(['parcel_id', 'planning_feature_id']).any`, `frame.to_dict`, `relation_columns`, `relation_dtypes`, `required.issubset`, `tuple`, `validate_bess_application_policy_frame`, `validate_canonical_frame_schema`, `validate_intrinsic_planning_feature_relations`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_application_relations` via `validate_bess_application_relation_frame`.
+- import/re-export: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.bess_application_contract import (
+    ALLOWED_CONFIDENCES,
+    ALLOWED_PRECHECK_STATUSES,
+    NULL_LITERALS,
+    POLICY_SCOPE,
+    validate_bess_application_relation_frame,
+)`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_relation_rows` via `validate_bess_application_relation_frame`.
+- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.common.bess_application_contract import (
+    APPLICATION_SCOPE,
+    FLAG_COLUMNS,
+    POLICY_COLUMNS,
+    POLICY_SCOPE,
+    STRING_POLICY_COLUMNS,
+    ApplicationStatus,
+    validate_bess_application_feature_catalogs,
+    validate_bess_application_relation_frame,
+)`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_surface_touch_semantic_corruption_result` via `module.validate_bess_application_relation_frame`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/aggregate_bess_planning_feature_policy.py` — `_validate_application_relations`
-- `src/landscout/stages/apply_bess_planning_feature_policy.py` — `_validate_relation_rows`
+```python
+def validate_bess_application_relation_frame(
+    frame: pd.DataFrame,
+    *,
+    label: str,
+    policy_profile: str,
+    policy_sha256: str,
+    policy_result_sha256: str,
+    source_document_id: str,
+    source_archive_sha256: str,
+    cnig_profile: str,
+    cnig_profile_sha256: str,
+) -> tuple[dict[int, str], dict[str, int]]:
+    """Validate canonical application rows and the complete relation identity."""
 
-**Tests**
+    suffix_dtypes = tuple(POLICY_SUFFIX_DTYPES[column] for column in POLICY_COLUMNS)
+    validate_canonical_frame_schema(
+        frame,
+        columns=relation_columns(POLICY_COLUMNS),
+        dtypes=relation_dtypes(suffix_dtypes),
+        label=label,
+        geospatial=False,
+    )
+    validate_bess_application_policy_frame(
+        frame,
+        label=label,
+        policy_profile=policy_profile,
+        policy_sha256=policy_sha256,
+        policy_result_sha256=policy_result_sha256,
+        source_document_id=source_document_id,
+        source_archive_sha256=source_archive_sha256,
+        cnig_profile=cnig_profile,
+        cnig_profile_sha256=cnig_profile_sha256,
+    )
+    required = {"parcel_id", "planning_feature_id", "relation_type"}
+    if not required.issubset(frame.columns):
+        raise ValueError(f"{label} relation identity schema is incomplete")
+    for row in frame.to_dict("records"):
+        _relation_identity_string(row["parcel_id"], f"{label} parcel identity")
+        feature_id = _portable_feature_id(
+            row["planning_feature_id"], f"{label} Feature ID identity"
+        )
+        assert feature_id
+    if frame.duplicated(["parcel_id", "planning_feature_id"]).any():
+        raise ValueError(f"{label} contains a duplicate parcel/feature relation pair")
+    validate_intrinsic_planning_feature_relations(frame)
+    return _status_priority_mapping(frame, f"{label} document-wide")
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
+
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+### `POLICY_COLUMNS` — canonical or derived frame-column schema
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `APPLIED_EXACT_POLICY` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `UNRESOLVED_CODE_PAIR` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_application_scope` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_legal_conclusion_produced` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_limitations` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_local_feature_text_interpreted` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_local_regulation_content_interpreted` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_parcel_rejection_performed` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_parcel_status_aggregated` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_policy_application_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_policy_profile` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_policy_result_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_policy_scope` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_policy_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_precheck_confidence` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_precheck_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_rationale` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_required_human_action` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_score_calculated` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `bess_cnig_status_priority` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `feature_family` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry` | Logical dtype: GeoPandas active geometry dtype. Nullability: nullable only where the source-stage geometry-status contract explicitly preserves nulls. | source or preserved spatial geometry; never itself a suitability or legal conclusion. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry_kind` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `logical_layer` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `official_code_label` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `official_code_profile` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `official_code_profile_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `official_code_source_url` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `official_code_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `official_legal_reference` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `official_regulation_reference` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_feature_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `source_archive_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `source_crs` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_document_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `source_feature_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
+```python
+POLICY_COLUMNS = (
+    "bess_cnig_policy_application_status",
+    "bess_cnig_precheck_status",
+    "bess_cnig_precheck_confidence",
+    "bess_cnig_status_priority",
+    "bess_cnig_rationale",
+    "bess_cnig_required_human_action",
+    "bess_cnig_limitations",
+    "bess_cnig_application_scope",
+    "bess_cnig_policy_scope",
+    "bess_cnig_local_feature_text_interpreted",
+    "bess_cnig_local_regulation_content_interpreted",
+    "bess_cnig_legal_conclusion_produced",
+    "bess_cnig_parcel_status_aggregated",
+    "bess_cnig_parcel_rejection_performed",
+    "bess_cnig_score_calculated",
+    "bess_cnig_policy_profile",
+    "bess_cnig_policy_sha256",
+    "bess_cnig_policy_result_sha256",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `bess_cnig_policy_application_status` | Pandas nullable string dtype | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 2 | `bess_cnig_precheck_status` | Pandas nullable string dtype | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 3 | `bess_cnig_precheck_confidence` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `bess_cnig_status_priority` | Pandas nullable Int64 | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 5 | `bess_cnig_rationale` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `bess_cnig_required_human_action` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `bess_cnig_limitations` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `bess_cnig_application_scope` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `bess_cnig_policy_scope` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `bess_cnig_local_feature_text_interpreted` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `bess_cnig_local_regulation_content_interpreted` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 12 | `bess_cnig_legal_conclusion_produced` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `bess_cnig_parcel_status_aggregated` | non-null Boolean dtype | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 14 | `bess_cnig_parcel_rejection_performed` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 15 | `bess_cnig_score_calculated` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 16 | `bess_cnig_policy_profile` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 17 | `bess_cnig_policy_sha256` | Pandas nullable string dtype | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 18 | `bess_cnig_policy_result_sha256` | Pandas nullable string dtype | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+
+### `DECISION_COLUMNS` — canonical or derived frame-column schema
+
+```python
+DECISION_COLUMNS = (
+    "bess_cnig_precheck_status",
+    "bess_cnig_precheck_confidence",
+    "bess_cnig_status_priority",
+    "bess_cnig_rationale",
+    "bess_cnig_required_human_action",
+    "bess_cnig_limitations",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `bess_cnig_precheck_status` | Pandas nullable string dtype | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 2 | `bess_cnig_precheck_confidence` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `bess_cnig_status_priority` | Pandas nullable Int64 | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 4 | `bess_cnig_rationale` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `bess_cnig_required_human_action` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `bess_cnig_limitations` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+
+### `FLAG_COLUMNS` — canonical or derived frame-column schema
+
+```python
+FLAG_COLUMNS = (
+    "bess_cnig_local_feature_text_interpreted",
+    "bess_cnig_local_regulation_content_interpreted",
+    "bess_cnig_legal_conclusion_produced",
+    "bess_cnig_parcel_status_aggregated",
+    "bess_cnig_parcel_rejection_performed",
+    "bess_cnig_score_calculated",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `bess_cnig_local_feature_text_interpreted` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `bess_cnig_local_regulation_content_interpreted` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `bess_cnig_legal_conclusion_produced` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `bess_cnig_parcel_status_aggregated` | non-null Boolean dtype | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 5 | `bess_cnig_parcel_rejection_performed` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `bess_cnig_score_calculated` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+
+### `STRING_POLICY_COLUMNS` — canonical or derived frame-column schema
+
+```python
+STRING_POLICY_COLUMNS = tuple(
+    column
+    for column in POLICY_COLUMNS
+    if column not in {"bess_cnig_status_priority", *FLAG_COLUMNS}
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `bess_cnig_policy_application_status` | Pandas nullable string dtype | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 2 | `bess_cnig_precheck_status` | Pandas nullable string dtype | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 3 | `bess_cnig_precheck_confidence` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `bess_cnig_rationale` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `bess_cnig_required_human_action` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `bess_cnig_limitations` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `bess_cnig_application_scope` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `bess_cnig_policy_scope` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `bess_cnig_policy_profile` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `bess_cnig_policy_sha256` | Pandas nullable string dtype | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 11 | `bess_cnig_policy_result_sha256` | Pandas nullable string dtype | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+
+### `POLICY_SUFFIX_DTYPES` — dtype contract aligned with a canonical schema
+
+```python
+POLICY_SUFFIX_DTYPES = {
+    **{column: "str" for column in STRING_POLICY_COLUMNS},
+    "bess_cnig_status_priority": "Int64",
+    **{column: "bool" for column in FLAG_COLUMNS},
+}
+```
+
+
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `common` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the common contract flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -1009,8 +1590,8 @@ This file contributes to LandScout's `common` evidence flow as described by its 
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

@@ -3,10 +3,8 @@
 ## File identity
 
 - Repository path: `configs/sources/ign_bdtopo_fr.yaml`
-- File type: YAML configuration
-- Primary responsibility: Pins the IGN BD TOPO D031 archive identity, checksum/size, cache, logical layers, access, and coverage selection.
-- Layer / domain: `checked-in configuration` / `grid`
-- Public or internal role: Repository artifact; not a Python public API.
+- File type: YAML checked-in configuration/policy/source lock
+- Responsibility: Pins the IGN BD TOPO D031 archive identity, checksum/size, cache, logical layers, access, and coverage selection.
 - Source SHA256: `fa3cc4e82f7c5a2a917a60508fdba6de37f0bde07d7da6b27f2cd00124e44a86`
 
 ## 1. Purpose
@@ -15,84 +13,236 @@ Pins the IGN BD TOPO D031 archive identity, checksum/size, cache, logical layers
 
 ## 2. Position in LandScout architecture
 
-This `checked-in configuration` artifact supplies exact checked-in bytes to the current repository. Consumers found by exact path reference are: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`.
+The exact YAML bytes are parsed by `landscout.sources.ign_bdtopo_fr.load_ign_bdtopo_source_config` into `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`. Runtime consumers include `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage`.
 
 ## 3. Imports and dependencies
 
-Not a Python module. Its consumers parse or interpret the bytes using the source/configuration functions identified by repository references and pipeline documentation.
+Not applicable to YAML. Python/Pydantic consumers are named above and reproduced below.
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-Every parsed leaf field is listed below; list indices preserve source order.
+Every row below is a configuration field/list leaf. It is not a DataFrame column unless a consuming stage explicitly copies it into a documented result schema.
 
-| Field path | Exact checked-in value | Contract role |
-|---|---|---|
-| `provider` | `"Institut national de l'information géographique et forestière (IGN)"` (`str`) | Names the configured source provider copied/compared as lineage. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `product` | `"BD TOPO"` (`str`) | Configures `product` under the exact parent path `<root>`. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `department_code` | `"31"` (`str`) | Configures `department code` under the exact parent path `<root>`. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `edition` | `"2026-06-15"` (`str`) | Configures `edition` under the exact parent path `<root>`. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `product_version` | `"3.5"` (`str`) | Configures `product version` under the exact parent path `<root>`. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `projection` | `"EPSG:2154"` (`str`) | Configures `projection` under the exact parent path `<root>`. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `format` | `"GPKG"` (`str`) | Configures `format` under the exact parent path `<root>`. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `archive_format` | `"7z"` (`str`) | Configures `archive format` under the exact parent path `<root>`. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `source_url` | `"https://data.geopf.fr/telechargement/download/BDTOPO/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15.7z"` (`str`) | Configures the exact source url; HTTPS/origin/path validation is defined by the consuming model. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `checksum_url` | `null` (`NoneType`) | Configures the exact checksum url; HTTPS/origin/path validation is defined by the consuming model. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `official_checksum_algorithm` | `"md5"` (`str`) | Configures `official checksum algorithm` under the exact parent path `<root>`. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `official_checksum` | `"24d4a50b7eae3c0d55bb55ffd5b525a6"` (`str`) | Configures `official checksum` under the exact parent path `<root>`. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `expected_archive_size_bytes` | `494818677` (`int`) | Pins the exact approved archive byte length. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `cache_max_age_hours` | `168` (`int`) | Configures `cache max age hours` under the exact parent path `<root>`. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `logical_layers.electric_lines.class_label` | `"Ligne électrique"` (`str`) | Configures `class label` under the exact parent path `logical_layers.electric_lines`. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `logical_layers.electric_lines.match_tokens[0]` | `"ligne"` (`str`) | Ordered configured member of `logical_layers.electric_lines.match_tokens`; order and uniqueness are validated/consumed where required. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `logical_layers.electric_lines.match_tokens[1]` | `"électrique"` (`str`) | Ordered configured member of `logical_layers.electric_lines.match_tokens`; order and uniqueness are validated/consumed where required. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `logical_layers.transformation_posts.class_label` | `"Poste de transformation"` (`str`) | Configures `class label` under the exact parent path `logical_layers.transformation_posts`. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `logical_layers.transformation_posts.match_tokens[0]` | `"poste"` (`str`) | Ordered configured member of `logical_layers.transformation_posts.match_tokens`; order and uniqueness are validated/consumed where required. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `logical_layers.transformation_posts.match_tokens[1]` | `"transformation"` (`str`) | Ordered configured member of `logical_layers.transformation_posts.match_tokens`; order and uniqueness are validated/consumed where required. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `access.road_segments.class_label` | `"Tronçon de route"` (`str`) | Configures `class label` under the exact parent path `access.road_segments`. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `access.road_segments.match_tokens[0]` | `"tronçon"` (`str`) | Ordered configured member of `access.road_segments.match_tokens`; order and uniqueness are validated/consumed where required. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `access.road_segments.match_tokens[1]` | `"route"` (`str`) | Ordered configured member of `access.road_segments.match_tokens`; order and uniqueness are validated/consumed where required. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `coverage.department_layer.class_label` | `"Département"` (`str`) | Configures `class label` under the exact parent path `coverage.department_layer`. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `coverage.department_layer.match_tokens[0]` | `"departement"` (`str`) | Ordered configured member of `coverage.department_layer.match_tokens`; order and uniqueness are validated/consumed where required. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
-| `coverage.department_layer.department_code_field` | `"code_insee"` (`str`) | Configures `department code field` under the exact parent path `coverage.department_layer`. Consumers found by exact repository path reference: `docs/DEV_LOG.md`, `src/landscout/sources/ign_bdtopo_fr.py`, `tests/unit/test_ign_bdtopo_fr.py`. Exact allowed values/nullability are enforced by the consuming Pydantic/configuration validator. |
+| Exact YAML path | Checked-in value | Runtime type | Required/nullability/allowed-domain/unit contract | Semantic role | Consumers |
+|---|---|---|---|---|---|
+| `provider` | `"Institut national de l'information géographique et forestière (IGN)"` | `str` | annotation `<class 'str'>`; required; StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Names the configured source provider copied/compared as lineage. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `product` | `"BD TOPO"` | `str` | annotation `<class 'str'>`; required; StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `product` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `department_code` | `"31"` | `str` | annotation `<class 'str'>`; required; StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=None, max_length=None, pattern='^(?:[0-9]{2}|2A|2B|97[1-6])$', ascii_only=None); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `department code` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `edition` | `"2026-06-15"` | `str` | annotation `<class 'str'>`; required; StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=None, max_length=None, pattern='^\\d{4}-\\d{2}-\\d{2}$', ascii_only=None); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `edition` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `product_version` | `"3.5"` | `str` | annotation `Optional[Annotated[str, StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None)]]`; default=None; no inline Field metadata; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `product version` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `projection` | `"EPSG:2154"` | `str` | annotation `Literal['EPSG:2154']`; required; no inline Field metadata; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `projection` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `format` | `"GPKG"` | `str` | annotation `Literal['GPKG']`; required; no inline Field metadata; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `format` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `archive_format` | `"7z"` | `str` | annotation `Literal['7z']`; required; no inline Field metadata; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `archive format` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `source_url` | `"https://data.geopf.fr/telechargement/download/BDTOPO/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15/BDTOPO_3-5_TOUSTHEMES_GPKG_LAMB93_D031_2026-06-15.7z"` | `str` | annotation `<class 'pydantic.networks.HttpUrl'>`; required; no inline Field metadata; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact source url; HTTPS/origin/path validation is defined by the consuming model. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `checksum_url` | `null` | `NoneType` | annotation `pydantic.networks.HttpUrl | None`; default=None; no inline Field metadata; required URL under the owning model's exact HTTPS/origin/path/credential/query/fragment validator | Configures the exact checksum url; HTTPS/origin/path validation is defined by the consuming model. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `official_checksum_algorithm` | `"md5"` | `str` | annotation `Optional[Literal['md5', 'sha256']]`; default=None; no inline Field metadata; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official checksum algorithm` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `official_checksum` | `"24d4a50b7eae3c0d55bb55ffd5b525a6"` | `str` | annotation `Optional[Annotated[str, StringConstraints(strip_whitespace=True, to_upper=None, to_lower=True, strict=None, min_length=None, max_length=None, pattern='^[0-9a-fA-F]+$', ascii_only=None)]]`; default=None; no inline Field metadata; exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `official checksum` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `expected_archive_size_bytes` | `494818677` | `int` | annotation `int | None`; default=None; Gt(gt=0); strict positive integer; Boolean rejected; exact physical archive pin | Pins the exact approved archive byte length. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `cache_max_age_hours` | `168` | `int` | annotation `<class 'float'>`; required; Ge(ge=0), _PydanticGeneralMetadata(allow_inf_nan=False); integer value; strictness/bounds are those shown in the owning model and validators reproduced below | Configures `cache max age hours` under the exact parent path `<root>`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `logical_layers.electric_lines.class_label` | `"Ligne électrique"` | `str` | annotation `<class 'str'>`; required; StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `class label` under the exact parent path `logical_layers.electric_lines`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `logical_layers.electric_lines.match_tokens[0]` | `"ligne"` | `str` | annotation `tuple[Annotated[str, StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None)], ...]`; required; MinLen(min_length=1); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `logical_layers.electric_lines.match_tokens`; order and uniqueness are validated/consumed where required. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `logical_layers.electric_lines.match_tokens[1]` | `"électrique"` | `str` | annotation `tuple[Annotated[str, StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None)], ...]`; required; MinLen(min_length=1); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `logical_layers.electric_lines.match_tokens`; order and uniqueness are validated/consumed where required. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `logical_layers.transformation_posts.class_label` | `"Poste de transformation"` | `str` | annotation `<class 'str'>`; required; StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `class label` under the exact parent path `logical_layers.transformation_posts`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `logical_layers.transformation_posts.match_tokens[0]` | `"poste"` | `str` | annotation `tuple[Annotated[str, StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None)], ...]`; required; MinLen(min_length=1); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `logical_layers.transformation_posts.match_tokens`; order and uniqueness are validated/consumed where required. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `logical_layers.transformation_posts.match_tokens[1]` | `"transformation"` | `str` | annotation `tuple[Annotated[str, StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None)], ...]`; required; MinLen(min_length=1); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `logical_layers.transformation_posts.match_tokens`; order and uniqueness are validated/consumed where required. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `access.road_segments.class_label` | `"Tronçon de route"` | `str` | annotation `<class 'str'>`; required; StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `class label` under the exact parent path `access.road_segments`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `access.road_segments.match_tokens[0]` | `"tronçon"` | `str` | annotation `tuple[Annotated[str, StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None)], ...]`; required; MinLen(min_length=1); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `access.road_segments.match_tokens`; order and uniqueness are validated/consumed where required. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `access.road_segments.match_tokens[1]` | `"route"` | `str` | annotation `tuple[Annotated[str, StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None)], ...]`; required; MinLen(min_length=1); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `access.road_segments.match_tokens`; order and uniqueness are validated/consumed where required. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `coverage.department_layer.class_label` | `"Département"` | `str` | annotation `<class 'str'>`; required; StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `class label` under the exact parent path `coverage.department_layer`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `coverage.department_layer.match_tokens[0]` | `"departement"` | `str` | annotation `tuple[Annotated[str, StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None)], ...]`; required; MinLen(min_length=1); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Ordered configured member of `coverage.department_layer.match_tokens`; order and uniqueness are validated/consumed where required. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
+| `coverage.department_layer.department_code_field` | `"code_insee"` | `str` | annotation `<class 'str'>`; required; StringConstraints(strip_whitespace=True, to_upper=None, to_lower=None, strict=None, min_length=1, max_length=None, pattern=None, ascii_only=None); exact string/list member required by the owning model, Literal, uniqueness, or cross-field validator shown below | Configures `department code field` under the exact parent path `coverage.department_layer`. | `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage` |
 
 ## 5. Classes / models / dataclasses
 
-Not applicable; this file declares no Python class.
+Authoritative owning model: `landscout.sources.ign_bdtopo_fr.IgnBdTopoSourceConfig`. The checked-in file currently validates as `IgnBdTopoSourceConfig`.
+
+```python
+class IgnBdTopoLogicalLayerConfig(BaseModel):
+    """Catalogue class label and normalized tokens used for layer discovery."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    class_label: NonEmptyString
+    match_tokens: tuple[NonEmptyString, ...] = Field(min_length=1)
+
+    @field_validator("match_tokens")
+    @classmethod
+    def _unique_tokens(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        normalized = tuple(_normalize_words(token) for token in value)
+        if any(not token for token in normalized):
+            raise ValueError("Layer match tokens must contain letters or digits")
+        if len(set(normalized)) != len(normalized):
+            raise ValueError("Layer match tokens must be unique after normalization")
+        return value
+
+class IgnBdTopoLogicalLayersConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    electric_lines: IgnBdTopoLogicalLayerConfig
+    transformation_posts: IgnBdTopoLogicalLayerConfig
+
+    @model_validator(mode="after")
+    def _different_token_sets(self) -> Self:
+        electric = {
+            _normalize_words(token) for token in self.electric_lines.match_tokens
+        }
+        posts = {
+            _normalize_words(token)
+            for token in self.transformation_posts.match_tokens
+        }
+        if electric == posts:
+            raise ValueError("Logical layers must use different match tokens")
+        return self
+
+class IgnBdTopoDepartmentLayerConfig(IgnBdTopoLogicalLayerConfig):
+    """Configured department layer and its observed identity field."""
+
+    department_code_field: NonEmptyString
+
+class IgnBdTopoAccessConfig(BaseModel):
+    """Configured factual transport layers loaded outside extraction metadata."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    road_segments: IgnBdTopoLogicalLayerConfig
+
+class IgnBdTopoCoverageConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    department_layer: IgnBdTopoDepartmentLayerConfig
+
+class IgnBdTopoSourceConfig(BaseModel):
+    """Strict, reproducible description of one official IGN package."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    provider: NonEmptyString
+    product: NonEmptyString
+    department_code: DepartmentCode
+    edition: EditionString
+    product_version: NonEmptyString | None = None
+    projection: Projection
+    format: PackageFormat
+    archive_format: ArchiveFormat
+    source_url: HttpUrl
+    checksum_url: HttpUrl | None = None
+    official_checksum_algorithm: ChecksumAlgorithm | None = None
+    official_checksum: HexChecksum | None = None
+    expected_archive_size_bytes: int | None = Field(default=None, gt=0)
+    cache_max_age_hours: float = Field(ge=0, allow_inf_nan=False)
+    logical_layers: IgnBdTopoLogicalLayersConfig
+    access: IgnBdTopoAccessConfig
+    coverage: IgnBdTopoCoverageConfig
+
+    @field_validator("edition")
+    @classmethod
+    def _valid_edition_date(cls, value: str) -> str:
+        try:
+            date.fromisoformat(value)
+        except ValueError as error:
+            raise ValueError("edition must be a valid ISO calendar date") from error
+        return value
+
+    @model_validator(mode="after")
+    def _consistent_package_and_checksum(self) -> Self:
+        path = unquote(urlparse(str(self.source_url)).path)
+        if Path(path).suffix.casefold() != f".{self.archive_format}":
+            raise ValueError("source_url extension does not match archive_format")
+
+        has_algorithm = self.official_checksum_algorithm is not None
+        has_checksum = self.official_checksum is not None
+        if has_algorithm != has_checksum:
+            raise ValueError(
+                "official_checksum_algorithm and official_checksum must be set together"
+            )
+        if self.official_checksum_algorithm == "md5" and len(
+            self.official_checksum or ""
+        ) != 32:
+            raise ValueError("An official MD5 checksum must contain 32 hexadecimal digits")
+        if self.official_checksum_algorithm == "sha256" and len(
+            self.official_checksum or ""
+        ) != 64:
+            raise ValueError(
+                "An official SHA256 checksum must contain 64 hexadecimal digits"
+            )
+        if self.checksum_url is not None and not has_checksum:
+            raise ValueError(
+                "checksum_url requires a pinned official checksum and algorithm"
+            )
+        return self
+
+class _CacheMetadata(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal[1]
+    provider: str
+    product: str
+    department_code: str
+    edition: str
+    product_version: str | None
+    projection: str
+    package_format: str
+    archive_format: str
+    source_url: str
+    checksum_url: str | None
+    download_timestamp: str
+    filename: str
+    file_size: int
+    sha256: str
+    official_checksum_algorithm: ChecksumAlgorithm | None
+    official_checksum: str | None
+    official_checksum_validated: bool
+    spatial_role: SpatialRole
+
+class _ExtractionMetadata(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal[2]
+    archive_sha256: CanonicalSha256
+    geopackage_relative_path: str
+    geopackage_size_bytes: StrictPositiveInt
+    geopackage_sha256: CanonicalSha256
+    all_layer_names: tuple[str, ...]
+    electric_lines_layer: str
+    transformation_posts_layer: str
+    spatial_role: SpatialRole
+```
 
 ## 6. Functions and methods
 
-Not applicable; this file declares no Python function or method.
+Loader: `landscout.sources.ign_bdtopo_fr.load_ign_bdtopo_source_config`. Its source-module companion documents path resolution, YAML parsing, controlled exceptions, byte hashing, and cross-field validation.
 
 ## 7. Data contracts
 
-The exact byte-bound values or text lines above are the data contract for this file. Structured validators in consuming Python modules remain authoritative for types, nullability, allowed values, units, source provenance, calculations, and downstream semantics.
+This file supplies configuration/policy/source identity. It does not itself create a frame. Any fields copied into output rows are documented by the consuming stage's canonical frame schema.
 
 ## 8. Interfaces
 
-Direct literal-path consumers are listed above. Git, uv, Python, configuration loaders, documentation readers, or generated-data directory conventions consume project metadata according to the file type.
+Runtime consumers: `download_ign_bdtopo_archive`, `load_ign_bdtopo_electricity`, `load_ign_bdtopo_roads`, `load_ign_bdtopo_department_coverage`. Dynamic path construction is included: the road policy loader resolves its default access-policy path, and scan loading resolves `ProfileReference.path` to the BESS profile file.
 
 ## 9. Error handling
 
-This passive file raises no exception. Its consumers reject missing, malformed, unsupported, duplicate, semantically invalid, or stale content with their documented controlled errors.
+The owning Pydantic model rejects extra/missing/unsupported/coerced values according to the exact model/validators above; the loader translates YAML/path/model failures into its documented controlled error.
 
 ## 10. Side effects
 
-The file itself has no runtime side effect. A consumer may read it, resolve dependencies, configure tools, or use it as source/policy evidence; those effects belong to the consuming function.
+Network I/O: none. Filesystem read: the loader reads this YAML. Filesystem write: none. Input mutation: none. GIS calculation: none. Hashing: loaders that expose config identity hash these exact bytes.
 
 ## 11. Security / trust boundaries
 
-The SHA256 binds this documentation to exact bytes. Checked-in configuration identity is necessary but does not replace physical source/hash verification performed by source-complete adapters.
+A configured URL/provider/hash is a source lock or provenance input. Physical authority requires the consuming source adapter's safe transport and byte/source revalidation.
 
 ## 12. GIS / CRS rules
 
-Only structured CRS fields listed above impose a GIS rule, and their consuming validators define it. Otherwise not applicable.
+Only explicit CRS fields impose GIS rules; configured storage/calculation CRS values are policy/configuration, not an implicit reprojection of data.
 
 ## 13. Provenance rules
 
-Checked-in source locks, URLs, hashes, versions, profile IDs, and evidence references are textual provenance inputs. Their consuming code determines whether and how physical bytes are revalidated.
+The file's SHA256 binds this exact policy/configuration snapshot. Source identities remain textual until the adapter validates physical bytes/content.
 
 ## 14. Business meaning
 
-This file supports the `grid` domain only through its exact checked-in values and current consumers.
+Thresholds and outcomes are policy/configuration values. They are never relabeled as measured geometry or legal conclusions.
 
 ## 15. Explicit non-goals
 
@@ -100,8 +250,8 @@ This file supports the `grid` domain only through its exact checked-in values an
 
 ## 16. Tests
 
-Tests that load or mention this path are documented in their companion files. No test is inferred solely from the filename.
+The loader/model companion and relevant test companion document exact valid/invalid values, cross-field failures, consumer loading, and byte-hash behavior.
 
 ## 17. Change impact
 
-Changing these bytes requires reviewing every consuming validator, source/policy/config hash, generated result or artifact lineage, affected tests, and this companion SHA256. Dependency-lock changes also require `uv lock --check` and `uv pip check`.
+Any YAML byte/value change requires policy/source review, affected config/result hashes, consumer tests, generated artifacts where applicable, and this companion SHA update.

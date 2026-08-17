@@ -41,8 +41,8 @@ The transport proves an outbound HTTPS exchange reached one address from the val
 - The official parcels URL is derived from an exact canonical commune code.
 - The download result binds URL, timestamp, filename, physical size, SHA256, cache path, and cache-hit state.
 - Cached bytes must match the sidecar, freshness rule, source URL, physical size/SHA, and valid gzip structure.
-- `load_cadastre_parcels` consumes an exact `CadastreDownload`, rechecks physical archive integrity before parsing, validates the GeoJSON/geometry contract, and rechecks size/SHA afterward to detect read-time replacement.
-- Normalized parcel lineage is copied from the validated download. A caller cannot establish this trust merely by constructing matching strings in a GeoDataFrame.
+- `load_cadastre_parcels` requires the exact `CadastreDownload` runtime type; a `Path` that exists; an exact non-empty source URL whose scheme is currently either HTTP or HTTPS; filename/path agreement; strict positive size; canonical lowercase SHA256; current physical size/SHA agreement; valid gzip; and stable size/SHA after parsing. It then validates non-empty polygonal GeoJSON geometry.
+- The loader does **not** independently re-pin the official Cadastre host, and it does not add the download URL/provider/timestamp/size/SHA to the returned GeoDataFrame. Normalization therefore has no download-lineage columns to propagate. Physical trust is held by the validated call boundary and download object, not embedded in parcel rows.
 
 ## RTE / ODRÉ
 

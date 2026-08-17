@@ -4,9 +4,9 @@
 
 - Repository path: `src/landscout/stages/profile_shape.py`
 - File type: Python source
-- Primary responsibility: Profiles shape metrics and scenario evidence without making parcel suitability decisions.
-- Layer / domain: `stage` / `cadastre`
-- Public or internal role: Module symbols without a package re-export are internal unless imported directly by repository code.
+- Layer: processing/policy stage
+- Domain: cadastre
+- Responsibility: Profiles shape metrics and scenario evidence without making parcel suitability decisions.
 - Source SHA256: `1a5e1de1f7584e49abedf963282e4cc3b7c7ab3a724333bea75cdaa6f90a24c8`
 
 ## 1. Purpose
@@ -15,33 +15,101 @@ Profiles shape metrics and scenario evidence without making parcel suitability d
 
 ## 2. Position in LandScout architecture
 
-This file is a `stage` artifact in the `cadastre` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **processing/policy stage** layer and the **cadastre** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from dataclasses import dataclass` — required by the implementation paths and symbols documented below.
-- `from math import isclose, isfinite` — required by the implementation paths and symbols documented below.
-- `from numbers import Real` — required by the implementation paths and symbols documented below.
+- `from dataclasses import dataclass`
+- `from math import isclose, isfinite`
+- `from numbers import Real`
 
-### Third-party
+### Third-party packages
 
-- `import geopandas as gpd` — required by the implementation paths and symbols documented below.
-- `from pyproj import CRS` — required by the implementation paths and symbols documented below.
+- `import geopandas as gpd`
+- `from pyproj import CRS`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- None.
+- `None.`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `PROFILE_METRICS` | `( "area_m2", "length_m", "width_m", "length_width_ratio", "compactness", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `REPRESENTATIVE_FIELDS` | `( "parcel_id", "area_m2", "length_m", "width_m", "length_width_ratio", "compactness", "centroid_lat", "centroid_lon", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `REQUIRED_COLUMNS` | `frozenset({"parcel_id", "shape_status", *REPRESENTATIVE_FIELDS})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `PERCENTILES` | `{ "min": 0.0, "p01": 0.01, "p05": 0.05, "p10": 0.10, "p25": 0.25, "p50": 0.50, "p75": 0.75, "p90": 0.90, "p95": 0.95, "p99": 0.99, "max": 1.0, }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `PROFILE_METRICS`
+
+```python
+PROFILE_METRICS = (
+    "area_m2",
+    "length_m",
+    "width_m",
+    "length_width_ratio",
+    "compactness",
+)
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_profile_shape.py::<module>` (import/re-export).
+
+#### `REPRESENTATIVE_FIELDS`
+
+```python
+REPRESENTATIVE_FIELDS = (
+    "parcel_id",
+    "area_m2",
+    "length_m",
+    "width_m",
+    "length_width_ratio",
+    "compactness",
+    "centroid_lat",
+    "centroid_lon",
+)
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/profile_shape.py::_records` (value argument/reference).
+
+#### `REQUIRED_COLUMNS`
+
+```python
+REQUIRED_COLUMNS = frozenset({"parcel_id", "shape_status", *REPRESENTATIVE_FIELDS})
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+
+#### `PERCENTILES`
+
+```python
+PERCENTILES = {
+    "min": 0.0,
+    "p01": 0.01,
+    "p05": 0.05,
+    "p10": 0.10,
+    "p25": 0.25,
+    "p50": 0.50,
+    "p75": 0.75,
+    "p90": 0.90,
+    "p95": 0.95,
+    "p99": 0.99,
+    "max": 1.0,
+}
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
@@ -49,69 +117,132 @@ This file is a `stage` artifact in the `cadastre` domain. Its actual upstream in
 
 **Purpose:** Raised when shape candidates cannot be profiled safely.
 
+**Kind:** controlled exception.
+
 **Inheritance:** `ValueError`.
 
-**Model form and mutability:** class inheriting from `ValueError`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields:** none declared directly on this class.
 
-- No annotated instance fields are declared directly on this class.
+**Interface consumers**
 
-**Validators and methods:**
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.profile_shape import (
+    ShapeDistributionProfile,
+    ShapeProfileError,
+    profile_shape_distribution,
+)`.
+- direct call or construction: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `ShapeProfileError`.
+- callback/function object: `tests/unit/test_profile_shape.py::test_missing_metric_fails` via `pytest.raises(ShapeProfileError, match='width_m')`.
+- callback/function object: `tests/unit/test_profile_shape.py::test_null_parcel_id_fails` via `pytest.raises(ShapeProfileError, match='null')`.
+- callback/function object: `tests/unit/test_profile_shape.py::test_duplicate_parcel_id_fails` via `pytest.raises(ShapeProfileError, match='unique')`.
+- callback/function object: `tests/unit/test_profile_shape.py::test_missing_crs_fails` via `pytest.raises(ShapeProfileError, match='CRS')`.
+- callback/function object: `tests/unit/test_profile_shape.py::test_null_metric_on_valid_shape_fails` via `pytest.raises(ShapeProfileError, match='complete')`.
+- callback/function object: `tests/unit/test_profile_shape.py::test_unexpected_shape_status_fails` via `pytest.raises(ShapeProfileError, match='Unexpected')`.
+- callback/function object: `tests/unit/test_profile_shape.py::test_non_finite_metric_on_valid_row_fails` via `pytest.raises(ShapeProfileError, match='finite')`.
+- callback/function object: `tests/unit/test_profile_shape.py::test_zero_valid_rows_fails_clearly` via `pytest.raises(ShapeProfileError, match='At least one VALID')`.
+- callback/function object: `tests/unit/test_profile_shape.py::test_valid_shape_metrics_require_physical_domains` via `pytest.raises(ShapeProfileError, match=message)`.
+- callback/function object: `tests/unit/test_profile_shape.py::test_valid_shape_length_must_not_be_less_than_width` via `pytest.raises(ShapeProfileError, match='length_m must be at least width_m')`.
+- callback/function object: `tests/unit/test_profile_shape.py::test_valid_shape_ratio_must_match_length_divided_by_width` via `pytest.raises(ShapeProfileError, match='must equal length_m / width_m')`.
+- callback/function object: `tests/unit/test_profile_shape.py::test_valid_shape_metrics_reject_bool_and_numeric_strings` via `pytest.raises(ShapeProfileError, match='numeric and finite')`.
+- import/re-export: `tests/unit/test_profile_shape.py::<module>` via `from landscout.stages.profile_shape import (
+    PROFILE_METRICS,
+    ShapeProfileError,
+    profile_shape_distribution,
+)`.
 
-- None.
+**Exact class source**
+
+```python
+class ShapeProfileError(ValueError):
+    """Raised when shape candidates cannot be profiled safely."""
+```
 
 ### `DiagnosticScenario`
 
-**Purpose:** Groups the `DiagnosticScenario` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Immutable result/value envelope carrying `retained_count`, `retained_percentage`.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `retained_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `retained_percentage` | `float` | `required` | `float` state used by `src/landscout/stages/profile_shape.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `retained_count` | `retained_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `retained_percentage` | `retained_percentage: float` | Stores `DiagnosticScenario`'s `retained percentage` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-- None.
+**Interface consumers**
+
+- direct call or construction: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `DiagnosticScenario`.
+
+**Exact class source**
+
+```python
+class DiagnosticScenario:
+    retained_count: int
+    retained_percentage: float
+```
 
 ### `ShapeDistributionProfile`
 
-**Purpose:** Carries deterministic diagnostic/profile statistics without changing the underlying evidence rows.
+**Purpose:** Immutable result/value envelope carrying `input_count`, `valid_count`, `error_count`, `distributions`, `width_buckets`, `ratio_buckets`, `compactness_buckets`, `scenarios`, `median_parcels`, `extreme_parcels`.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `input_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `valid_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `error_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `distributions` | `dict[str, dict[str, float]]` | `required` | `dict[str, dict[str, float]]` state used by `src/landscout/stages/profile_shape.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `width_buckets` | `dict[str, int]` | `required` | `dict[str, int]` state used by `src/landscout/stages/profile_shape.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `ratio_buckets` | `dict[str, int]` | `required` | `dict[str, int]` state used by `src/landscout/stages/profile_shape.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `compactness_buckets` | `dict[str, int]` | `required` | `dict[str, int]` state used by `src/landscout/stages/profile_shape.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `scenarios` | `dict[str, DiagnosticScenario]` | `required` | `dict[str, DiagnosticScenario]` state used by `src/landscout/stages/profile_shape.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `median_parcels` | `list[dict[str, object]]` | `required` | Tabular/spatial evidence carried with the schema, dtype, index, geometry, and preservation contract documented in this module. |
-| `extreme_parcels` | `list[dict[str, object]]` | `required` | Tabular/spatial evidence carried with the schema, dtype, index, geometry, and preservation contract documented in this module. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `input_count` | `input_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `valid_count` | `valid_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `error_count` | `error_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `distributions` | `distributions: dict[str, dict[str, float]]` | Structured `distributions` collection owned by `ShapeDistributionProfile`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `width_buckets` | `width_buckets: dict[str, int]` | Structured `width buckets` collection owned by `ShapeDistributionProfile`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `ratio_buckets` | `ratio_buckets: dict[str, int]` | Structured `ratio buckets` collection owned by `ShapeDistributionProfile`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `compactness_buckets` | `compactness_buckets: dict[str, int]` | Structured `compactness buckets` collection owned by `ShapeDistributionProfile`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `scenarios` | `scenarios: dict[str, DiagnosticScenario]` | Structured `scenarios` collection owned by `ShapeDistributionProfile`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `median_parcels` | `median_parcels: list[dict[str, object]]` | Structured `median parcels` collection owned by `ShapeDistributionProfile`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `extreme_parcels` | `extreme_parcels: list[dict[str, object]]` | Structured `extreme parcels` collection owned by `ShapeDistributionProfile`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 
-- None.
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.profile_shape import (
+    ShapeDistributionProfile,
+    ShapeProfileError,
+    profile_shape_distribution,
+)`.
+- direct call or construction: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `ShapeDistributionProfile`.
+
+**Exact class source**
+
+```python
+class ShapeDistributionProfile:
+    input_count: int
+    valid_count: int
+    error_count: int
+    distributions: dict[str, dict[str, float]]
+    width_buckets: dict[str, int]
+    ratio_buckets: dict[str, int]
+    compactness_buckets: dict[str, int]
+    scenarios: dict[str, DiagnosticScenario]
+    median_parcels: list[dict[str, object]]
+    extreme_parcels: list[dict[str, object]]
+```
+
 
 ## 6. Functions and methods
 
 ### `_records`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _records(frame: gpd.GeoDataFrame) -> list[dict[str, object]]:
@@ -119,55 +250,50 @@ def _records(frame: gpd.GeoDataFrame) -> list[dict[str, object]]:
 
 **Purpose**
 
-Implements records according to the exact implementation and guards in this file.
+Private `cadastre` helper for records; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `list[dict[str, object]]`.
+- Every observed return expression is reproduced without truncation:
+```python
+frame[list(REPRESENTATIVE_FIELDS)].to_dict(orient='records')
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `list[dict[str, object]]`. Observed return expression(s): `frame[list(REPRESENTATIVE_FIELDS)].to_dict(orient='records')`.
-
-**Algorithm**
-
-1. Returns `frame[list(REPRESENTATIVE_FIELDS)].to_dict(orient='records')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `frame[list(REPRESENTATIVE_FIELDS)].to_dict`, `list`.
+- direct call or construction: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `_records`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/profile_shape.py` — `profile_shape_distribution`
+```python
+def _records(frame: gpd.GeoDataFrame) -> list[dict[str, object]]:
+    return frame[list(REPRESENTATIVE_FIELDS)].to_dict(orient="records")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `cadastre` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - It does not establish ownership contacts, developability, planning authorization, ranking, or a BESS score.
 
 ### `profile_shape_distribution`
 
-**Signature**
+**Exact signature**
 
 ```python
 def profile_shape_distribution(
@@ -177,200 +303,353 @@ def profile_shape_distribution(
 
 **Purpose**
 
-Profiles shape distribution according to the exact implementation and guards in this file.
+Computes non-decisional summary statistics for shape distribution; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `ShapeDistributionProfile`.
+- Every observed return expression is reproduced without truncation:
+```python
+ShapeDistributionProfile(input_count=input_count, valid_count=valid_count, error_count=error_count, distributions=distributions, width_buckets=width_buckets, ratio_buckets=ratio_buckets, compactness_buckets=compactness_buckets, scenarios=scenarios, median_parcels=_records(median_frame), extreme_parcels=_records(extreme_frame))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `ShapeDistributionProfile`. Observed return expression(s): `ShapeDistributionProfile(input_count=input_count, valid_count=valid_count, error_count=error_count, distributions=distributions, width_buckets=width_buckets, ratio_buckets=ratio_buckets, compactness_buckets=compactness_buckets, scenarios=scenarios, median_parcels=_records(median_frame), extreme_parcels=_records(extreme_frame))`.
-
-**Algorithm**
-
-1. Checks `not isinstance(parcels, gpd.GeoDataFrame)`. When true: Raises `ShapeProfileError('Shape candidates must be a GeoDataFrame')`.
-2. Checks `parcels.columns.duplicated().any()`. When true: Raises `ShapeProfileError('Shape candidate columns must be unique')`.
-3. Computes `missing_columns` from `REQUIRED_COLUMNS - set(parcels.columns)`.
-4. Checks `missing_columns`. When true: Computes `formatted` from `', '.join(sorted(missing_columns))`. Raises `ShapeProfileError(f'Missing required shape columns: {formatted}')`.
-5. Checks `parcels.crs is None`. When true: Raises `ShapeProfileError('Shape candidate CRS is required')`.
-6. Runs guarded operation: Calls `CRS.from_user_input(parcels.crs)` for its validation or side effect. Handles `Exception`.
-7. Computes `identifiers` from `parcels['parcel_id']`.
-8. Checks `identifiers.isna().any()`. When true: Raises `ShapeProfileError('parcel_id values must not be null')`.
-9. Checks `any((not isinstance(identifier, str) or not identifier or identifier != identifier.strip() for identifier in identifiers))`. When true: Raises `ShapeProfileError('parcel_id values must be exact non-empty strings')`.
-10. Checks `identifiers.duplicated().any()`. When true: Raises `ShapeProfileError('parcel_id values must be unique')`.
-11. Computes `statuses` from `set(parcels['shape_status'].dropna().unique())`.
-12. Checks `parcels['shape_status'].isna().any() or not statuses <= {'VALID', 'ERROR'}`. When true: Computes `unexpected` from `sorted((str(status) for status in statuses - {'VALID', 'ERROR'}))`. Computes `formatted` from `', '.join(unexpected) if unexpected else 'null'`. Raises `ShapeProfileError(f'Unexpected shape_status values: {formatted}')`.
-13. Computes `valid_shapes` from `parcels['shape_status'] == 'VALID'`.
-14. Computes `error_shapes` from `parcels['shape_status'] == 'ERROR'`.
-15. Computes `input_count` from `len(parcels)`.
-16. Computes `valid_count` from `int(valid_shapes.sum())`.
-17. Computes `error_count` from `int(error_shapes.sum())`.
-18. Checks `input_count != valid_count + error_count`. When true: Raises `ShapeProfileError('Shape status counts do not match input count')`.
-19. Checks `valid_count == 0`. When true: Raises `ShapeProfileError('At least one VALID shape row is required')`.
-20. Computes `required_valid_metrics` from `[*PROFILE_METRICS, 'centroid_lat', 'centroid_lon']`.
-21. Checks `parcels.loc[valid_shapes, required_valid_metrics].isna().any().any()`. When true: Raises `ShapeProfileError('VALID shape rows must have complete shape metrics')`.
-22. Iterates `column` over `required_valid_metrics`. For each value: Computes `values_are_finite` from `all((isinstance(value, Real) and (not isinstance(value, bool)) and isfinite(float(value)) for value in parcels.loc[valid_shapes, column]))`. Checks `not values_are_finite`. When true: Raises `ShapeProfileError(f'VALID shape metric must be numeric and finite: {column}')`.
-23. Computes `valid` from `parcels.loc[valid_shapes]`.
-24. Computes `domain_contracts` from `(('area_m2', valid['area_m2'] > 0, 'area_m2 must be greater than zero'), ('length_m', valid['length_m'] > 0, 'length_m must be greater than zero'), ('width_m', valid['width_m'] > 0, 'width_m must be greater than zero'), ('length_width_ratio', valid['length_width_ratio'] >= 1, 'length_width_ratio must be at least one')…`.
-25. Iterates `(_, condition, message)` over `domain_contracts`. For each value: Checks `not bool(condition.all())`. When true: Raises `ShapeProfileError(message)`.
-26. Checks `not bool((valid['length_m'] >= valid['width_m']).all())`. When true: Raises `ShapeProfileError('length_m must be at least width_m')`.
-27. Iterates `row` over `valid.itertuples(index=False)`. For each value: Computes `expected_ratio` from `float(row.length_m) / float(row.width_m)`. Checks `not isclose(float(row.length_width_ratio), expected_ratio, rel_tol=1e-09, abs_tol=1e-09)`. When true: Raises `ShapeProfileError('length_width_ratio must equal length_m / width_m within tolerance')`.
-28. Computes `working` from `parcels.loc[valid_shapes].copy()`.
-29. Computes `distributions` from `{metric: {label: float(working[metric].quantile(quantile)) for label, quantile in PERCENTILES.items()} for metric in PROFILE_METRICS}`.
-30. Computes `width` from `working['width_m']`.
-31. Computes `width_buckets` from `{'width < 5 m': int((width < 5).sum()), '5–10 m': int(((width >= 5) & (width < 10)).sum()), '10–15 m': int(((width >= 10) & (width < 15)).sum()), '15–20 m': int(((width >= 15) & (width < 20)).sum()), '20–25 m': int(((width >= 20) & (width < 25)).sum()), '25–30 m': int(((width >= 25) & (width < 30)).sum()), '30–40 m': …`.
-32. Computes `ratio` from `working['length_width_ratio']`.
-33. Computes `ratio_buckets` from `{'ratio <= 2': int((ratio <= 2).sum()), '2–3': int(((ratio > 2) & (ratio <= 3)).sum()), '3–4': int(((ratio > 3) & (ratio <= 4)).sum()), '4–5': int(((ratio > 4) & (ratio <= 5)).sum()), '5–7': int(((ratio > 5) & (ratio <= 7)).sum()), '7–10': int(((ratio > 7) & (ratio <= 10)).sum()), '10–15': int(((ratio > 10) & (ratio <…`.
-34. Computes `compactness` from `working['compactness']`.
-35. Computes `compactness_buckets` from `{'compactness < 0.05': int((compactness < 0.05).sum()), '0.05–0.10': int(((compactness >= 0.05) & (compactness < 0.1)).sum()), '0.10–0.20': int(((compactness >= 0.1) & (compactness < 0.2)).sum()), '0.20–0.30': int(((compactness >= 0.2) & (compactness < 0.3)).sum()), '0.30–0.40': int(((compactness >= 0.3) & (compactnes…`.
-36. Checks `sum(width_buckets.values()) != valid_count`. When true: Raises `ShapeProfileError('Width buckets do not cover every VALID row')`.
-37. Checks `sum(ratio_buckets.values()) != valid_count`. When true: Raises `ShapeProfileError('Ratio buckets do not cover every VALID row')`.
-38. Checks `sum(compactness_buckets.values()) != valid_count`. When true: Raises `ShapeProfileError('Compactness buckets do not cover every VALID row')`.
-39. Computes `scenario_masks` from `{'A': width >= 10, 'B': width >= 15, 'C': width >= 20, 'D': (width >= 15) & (ratio <= 10), 'E': (width >= 20) & (ratio <= 7), 'F': (width >= 20) & (ratio <= 5) & (compactness >= 0.2)}`.
-40. Computes `scenarios` from `{name: DiagnosticScenario(retained_count=int(mask.sum()), retained_percentage=float(mask.sum() / valid_count * 100)) for name, mask in scenario_masks.items()}`.
-41. Computes `working['_median_score']` from `0.0`.
-42. Iterates `metric` over `PROFILE_METRICS`. For each value: Computes `median` from `working[metric].median()`. Computes `scale` from `working[metric].quantile(0.75) - working[metric].quantile(0.25)`. Checks `scale == 0`. When true: Computes `scale` from `1.0`. Executes 1 additional source-ordered statement(s).
-43. Computes `median_frame` from `working.nsmallest(5, '_median_score')`.
-44. Computes `working['_extreme_score']` from `working['length_width_ratio'].rank(pct=True) + (-working['width_m']).rank(pct=True) + (-working['compactness']).rank(pct=True)`.
-45. Computes `extreme_pool` from `working.loc[~working['parcel_id'].isin(median_frame['parcel_id'])]`.
-46. Computes `extreme_frame` from `extreme_pool.nlargest(5, '_extreme_score')`.
-47. Returns `ShapeDistributionProfile(input_count=input_count, valid_count=valid_count, error_count=error_count, distributions=distributions, width_buckets=width_buckets, ratio_buckets=ratio_buckets, compactness_buckets=compactness_buckets, scenarios=scenarios, median_parcels=_records(median_frame), extreme_parcels=_records(extreme_frame))`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(parcels, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `parcels.columns.duplicated().any()` is true.
-- Rejects or diverts the path when `missing_columns` is true.
-- Rejects or diverts the path when `parcels.crs is None` is true.
-- Rejects or diverts the path when `identifiers.isna().any()` is true.
-- Rejects or diverts the path when `any((not isinstance(identifier, str) or not identifier or identifier != identifier.strip() for identifier in identifiers))` is true.
-- Rejects or diverts the path when `identifiers.duplicated().any()` is true.
-- Rejects or diverts the path when `parcels['shape_status'].isna().any() or not statuses <= {'VALID', 'ERROR'}` is true.
-- Rejects or diverts the path when `input_count != valid_count + error_count` is true.
-- Rejects or diverts the path when `valid_count == 0` is true.
-- Rejects or diverts the path when `parcels.loc[valid_shapes, required_valid_metrics].isna().any().any()` is true.
-- Rejects or diverts the path when `not bool((valid['length_m'] >= valid['width_m']).all())` is true.
-- Rejects or diverts the path when `sum(width_buckets.values()) != valid_count` is true.
-- Rejects or diverts the path when `sum(ratio_buckets.values()) != valid_count` is true.
-- Rejects or diverts the path when `sum(compactness_buckets.values()) != valid_count` is true.
-- Rejects or diverts the path when `not values_are_finite` is true.
-- Rejects or diverts the path when `not bool(condition.all())` is true.
-- Rejects or diverts the path when `not isclose(float(row.length_width_ratio), expected_ratio, rel_tol=1e-09, abs_tol=1e-09)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ShapeProfileError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(parcels, gpd.GeoDataFrame)`.
+- Guard with a raise path: `parcels.columns.duplicated().any()`.
+- Guard with a raise path: `missing_columns`.
+- Guard with a raise path: `parcels.crs is None`.
+- Guard with a raise path: `identifiers.isna().any()`.
+- Guard with a raise path: `any((not isinstance(identifier, str) or not identifier or identifier != identifier.strip() for identifier in identifiers))`.
+- Guard with a raise path: `identifiers.duplicated().any()`.
+- Guard with a raise path: `parcels['shape_status'].isna().any() or not statuses <= {'VALID', 'ERROR'}`.
+- Guard with a raise path: `input_count != valid_count + error_count`.
+- Guard with a raise path: `valid_count == 0`.
+- Guard with a raise path: `parcels.loc[valid_shapes, required_valid_metrics].isna().any().any()`.
+- Guard with a raise path: `not bool((valid['length_m'] >= valid['width_m']).all())`.
+- Guard with a raise path: `sum(width_buckets.values()) != valid_count`.
+- Guard with a raise path: `sum(ratio_buckets.values()) != valid_count`.
+- Guard with a raise path: `sum(compactness_buckets.values()) != valid_count`.
+- Guard with a raise path: `not values_are_finite`.
+- Guard with a raise path: `not bool(condition.all())`.
+- Guard with a raise path: `not isclose(float(row.length_width_ratio), expected_ratio, rel_tol=1e-09, abs_tol=1e-09)`.
+- Explicit raise expressions: `ShapeProfileError('At least one VALID shape row is required')`, `ShapeProfileError('Compactness buckets do not cover every VALID row')`, `ShapeProfileError('Ratio buckets do not cover every VALID row')`, `ShapeProfileError('Shape candidate CRS is required')`, `ShapeProfileError('Shape candidate CRS must be readable')`, `ShapeProfileError('Shape candidate columns must be unique')`, `ShapeProfileError('Shape candidates must be a GeoDataFrame')`, `ShapeProfileError('Shape status counts do not match input count')`, `ShapeProfileError('VALID shape rows must have complete shape metrics')`, `ShapeProfileError('Width buckets do not cover every VALID row')`, `ShapeProfileError('length_m must be at least width_m')`, `ShapeProfileError('length_width_ratio must equal length_m / width_m within tolerance')`, `ShapeProfileError('parcel_id values must be exact non-empty strings')`, `ShapeProfileError('parcel_id values must be unique')`, `ShapeProfileError('parcel_id values must not be null')`, `ShapeProfileError(f'Missing required shape columns: {formatted}')`, `ShapeProfileError(f'Unexpected shape_status values: {formatted}')`, `ShapeProfileError(f'VALID shape metric must be numeric and finite: {column}')`, `ShapeProfileError(message)`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `parcels.loc[valid_shapes].copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `ShapeDistributionProfile`, `ShapeProfileError`, `error_shapes.sum`, `parcels.loc[valid_shapes, required_valid_metrics].isna`, `parcels.loc[valid_shapes, required_valid_metrics].isna().any`, `parcels.loc[valid_shapes, required_valid_metrics].isna().any().any`, `parcels.loc[valid_shapes].copy`, `parcels['shape_status'].dropna`, `parcels['shape_status'].dropna().unique`, `parcels['shape_status'].isna`, `parcels['shape_status'].isna().any`, `valid_shapes.sum`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `working['_extreme_score']`, `working['_median_score']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `((compactness >= 0.05) & (compactness < 0.1)).sum`, `((compactness >= 0.1) & (compactness < 0.2)).sum`, `((compactness >= 0.2) & (compactness < 0.3)).sum`, `((compactness >= 0.3) & (compactness < 0.4)).sum`, `((compactness >= 0.4) & (compactness < 0.5)).sum`, `((compactness >= 0.5) & (compactness < 0.6)).sum`, `((compactness >= 0.6) & (compactness < 0.7)).sum`, `((ratio > 10) & (ratio <= 15)).sum`, `((ratio > 15) & (ratio <= 25)).sum`, `((ratio > 2) & (ratio <= 3)).sum`, `((ratio > 3) & (ratio <= 4)).sum`, `((ratio > 4) & (ratio <= 5)).sum`, `((ratio > 5) & (ratio <= 7)).sum`, `((ratio > 7) & (ratio <= 10)).sum`, `((width >= 10) & (width < 15)).sum`, `((width >= 15) & (width < 20)).sum`, `((width >= 20) & (width < 25)).sum`, `((width >= 25) & (width < 30)).sum`, `((width >= 30) & (width < 40)).sum`, `((width >= 40) & (width < 50)).sum`, `((width >= 5) & (width < 10)).sum`, `(-working['compactness']).rank`, `(-working['width_m']).rank`, `(compactness < 0.05).sum`, `(compactness >= 0.7).sum`, `(ratio <= 2).sum`, `(ratio > 25).sum`, `(valid['length_m'] >= valid['width_m']).all`, `(width < 5).sum`, `(width >= 50).sum`, `(working[metric] - median).abs`, `CRS.from_user_input`, `DiagnosticScenario`, `PERCENTILES.items`, `ShapeDistributionProfile`, `ShapeProfileError`, `_records`, `all`, `any`, `bool`, `compactness_buckets.values`, `condition.all`, `error_shapes.sum`, `extreme_pool.nlargest`, `float`, `identifier.strip`, `identifiers.duplicated`, `identifiers.duplicated().any`, `identifiers.isna`, `identifiers.isna().any`, `int`, `isclose`, `isfinite`, `isinstance`, `len`, `mask.sum`, `parcels.columns.duplicated`, `parcels.columns.duplicated().any`, `parcels.loc[valid_shapes, required_valid_metrics].isna`, `parcels.loc[valid_shapes, required_valid_metrics].isna().any`, `parcels.loc[valid_shapes, required_valid_metrics].isna().any().any`, `parcels.loc[valid_shapes].copy`, `parcels['shape_status'].dropna`, `parcels['shape_status'].dropna().unique`, `parcels['shape_status'].isna`, `parcels['shape_status'].isna().any`, `ratio_buckets.values`, `scenario_masks.items`, `set`, `sorted`, `str`, `sum`, `valid.itertuples`, `valid['centroid_lat'].between`, `valid['centroid_lon'].between`, `valid_shapes.sum`, `width_buckets.values`, `working.nsmallest`, `working['length_width_ratio'].rank`; additional calls omitted from this compact list.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.profile_shape import (
+    ShapeDistributionProfile,
+    ShapeProfileError,
+    profile_shape_distribution,
+)`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_percentile_calculation` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_bucket_counts_sum_to_input_count` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_existing_all_valid_behavior_is_unchanged` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_diagnostic_scenario_counts` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_input_is_not_mutated` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_missing_metric_fails` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_null_parcel_id_fails` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_duplicate_parcel_id_fails` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_missing_crs_fails` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_null_metric_on_valid_shape_fails` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_mixed_valid_and_error_rows_are_counted` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_percentiles` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_buckets` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_scenario_percentages_use_valid_count` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_unexpected_shape_status_fails` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_non_finite_metric_on_valid_row_fails` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_zero_valid_rows_fails_clearly` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_valid_shape_metrics_require_physical_domains` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_valid_shape_length_must_not_be_less_than_width` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_valid_shape_ratio_must_match_length_divided_by_width` via `profile_shape_distribution`.
+- direct call or construction: `tests/unit/test_profile_shape.py::test_valid_shape_metrics_reject_bool_and_numeric_strings` via `profile_shape_distribution`.
+- import/re-export: `tests/unit/test_profile_shape.py::<module>` via `from landscout.stages.profile_shape import (
+    PROFILE_METRICS,
+    ShapeProfileError,
+    profile_shape_distribution,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_profile_shape.py` — `test_bucket_counts_sum_to_input_count`
-- `tests/unit/test_profile_shape.py` — `test_diagnostic_scenario_counts`
-- `tests/unit/test_profile_shape.py` — `test_duplicate_parcel_id_fails`
-- `tests/unit/test_profile_shape.py` — `test_error_rows_are_excluded_from_buckets`
-- `tests/unit/test_profile_shape.py` — `test_error_rows_are_excluded_from_percentiles`
-- `tests/unit/test_profile_shape.py` — `test_existing_all_valid_behavior_is_unchanged`
-- `tests/unit/test_profile_shape.py` — `test_input_is_not_mutated`
-- `tests/unit/test_profile_shape.py` — `test_missing_crs_fails`
-- `tests/unit/test_profile_shape.py` — `test_missing_metric_fails`
-- `tests/unit/test_profile_shape.py` — `test_mixed_valid_and_error_rows_are_counted`
-- `tests/unit/test_profile_shape.py` — `test_non_finite_metric_on_valid_row_fails`
-- `tests/unit/test_profile_shape.py` — `test_null_metric_on_valid_shape_fails`
-- `tests/unit/test_profile_shape.py` — `test_null_parcel_id_fails`
-- `tests/unit/test_profile_shape.py` — `test_percentile_calculation`
-- `tests/unit/test_profile_shape.py` — `test_scenario_percentages_use_valid_count`
-- `tests/unit/test_profile_shape.py` — `test_unexpected_shape_status_fails`
-- `tests/unit/test_profile_shape.py` — `test_valid_shape_length_must_not_be_less_than_width`
-- `tests/unit/test_profile_shape.py` — `test_valid_shape_metrics_reject_bool_and_numeric_strings`
-- `tests/unit/test_profile_shape.py` — `test_valid_shape_metrics_require_physical_domains`
-- `tests/unit/test_profile_shape.py` — `test_valid_shape_ratio_must_match_length_divided_by_width`
-- `tests/unit/test_profile_shape.py` — `test_zero_valid_rows_fails_clearly`
+```python
+def profile_shape_distribution(
+    parcels: gpd.GeoDataFrame,
+) -> ShapeDistributionProfile:
+    if not isinstance(parcels, gpd.GeoDataFrame):
+        raise ShapeProfileError("Shape candidates must be a GeoDataFrame")
+    if parcels.columns.duplicated().any():
+        raise ShapeProfileError("Shape candidate columns must be unique")
+    missing_columns = REQUIRED_COLUMNS - set(parcels.columns)
+    if missing_columns:
+        formatted = ", ".join(sorted(missing_columns))
+        raise ShapeProfileError(f"Missing required shape columns: {formatted}")
+    if parcels.crs is None:
+        raise ShapeProfileError("Shape candidate CRS is required")
+    try:
+        CRS.from_user_input(parcels.crs)
+    except Exception as error:
+        raise ShapeProfileError("Shape candidate CRS must be readable") from error
+    identifiers = parcels["parcel_id"]
+    if identifiers.isna().any():
+        raise ShapeProfileError("parcel_id values must not be null")
+    if any(
+        not isinstance(identifier, str)
+        or not identifier
+        or identifier != identifier.strip()
+        for identifier in identifiers
+    ):
+        raise ShapeProfileError("parcel_id values must be exact non-empty strings")
+    if identifiers.duplicated().any():
+        raise ShapeProfileError("parcel_id values must be unique")
 
-**Tests**
+    statuses = set(parcels["shape_status"].dropna().unique())
+    if parcels["shape_status"].isna().any() or not statuses <= {"VALID", "ERROR"}:
+        unexpected = sorted(str(status) for status in statuses - {"VALID", "ERROR"})
+        formatted = ", ".join(unexpected) if unexpected else "null"
+        raise ShapeProfileError(f"Unexpected shape_status values: {formatted}")
 
-- `tests/unit/test_profile_shape.py::test_bucket_counts_sum_to_input_count`
-- `tests/unit/test_profile_shape.py::test_diagnostic_scenario_counts`
-- `tests/unit/test_profile_shape.py::test_duplicate_parcel_id_fails`
-- `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_buckets`
-- `tests/unit/test_profile_shape.py::test_error_rows_are_excluded_from_percentiles`
-- `tests/unit/test_profile_shape.py::test_existing_all_valid_behavior_is_unchanged`
-- `tests/unit/test_profile_shape.py::test_input_is_not_mutated`
-- `tests/unit/test_profile_shape.py::test_missing_crs_fails`
-- `tests/unit/test_profile_shape.py::test_missing_metric_fails`
-- `tests/unit/test_profile_shape.py::test_mixed_valid_and_error_rows_are_counted`
-- `tests/unit/test_profile_shape.py::test_non_finite_metric_on_valid_row_fails`
-- `tests/unit/test_profile_shape.py::test_null_metric_on_valid_shape_fails`
-- `tests/unit/test_profile_shape.py::test_null_parcel_id_fails`
-- `tests/unit/test_profile_shape.py::test_percentile_calculation`
-- `tests/unit/test_profile_shape.py::test_scenario_percentages_use_valid_count`
-- `tests/unit/test_profile_shape.py::test_unexpected_shape_status_fails`
-- `tests/unit/test_profile_shape.py::test_valid_shape_length_must_not_be_less_than_width`
-- `tests/unit/test_profile_shape.py::test_valid_shape_metrics_reject_bool_and_numeric_strings`
-- `tests/unit/test_profile_shape.py::test_valid_shape_metrics_require_physical_domains`
-- `tests/unit/test_profile_shape.py::test_valid_shape_ratio_must_match_length_divided_by_width`
-- `tests/unit/test_profile_shape.py::test_zero_valid_rows_fails_clearly`
+    valid_shapes = parcels["shape_status"] == "VALID"
+    error_shapes = parcels["shape_status"] == "ERROR"
+    input_count = len(parcels)
+    valid_count = int(valid_shapes.sum())
+    error_count = int(error_shapes.sum())
+    if input_count != valid_count + error_count:
+        raise ShapeProfileError("Shape status counts do not match input count")
+    if valid_count == 0:
+        raise ShapeProfileError("At least one VALID shape row is required")
 
-**Business interpretation**
+    required_valid_metrics = [
+        *PROFILE_METRICS,
+        "centroid_lat",
+        "centroid_lon",
+    ]
+    if parcels.loc[valid_shapes, required_valid_metrics].isna().any().any():
+        raise ShapeProfileError("VALID shape rows must have complete shape metrics")
+    for column in required_valid_metrics:
+        values_are_finite = all(
+            isinstance(value, Real)
+            and not isinstance(value, bool)
+            and isfinite(float(value))
+            for value in parcels.loc[valid_shapes, column]
+        )
+        if not values_are_finite:
+            raise ShapeProfileError(
+                f"VALID shape metric must be numeric and finite: {column}"
+            )
 
-This symbol contributes to the `cadastre` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
+    valid = parcels.loc[valid_shapes]
+    domain_contracts = (
+        ("area_m2", valid["area_m2"] > 0, "area_m2 must be greater than zero"),
+        ("length_m", valid["length_m"] > 0, "length_m must be greater than zero"),
+        ("width_m", valid["width_m"] > 0, "width_m must be greater than zero"),
+        (
+            "length_width_ratio",
+            valid["length_width_ratio"] >= 1,
+            "length_width_ratio must be at least one",
+        ),
+        (
+            "compactness",
+            (valid["compactness"] > 0) & (valid["compactness"] <= 1),
+            "compactness must be greater than zero and at most one",
+        ),
+        (
+            "centroid_lat",
+            valid["centroid_lat"].between(-90, 90, inclusive="both"),
+            "centroid_lat must be between -90 and 90",
+        ),
+        (
+            "centroid_lon",
+            valid["centroid_lon"].between(-180, 180, inclusive="both"),
+            "centroid_lon must be between -180 and 180",
+        ),
+    )
+    for _, condition, message in domain_contracts:
+        if not bool(condition.all()):
+            raise ShapeProfileError(message)
+    if not bool((valid["length_m"] >= valid["width_m"]).all()):
+        raise ShapeProfileError("length_m must be at least width_m")
+    for row in valid.itertuples(index=False):
+        expected_ratio = float(row.length_m) / float(row.width_m)
+        if not isclose(
+            float(row.length_width_ratio),
+            expected_ratio,
+            rel_tol=1e-9,
+            abs_tol=1e-9,
+        ):
+            raise ShapeProfileError(
+                "length_width_ratio must equal length_m / width_m within tolerance"
+            )
 
-**Does NOT prove**
+    working = parcels.loc[valid_shapes].copy()
+    distributions = {
+        metric: {
+            label: float(working[metric].quantile(quantile))
+            for label, quantile in PERCENTILES.items()
+        }
+        for metric in PROFILE_METRICS
+    }
+
+    width = working["width_m"]
+    width_buckets = {
+        "width < 5 m": int((width < 5).sum()),
+        "5–10 m": int(((width >= 5) & (width < 10)).sum()),
+        "10–15 m": int(((width >= 10) & (width < 15)).sum()),
+        "15–20 m": int(((width >= 15) & (width < 20)).sum()),
+        "20–25 m": int(((width >= 20) & (width < 25)).sum()),
+        "25–30 m": int(((width >= 25) & (width < 30)).sum()),
+        "30–40 m": int(((width >= 30) & (width < 40)).sum()),
+        "40–50 m": int(((width >= 40) & (width < 50)).sum()),
+        "width >= 50 m": int((width >= 50).sum()),
+    }
+
+    ratio = working["length_width_ratio"]
+    ratio_buckets = {
+        "ratio <= 2": int((ratio <= 2).sum()),
+        "2–3": int(((ratio > 2) & (ratio <= 3)).sum()),
+        "3–4": int(((ratio > 3) & (ratio <= 4)).sum()),
+        "4–5": int(((ratio > 4) & (ratio <= 5)).sum()),
+        "5–7": int(((ratio > 5) & (ratio <= 7)).sum()),
+        "7–10": int(((ratio > 7) & (ratio <= 10)).sum()),
+        "10–15": int(((ratio > 10) & (ratio <= 15)).sum()),
+        "15–25": int(((ratio > 15) & (ratio <= 25)).sum()),
+        "ratio > 25": int((ratio > 25).sum()),
+    }
+
+    compactness = working["compactness"]
+    compactness_buckets = {
+        "compactness < 0.05": int((compactness < 0.05).sum()),
+        "0.05–0.10": int(((compactness >= 0.05) & (compactness < 0.10)).sum()),
+        "0.10–0.20": int(((compactness >= 0.10) & (compactness < 0.20)).sum()),
+        "0.20–0.30": int(((compactness >= 0.20) & (compactness < 0.30)).sum()),
+        "0.30–0.40": int(((compactness >= 0.30) & (compactness < 0.40)).sum()),
+        "0.40–0.50": int(((compactness >= 0.40) & (compactness < 0.50)).sum()),
+        "0.50–0.60": int(((compactness >= 0.50) & (compactness < 0.60)).sum()),
+        "0.60–0.70": int(((compactness >= 0.60) & (compactness < 0.70)).sum()),
+        "compactness >= 0.70": int((compactness >= 0.70).sum()),
+    }
+    if sum(width_buckets.values()) != valid_count:
+        raise ShapeProfileError("Width buckets do not cover every VALID row")
+    if sum(ratio_buckets.values()) != valid_count:
+        raise ShapeProfileError("Ratio buckets do not cover every VALID row")
+    if sum(compactness_buckets.values()) != valid_count:
+        raise ShapeProfileError("Compactness buckets do not cover every VALID row")
+
+    scenario_masks = {
+        "A": width >= 10,
+        "B": width >= 15,
+        "C": width >= 20,
+        "D": (width >= 15) & (ratio <= 10),
+        "E": (width >= 20) & (ratio <= 7),
+        "F": (width >= 20) & (ratio <= 5) & (compactness >= 0.20),
+    }
+    scenarios = {
+        name: DiagnosticScenario(
+            retained_count=int(mask.sum()),
+            retained_percentage=float(mask.sum() / valid_count * 100),
+        )
+        for name, mask in scenario_masks.items()
+    }
+
+    working["_median_score"] = 0.0
+    for metric in PROFILE_METRICS:
+        median = working[metric].median()
+        scale = working[metric].quantile(0.75) - working[metric].quantile(0.25)
+        if scale == 0:
+            scale = 1.0
+        working["_median_score"] += (working[metric] - median).abs() / scale
+    median_frame = working.nsmallest(5, "_median_score")
+
+    working["_extreme_score"] = (
+        working["length_width_ratio"].rank(pct=True)
+        + (-working["width_m"]).rank(pct=True)
+        + (-working["compactness"]).rank(pct=True)
+    )
+    extreme_pool = working.loc[
+        ~working["parcel_id"].isin(median_frame["parcel_id"])
+    ]
+    extreme_frame = extreme_pool.nlargest(5, "_extreme_score")
+
+    return ShapeDistributionProfile(
+        input_count=input_count,
+        valid_count=valid_count,
+        error_count=error_count,
+        distributions=distributions,
+        width_buckets=width_buckets,
+        ratio_buckets=ratio_buckets,
+        compactness_buckets=compactness_buckets,
+        scenarios=scenarios,
+        median_parcels=_records(median_frame),
+        extreme_parcels=_records(extreme_frame),
+    )
+```
+
+**Business boundary**
 
 - It does not establish ownership contacts, developability, planning authorization, ranking, or a BESS score.
 
+
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+### `REQUIRED_COLUMNS` — required input frame fields (unordered when stored as a set)
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `_extreme_score` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `_median_score` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `centroid_lat` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `centroid_lon` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `compactness` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `length_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
-| `length_width_ratio` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `shape_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `width_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
+```python
+REQUIRED_COLUMNS = frozenset({"parcel_id", "shape_status", *REPRESENTATIVE_FIELDS})
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 2 | `centroid_lat` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `centroid_lon` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `compactness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `length_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 6 | `length_width_ratio` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `parcel_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 8 | `shape_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 9 | `width_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+
+
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `cadastre` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the cadastre flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -378,8 +657,8 @@ This file contributes to LandScout's `cadastre` evidence flow as described by it
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

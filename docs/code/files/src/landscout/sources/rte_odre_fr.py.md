@@ -4,9 +4,9 @@
 
 - Repository path: `src/landscout/sources/rte_odre_fr.py`
 - File type: Python source
-- Primary responsibility: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
-- Layer / domain: `source adapter` / `grid`
-- Public or internal role: Module symbols without a package re-export are internal unless imported directly by repository code.
+- Layer: source adapter
+- Domain: grid/source
+- Responsibility: Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation.
 - Source SHA256: `b7d422d29f7155399a8dac87422811cc87b2c856f7432ef78fbbe68bfff1edb3`
 
 ## 1. Purpose
@@ -15,253 +15,690 @@ Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source
 
 ## 2. Position in LandScout architecture
 
-This file is a `source adapter` artifact in the `grid` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **source adapter** layer and the **grid/source** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `import json` — required by the implementation paths and symbols documented below.
-- `import sys` — required by the implementation paths and symbols documented below.
-- `from dataclasses import asdict, dataclass, replace` — required by the implementation paths and symbols documented below.
-- `from datetime import UTC, datetime` — required by the implementation paths and symbols documented below.
-- `from hashlib import sha256` — required by the implementation paths and symbols documented below.
-- `from math import isfinite` — required by the implementation paths and symbols documented below.
-- `from numbers import Real` — required by the implementation paths and symbols documented below.
-- `from pathlib import Path` — required by the implementation paths and symbols documented below.
-- `from shutil import copy2, copyfileobj` — required by the implementation paths and symbols documented below.
-- `from typing import Annotated, Any, Literal` — required by the implementation paths and symbols documented below.
-- `from urllib.error import HTTPError, URLError` — required by the implementation paths and symbols documented below.
-- `from urllib.parse import quote, urlsplit` — required by the implementation paths and symbols documented below.
+- `import json`
+- `import sys`
+- `from dataclasses import asdict, dataclass, replace`
+- `from datetime import UTC, datetime`
+- `from hashlib import sha256`
+- `from math import isfinite`
+- `from numbers import Real`
+- `from pathlib import Path`
+- `from shutil import copy2, copyfileobj`
+- `from typing import Annotated, Any, Literal`
+- `from urllib.error import HTTPError, URLError`
+- `from urllib.parse import quote, urlsplit`
 
-### Third-party
+### Third-party packages
 
-- `import yaml` — required by the implementation paths and symbols documented below.
-- `from pydantic import ( BaseModel, ConfigDict, Field, HttpUrl, StringConstraints, ValidationError, field_validator, )` — required by the implementation paths and symbols documented below.
+- `import yaml`
+- `from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    HttpUrl,
+    StringConstraints,
+    ValidationError,
+    field_validator,
+)`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout.common.safe_http import open_safe_https` — required by the implementation paths and symbols documented below.
+- `from landscout.common.safe_http import open_safe_https`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `DEFAULT_CONFIG_PATH` | `Path("configs/sources/rte_odre_fr.yaml")` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `DEFAULT_CACHE_DIR` | `Path("data/cache/rte_odre")` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `DOWNLOAD_CHUNK_SIZE` | `1024 * 1024` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `LOGICAL_DATASET_NAMES` | `("sites", "overhead_lines", "underground_lines")` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `COORDINATE_GEOMETRY_TYPES` | `frozenset( { "Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon", } )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `GEOJSON_GEOMETRY_TYPES` | `COORDINATE_GEOMETRY_TYPES &#124; {"GeometryCollection"}` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `DEFAULT_CONFIG_PATH`
+
+```python
+DEFAULT_CONFIG_PATH = Path("configs/sources/rte_odre_fr.yaml")
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `DEFAULT_CACHE_DIR`
+
+```python
+DEFAULT_CACHE_DIR = Path("data/cache/rte_odre")
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `DOWNLOAD_CHUNK_SIZE`
+
+```python
+DOWNLOAD_CHUNK_SIZE = 1024 * 1024
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/sources/gpu_fr.py::_sha256` (value argument/reference), `src/landscout/sources/gpu_fr.py::download_gpu_document` (value argument/reference), `src/landscout/sources/gpu_fr.py::extract_gpu_document` (value argument/reference), `src/landscout/sources/ign_bdtopo_fr.py::_calculate_checksums` (value argument/reference), `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` (value argument/reference), `src/landscout/sources/ign_bdtopo_fr.py::_geopackage_integrity` (value argument/reference), `src/landscout/sources/inpn_protected_areas_fr.py::_sha256_file` (value argument/reference), `src/landscout/sources/inpn_protected_areas_fr.py::_download_archive_bytes` (value argument/reference), `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` (value argument/reference), `src/landscout/sources/rte_odre_fr.py::_sha256` (value argument/reference), `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` (value argument/reference).
+
+#### `LOGICAL_DATASET_NAMES`
+
+```python
+LOGICAL_DATASET_NAMES = ("sites", "overhead_lines", "underground_lines")
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `COORDINATE_GEOMETRY_TYPES`
+
+```python
+COORDINATE_GEOMETRY_TYPES = frozenset(
+    {
+        "Point",
+        "MultiPoint",
+        "LineString",
+        "MultiLineString",
+        "Polygon",
+        "MultiPolygon",
+    }
+)
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+
+#### `GEOJSON_GEOMETRY_TYPES`
+
+```python
+GEOJSON_GEOMETRY_TYPES = COORDINATE_GEOMETRY_TYPES | {"GeometryCollection"}
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+
+
+### B. Type aliases and closed domains
+
+#### `LogicalDatasetName`
+
+```python
+LogicalDatasetName = Literal["sites", "overhead_lines", "underground_lines"]
+```
+
+Configured RTE/ODRÉ logical dataset role: sites, overhead_lines, or underground_lines. It is consumed by annotations or Pydantic validation in this module.
+
+#### `ExportFormat`
+
+```python
+ExportFormat = Literal["geojson"]
+```
+
+ODRÉ export-format domain, currently only geojson. It is consumed by annotations or Pydantic validation in this module.
+
+#### `GeometryPrecisionStatus`
+
+```python
+GeometryPrecisionStatus = Literal[
+    "EXACT_NOT_CLAIMED",
+    "GENERALIZED_OR_RESTRICTED",
+    "MISSING",
+    "UNKNOWN",
+]
+```
+
+RTE source metadata precision assessment: EXACT_NOT_CLAIMED, GENERALIZED_OR_RESTRICTED, MISSING, or UNKNOWN; these are values, not columns. It is consumed by annotations or Pydantic validation in this module.
+
+#### `NonEmptyString`
+
+```python
+NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+```
+
+String constrained non-empty after the exact StringConstraints behavior in the declaration. It is consumed by annotations or Pydantic validation in this module.
+
+#### `DatasetIdentifier`
+
+```python
+DatasetIdentifier = Annotated[
+    str,
+    StringConstraints(
+        strip_whitespace=True,
+        min_length=1,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]*$",
+    ),
+]
+```
+
+Annotated validation alias whose strictness, regex/bounds, and callbacks are exactly those shown above. It is consumed by annotations or Pydantic validation in this module.
+
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
 ### `RteDatasetConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the grid/source contract carried by `dataset_id`, `preferred_format`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `BaseModel`.
 
-**Model form and mutability:** Pydantic model; `model_config` and validators below define strictness, mutation, and extra-field behavior. Decorators: `none`.
+**Exact decorators:** none.
 
-**Validation configuration:** `model_config = ConfigDict(extra="forbid")`.
+**Fields**
 
-**Fields:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `dataset_id` | `dataset_id: DatasetIdentifier` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
+| `preferred_format` | `preferred_format: ExportFormat` | Closed or validated `preferred format` classification on `RteDatasetConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `dataset_id` | `DatasetIdentifier` | `required` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `preferred_format` | `ExportFormat` | `required` | `ExportFormat` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Interface consumers**
 
-**Validators and methods:**
+- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteDatasetConfig,
+    RteOdreDatasetMetadata,
+    RteOdreDownload,
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
 
-- None.
+**Exact class source**
+
+```python
+class RteDatasetConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    dataset_id: DatasetIdentifier
+    preferred_format: ExportFormat
+```
 
 ### `RteDatasetsConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the grid/source contract carried by `sites`, `overhead_lines`, `underground_lines`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `BaseModel`.
 
-**Model form and mutability:** Pydantic model; `model_config` and validators below define strictness, mutation, and extra-field behavior. Decorators: `none`.
+**Exact decorators:** none.
 
-**Validation configuration:** `model_config = ConfigDict(extra="forbid")`.
+**Fields**
 
-**Fields:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `sites` | `sites: RteDatasetConfig` | Stores `RteDatasetsConfig`'s `sites` value under exact annotation `RteDatasetConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `overhead_lines` | `overhead_lines: RteDatasetConfig` | Stores `RteDatasetsConfig`'s `overhead lines` value under exact annotation `RteDatasetConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `underground_lines` | `underground_lines: RteDatasetConfig` | Stores `RteDatasetsConfig`'s `underground lines` value under exact annotation `RteDatasetConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `sites` | `RteDatasetConfig` | `required` | `RteDatasetConfig` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `overhead_lines` | `RteDatasetConfig` | `required` | `RteDatasetConfig` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `underground_lines` | `RteDatasetConfig` | `required` | `RteDatasetConfig` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Interface consumers**
 
-**Validators and methods:**
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
 
-- None.
+**Exact class source**
+
+```python
+class RteDatasetsConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    sites: RteDatasetConfig
+    overhead_lines: RteDatasetConfig
+    underground_lines: RteDatasetConfig
+```
 
 ### `RteOdreApiConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the grid/source contract carried by `base_url`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `BaseModel`.
 
-**Model form and mutability:** Pydantic model; `model_config` and validators below define strictness, mutation, and extra-field behavior. Decorators: `none`.
+**Exact decorators:** none.
 
-**Validation configuration:** `model_config = ConfigDict(extra="forbid")`.
+**Fields**
 
-**Fields:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `base_url` | `base_url: HttpUrl` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `base_url` | `HttpUrl` | `required` | Exact source or evidence URL; host/path/HTTPS restrictions are enforced by configuration or source validators. |
+**Validators (exact source)**
 
-**Validators and methods:**
+`_official_api_origin`:
 
-- `_official_api_origin` — `def _official_api_origin(cls, value: HttpUrl) -> HttpUrl:`; decorators `field_validator('base_url'), classmethod`. The complete method algorithm appears in the function/method section.
+```python
+def _official_api_origin(cls, value: HttpUrl) -> HttpUrl:
+        parsed = urlsplit(str(value))
+        if (
+            parsed.scheme != "https"
+            or parsed.hostname != "odre.opendatasoft.com"
+            or parsed.port not in {None, 443}
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.path.rstrip("/") != "/api/explore/v2.1"
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError("RTE/ODRE API must use the exact official HTTPS origin")
+        return value
+```
+
+**Interface consumers**
+
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class RteOdreApiConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    base_url: HttpUrl
+
+    @field_validator("base_url")
+    @classmethod
+    def _official_api_origin(cls, value: HttpUrl) -> HttpUrl:
+        parsed = urlsplit(str(value))
+        if (
+            parsed.scheme != "https"
+            or parsed.hostname != "odre.opendatasoft.com"
+            or parsed.port not in {None, 443}
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.path.rstrip("/") != "/api/explore/v2.1"
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError("RTE/ODRE API must use the exact official HTTPS origin")
+        return value
+```
 
 ### `RteOdreCacheConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the grid/source contract carried by `max_age_hours`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `BaseModel`.
 
-**Model form and mutability:** Pydantic model; `model_config` and validators below define strictness, mutation, and extra-field behavior. Decorators: `none`.
+**Exact decorators:** none.
 
-**Validation configuration:** `model_config = ConfigDict(extra="forbid")`.
+**Fields**
 
-**Fields:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `max_age_hours` | `max_age_hours: float = Field(ge=0, allow_inf_nan=False)` | Stores `RteOdreCacheConfig`'s `max age hours` value under exact annotation `float`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `max_age_hours` | `float` | `Field(ge=0, allow_inf_nan=False)` | `float` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Interface consumers**
 
-**Validators and methods:**
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
 
-- None.
+**Exact class source**
+
+```python
+class RteOdreCacheConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    max_age_hours: float = Field(ge=0, allow_inf_nan=False)
+```
 
 ### `RteOdreSourceConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the grid/source contract carried by `provider`, `portal`, `api`, `datasets`, `cache`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `BaseModel`.
 
-**Model form and mutability:** Pydantic model; `model_config` and validators below define strictness, mutation, and extra-field behavior. Decorators: `none`.
+**Exact decorators:** none.
 
-**Validation configuration:** `model_config = ConfigDict(extra="forbid")`.
+**Fields**
 
-**Fields:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `provider` | `provider: NonEmptyString` | Stores `RteOdreSourceConfig`'s `provider` value under exact annotation `NonEmptyString`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `portal` | `portal: NonEmptyString` | Stores `RteOdreSourceConfig`'s `portal` value under exact annotation `NonEmptyString`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `api` | `api: RteOdreApiConfig` | Stores `RteOdreSourceConfig`'s `api` value under exact annotation `RteOdreApiConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `datasets` | `datasets: RteDatasetsConfig` | Stores `RteOdreSourceConfig`'s `datasets` value under exact annotation `RteDatasetsConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `cache` | `cache: RteOdreCacheConfig` | Stores `RteOdreSourceConfig`'s `cache` value under exact annotation `RteOdreCacheConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `provider` | `NonEmptyString` | `required` | `NonEmptyString` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `portal` | `NonEmptyString` | `required` | `NonEmptyString` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `api` | `RteOdreApiConfig` | `required` | `RteOdreApiConfig` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `datasets` | `RteDatasetsConfig` | `required` | `RteDatasetsConfig` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `cache` | `RteOdreCacheConfig` | `required` | `RteOdreCacheConfig` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Interface consumers**
 
-**Validators and methods:**
+- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteDatasetConfig,
+    RteOdreDatasetMetadata,
+    RteOdreDownload,
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
+- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
 
-- None.
+**Exact class source**
+
+```python
+class RteOdreSourceConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    provider: NonEmptyString
+    portal: NonEmptyString
+    api: RteOdreApiConfig
+    datasets: RteDatasetsConfig
+    cache: RteOdreCacheConfig
+```
 
 ### `RteOdreDownloadError`
 
 **Purpose:** Raised when RTE/ODRE metadata or exports cannot be retrieved safely.
 
+**Kind:** controlled exception.
+
 **Inheritance:** `RuntimeError`.
 
-**Model form and mutability:** class inheriting from `RuntimeError`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields:** none declared directly on this class.
 
-- No annotated instance fields are declared directly on this class.
+**Interface consumers**
 
-**Validators and methods:**
+- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteDatasetConfig,
+    RteOdreDatasetMetadata,
+    RteOdreDownload,
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validated_source_config` via `RteOdreDownloadError`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_read_response_json` via `RteOdreDownloadError`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `RteOdreDownloadError`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_geojson` via `RteOdreDownloadError`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_position` via `RteOdreDownloadError`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_nested_coordinates` via `RteOdreDownloadError`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_geojson_geometry` via `RteOdreDownloadError`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_records_count` via `RteOdreDownloadError`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `RteOdreDownloadError`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_prepare_temporary_cache_file` via `RteOdreDownloadError`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_cleanup_temporary_cache_files` via `RteOdreDownloadError`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `RteOdreDownloadError`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `RteOdreDownloadError`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `pytest.raises(RteOdreDownloadError, match='config|official|origin')`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `pytest.raises(RteOdreDownloadError, match='records_count')`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected` via `pytest.raises(RteOdreDownloadError, match='must not be negative')`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `pytest.raises(RteOdreDownloadError)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `pytest.raises(RteOdreDownloadError)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `pytest.raises(RteOdreDownloadError)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `pytest.raises(RteOdreDownloadError)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected` via `pytest.raises(RteOdreDownloadError)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_malformed_geojson_feature_or_geometry_is_rejected` via `pytest.raises(RteOdreDownloadError)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_point_requires_a_finite_numeric_position` via `pytest.raises(RteOdreDownloadError, match='coordinate|Point|finite')`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_nested_coordinate_geometries_reject_obvious_invalid_structure` via `pytest.raises(RteOdreDownloadError, match='coordinate|structure|finite')`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_geometry_collection_members_are_validated_recursively` via `pytest.raises(RteOdreDownloadError, match='coordinate|Point')`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `pytest.raises(RteOdreDownloadError, match='rollback')`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `pytest.raises(RteOdreDownloadError, match='backup|recovery|manual')`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `pytest.raises(RteOdreDownloadError, match='temporary|link|cache')`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `pytest.raises(RteOdreDownloadError, match='backup|recovery|manual')`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `pytest.raises(RteOdreDownloadError, match='rollback')`.
+- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
 
-- None.
+**Exact class source**
+
+```python
+class RteOdreDownloadError(RuntimeError):
+    """Raised when RTE/ODRE metadata or exports cannot be retrieved safely."""
+```
 
 ### `RteOdreDatasetMetadata`
 
-**Purpose:** Represents strict metadata used to reconstruct or validate a byte-bound cache/source object.
+**Purpose:** Immutable result/value envelope carrying `dataset_id`, `title`, `publisher`, `modified`, `data_processed`, `metadata_processed`, `license`, `records_count`, `geometry_precision_status`.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `dataset_id` | `str` | `required` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `title` | `str | None` | `required` | `str | None` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `publisher` | `str | None` | `required` | `str | None` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `modified` | `str | None` | `required` | `str | None` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `data_processed` | `str | None` | `required` | `str | None` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `metadata_processed` | `str | None` | `required` | `str | None` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `license` | `str | None` | `required` | `str | None` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `records_count` | `int | None` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `geometry_precision_status` | `GeometryPrecisionStatus` | `required` | Categorical factual, technical, policy, or diagnostic status; the owning constants/validators define the closed vocabulary. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `dataset_id` | `dataset_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
+| `title` | `title: str \| None` | `RteOdreDatasetMetadata`'s `title` evidence/text field; it retains the exact configured or source meaning under annotation `str | None` and is not promoted to a legal conclusion. |
+| `publisher` | `publisher: str \| None` | Stores `RteOdreDatasetMetadata`'s `publisher` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `modified` | `modified: str \| None` | Stores `RteOdreDatasetMetadata`'s `modified` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `data_processed` | `data_processed: str \| None` | Stores `RteOdreDatasetMetadata`'s `data processed` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `metadata_processed` | `metadata_processed: str \| None` | Stores `RteOdreDatasetMetadata`'s `metadata processed` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `license` | `license: str \| None` | Stores `RteOdreDatasetMetadata`'s `license` value under exact annotation `str | None`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `records_count` | `records_count: int \| None` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `geometry_precision_status` | `geometry_precision_status: GeometryPrecisionStatus` | Closed or validated `geometry precision status` classification on `RteOdreDatasetMetadata`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
 
-- `__post_init__` — `def __post_init__(self) -> None:`; decorators `none`. The complete method algorithm appears in the function/method section.
+**Interface consumers**
+
+- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteDatasetConfig,
+    RteOdreDatasetMetadata,
+    RteOdreDownload,
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `RteOdreDatasetMetadata`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_metadata_from_dict` via `RteOdreDatasetMetadata`.
+
+**Exact class source**
+
+```python
+class RteOdreDatasetMetadata:
+    dataset_id: str
+    title: str | None
+    publisher: str | None
+    modified: str | None
+    data_processed: str | None
+    metadata_processed: str | None
+    license: str | None
+    records_count: int | None
+    geometry_precision_status: GeometryPrecisionStatus
+
+    def __post_init__(self) -> None:
+        if self.records_count is not None and (
+            not isinstance(self.records_count, int)
+            or isinstance(self.records_count, bool)
+            or self.records_count < 0
+        ):
+            raise ValueError("records_count must be a non-negative integer or None")
+```
 
 ### `RteOdreExportSummary`
 
-**Purpose:** Carries deterministic factual counts, schema, or geometry summary data used to validate a frame or source.
+**Purpose:** Immutable result/value envelope carrying `feature_count`, `null_geometry_count`, `non_null_geometry_count`, `geometry_types`.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `feature_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `null_geometry_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `non_null_geometry_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `geometry_types` | `tuple[str, ...]` | `required` | `tuple[str, ...]` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `feature_count` | `feature_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `null_geometry_count` | `null_geometry_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `non_null_geometry_count` | `non_null_geometry_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `geometry_types` | `geometry_types: tuple[str, ...]` | Closed or validated `geometry types` classification on `RteOdreExportSummary`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
 
-- `__post_init__` — `def __post_init__(self) -> None:`; decorators `none`. The complete method algorithm appears in the function/method section.
+**Interface consumers**
+
+- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteDatasetConfig,
+    RteOdreDatasetMetadata,
+    RteOdreDownload,
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_geojson` via `RteOdreExportSummary`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_export_summary_from_dict` via `RteOdreExportSummary`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `RteOdreExportSummary`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_export_summary_rejects_invalid_geometry_counts` via `RteOdreExportSummary`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `RteOdreExportSummary`.
+- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
+
+**Exact class source**
+
+```python
+class RteOdreExportSummary:
+    feature_count: int
+    null_geometry_count: int
+    non_null_geometry_count: int
+    geometry_types: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        counts = {
+            "feature_count": self.feature_count,
+            "null_geometry_count": self.null_geometry_count,
+            "non_null_geometry_count": self.non_null_geometry_count,
+        }
+        for name, value in counts.items():
+            if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+                raise ValueError(f"{name} must be a non-negative integer")
+        if self.null_geometry_count + self.non_null_geometry_count != self.feature_count:
+            raise ValueError("Geometry counts must add up to feature_count")
+        if not isinstance(self.geometry_types, tuple) or any(
+            not isinstance(value, str) or not value for value in self.geometry_types
+        ):
+            raise TypeError("geometry_types must be a tuple of non-empty strings")
+```
 
 ### `RteOdreDownload`
 
-**Purpose:** Carries an immutable downloaded-source lineage envelope including byte identity and cache status.
+**Purpose:** Immutable result/value envelope carrying `logical_name`, `dataset_id`, `provider`, `portal`, `source_url`, `export_format`, `download_timestamp`, `filename`, `file_size`, `sha256`, `path`, `cache_hit`, `dataset_metadata`, `export_summary`.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `logical_name` | `LogicalDatasetName` | `required` | `LogicalDatasetName` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `dataset_id` | `str` | `required` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `provider` | `str` | `required` | `str` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `portal` | `str` | `required` | `str` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `source_url` | `str` | `required` | Exact source or evidence URL; host/path/HTTPS restrictions are enforced by configuration or source validators. |
-| `export_format` | `ExportFormat` | `required` | `ExportFormat` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `download_timestamp` | `str` | `required` | Offset-aware source/download timestamp string preserved as lineage and validated by the owning model. |
-| `filename` | `str` | `required` | `str` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `file_size` | `int` | `required` | Exact physical byte count used with SHA256 to validate cached or downloaded content. |
-| `sha256` | `str` | `required` | Lowercase SHA256 binding the exact relevant bytes. |
-| `path` | `Path` | `required` | `Path` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `cache_hit` | `bool` | `required` | Boolean recording whether verified local bytes were reused instead of acquired during this call. |
-| `dataset_metadata` | `RteOdreDatasetMetadata` | `required` | `RteOdreDatasetMetadata` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `export_summary` | `RteOdreExportSummary` | `required` | `RteOdreExportSummary` state used by `src/landscout/sources/rte_odre_fr.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `logical_name` | `logical_name: LogicalDatasetName` | Stores `RteOdreDownload`'s `logical name` value under exact annotation `LogicalDatasetName`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `dataset_id` | `dataset_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
+| `provider` | `provider: str` | Stores `RteOdreDownload`'s `provider` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `portal` | `portal: str` | Stores `RteOdreDownload`'s `portal` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `source_url` | `source_url: str` | Exact source/evidence URL whose HTTPS/origin/path constraints are enforced by the owning configuration or source validator. |
+| `export_format` | `export_format: ExportFormat` | Closed or validated `export format` classification on `RteOdreDownload`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `download_timestamp` | `download_timestamp: str` | Source, download, or processing time in the exact representation enforced by the owning validator; it is lineage, not physical proof by itself. |
+| `filename` | `filename: str` | Portable basename for the named physical file; it must agree with the owning path/manifest contract where validated. |
+| `file_size` | `file_size: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `sha256` | `sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `path` | `path: Path` | Filesystem location for the artifact named by the field; containment, portability, link, existence, and recovery checks belong to the owning source/artifact validator. |
+| `cache_hit` | `cache_hit: bool` | True only when already verified local cache state was reused. |
+| `dataset_metadata` | `dataset_metadata: RteOdreDatasetMetadata` | Stores `RteOdreDownload`'s `dataset metadata` value under exact annotation `RteOdreDatasetMetadata`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `export_summary` | `export_summary: RteOdreExportSummary` | Stores `RteOdreDownload`'s `export summary` value under exact annotation `RteOdreExportSummary`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-- None.
+**Interface consumers**
+
+- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteDatasetConfig,
+    RteOdreDatasetMetadata,
+    RteOdreDownload,
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `RteOdreDownload`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `RteOdreDownload`.
+
+**Exact class source**
+
+```python
+class RteOdreDownload:
+    logical_name: LogicalDatasetName
+    dataset_id: str
+    provider: str
+    portal: str
+    source_url: str
+    export_format: ExportFormat
+    download_timestamp: str
+    filename: str
+    file_size: int
+    sha256: str
+    path: Path
+    cache_hit: bool
+    dataset_metadata: RteOdreDatasetMetadata
+    export_summary: RteOdreExportSummary
+```
+
 
 ## 6. Functions and methods
 
 ### `RteOdreApiConfig._official_api_origin`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _official_api_origin(cls, value: HttpUrl) -> HttpUrl:
@@ -269,58 +706,62 @@ def _official_api_origin(cls, value: HttpUrl) -> HttpUrl:
 
 **Purpose**
 
-Implements official api origin according to the exact implementation and guards in this file.
+Private `grid/source` helper for official api origin; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `cls` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `value` (`HttpUrl`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `HttpUrl`.
+- Every observed return expression is reproduced without truncation:
+```python
+value
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `HttpUrl`. Observed return expression(s): `value`.
-
-**Algorithm**
-
-1. Computes `parsed` from `urlsplit(str(value))`.
-2. Checks `parsed.scheme != 'https' or parsed.hostname != 'odre.opendatasoft.com' or parsed.port not in {None, 443} or (parsed.username is not None) or (parsed.password is not None) or (parsed.path.rstrip('/') != '/api/explore/v2.1') or parsed.query or parsed.fragment`. When true: Raises `ValueError('RTE/ODRE API must use the exact official HTTPS origin')`.
-3. Returns `value`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `parsed.scheme != 'https' or parsed.hostname != 'odre.opendatasoft.com' or parsed.port not in {None, 443} or (parsed.username is not None) or (parsed.password is not None) or (parsed.path.rstrip('/') != '/api/explore/v2.1') or parsed.query or parsed.fragment` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `parsed.scheme != 'https' or parsed.hostname != 'odre.opendatasoft.com' or parsed.port not in {None, 443} or (parsed.username is not None) or (parsed.password is not None) or (parsed.path.rstrip('/') != '/api/explore/v2.1') or parsed.query or parsed.fragment`.
+- Explicit raise expressions: `ValueError('RTE/ODRE API must use the exact official HTTPS origin')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `field_validator`, `parsed.path.rstrip`, `str`, `urlsplit`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _official_api_origin(cls, value: HttpUrl) -> HttpUrl:
+        parsed = urlsplit(str(value))
+        if (
+            parsed.scheme != "https"
+            or parsed.hostname != "odre.opendatasoft.com"
+            or parsed.port not in {None, 443}
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.path.rstrip("/") != "/api/explore/v2.1"
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError("RTE/ODRE API must use the exact official HTTPS origin")
+        return value
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `RteOdreDatasetMetadata.__post_init__`
 
-**Signature**
+**Exact signature**
 
 ```python
 def __post_init__(self) -> None:
@@ -328,55 +769,52 @@ def __post_init__(self) -> None:
 
 **Purpose**
 
-Implements post init according to the exact implementation and guards in this file.
+Private `grid/source` helper for post init; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `self.records_count is not None and (not isinstance(self.records_count, int) or isinstance(self.records_count, bool) or self.records_count < 0)`. When true: Raises `ValueError('records_count must be a non-negative integer or None')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `self.records_count is not None and (not isinstance(self.records_count, int) or isinstance(self.records_count, bool) or self.records_count < 0)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `self.records_count is not None and (not isinstance(self.records_count, int) or isinstance(self.records_count, bool) or self.records_count < 0)`.
+- Explicit raise expressions: `ValueError('records_count must be a non-negative integer or None')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `isinstance`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def __post_init__(self) -> None:
+        if self.records_count is not None and (
+            not isinstance(self.records_count, int)
+            or isinstance(self.records_count, bool)
+            or self.records_count < 0
+        ):
+            raise ValueError("records_count must be a non-negative integer or None")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `RteOdreExportSummary.__post_init__`
 
-**Signature**
+**Exact signature**
 
 ```python
 def __post_init__(self) -> None:
@@ -384,60 +822,62 @@ def __post_init__(self) -> None:
 
 **Purpose**
 
-Implements post init according to the exact implementation and guards in this file.
+Private `grid/source` helper for post init; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `counts` from `{'feature_count': self.feature_count, 'null_geometry_count': self.null_geometry_count, 'non_null_geometry_count': self.non_null_geometry_count}`.
-2. Iterates `(name, value)` over `counts.items()`. For each value: Checks `not isinstance(value, int) or isinstance(value, bool) or value < 0`. When true: Raises `ValueError(f'{name} must be a non-negative integer')`.
-3. Checks `self.null_geometry_count + self.non_null_geometry_count != self.feature_count`. When true: Raises `ValueError('Geometry counts must add up to feature_count')`.
-4. Checks `not isinstance(self.geometry_types, tuple) or any((not isinstance(value, str) or not value for value in self.geometry_types))`. When true: Raises `TypeError('geometry_types must be a tuple of non-empty strings')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `self.null_geometry_count + self.non_null_geometry_count != self.feature_count` is true.
-- Rejects or diverts the path when `not isinstance(self.geometry_types, tuple) or any((not isinstance(value, str) or not value for value in self.geometry_types))` is true.
-- Rejects or diverts the path when `not isinstance(value, int) or isinstance(value, bool) or value < 0` is true.
-
-**Exceptions**
-
-- Explicitly raises: `TypeError`, `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `self.null_geometry_count + self.non_null_geometry_count != self.feature_count`.
+- Guard with a raise path: `not isinstance(self.geometry_types, tuple) or any((not isinstance(value, str) or not value for value in self.geometry_types))`.
+- Guard with a raise path: `not isinstance(value, int) or isinstance(value, bool) or value < 0`.
+- Explicit raise expressions: `TypeError('geometry_types must be a tuple of non-empty strings')`, `ValueError('Geometry counts must add up to feature_count')`, `ValueError(f'{name} must be a non-negative integer')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `TypeError`, `ValueError`, `any`, `counts.items`, `isinstance`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def __post_init__(self) -> None:
+        counts = {
+            "feature_count": self.feature_count,
+            "null_geometry_count": self.null_geometry_count,
+            "non_null_geometry_count": self.non_null_geometry_count,
+        }
+        for name, value in counts.items():
+            if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+                raise ValueError(f"{name} must be a non-negative integer")
+        if self.null_geometry_count + self.non_null_geometry_count != self.feature_count:
+            raise ValueError("Geometry counts must add up to feature_count")
+        if not isinstance(self.geometry_types, tuple) or any(
+            not isinstance(value, str) or not value for value in self.geometry_types
+        ):
+            raise TypeError("geometry_types must be a tuple of non-empty strings")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `load_rte_odre_source_config`
 
-**Signature**
+**Exact signature**
 
 ```python
 def load_rte_odre_source_config(
@@ -447,57 +887,79 @@ def load_rte_odre_source_config(
 
 **Purpose**
 
-Loads rte odre source config according to the exact implementation and guards in this file.
+Reads and validates rte odre source config; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `path` (`Path`; optional/default `DEFAULT_CONFIG_PATH`) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `RteOdreSourceConfig`.
+- Every observed return expression is reproduced without truncation:
+```python
+RteOdreSourceConfig.model_validate(content)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `RteOdreSourceConfig`. Observed return expression(s): `RteOdreSourceConfig.model_validate(content)`.
-
-**Algorithm**
-
-1. Enters managed context(s) `path.open(encoding='utf-8')` and executes: Computes `content` from `yaml.safe_load(stream)`.
-2. Checks `not isinstance(content, dict)`. When true: Raises `TypeError(f'Expected a YAML mapping in {path}')`.
-3. Returns `RteOdreSourceConfig.model_validate(content)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(content, dict)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `TypeError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(content, dict)`.
+- Explicit raise expressions: `TypeError(f'Expected a YAML mapping in {path}')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `path.open`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreSourceConfig.model_validate`, `TypeError`, `isinstance`, `path.open`, `yaml.safe_load`.
+- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteDatasetConfig,
+    RteOdreDatasetMetadata,
+    RteOdreDownload,
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::source_config` via `load_rte_odre_source_config`.
+- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_rte_odre_fr.py` — `source_config`
+```python
+def load_rte_odre_source_config(
+    path: Path = DEFAULT_CONFIG_PATH,
+) -> RteOdreSourceConfig:
+    with path.open(encoding="utf-8") as stream:
+        content = yaml.safe_load(stream)
+    if not isinstance(content, dict):
+        raise TypeError(f"Expected a YAML mapping in {path}")
+    return RteOdreSourceConfig.model_validate(content)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validated_source_config`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validated_source_config(config: object) -> RteOdreSourceConfig:
@@ -505,58 +967,65 @@ def _validated_source_config(config: object) -> RteOdreSourceConfig:
 
 **Purpose**
 
-Validates and returns canonical source config according to the exact implementation and guards in this file.
+Checks and returns canonical source config; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `config` (`object`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `RteOdreSourceConfig`.
+- Every observed return expression is reproduced without truncation:
+```python
+RteOdreSourceConfig.model_validate(config.model_dump(mode='python'))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `RteOdreSourceConfig`. Observed return expression(s): `RteOdreSourceConfig.model_validate(config.model_dump(mode='python'))`.
-
-**Algorithm**
-
-1. Runs guarded operation: Checks `type(config) is not RteOdreSourceConfig`. When true: Raises `TypeError('RTE/ODRE source config type is invalid')`. Returns `RteOdreSourceConfig.model_validate(config.model_dump(mode='python'))`. Handles `(AttributeError, TypeError, ValidationError, ValueError)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `type(config) is not RteOdreSourceConfig` is true.
-
-**Exceptions**
-
-- Explicitly raises: `RteOdreDownloadError`, `TypeError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `type(config) is not RteOdreSourceConfig`.
+- Explicit raise expressions: `RteOdreDownloadError('RTE/ODRE source config no longer satisfies the official origin contract')`, `TypeError('RTE/ODRE source config type is invalid')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `RteOdreDownloadError`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `RteOdreDownloadError`.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreDownloadError`, `RteOdreSourceConfig.model_validate`, `TypeError`, `config.model_dump`, `type`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::build_gpu_partition` via `_validated_source_config`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::build_gpu_document_list_url` via `_validated_source_config`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::build_gpu_partition_download_url` via `_validated_source_config`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_validated_source_config`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_validated_source_config`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_metadata_url` via `_validated_source_config`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_export_url` via `_validated_source_config`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_validated_source_config`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_validated_source_config`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `build_rte_odre_export_url`
-- `src/landscout/sources/rte_odre_fr.py` — `build_rte_odre_metadata_url`
-- `src/landscout/sources/rte_odre_fr.py` — `download_rte_odre_dataset`
-- `src/landscout/sources/rte_odre_fr.py` — `fetch_rte_odre_dataset_metadata`
+```python
+def _validated_source_config(config: object) -> RteOdreSourceConfig:
+    try:
+        if type(config) is not RteOdreSourceConfig:
+            raise TypeError("RTE/ODRE source config type is invalid")
+        return RteOdreSourceConfig.model_validate(config.model_dump(mode="python"))
+    except (AttributeError, TypeError, ValidationError, ValueError) as error:
+        raise RteOdreDownloadError(
+            "RTE/ODRE source config no longer satisfies the official origin contract"
+        ) from error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_get_dataset_config`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _get_dataset_config(
@@ -566,61 +1035,58 @@ def _get_dataset_config(
 
 **Purpose**
 
-Implements get dataset config according to the exact implementation and guards in this file.
+Private `grid/source` helper for get dataset config; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `config` (`RteOdreSourceConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `logical_name` (`LogicalDatasetName`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `RteDatasetConfig`.
+- Every observed return expression is reproduced without truncation:
+```python
+getattr(config.datasets, logical_name)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `RteDatasetConfig`. Observed return expression(s): `getattr(config.datasets, logical_name)`.
-
-**Algorithm**
-
-1. Checks `logical_name not in LOGICAL_DATASET_NAMES`. When true: Raises `ValueError(f'Unsupported RTE/ODRE logical dataset: {logical_name}')`.
-2. Returns `getattr(config.datasets, logical_name)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `logical_name not in LOGICAL_DATASET_NAMES` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `logical_name not in LOGICAL_DATASET_NAMES`.
+- Explicit raise expressions: `ValueError(f'Unsupported RTE/ODRE logical dataset: {logical_name}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `getattr`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_dataset_api_url` via `_get_dataset_config`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_export_url` via `_get_dataset_config`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_get_dataset_config`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_get_dataset_config`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_get_dataset_config`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `_dataset_api_url`
-- `src/landscout/sources/rte_odre_fr.py` — `_load_cached_download`
-- `src/landscout/sources/rte_odre_fr.py` — `build_rte_odre_export_url`
-- `src/landscout/sources/rte_odre_fr.py` — `download_rte_odre_dataset`
-- `src/landscout/sources/rte_odre_fr.py` — `fetch_rte_odre_dataset_metadata`
+```python
+def _get_dataset_config(
+    config: RteOdreSourceConfig, logical_name: LogicalDatasetName
+) -> RteDatasetConfig:
+    if logical_name not in LOGICAL_DATASET_NAMES:
+        raise ValueError(f"Unsupported RTE/ODRE logical dataset: {logical_name}")
+    return getattr(config.datasets, logical_name)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_dataset_api_url`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _dataset_api_url(
@@ -632,62 +1098,62 @@ def _dataset_api_url(
 
 **Purpose**
 
-Implements dataset api url according to the exact implementation and guards in this file.
+Private `grid/source` helper for dataset api url; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `config` (`RteOdreSourceConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `logical_name` (`LogicalDatasetName`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `suffix` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+f"{str(config.api.base_url).rstrip('/')}/catalog/datasets/{encoded_dataset_id}{suffix}"
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `f"{str(config.api.base_url).rstrip('/')}/catalog/datasets/{encoded_dataset_id}{suffix}"`.
-
-**Algorithm**
-
-1. Computes `dataset` from `_get_dataset_config(config, logical_name)`.
-2. Computes `encoded_dataset_id` from `quote(dataset.dataset_id, safe='')`.
-3. Returns `f"{str(config.api.base_url).rstrip('/')}/catalog/datasets/{encoded_dataset_id}{suffix}"`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_get_dataset_config`, `quote`, `str`, `str(config.api.base_url).rstrip`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_metadata_url` via `_dataset_api_url`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::build_rte_odre_export_url` via `_dataset_api_url`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_dataset_api_url`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_dataset_api_url`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `build_rte_odre_export_url`
-- `src/landscout/sources/rte_odre_fr.py` — `build_rte_odre_metadata_url`
-- `src/landscout/sources/rte_odre_fr.py` — `download_rte_odre_dataset`
-- `src/landscout/sources/rte_odre_fr.py` — `fetch_rte_odre_dataset_metadata`
+```python
+def _dataset_api_url(
+    config: RteOdreSourceConfig,
+    logical_name: LogicalDatasetName,
+    suffix: str,
+) -> str:
+    dataset = _get_dataset_config(config, logical_name)
+    encoded_dataset_id = quote(dataset.dataset_id, safe="")
+    return (
+        f"{str(config.api.base_url).rstrip('/')}/catalog/datasets/"
+        f"{encoded_dataset_id}{suffix}"
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `build_rte_odre_metadata_url`
 
-**Signature**
+**Exact signature**
 
 ```python
 def build_rte_odre_metadata_url(
@@ -697,59 +1163,77 @@ def build_rte_odre_metadata_url(
 
 **Purpose**
 
-Builds rte odre metadata url according to the exact implementation and guards in this file.
+Constructs rte odre metadata url; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `config` (`RteOdreSourceConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `logical_name` (`LogicalDatasetName`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+_dataset_api_url(validated_config, logical_name, '')
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `_dataset_api_url(validated_config, logical_name, '')`.
-
-**Algorithm**
-
-1. Computes `validated_config` from `_validated_source_config(config)`.
-2. Returns `_dataset_api_url(validated_config, logical_name, '')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_dataset_api_url`, `_validated_source_config`.
+- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteDatasetConfig,
+    RteOdreDatasetMetadata,
+    RteOdreDownload,
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_build_metadata_url` via `build_rte_odre_metadata_url`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `build_rte_odre_metadata_url`.
+- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_rte_odre_fr.py` — `test_build_metadata_url`
-- `tests/unit/test_rte_odre_fr.py` — `test_failed_refresh_preserves_previous_valid_cache`
+```python
+def build_rte_odre_metadata_url(
+    config: RteOdreSourceConfig, logical_name: LogicalDatasetName
+) -> str:
+    validated_config = _validated_source_config(config)
+    return _dataset_api_url(validated_config, logical_name, "")
+```
 
-**Tests**
-
-- `tests/unit/test_rte_odre_fr.py::test_build_metadata_url`
-- `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache`
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `build_rte_odre_export_url`
 
-**Signature**
+**Exact signature**
 
 ```python
 def build_rte_odre_export_url(
@@ -759,63 +1243,82 @@ def build_rte_odre_export_url(
 
 **Purpose**
 
-Builds rte odre export url according to the exact implementation and guards in this file.
+Constructs rte odre export url; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `config` (`RteOdreSourceConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `logical_name` (`LogicalDatasetName`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+_dataset_api_url(validated_config, logical_name, f'/exports/{export_format}')
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `_dataset_api_url(validated_config, logical_name, f'/exports/{export_format}')`.
-
-**Algorithm**
-
-1. Computes `validated_config` from `_validated_source_config(config)`.
-2. Computes `dataset` from `_get_dataset_config(validated_config, logical_name)`.
-3. Computes `export_format` from `quote(dataset.preferred_format, safe='')`.
-4. Returns `_dataset_api_url(validated_config, logical_name, f'/exports/{export_format}')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_dataset_api_url`, `_get_dataset_config`, `_validated_source_config`, `quote`.
+- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteDatasetConfig,
+    RteOdreDatasetMetadata,
+    RteOdreDownload,
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_build_export_url` via `build_rte_odre_export_url`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_export_url_uses_configured_dataset_id` via `build_rte_odre_export_url`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `build_rte_odre_export_url`.
+- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_rte_odre_fr.py` — `test_build_export_url`
-- `tests/unit/test_rte_odre_fr.py` — `test_export_url_uses_configured_dataset_id`
-- `tests/unit/test_rte_odre_fr.py` — `test_http_failure_raises_and_cleans_temporary_files`
+```python
+def build_rte_odre_export_url(
+    config: RteOdreSourceConfig, logical_name: LogicalDatasetName
+) -> str:
+    validated_config = _validated_source_config(config)
+    dataset = _get_dataset_config(validated_config, logical_name)
+    export_format = quote(dataset.preferred_format, safe="")
+    return _dataset_api_url(
+        validated_config, logical_name, f"/exports/{export_format}"
+    )
+```
 
-**Tests**
-
-- `tests/unit/test_rte_odre_fr.py::test_build_export_url`
-- `tests/unit/test_rte_odre_fr.py::test_export_url_uses_configured_dataset_id`
-- `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files`
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_optional_string`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _optional_string(mapping: dict[str, Any], key: str) -> str | None:
@@ -823,59 +1326,58 @@ def _optional_string(mapping: dict[str, Any], key: str) -> str | None:
 
 **Purpose**
 
-Implements optional string according to the exact implementation and guards in this file.
+Private `grid/source` helper for optional string; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `mapping` (`dict[str, Any]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `key` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str | None`.
+- Every observed return expression is reproduced without truncation:
+```python
+normalized or None
 
-**Returns**
+None
+```
 
-- Declared return type: `str | None`. Observed return expression(s): `normalized or None`; `None`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Computes `value` from `mapping.get(key)`.
-2. Checks `not isinstance(value, str)`. When true: Returns `None`.
-3. Computes `normalized` from `value.strip()`.
-4. Returns `normalized or None`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `isinstance`, `mapping.get`, `value.strip`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_written_files` via `_optional_string`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::discover_current_gpu_document` via `_optional_string`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_optional_string`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `fetch_rte_odre_dataset_metadata`
+```python
+def _optional_string(mapping: dict[str, Any], key: str) -> str | None:
+    value = mapping.get(key)
+    if not isinstance(value, str):
+        return None
+    normalized = value.strip()
+    return normalized or None
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_metadata_precision_status`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _metadata_precision_status(description: str | None) -> GeometryPrecisionStatus:
@@ -883,58 +1385,59 @@ def _metadata_precision_status(description: str | None) -> GeometryPrecisionStat
 
 **Purpose**
 
-Implements metadata precision status according to the exact implementation and guards in this file.
+Private `grid/source` helper for metadata precision status; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `description` (`str | None`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `GeometryPrecisionStatus`.
+- Every observed return expression is reproduced without truncation:
+```python
+'UNKNOWN'
 
-**Returns**
+'UNKNOWN'
 
-- Declared return type: `GeometryPrecisionStatus`. Observed return expression(s): `'UNKNOWN'`; `'GENERALIZED_OR_RESTRICTED'`.
+'GENERALIZED_OR_RESTRICTED'
+```
 
-**Algorithm**
+**Validation and exceptions**
 
-1. Checks `description is None`. When true: Returns `'UNKNOWN'`.
-2. Computes `normalized` from `description.casefold()`.
-3. Checks `'données gps' in normalized and 'sécurité publique' in normalized`. When true: Returns `'GENERALIZED_OR_RESTRICTED'`.
-4. Returns `'UNKNOWN'`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `description.casefold`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_metadata_precision_status`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `fetch_rte_odre_dataset_metadata`
+```python
+def _metadata_precision_status(description: str | None) -> GeometryPrecisionStatus:
+    if description is None:
+        return "UNKNOWN"
+    normalized = description.casefold()
+    if "données gps" in normalized and "sécurité publique" in normalized:
+        return "GENERALIZED_OR_RESTRICTED"
+    return "UNKNOWN"
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_read_response_json`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _read_response_json(source_url: str, timeout: float) -> dict[str, Any]:
@@ -942,58 +1445,63 @@ def _read_response_json(source_url: str, timeout: float) -> dict[str, Any]:
 
 **Purpose**
 
-Reads and validates response json according to the exact implementation and guards in this file.
+Reads response json; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `source_url` (`str`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `timeout` (`float`; required) — network timeout in seconds; validation rejects unsupported or non-positive values. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[str, Any]`.
+- Every observed return expression is reproduced without truncation:
+```python
+payload
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[str, Any]`. Observed return expression(s): `payload`.
-
-**Algorithm**
-
-1. Runs guarded operation: Enters managed context(s) `open_safe_https(source_url, timeout=timeout, headers={'User-Agent': 'LandScout-AI/0.1'})` and executes: Computes `payload` from `json.loads(response.read().decode('utf-8'))`. Handles `(HTTPError, URLError, OSError, UnicodeDecodeError, json.JSONDecodeError)`.
-2. Checks `not isinstance(payload, dict)`. When true: Raises `RteOdreDownloadError(f'RTE/ODRE response is not a JSON object: {source_url}')`.
-3. Returns `payload`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(payload, dict)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `RteOdreDownloadError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(payload, dict)`.
+- Explicit raise expressions: `RteOdreDownloadError(f'RTE/ODRE request failed: {source_url}')`, `RteOdreDownloadError(f'RTE/ODRE response is not a JSON object: {source_url}')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `RteOdreDownloadError`, `open_safe_https`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `RteOdreDownloadError`, `open_safe_https`.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreDownloadError`, `isinstance`, `json.loads`, `open_safe_https`, `response.read`, `response.read().decode`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::fetch_rte_odre_dataset_metadata` via `_read_response_json`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `fetch_rte_odre_dataset_metadata`
+```python
+def _read_response_json(source_url: str, timeout: float) -> dict[str, Any]:
+    try:
+        with open_safe_https(
+            source_url,
+            timeout=timeout,
+            headers={"User-Agent": "LandScout-AI/0.1"},
+        ) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (HTTPError, URLError, OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise RteOdreDownloadError(f"RTE/ODRE request failed: {source_url}") from error
+    if not isinstance(payload, dict):
+        raise RteOdreDownloadError(
+            f"RTE/ODRE response is not a JSON object: {source_url}"
+        )
+    return payload
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `fetch_rte_odre_dataset_metadata`
 
-**Signature**
+**Exact signature**
 
 ```python
 def fetch_rte_odre_dataset_metadata(
@@ -1005,74 +1513,117 @@ def fetch_rte_odre_dataset_metadata(
 
 **Purpose**
 
-Implements fetch rte odre dataset metadata according to the exact implementation and guards in this file.
+Private `grid/source` helper for fetch rte odre dataset metadata; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `config` (`RteOdreSourceConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `logical_name` (`LogicalDatasetName`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `timeout` (`float`; optional/default `60.0`) — network timeout in seconds; validation rejects unsupported or non-positive values. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `RteOdreDatasetMetadata`.
+- Every observed return expression is reproduced without truncation:
+```python
+RteOdreDatasetMetadata(dataset_id=dataset.dataset_id, title=_optional_string(default_metas, 'title'), publisher=_optional_string(default_metas, 'publisher'), modified=_optional_string(default_metas, 'modified'), data_processed=_optional_string(default_metas, 'data_processed'), metadata_processed=_optional_string(default_metas, 'metadata_processed'), license=_optional_string(default_metas, 'license'), records_count=records_count, geometry_precision_status=_metadata_precision_status(description))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `RteOdreDatasetMetadata`. Observed return expression(s): `RteOdreDatasetMetadata(dataset_id=dataset.dataset_id, title=_optional_string(default_metas, 'title'), publisher=_optional_string(default_metas, 'publisher'), modified=_optional_string(default_metas, 'modified'), data_processed=_optional_string(default_metas, 'data_processed'), metadata_processed=_optional_string(default_metas, 'metadata_processed'), license=_optional_string(default_metas, 'licens…`.
-
-**Algorithm**
-
-1. Computes `validated_config` from `_validated_source_config(config)`.
-2. Computes `dataset` from `_get_dataset_config(validated_config, logical_name)`.
-3. Computes `metadata_url` from `_dataset_api_url(validated_config, logical_name, '')`.
-4. Computes `payload` from `_read_response_json(metadata_url, timeout)`.
-5. Computes `response_dataset_id` from `payload.get('dataset_id')`.
-6. Checks `response_dataset_id != dataset.dataset_id`. When true: Raises `RteOdreDownloadError(f'Unexpected dataset metadata response for {dataset.dataset_id}')`.
-7. Computes `metas` from `payload.get('metas')`.
-8. Computes `default_metas` from `metas.get('default') if isinstance(metas, dict) else None`.
-9. Checks `not isinstance(default_metas, dict)`. When true: Computes `default_metas` from `{}`.
-10. Computes `records_count_value` from `default_metas.get('records_count')`.
-11. Checks `records_count_value is None`. When true: Computes `records_count` from `None`. Otherwise: Checks `not isinstance(records_count_value, int) or isinstance(records_count_value, bool)`. When true: Raises `RteOdreDownloadError('RTE/ODRE records_count must be an integer or null')`. Otherwise: Checks `records_count_value < 0`. When true: Raises `RteOdreDownloadError('RTE/ODRE records_count must not be negative')`. Otherwise: Computes `records_count` from `records_count_value`.
-12. Computes `description` from `_optional_string(default_metas, 'description')`.
-13. Returns `RteOdreDatasetMetadata(dataset_id=dataset.dataset_id, title=_optional_string(default_metas, 'title'), publisher=_optional_string(default_metas, 'publisher'), modified=_optional_string(default_metas, 'modified'), data_processed=_optional_string(default_metas, 'data_processed'), metadata_processed=_optional_string(default_metas, 'metadata_processed'), license…`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `response_dataset_id != dataset.dataset_id` is true.
-- Rejects or diverts the path when `not isinstance(records_count_value, int) or isinstance(records_count_value, bool)` is true.
-- Rejects or diverts the path when `records_count_value < 0` is true.
-
-**Exceptions**
-
-- Explicitly raises: `RteOdreDownloadError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `response_dataset_id != dataset.dataset_id`.
+- Guard with a raise path: `not isinstance(records_count_value, int) or isinstance(records_count_value, bool)`.
+- Guard with a raise path: `records_count_value < 0`.
+- Explicit raise expressions: `RteOdreDownloadError('RTE/ODRE records_count must be an integer or null')`, `RteOdreDownloadError('RTE/ODRE records_count must not be negative')`, `RteOdreDownloadError(f'Unexpected dataset metadata response for {dataset.dataset_id}')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `RteOdreDownloadError`, `_read_response_json`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `RteOdreDownloadError`.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreDatasetMetadata`, `RteOdreDownloadError`, `_dataset_api_url`, `_get_dataset_config`, `_metadata_precision_status`, `_optional_string`, `_read_response_json`, `_validated_source_config`, `default_metas.get`, `isinstance`, `metas.get`, `payload.get`.
+- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteDatasetConfig,
+    RteOdreDatasetMetadata,
+    RteOdreDownload,
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `fetch_rte_odre_dataset_metadata`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `fetch_rte_odre_dataset_metadata`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication` via `fetch_rte_odre_dataset_metadata`.
+- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `download_rte_odre_dataset`
-- `tests/unit/test_rte_odre_fr.py` — `test_metadata_is_captured_without_fabrication`
-- `tests/unit/test_rte_odre_fr.py` — `test_mutated_loaded_api_origin_is_rejected_before_metadata_network`
+```python
+def fetch_rte_odre_dataset_metadata(
+    config: RteOdreSourceConfig,
+    logical_name: LogicalDatasetName,
+    timeout: float = 60.0,
+) -> RteOdreDatasetMetadata:
+    validated_config = _validated_source_config(config)
+    dataset = _get_dataset_config(validated_config, logical_name)
+    metadata_url = _dataset_api_url(validated_config, logical_name, "")
+    payload = _read_response_json(metadata_url, timeout)
+    response_dataset_id = payload.get("dataset_id")
+    if response_dataset_id != dataset.dataset_id:
+        raise RteOdreDownloadError(
+            f"Unexpected dataset metadata response for {dataset.dataset_id}"
+        )
 
-**Tests**
+    metas = payload.get("metas")
+    default_metas = metas.get("default") if isinstance(metas, dict) else None
+    if not isinstance(default_metas, dict):
+        default_metas = {}
+    records_count_value = default_metas.get("records_count")
+    if records_count_value is None:
+        records_count = None
+    elif not isinstance(records_count_value, int) or isinstance(
+        records_count_value, bool
+    ):
+        raise RteOdreDownloadError("RTE/ODRE records_count must be an integer or null")
+    elif records_count_value < 0:
+        raise RteOdreDownloadError("RTE/ODRE records_count must not be negative")
+    else:
+        records_count = records_count_value
+    description = _optional_string(default_metas, "description")
+    return RteOdreDatasetMetadata(
+        dataset_id=dataset.dataset_id,
+        title=_optional_string(default_metas, "title"),
+        publisher=_optional_string(default_metas, "publisher"),
+        modified=_optional_string(default_metas, "modified"),
+        data_processed=_optional_string(default_metas, "data_processed"),
+        metadata_processed=_optional_string(default_metas, "metadata_processed"),
+        license=_optional_string(default_metas, "license"),
+        records_count=records_count,
+        geometry_precision_status=_metadata_precision_status(description),
+    )
+```
 
-- `tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication`
-- `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network`
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _sha256(path: Path) -> str:
@@ -1080,58 +1631,67 @@ def _sha256(path: Path) -> str:
 
 **Purpose**
 
-Implements sha256 according to the exact implementation and guards in this file.
+Private `grid/source` helper for sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+digest.hexdigest()
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `digest.hexdigest()`.
-
-**Algorithm**
-
-1. Computes `digest` from `sha256()`.
-2. Enters managed context(s) `path.open('rb')` and executes: Iterates `chunk` over `iter(lambda: stream.read(DOWNLOAD_CHUNK_SIZE), b'')`. For each value: Calls `digest.update(chunk)` for its validation or side effect.
-3. Returns `digest.hexdigest()`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `path.open`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `digest.hexdigest`, `digest.update`, `sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `digest.hexdigest`, `digest.update`, `iter`, `path.open`, `sha256`, `stream.read`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_validate_official_row` via `_sha256`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_sha256`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::_load_cached_download` via `_sha256`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_sha256`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_sha256`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_load_cached_archive` via `_sha256`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_sha256`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `_sha256`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_source_family` via `_sha256`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_revalidate_gpu_spatial_layer_source` via `_sha256`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_sha256`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_sha256`.
+- direct call or construction: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu._sha256`.
+- property/attribute access: `tests/unit/test_gpu_fr.py::_extraction_from_archive` via `gpu._sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `_load_cached_download`
-- `src/landscout/sources/rte_odre_fr.py` — `download_rte_odre_dataset`
+```python
+def _sha256(path: Path) -> str:
+    digest = sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(DOWNLOAD_CHUNK_SIZE), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_geojson`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_geojson(path: Path) -> RteOdreExportSummary:
@@ -1139,68 +1699,100 @@ def _validate_geojson(path: Path) -> RteOdreExportSummary:
 
 **Purpose**
 
-Validates and rejects malformed geojson according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent geojson; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `RteOdreExportSummary`.
+- Every observed return expression is reproduced without truncation:
+```python
+RteOdreExportSummary(feature_count=len(features), null_geometry_count=null_geometry_count, non_null_geometry_count=len(features) - null_geometry_count, geometry_types=tuple(sorted(geometry_types)))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `RteOdreExportSummary`. Observed return expression(s): `RteOdreExportSummary(feature_count=len(features), null_geometry_count=null_geometry_count, non_null_geometry_count=len(features) - null_geometry_count, geometry_types=tuple(sorted(geometry_types)))`.
-
-**Algorithm**
-
-1. Checks `not path.is_file() or path.stat().st_size == 0`. When true: Raises `RteOdreDownloadError(f'GeoJSON export is missing or empty: {path}')`.
-2. Runs guarded operation: Enters managed context(s) `path.open(encoding='utf-8')` and executes: Computes `payload` from `json.load(stream)`. Handles `(OSError, UnicodeDecodeError, json.JSONDecodeError)`.
-3. Checks `not isinstance(payload, dict) or payload.get('type') != 'FeatureCollection'`. When true: Raises `RteOdreDownloadError('GeoJSON export must be a FeatureCollection')`.
-4. Computes `features` from `payload.get('features')`.
-5. Checks `not isinstance(features, list)`. When true: Raises `RteOdreDownloadError('GeoJSON FeatureCollection must contain a features list')`.
-6. Computes `null_geometry_count` from `0`.
-7. Defines `geometry_types` with annotation `set[str]` from `set()`.
-8. Iterates `feature` over `features`. For each value: Checks `not isinstance(feature, dict) or feature.get('type') != 'Feature'`. When true: Raises `RteOdreDownloadError('Every GeoJSON feature must be an object with type Feature')`. Computes `geometry` from `feature.get('geometry')`. Checks `geometry is None`. When true: Updates `null_geometry_count` using `` and `1`. Executes `continue` control flow. Executes 3 additional source-ordered statement(s).
-9. Returns `RteOdreExportSummary(feature_count=len(features), null_geometry_count=null_geometry_count, non_null_geometry_count=len(features) - null_geometry_count, geometry_types=tuple(sorted(geometry_types)))`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not path.is_file() or path.stat().st_size == 0` is true.
-- Rejects or diverts the path when `not isinstance(payload, dict) or payload.get('type') != 'FeatureCollection'` is true.
-- Rejects or diverts the path when `not isinstance(features, list)` is true.
-- Rejects or diverts the path when `not isinstance(feature, dict) or feature.get('type') != 'Feature'` is true.
-- Rejects or diverts the path when `not isinstance(geometry, dict)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `RteOdreDownloadError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not path.is_file() or path.stat().st_size == 0`.
+- Guard with a raise path: `not isinstance(payload, dict) or payload.get('type') != 'FeatureCollection'`.
+- Guard with a raise path: `not isinstance(features, list)`.
+- Guard with a raise path: `not isinstance(feature, dict) or feature.get('type') != 'Feature'`.
+- Guard with a raise path: `not isinstance(geometry, dict)`.
+- Explicit raise expressions: `RteOdreDownloadError('Every GeoJSON feature must be an object with type Feature')`, `RteOdreDownloadError('GeoJSON FeatureCollection must contain a features list')`, `RteOdreDownloadError('GeoJSON export must be a FeatureCollection')`, `RteOdreDownloadError('GeoJSON feature geometry must be an object or null')`, `RteOdreDownloadError(f'GeoJSON export is missing or empty: {path}')`, `RteOdreDownloadError(f'GeoJSON export is not valid UTF-8 JSON: {path}')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `RteOdreDownloadError`, `path.open`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `RteOdreDownloadError`.
+- Filesystem read: `path.stat`.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `_validate_geojson_geometry`, `geometry_types.add`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreDownloadError`, `RteOdreExportSummary`, `_validate_geojson_geometry`, `feature.get`, `geometry_types.add`, `isinstance`, `json.load`, `len`, `path.is_file`, `path.open`, `path.stat`, `payload.get`, `set`, `sorted`, `tuple`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_validate_geojson`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_validate_geojson`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_malformed_geojson_feature_or_geometry_is_rejected` via `rte_odre_fr._validate_geojson`.
+- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_malformed_geojson_feature_or_geometry_is_rejected` via `rte_odre_fr._validate_geojson`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_standard_geojson_geometry_types_are_summarized` via `rte_odre_fr._validate_geojson`.
+- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_standard_geojson_geometry_types_are_summarized` via `rte_odre_fr._validate_geojson`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_point_requires_a_finite_numeric_position` via `rte_odre_fr._validate_geojson`.
+- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_point_requires_a_finite_numeric_position` via `rte_odre_fr._validate_geojson`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_nested_coordinate_geometries_reject_obvious_invalid_structure` via `rte_odre_fr._validate_geojson`.
+- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_nested_coordinate_geometries_reject_obvious_invalid_structure` via `rte_odre_fr._validate_geojson`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_geometry_collection_members_are_validated_recursively` via `rte_odre_fr._validate_geojson`.
+- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_geometry_collection_members_are_validated_recursively` via `rte_odre_fr._validate_geojson`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `_load_cached_download`
-- `src/landscout/sources/rte_odre_fr.py` — `download_rte_odre_dataset`
+```python
+def _validate_geojson(path: Path) -> RteOdreExportSummary:
+    if not path.is_file() or path.stat().st_size == 0:
+        raise RteOdreDownloadError(f"GeoJSON export is missing or empty: {path}")
+    try:
+        with path.open(encoding="utf-8") as stream:
+            payload = json.load(stream)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise RteOdreDownloadError(f"GeoJSON export is not valid UTF-8 JSON: {path}") from error
+    if not isinstance(payload, dict) or payload.get("type") != "FeatureCollection":
+        raise RteOdreDownloadError("GeoJSON export must be a FeatureCollection")
+    features = payload.get("features")
+    if not isinstance(features, list):
+        raise RteOdreDownloadError("GeoJSON FeatureCollection must contain a features list")
 
-**Tests**
+    null_geometry_count = 0
+    geometry_types: set[str] = set()
+    for feature in features:
+        if not isinstance(feature, dict) or feature.get("type") != "Feature":
+            raise RteOdreDownloadError(
+                "Every GeoJSON feature must be an object with type Feature"
+            )
+        geometry = feature.get("geometry")
+        if geometry is None:
+            null_geometry_count += 1
+            continue
+        if not isinstance(geometry, dict):
+            raise RteOdreDownloadError(
+                "GeoJSON feature geometry must be an object or null"
+            )
+        geometry_type = _validate_geojson_geometry(geometry)
+        geometry_types.add(geometry_type)
+    return RteOdreExportSummary(
+        feature_count=len(features),
+        null_geometry_count=null_geometry_count,
+        non_null_geometry_count=len(features) - null_geometry_count,
+        geometry_types=tuple(sorted(geometry_types)),
+    )
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_position`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_position(value: object, geometry_type: str) -> None:
@@ -1208,58 +1800,60 @@ def _validate_position(value: object, geometry_type: str) -> None:
 
 **Purpose**
 
-Validates and rejects malformed position according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent position; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `geometry_type` (`str`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `not isinstance(value, list) or len(value) < 2`. When true: Raises `RteOdreDownloadError(f'GeoJSON {geometry_type} coordinates must contain an X/Y position')`.
-2. Checks `any((isinstance(coordinate, bool) or not isinstance(coordinate, Real) or (not isfinite(float(coordinate))) for coordinate in value))`. When true: Raises `RteOdreDownloadError(f'GeoJSON {geometry_type} coordinates must be finite numeric values')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(value, list) or len(value) < 2` is true.
-- Rejects or diverts the path when `any((isinstance(coordinate, bool) or not isinstance(coordinate, Real) or (not isfinite(float(coordinate))) for coordinate in value))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `RteOdreDownloadError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(value, list) or len(value) < 2`.
+- Guard with a raise path: `any((isinstance(coordinate, bool) or not isinstance(coordinate, Real) or (not isfinite(float(coordinate))) for coordinate in value))`.
+- Explicit raise expressions: `RteOdreDownloadError(f'GeoJSON {geometry_type} coordinates must be finite numeric values')`, `RteOdreDownloadError(f'GeoJSON {geometry_type} coordinates must contain an X/Y position')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `RteOdreDownloadError`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `RteOdreDownloadError`.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreDownloadError`, `any`, `float`, `isfinite`, `isinstance`, `len`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_nested_coordinates` via `_validate_position`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `_validate_nested_coordinates`
+```python
+def _validate_position(value: object, geometry_type: str) -> None:
+    if not isinstance(value, list) or len(value) < 2:
+        raise RteOdreDownloadError(
+            f"GeoJSON {geometry_type} coordinates must contain an X/Y position"
+        )
+    if any(
+        isinstance(coordinate, bool)
+        or not isinstance(coordinate, Real)
+        or not isfinite(float(coordinate))
+        for coordinate in value
+    ):
+        raise RteOdreDownloadError(
+            f"GeoJSON {geometry_type} coordinates must be finite numeric values"
+        )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_nested_coordinates`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_nested_coordinates(
@@ -1272,59 +1866,67 @@ def _validate_nested_coordinates(
 
 **Purpose**
 
-Validates and rejects malformed nested coordinates according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent nested coordinates; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `depth` (`int`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `geometry_type` (`str`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- Every observed return expression is reproduced without truncation:
+```python
+None
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. Observed return expression(s): `None`.
-
-**Algorithm**
-
-1. Checks `not isinstance(value, list)`. When true: Raises `RteOdreDownloadError(f'GeoJSON {geometry_type} coordinate structure must use JSON arrays')`.
-2. Checks `depth == 0`. When true: Calls `_validate_position(value, geometry_type)` for its validation or side effect. Returns `None`.
-3. Iterates `member` over `value`. For each value: Calls `_validate_nested_coordinates(member, depth=depth - 1, geometry_type=geometry_type)` for its validation or side effect.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(value, list)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `RteOdreDownloadError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(value, list)`.
+- Explicit raise expressions: `RteOdreDownloadError(f'GeoJSON {geometry_type} coordinate structure must use JSON arrays')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `RteOdreDownloadError`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `RteOdreDownloadError`.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreDownloadError`, `_validate_nested_coordinates`, `_validate_position`, `isinstance`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_geojson_geometry` via `_validate_nested_coordinates`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `_validate_geojson_geometry`
+```python
+def _validate_nested_coordinates(
+    value: object,
+    *,
+    depth: int,
+    geometry_type: str,
+) -> None:
+    if not isinstance(value, list):
+        raise RteOdreDownloadError(
+            f"GeoJSON {geometry_type} coordinate structure must use JSON arrays"
+        )
+    if depth == 0:
+        _validate_position(value, geometry_type)
+        return
+    for member in value:
+        _validate_nested_coordinates(
+            member,
+            depth=depth - 1,
+            geometry_type=geometry_type,
+        )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_geojson_geometry`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_geojson_geometry(geometry: object) -> str:
@@ -1332,66 +1934,88 @@ def _validate_geojson_geometry(geometry: object) -> str:
 
 **Purpose**
 
-Validates and rejects malformed geojson geometry according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent geojson geometry; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `geometry` (`object`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+geometry_type
 
-**Returns**
+geometry_type
+```
 
-- Declared return type: `str`. Observed return expression(s): `geometry_type`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Checks `not isinstance(geometry, dict)`. When true: Raises `RteOdreDownloadError('GeoJSON geometry member must be an object')`.
-2. Computes `geometry_type` from `geometry.get('type')`.
-3. Checks `geometry_type not in GEOJSON_GEOMETRY_TYPES`. When true: Raises `RteOdreDownloadError('GeoJSON feature has an unsupported geometry type')`.
-4. Checks `geometry_type == 'GeometryCollection'`. When true: Computes `members` from `geometry.get('geometries')`. Checks `not isinstance(members, list)`. When true: Raises `RteOdreDownloadError('GeoJSON GeometryCollection must contain a geometries list')`. Iterates `member` over `members`. For each value: Calls `_validate_geojson_geometry(member)` for its validation or side effect. Executes 1 additional source-ordered statement(s).
-5. Checks `'coordinates' not in geometry`. When true: Raises `RteOdreDownloadError(f'GeoJSON {geometry_type} geometry must contain coordinates')`.
-6. Computes `depth_by_type` from `{'Point': 0, 'MultiPoint': 1, 'LineString': 1, 'MultiLineString': 2, 'Polygon': 2, 'MultiPolygon': 3}`.
-7. Calls `_validate_nested_coordinates(geometry['coordinates'], depth=depth_by_type[geometry_type], geometry_type=geometry_type)` for its validation or side effect.
-8. Returns `geometry_type`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(geometry, dict)` is true.
-- Rejects or diverts the path when `geometry_type not in GEOJSON_GEOMETRY_TYPES` is true.
-- Rejects or diverts the path when `geometry_type == 'GeometryCollection'` is true.
-- Rejects or diverts the path when `'coordinates' not in geometry` is true.
-- Rejects or diverts the path when `not isinstance(members, list)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `RteOdreDownloadError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(geometry, dict)`.
+- Guard with a raise path: `geometry_type not in GEOJSON_GEOMETRY_TYPES`.
+- Guard with a raise path: `geometry_type == 'GeometryCollection'`.
+- Guard with a raise path: `'coordinates' not in geometry`.
+- Guard with a raise path: `not isinstance(members, list)`.
+- Explicit raise expressions: `RteOdreDownloadError('GeoJSON GeometryCollection must contain a geometries list')`, `RteOdreDownloadError('GeoJSON feature has an unsupported geometry type')`, `RteOdreDownloadError('GeoJSON geometry member must be an object')`, `RteOdreDownloadError(f'GeoJSON {geometry_type} geometry must contain coordinates')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `RteOdreDownloadError`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `RteOdreDownloadError`.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `_validate_geojson_geometry`, `geometry.get`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreDownloadError`, `_validate_geojson_geometry`, `_validate_nested_coordinates`, `geometry.get`, `isinstance`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_validate_geojson` via `_validate_geojson_geometry`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `_validate_geojson`
+```python
+def _validate_geojson_geometry(geometry: object) -> str:
+    if not isinstance(geometry, dict):
+        raise RteOdreDownloadError("GeoJSON geometry member must be an object")
+    geometry_type = geometry.get("type")
+    if geometry_type not in GEOJSON_GEOMETRY_TYPES:
+        raise RteOdreDownloadError("GeoJSON feature has an unsupported geometry type")
+    if geometry_type == "GeometryCollection":
+        members = geometry.get("geometries")
+        if not isinstance(members, list):
+            raise RteOdreDownloadError(
+                "GeoJSON GeometryCollection must contain a geometries list"
+            )
+        for member in members:
+            _validate_geojson_geometry(member)
+        return geometry_type
 
-**Tests**
+    if "coordinates" not in geometry:
+        raise RteOdreDownloadError(
+            f"GeoJSON {geometry_type} geometry must contain coordinates"
+        )
+    depth_by_type = {
+        "Point": 0,
+        "MultiPoint": 1,
+        "LineString": 1,
+        "MultiLineString": 2,
+        "Polygon": 2,
+        "MultiPolygon": 3,
+    }
+    _validate_nested_coordinates(
+        geometry["coordinates"],
+        depth=depth_by_type[geometry_type],
+        geometry_type=geometry_type,
+    )
+    return geometry_type
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_metadata_from_dict`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _metadata_from_dict(payload: Any) -> RteOdreDatasetMetadata:
@@ -1399,66 +2023,92 @@ def _metadata_from_dict(payload: Any) -> RteOdreDatasetMetadata:
 
 **Purpose**
 
-Implements metadata from dict according to the exact implementation and guards in this file.
+Private `grid/source` helper for metadata from dict; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `payload` (`Any`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `RteOdreDatasetMetadata`.
+- Every observed return expression is reproduced without truncation:
+```python
+RteOdreDatasetMetadata(dataset_id=str(payload['dataset_id']), title=optional_values['title'], publisher=optional_values['publisher'], modified=optional_values['modified'], data_processed=optional_values['data_processed'], metadata_processed=optional_values['metadata_processed'], license=optional_values['license'], records_count=records_count, geometry_precision_status=precision_status)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `RteOdreDatasetMetadata`. Observed return expression(s): `RteOdreDatasetMetadata(dataset_id=str(payload['dataset_id']), title=optional_values['title'], publisher=optional_values['publisher'], modified=optional_values['modified'], data_processed=optional_values['data_processed'], metadata_processed=optional_values['metadata_processed'], license=optional_values['license'], records_count=records_count, geometry_precision_status=precision_status)`.
-
-**Algorithm**
-
-1. Checks `not isinstance(payload, dict)`. When true: Raises `TypeError('Missing cached dataset metadata')`.
-2. Computes `precision_status` from `payload['geometry_precision_status']`.
-3. Computes `allowed_statuses` from `{'EXACT_NOT_CLAIMED', 'GENERALIZED_OR_RESTRICTED', 'MISSING', 'UNKNOWN'}`.
-4. Checks `precision_status not in allowed_statuses`. When true: Raises `ValueError('Invalid cached geometry precision status')`.
-5. Computes `records_count` from `payload['records_count']`.
-6. Checks `records_count is not None and (not isinstance(records_count, int) or isinstance(records_count, bool))`. When true: Raises `TypeError('Invalid cached records count')`.
-7. Defines `optional_values` with annotation `dict[str, str | None]` from `{}`.
-8. Iterates `field_name` over `('title', 'publisher', 'modified', 'data_processed', 'metadata_processed', 'license')`. For each value: Computes `value` from `payload[field_name]`. Checks `value is not None and (not isinstance(value, str))`. When true: Raises `TypeError(f'Invalid cached metadata value: {field_name}')`. Computes `optional_values[field_name]` from `value`.
-9. Returns `RteOdreDatasetMetadata(dataset_id=str(payload['dataset_id']), title=optional_values['title'], publisher=optional_values['publisher'], modified=optional_values['modified'], data_processed=optional_values['data_processed'], metadata_processed=optional_values['metadata_processed'], license=optional_values['license'], records_count=records_count, geometry_preci…`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(payload, dict)` is true.
-- Rejects or diverts the path when `precision_status not in allowed_statuses` is true.
-- Rejects or diverts the path when `records_count is not None and (not isinstance(records_count, int) or isinstance(records_count, bool))` is true.
-- Rejects or diverts the path when `value is not None and (not isinstance(value, str))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `TypeError`, `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(payload, dict)`.
+- Guard with a raise path: `precision_status not in allowed_statuses`.
+- Guard with a raise path: `records_count is not None and (not isinstance(records_count, int) or isinstance(records_count, bool))`.
+- Guard with a raise path: `value is not None and (not isinstance(value, str))`.
+- Explicit raise expressions: `TypeError('Invalid cached records count')`, `TypeError('Missing cached dataset metadata')`, `TypeError(f'Invalid cached metadata value: {field_name}')`, `ValueError('Invalid cached geometry precision status')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `optional_values[field_name]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreDatasetMetadata`, `TypeError`, `ValueError`, `isinstance`, `str`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_metadata_from_dict`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `_load_cached_download`
+```python
+def _metadata_from_dict(payload: Any) -> RteOdreDatasetMetadata:
+    if not isinstance(payload, dict):
+        raise TypeError("Missing cached dataset metadata")
+    precision_status = payload["geometry_precision_status"]
+    allowed_statuses = {
+        "EXACT_NOT_CLAIMED",
+        "GENERALIZED_OR_RESTRICTED",
+        "MISSING",
+        "UNKNOWN",
+    }
+    if precision_status not in allowed_statuses:
+        raise ValueError("Invalid cached geometry precision status")
+    records_count = payload["records_count"]
+    if records_count is not None and (
+        not isinstance(records_count, int) or isinstance(records_count, bool)
+    ):
+        raise TypeError("Invalid cached records count")
+    optional_values: dict[str, str | None] = {}
+    for field_name in (
+        "title",
+        "publisher",
+        "modified",
+        "data_processed",
+        "metadata_processed",
+        "license",
+    ):
+        value = payload[field_name]
+        if value is not None and not isinstance(value, str):
+            raise TypeError(f"Invalid cached metadata value: {field_name}")
+        optional_values[field_name] = value
+    return RteOdreDatasetMetadata(
+        dataset_id=str(payload["dataset_id"]),
+        title=optional_values["title"],
+        publisher=optional_values["publisher"],
+        modified=optional_values["modified"],
+        data_processed=optional_values["data_processed"],
+        metadata_processed=optional_values["metadata_processed"],
+        license=optional_values["license"],
+        records_count=records_count,
+        geometry_precision_status=precision_status,
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_export_summary_from_dict`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _export_summary_from_dict(payload: Any) -> RteOdreExportSummary:
@@ -1466,59 +2116,63 @@ def _export_summary_from_dict(payload: Any) -> RteOdreExportSummary:
 
 **Purpose**
 
-Implements export summary from dict according to the exact implementation and guards in this file.
+Private `grid/source` helper for export summary from dict; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `payload` (`Any`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `RteOdreExportSummary`.
+- Every observed return expression is reproduced without truncation:
+```python
+RteOdreExportSummary(feature_count=payload['feature_count'], null_geometry_count=payload['null_geometry_count'], non_null_geometry_count=payload['non_null_geometry_count'], geometry_types=tuple(geometry_types))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `RteOdreExportSummary`. Observed return expression(s): `RteOdreExportSummary(feature_count=payload['feature_count'], null_geometry_count=payload['null_geometry_count'], non_null_geometry_count=payload['non_null_geometry_count'], geometry_types=tuple(geometry_types))`.
-
-**Algorithm**
-
-1. Checks `not isinstance(payload, dict)`. When true: Raises `TypeError('Missing cached export summary')`.
-2. Computes `geometry_types` from `payload['geometry_types']`.
-3. Checks `not isinstance(geometry_types, list) or any((not isinstance(value, str) for value in geometry_types))`. When true: Raises `TypeError('Invalid cached geometry types')`.
-4. Returns `RteOdreExportSummary(feature_count=payload['feature_count'], null_geometry_count=payload['null_geometry_count'], non_null_geometry_count=payload['non_null_geometry_count'], geometry_types=tuple(geometry_types))`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(payload, dict)` is true.
-- Rejects or diverts the path when `not isinstance(geometry_types, list) or any((not isinstance(value, str) for value in geometry_types))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `TypeError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(payload, dict)`.
+- Guard with a raise path: `not isinstance(geometry_types, list) or any((not isinstance(value, str) for value in geometry_types))`.
+- Explicit raise expressions: `TypeError('Invalid cached geometry types')`, `TypeError('Missing cached export summary')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreExportSummary`, `TypeError`, `any`, `isinstance`, `tuple`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_export_summary_from_dict`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `_load_cached_download`
+```python
+def _export_summary_from_dict(payload: Any) -> RteOdreExportSummary:
+    if not isinstance(payload, dict):
+        raise TypeError("Missing cached export summary")
+    geometry_types = payload["geometry_types"]
+    if not isinstance(geometry_types, list) or any(
+        not isinstance(value, str) for value in geometry_types
+    ):
+        raise TypeError("Invalid cached geometry types")
+    return RteOdreExportSummary(
+        feature_count=payload["feature_count"],
+        null_geometry_count=payload["null_geometry_count"],
+        non_null_geometry_count=payload["non_null_geometry_count"],
+        geometry_types=tuple(geometry_types),
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_validate_records_count`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_records_count(
@@ -1529,58 +2183,56 @@ def _validate_records_count(
 
 **Purpose**
 
-Validates and rejects malformed records count according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent records count; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `dataset_metadata` (`RteOdreDatasetMetadata`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `export_summary` (`RteOdreExportSummary`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `records_count` from `dataset_metadata.records_count`.
-2. Checks `records_count is not None and records_count != export_summary.feature_count`. When true: Raises `RteOdreDownloadError(f'RTE/ODRE metadata records_count does not match export feature_count: {records_count} != {export_summary.feature_count}')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `records_count is not None and records_count != export_summary.feature_count` is true.
-
-**Exceptions**
-
-- Explicitly raises: `RteOdreDownloadError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `records_count is not None and records_count != export_summary.feature_count`.
+- Explicit raise expressions: `RteOdreDownloadError(f'RTE/ODRE metadata records_count does not match export feature_count: {records_count} != {export_summary.feature_count}')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `RteOdreDownloadError`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `RteOdreDownloadError`.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreDownloadError`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_load_cached_download` via `_validate_records_count`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_validate_records_count`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `_load_cached_download`
-- `src/landscout/sources/rte_odre_fr.py` — `download_rte_odre_dataset`
+```python
+def _validate_records_count(
+    dataset_metadata: RteOdreDatasetMetadata,
+    export_summary: RteOdreExportSummary,
+) -> None:
+    records_count = dataset_metadata.records_count
+    if records_count is not None and records_count != export_summary.feature_count:
+        raise RteOdreDownloadError(
+            "RTE/ODRE metadata records_count does not match export feature_count: "
+            f"{records_count} != {export_summary.feature_count}"
+        )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_replace_file`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _replace_file(source: Path, target: Path) -> None:
@@ -1588,56 +2240,68 @@ def _replace_file(source: Path, target: Path) -> None:
 
 **Purpose**
 
-Implements replace file according to the exact implementation and guards in this file.
+Private `grid/source` helper for replace file; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `source` (`Path`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `target` (`Path`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Calls `source.replace(target)` for its validation or side effect.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `source.replace`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `source.replace`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_replace_file`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_replace_file`.
+- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_replace_file`.
+- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `_replace_file`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_replace_file`.
+- property/attribute access: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `__import__('landscout.sources.cadastre_fr', fromlist=['_replace_file'])._replace_file`.
+- property/attribute access: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `__import__('landscout.sources.cadastre_fr', fromlist=['_replace_file'])._replace_file`.
+- property/attribute access: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `cadastre_fr._replace_file`.
+- property/attribute access: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `cadastre_fr._replace_file`.
+- property/attribute access: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `cadastre_fr._replace_file`.
+- property/attribute access: `tests/unit/test_gpu_fr.py::test_metadata_publication_failure_rolls_back_both_cache_files` via `gpu._replace_file`.
+- property/attribute access: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._replace_file`.
+- property/attribute access: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `gpu._replace_file`.
+- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `ign_bdtopo_fr._replace_file`.
+- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._replace_file`.
+- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `ign_bdtopo_fr._replace_file`.
+- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_publication_failure_restores_old_pair` via `inpn._replace_file`.
+- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `inpn._replace_file`.
+- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_failed_replacement_restores_a_still_reusable_valid_download_pair` via `inpn._replace_file`.
+- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `rte_odre_fr._replace_file`.
+- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `rte_odre_fr._replace_file`.
+- property/attribute access: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `rte_odre_fr._replace_file`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `_publish_cache_pair`
+```python
+def _replace_file(source: Path, target: Path) -> None:
+    source.replace(target)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_is_link_or_junction`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _is_link_or_junction(path: Path) -> bool:
@@ -1645,56 +2309,75 @@ def _is_link_or_junction(path: Path) -> bool:
 
 **Purpose**
 
-Returns whether `link or junction` satisfies the exact predicates and branches listed below.
+Tests whether link or junction; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `bool`.
+- Every observed return expression is reproduced without truncation:
+```python
+path.is_symlink() or path.is_junction()
 
-**Returns**
+True
+```
 
-- Declared return type: `bool`. Observed return expression(s): `path.is_symlink() or path.is_junction()`; `True`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Runs guarded operation: Returns `path.is_symlink() or path.is_junction()`. Handles `OSError`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `path.is_junction`, `path.is_symlink`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_gpu_archive_download` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_inventory` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_validate_extraction_manifest` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_extraction_directory` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::extract_gpu_document` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_validated_spatial_root` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_contained_spatial_path` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_spatial_dataset_relative_path` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_is_regular_file` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_publish_cache_pair` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_inventory` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::_path_exists` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::extract_inpn_protected_areas_archive` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_prepare_temporary_cache_file` via `_is_link_or_junction`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_is_link_or_junction`.
+- property/attribute access: `tests/unit/test_enrich_planning_features.py::test_source_complete_contract_rejects_linked_spatial_dataset` via `gpu_source_module._is_link_or_junction`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `_prepare_temporary_cache_file`
-- `src/landscout/sources/rte_odre_fr.py` — `_require_no_cache_recovery_material`
+```python
+def _is_link_or_junction(path: Path) -> bool:
+    try:
+        return path.is_symlink() or path.is_junction()
+    except OSError:
+        return True
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_cache_recovery_paths`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _cache_recovery_paths(
@@ -1705,57 +2388,63 @@ def _cache_recovery_paths(
 
 **Purpose**
 
-Implements cache recovery paths according to the exact implementation and guards in this file.
+Private `grid/source` helper for cache recovery paths; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `archive_path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `metadata_path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[Path, Path]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(archive_path.with_suffix(f'{archive_path.suffix}.bak'), metadata_path.with_suffix(f'{metadata_path.suffix}.bak'))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[Path, Path]`. Observed return expression(s): `(archive_path.with_suffix(f'{archive_path.suffix}.bak'), metadata_path.with_suffix(f'{metadata_path.suffix}.bak'))`.
-
-**Algorithm**
-
-1. Returns `(archive_path.with_suffix(f'{archive_path.suffix}.bak'), metadata_path.with_suffix(f'{metadata_path.suffix}.bak'))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `archive_path.with_suffix`, `metadata_path.with_suffix`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
+- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
+- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_require_no_cache_recovery_material` via `_cache_recovery_paths`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_cache_recovery_paths`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `_publish_cache_pair`
-- `src/landscout/sources/rte_odre_fr.py` — `_require_no_cache_recovery_material`
+```python
+def _cache_recovery_paths(
+    archive_path: Path,
+    metadata_path: Path,
+) -> tuple[Path, Path]:
+    return (
+        archive_path.with_suffix(f"{archive_path.suffix}.bak"),
+        metadata_path.with_suffix(f"{metadata_path.suffix}.bak"),
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_require_no_cache_recovery_material`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _require_no_cache_recovery_material(
@@ -1766,57 +2455,63 @@ def _require_no_cache_recovery_material(
 
 **Purpose**
 
-Implements require no cache recovery material according to the exact implementation and guards in this file.
+Private `grid/source` helper for require no cache recovery material; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `archive_path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `metadata_path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `any((path.exists() or _is_link_or_junction(path) for path in _cache_recovery_paths(archive_path, metadata_path)))`. When true: Raises `RteOdreDownloadError('RTE/ODRE cache recovery backup already exists; manual recovery is required')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `any((path.exists() or _is_link_or_junction(path) for path in _cache_recovery_paths(archive_path, metadata_path)))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `RteOdreDownloadError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `any((path.exists() or _is_link_or_junction(path) for path in _cache_recovery_paths(archive_path, metadata_path)))`.
+- Explicit raise expressions: `RteOdreDownloadError('RTE/ODRE cache recovery backup already exists; manual recovery is required')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `RteOdreDownloadError`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `RteOdreDownloadError`.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreDownloadError`, `_cache_recovery_paths`, `_is_link_or_junction`, `any`, `path.exists`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_require_no_cache_recovery_material`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_require_no_cache_recovery_material`.
+- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
+- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_require_no_cache_recovery_material`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::_publish_cache_pair` via `_require_no_cache_recovery_material`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_require_no_cache_recovery_material`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `_publish_cache_pair`
-- `src/landscout/sources/rte_odre_fr.py` — `download_rte_odre_dataset`
+```python
+def _require_no_cache_recovery_material(
+    archive_path: Path,
+    metadata_path: Path,
+) -> None:
+    if any(
+        path.exists() or _is_link_or_junction(path)
+        for path in _cache_recovery_paths(archive_path, metadata_path)
+    ):
+        raise RteOdreDownloadError(
+            "RTE/ODRE cache recovery backup already exists; manual recovery is required"
+        )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_prepare_temporary_cache_file`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _prepare_temporary_cache_file(path: Path) -> None:
@@ -1824,57 +2519,68 @@ def _prepare_temporary_cache_file(path: Path) -> None:
 
 **Purpose**
 
-Implements prepare temporary cache file according to the exact implementation and guards in this file.
+Private `grid/source` helper for prepare temporary cache file; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Runs guarded operation: Checks `_is_link_or_junction(path)`. When true: Raises `RteOdreDownloadError('RTE/ODRE cache temporary path is a link or junction')`. Checks `path.exists()`. When true: Checks `not path.is_file()`. When true: Raises `RteOdreDownloadError('RTE/ODRE cache temporary path is not a regular file')`. Calls `path.unlink()` for its validation or side effect. Handles `RteOdreDownloadError`, `OSError`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `_is_link_or_junction(path)` is true.
-- Rejects or diverts the path when `path.exists()` is true.
-- Rejects or diverts the path when `not path.is_file()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `RteOdreDownloadError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `_is_link_or_junction(path)`.
+- Guard with a raise path: `path.exists()`.
+- Guard with a raise path: `not path.is_file()`.
+- Explicit raise expressions: `RteOdreDownloadError('RTE/ODRE cache temporary path cannot be prepared safely')`, `RteOdreDownloadError('RTE/ODRE cache temporary path is a link or junction')`, `RteOdreDownloadError('RTE/ODRE cache temporary path is not a regular file')`, `re-raise`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `RteOdreDownloadError`, `path.unlink`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `RteOdreDownloadError`.
+- Filesystem read: none directly visible.
+- Filesystem write: `path.unlink`.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreDownloadError`, `_is_link_or_junction`, `path.exists`, `path.is_file`, `path.unlink`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_prepare_temporary_cache_file`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_prepare_temporary_cache_file`.
+- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_prepare_temporary_cache_file`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_prepare_temporary_cache_file`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `download_rte_odre_dataset`
+```python
+def _prepare_temporary_cache_file(path: Path) -> None:
+    try:
+        if _is_link_or_junction(path):
+            raise RteOdreDownloadError(
+                "RTE/ODRE cache temporary path is a link or junction"
+            )
+        if path.exists():
+            if not path.is_file():
+                raise RteOdreDownloadError(
+                    "RTE/ODRE cache temporary path is not a regular file"
+                )
+            path.unlink()
+    except RteOdreDownloadError:
+        raise
+    except OSError as error:
+        raise RteOdreDownloadError(
+            "RTE/ODRE cache temporary path cannot be prepared safely"
+        ) from error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_cleanup_temporary_cache_files`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _cleanup_temporary_cache_files(
@@ -1885,58 +2591,62 @@ def _cleanup_temporary_cache_files(
 
 **Purpose**
 
-Implements cleanup temporary cache files according to the exact implementation and guards in this file.
+Private `grid/source` helper for cleanup temporary cache files; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `paths` (`tuple[Path, ...]`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `primary_error` (`BaseException | None`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Defines `cleanup_error` with annotation `OSError | None` from `None`.
-2. Iterates `path` over `paths`. For each value: Runs guarded operation: Calls `path.unlink(missing_ok=True)` for its validation or side effect. Handles `OSError`.
-3. Checks `cleanup_error is not None and primary_error is None`. When true: Raises `RteOdreDownloadError('RTE/ODRE cache temporary files could not be cleaned safely')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `cleanup_error is not None and primary_error is None` is true.
-
-**Exceptions**
-
-- Explicitly raises: `RteOdreDownloadError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `cleanup_error is not None and primary_error is None`.
+- Explicit raise expressions: `RteOdreDownloadError('RTE/ODRE cache temporary files could not be cleaned safely')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `RteOdreDownloadError`, `path.unlink`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `RteOdreDownloadError`.
+- Filesystem read: none directly visible.
+- Filesystem write: `path.unlink`.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreDownloadError`, `path.unlink`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_cleanup_temporary_cache_files`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_cleanup_temporary_cache_files`.
+- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_cleanup_temporary_cache_files`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_cleanup_temporary_cache_files`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `download_rte_odre_dataset`
+```python
+def _cleanup_temporary_cache_files(
+    paths: tuple[Path, ...],
+    primary_error: BaseException | None,
+) -> None:
+    cleanup_error: OSError | None = None
+    for path in paths:
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as error:
+            cleanup_error = cleanup_error or error
+    if cleanup_error is not None and primary_error is None:
+        raise RteOdreDownloadError(
+            "RTE/ODRE cache temporary files could not be cleaned safely"
+        ) from cleanup_error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_publish_cache_pair`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _publish_cache_pair(
@@ -1949,64 +2659,107 @@ def _publish_cache_pair(
 
 **Purpose**
 
-Implements publish cache pair according to the exact implementation and guards in this file.
+Private `grid/source` helper for publish cache pair; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `temporary_archive` (`Path`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `temporary_metadata` (`Path`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `archive_path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `metadata_path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `(archive_backup, metadata_backup)` from `_cache_recovery_paths(archive_path, metadata_path)`.
-2. Computes `archive_existed` from `archive_path.is_file()`.
-3. Computes `metadata_existed` from `metadata_path.is_file()`.
-4. Calls `_require_no_cache_recovery_material(archive_path, metadata_path)` for its validation or side effect.
-5. Runs guarded operation: Checks `archive_existed`. When true: Calls `copy2(archive_path, archive_backup)` for its validation or side effect. Checks `metadata_existed`. When true: Calls `copy2(metadata_path, metadata_backup)` for its validation or side effect. Handles `OSError`.
-6. Computes `archive_published` from `False`.
-7. Runs guarded operation: Calls `_replace_file(temporary_archive, archive_path)` for its validation or side effect. Computes `archive_published` from `True`. Calls `_replace_file(temporary_metadata, metadata_path)` for its validation or side effect. Handles `OSError`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `RteOdreDownloadError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `RteOdreDownloadError('RTE/ODRE cache publication and rollback both failed')`, `re-raise`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `RteOdreDownloadError`, `_replace_file`, `archive_backup.unlink`, `archive_path.unlink`, `copy2`, `metadata_backup.unlink`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `RteOdreDownloadError`.
+- Filesystem read: none directly visible.
+- Filesystem write: `archive_backup.unlink`, `archive_path.unlink`, `metadata_backup.unlink`.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreDownloadError`, `_cache_recovery_paths`, `_replace_file`, `_require_no_cache_recovery_material`, `archive_backup.unlink`, `archive_path.is_file`, `archive_path.unlink`, `copy2`, `metadata_backup.unlink`, `metadata_path.is_file`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_publish_cache_pair`.
+- direct call or construction: `src/landscout/sources/gpu_fr.py::download_gpu_document` via `_publish_cache_pair`.
+- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_publish_cache_pair`.
+- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_publish_cache_pair`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_publish_cache_pair`.
+- direct call or construction: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._publish_cache_pair`.
+- property/attribute access: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `gpu._publish_cache_pair`.
+- direct call or construction: `tests/unit/test_gpu_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `gpu._publish_cache_pair`.
+- property/attribute access: `tests/unit/test_gpu_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `gpu._publish_cache_pair`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._publish_cache_pair`.
+- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `ign_bdtopo_fr._publish_cache_pair`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `ign_bdtopo_fr._publish_cache_pair`.
+- property/attribute access: `tests/unit/test_ign_bdtopo_fr.py::test_stale_cache_recovery_backup_fails_closed_without_destroying_it` via `ign_bdtopo_fr._publish_cache_pair`.
+- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `inpn._publish_cache_pair`.
+- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `inpn._publish_cache_pair`.
+- direct call or construction: `tests/unit/test_inpn_protected_areas_fr.py::test_existing_normal_download_recovery_backup_remains_unchanged` via `inpn._publish_cache_pair`.
+- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_existing_normal_download_recovery_backup_remains_unchanged` via `inpn._publish_cache_pair`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `download_rte_odre_dataset`
+```python
+def _publish_cache_pair(
+    temporary_archive: Path,
+    temporary_metadata: Path,
+    archive_path: Path,
+    metadata_path: Path,
+) -> None:
+    archive_backup, metadata_backup = _cache_recovery_paths(
+        archive_path,
+        metadata_path,
+    )
+    archive_existed = archive_path.is_file()
+    metadata_existed = metadata_path.is_file()
 
-**Tests**
+    _require_no_cache_recovery_material(archive_path, metadata_path)
+    try:
+        if archive_existed:
+            copy2(archive_path, archive_backup)
+        if metadata_existed:
+            copy2(metadata_path, metadata_backup)
+    except OSError:
+        archive_backup.unlink(missing_ok=True)
+        metadata_backup.unlink(missing_ok=True)
+        raise
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    archive_published = False
+    try:
+        _replace_file(temporary_archive, archive_path)
+        archive_published = True
+        _replace_file(temporary_metadata, metadata_path)
+    except OSError:
+        try:
+            if archive_published:
+                if archive_existed:
+                    _replace_file(archive_backup, archive_path)
+                else:
+                    archive_path.unlink(missing_ok=True)
+        except OSError as rollback_error:
+            raise RteOdreDownloadError(
+                "RTE/ODRE cache publication and rollback both failed"
+            ) from rollback_error
+        archive_backup.unlink(missing_ok=True)
+        metadata_backup.unlink(missing_ok=True)
+        raise
+    else:
+        archive_backup.unlink(missing_ok=True)
+        metadata_backup.unlink(missing_ok=True)
+```
 
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `_load_cached_download`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _load_cached_download(
@@ -2020,61 +2773,136 @@ def _load_cached_download(
 
 **Purpose**
 
-Loads cached download according to the exact implementation and guards in this file.
+Reads and validates cached download; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `archive_path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `metadata_path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `config` (`RteOdreSourceConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `logical_name` (`LogicalDatasetName`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_url` (`str`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `RteOdreDownload | None`.
+- Every observed return expression is reproduced without truncation:
+```python
+None
 
-**Returns**
+RteOdreDownload(logical_name=logical_name, dataset_id=dataset.dataset_id, provider=config.provider, portal=config.portal, source_url=source_url, export_format=dataset.preferred_format, download_timestamp=download_timestamp, filename=archive_path.name, file_size=file_size, sha256=checksum, path=archive_path, cache_hit=True, dataset_metadata=dataset_metadata, export_summary=cached_summary)
 
-- Declared return type: `RteOdreDownload | None`. Observed return expression(s): `None`; `RteOdreDownload(logical_name=logical_name, dataset_id=dataset.dataset_id, provider=config.provider, portal=config.portal, source_url=source_url, export_format=dataset.preferred_format, download_timestamp=download_timestamp, filename=archive_path.name, file_size=file_size, sha256=checksum, path=archive_path, cache_hit=True, dataset_metadata=dataset_metadata, export_summary=cached_summary)`.
+None
 
-**Algorithm**
+None
 
-1. Checks `not archive_path.is_file() or not metadata_path.is_file()`. When true: Returns `None`.
-2. Computes `dataset` from `_get_dataset_config(config, logical_name)`.
-3. Runs guarded operation: Computes `metadata` from `json.loads(metadata_path.read_text(encoding='utf-8'))`. Checks `not isinstance(metadata, dict)`. When true: Returns `None`. Computes `fresh_summary` from `_validate_geojson(archive_path)`. Computes `file_size` from `archive_path.stat().st_size`. Executes 13 additional source-ordered statement(s). Handles `(KeyError, OSError, TypeError, ValueError, json.JSONDecodeError, RteOdreDownloadError)`.
+None
 
-**Validation and invariants**
+None
 
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
+None
 
-**Exceptions**
+None
+```
 
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+**Validation and exceptions**
+
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `(datetime.now(UTC) - downloaded_at.astimezone(UTC)).total_seconds`, `RteOdreDownload`, `downloaded_at.astimezone`, `metadata_path.read_text`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `(datetime.now(UTC) - downloaded_at.astimezone(UTC)).total_seconds`, `RteOdreDownload`, `downloaded_at.astimezone`.
+- Filesystem read: `archive_path.stat`, `metadata_path.read_text`.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(datetime.now(UTC) - downloaded_at.astimezone(UTC)).total_seconds`, `RteOdreDownload`, `_export_summary_from_dict`, `_get_dataset_config`, `_metadata_from_dict`, `_sha256`, `_validate_geojson`, `_validate_records_count`, `archive_path.is_file`, `archive_path.stat`, `datetime.fromisoformat`, `datetime.now`, `downloaded_at.astimezone`, `isinstance`, `json.loads`, `metadata_path.is_file`, `metadata_path.read_text`, `str`.
+- direct call or construction: `src/landscout/sources/cadastre_fr.py::download_cadastre_parcelles` via `_load_cached_download`.
+- direct call or construction: `src/landscout/sources/ign_bdtopo_fr.py::download_ign_bdtopo_archive` via `_load_cached_download`.
+- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_load_cached_download`.
+- direct call or construction: `src/landscout/sources/rte_odre_fr.py::download_rte_odre_dataset` via `_load_cached_download`.
+- property/attribute access: `tests/unit/test_inpn_protected_areas_fr.py::test_failed_replacement_restores_a_still_reusable_valid_download_pair` via `inpn._load_cached_download`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/sources/rte_odre_fr.py` — `download_rte_odre_dataset`
+```python
+def _load_cached_download(
+    archive_path: Path,
+    metadata_path: Path,
+    config: RteOdreSourceConfig,
+    logical_name: LogicalDatasetName,
+    source_url: str,
+) -> RteOdreDownload | None:
+    if not archive_path.is_file() or not metadata_path.is_file():
+        return None
+    dataset = _get_dataset_config(config, logical_name)
+    try:
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        if not isinstance(metadata, dict):
+            return None
+        fresh_summary = _validate_geojson(archive_path)
+        file_size = archive_path.stat().st_size
+        checksum = _sha256(archive_path)
+        download_timestamp = str(metadata["download_timestamp"])
+        downloaded_at = datetime.fromisoformat(download_timestamp)
+        if downloaded_at.tzinfo is None:
+            return None
+        age_seconds = (
+            datetime.now(UTC) - downloaded_at.astimezone(UTC)
+        ).total_seconds()
+        valid = (
+            0 <= age_seconds <= config.cache.max_age_hours * 3600
+            and metadata["logical_name"] == logical_name
+            and metadata["dataset_id"] == dataset.dataset_id
+            and metadata["provider"] == config.provider
+            and metadata["portal"] == config.portal
+            and metadata["source_url"] == source_url
+            and metadata["export_format"] == dataset.preferred_format
+            and metadata["filename"] == archive_path.name
+            and metadata["file_size"] == file_size
+            and metadata["sha256"] == checksum
+        )
+        if not valid:
+            return None
+        dataset_metadata = _metadata_from_dict(metadata["dataset_metadata"])
+        cached_summary = _export_summary_from_dict(metadata["export_summary"])
+        if dataset_metadata.dataset_id != dataset.dataset_id:
+            return None
+        if fresh_summary != cached_summary:
+            return None
+        _validate_records_count(dataset_metadata, cached_summary)
+        return RteOdreDownload(
+            logical_name=logical_name,
+            dataset_id=dataset.dataset_id,
+            provider=config.provider,
+            portal=config.portal,
+            source_url=source_url,
+            export_format=dataset.preferred_format,
+            download_timestamp=download_timestamp,
+            filename=archive_path.name,
+            file_size=file_size,
+            sha256=checksum,
+            path=archive_path,
+            cache_hit=True,
+            dataset_metadata=dataset_metadata,
+            export_summary=cached_summary,
+        )
+    except (
+        KeyError,
+        OSError,
+        TypeError,
+        ValueError,
+        json.JSONDecodeError,
+        RteOdreDownloadError,
+    ):
+        return None
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
 ### `download_rte_odre_dataset`
 
-**Signature**
+**Exact signature**
 
 ```python
 def download_rte_odre_dataset(
@@ -2087,173 +2915,221 @@ def download_rte_odre_dataset(
 
 **Purpose**
 
-Downloads and validates rte odre dataset according to the exact implementation and guards in this file.
+Acquires, verifies, and records rte odre dataset; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `logical_name` (`LogicalDatasetName`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `config` (`RteOdreSourceConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `cache_dir` (`Path`; optional/default `DEFAULT_CACHE_DIR`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `timeout` (`float`; optional/default `60.0`) — network timeout in seconds; validation rejects unsupported or non-positive values. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `RteOdreDownload`.
+- Every observed return expression is reproduced without truncation:
+```python
+cached
 
-**Returns**
+result
+```
 
-- Declared return type: `RteOdreDownload`. Observed return expression(s): `cached`; `result`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Computes `validated_config` from `_validated_source_config(config)`.
-2. Computes `dataset` from `_get_dataset_config(validated_config, logical_name)`.
-3. Computes `export_format` from `quote(dataset.preferred_format, safe='')`.
-4. Computes `source_url` from `_dataset_api_url(validated_config, logical_name, f'/exports/{export_format}')`.
-5. Computes `filename` from `f'{dataset.dataset_id}.{dataset.preferred_format}'`.
-6. Computes `archive_path` from `cache_dir / filename`.
-7. Computes `metadata_path` from `cache_dir / f'{filename}.metadata.json'`.
-8. Calls `_require_no_cache_recovery_material(archive_path, metadata_path)` for its validation or side effect.
-9. Computes `cached` from `_load_cached_download(archive_path, metadata_path, validated_config, logical_name, source_url)`.
-10. Checks `cached is not None`. When true: Returns `cached`.
-11. Computes `temporary_archive` from `archive_path.with_suffix(f'{archive_path.suffix}.part')`.
-12. Computes `temporary_metadata` from `metadata_path.with_suffix(f'{metadata_path.suffix}.part')`.
-13. Runs guarded operation: Calls `cache_dir.mkdir(parents=True, exist_ok=True)` for its validation or side effect. Calls `_prepare_temporary_cache_file(temporary_archive)` for its validation or side effect. Calls `_prepare_temporary_cache_file(temporary_metadata)` for its validation or side effect. Handles `RteOdreDownloadError`, `OSError`.
-14. Runs guarded operation: Computes `dataset_metadata` from `fetch_rte_odre_dataset_metadata(validated_config, logical_name, timeout=timeout)`. Enters managed context(s) `open_safe_https(source_url, timeout=timeout, headers={'User-Agent': 'LandScout-AI/0.1'}), temporary_archive.open('xb')` and executes: Calls `copyfileobj(response, output, length=DOWNLOAD_CHUNK_SIZE)` for its validation or side effect. Computes `summary` from `_validate_geojson(temporary_archive)`. Calls `_validate_records_count(dataset_metadata, summary)` for its validation or side effect. Executes 8 additional source-ordered statement(s). Handles `RteOdreDownloadError`, `(HTTPError, URLError, OSError)`. Finally: Calls `_cleanup_temporary_cache_files((temporary_archive, temporary_metadata), sys.exception())` for its validation or side effect.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `RteOdreDownloadError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `RteOdreDownloadError('RTE/ODRE cache paths cannot be prepared safely')`, `RteOdreDownloadError(f'RTE/ODRE download failed: {source_url}')`, `re-raise`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `RteOdreDownload`, `RteOdreDownloadError`, `_load_cached_download`, `cache_dir.mkdir`, `copyfileobj`, `open_safe_https`, `output.write`, `replace`, `temporary_archive.open`, `temporary_metadata.open`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `RteOdreDownload`, `RteOdreDownloadError`, `_load_cached_download`, `open_safe_https`.
+- Filesystem read: `temporary_archive.stat`.
+- Filesystem write: `cache_dir.mkdir`, `copyfileobj`.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RteOdreDownload`, `RteOdreDownloadError`, `_cleanup_temporary_cache_files`, `_dataset_api_url`, `_get_dataset_config`, `_load_cached_download`, `_prepare_temporary_cache_file`, `_publish_cache_pair`, `_require_no_cache_recovery_material`, `_sha256`, `_validate_geojson`, `_validate_records_count`, `_validated_source_config`, `archive_path.with_suffix`, `asdict`, `cache_dir.mkdir`, `copyfileobj`, `datetime.now`, `datetime.now(UTC).isoformat`, `fetch_rte_odre_dataset_metadata`, `json.dumps`, `lineage.pop`, `metadata_path.with_suffix`, `open_safe_https`, `output.write`, `quote`, `replace`, `sys.exception`, `temporary_archive.open`, `temporary_archive.stat`, `temporary_metadata.open`.
+- import/re-export: `src/landscout/sources/__init__.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteDatasetConfig,
+    RteOdreDatasetMetadata,
+    RteOdreDownload,
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `download_rte_odre_dataset`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `download_rte_odre_dataset`.
+- import/re-export: `tests/unit/test_rte_odre_fr.py::<module>` via `from landscout.sources.rte_odre_fr import (
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_rte_odre_fr.py` — `test_broken_recovery_symlink_rejects_rte_before_network`
-- `tests/unit/test_rte_odre_fr.py` — `test_cached_export_summary_mismatch_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_corrupted_cached_export_triggers_refresh`
-- `tests/unit/test_rte_odre_fr.py` — `test_corrupted_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_double_failure_preserves_recovery_and_next_run_uses_zero_network`
-- `tests/unit/test_rte_odre_fr.py` — `test_expired_cache_is_refreshed`
-- `tests/unit/test_rte_odre_fr.py` — `test_failed_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_fresh_cache_is_reused`
-- `tests/unit/test_rte_odre_fr.py` — `test_http_failure_raises_and_cleans_temporary_files`
-- `tests/unit/test_rte_odre_fr.py` — `test_invalid_cached_record_count_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_invalid_geojson_download_is_rejected`
-- `tests/unit/test_rte_odre_fr.py` — `test_lineage_sidecar_records_integrity`
-- `tests/unit/test_rte_odre_fr.py` — `test_metadata_export_record_count_mismatch_is_rejected`
-- `tests/unit/test_rte_odre_fr.py` — `test_metadata_publication_failure_restores_previous_pair`
-- `tests/unit/test_rte_odre_fr.py` — `test_negative_source_record_count_is_rejected`
-- `tests/unit/test_rte_odre_fr.py` — `test_null_feature_geometries_are_accepted`
-- `tests/unit/test_rte_odre_fr.py` — `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error`
-- `tests/unit/test_rte_odre_fr.py` — `test_successful_download`
-- `tests/unit/test_rte_odre_fr.py` — `test_temporary_link_or_junction_cannot_modify_target_before_rte_network`
-- `tests/unit/test_rte_odre_fr.py` — `test_unavailable_metadata_record_count_is_accepted`
+```python
+def download_rte_odre_dataset(
+    logical_name: LogicalDatasetName,
+    config: RteOdreSourceConfig,
+    cache_dir: Path = DEFAULT_CACHE_DIR,
+    timeout: float = 60.0,
+) -> RteOdreDownload:
+    validated_config = _validated_source_config(config)
+    dataset = _get_dataset_config(validated_config, logical_name)
+    export_format = quote(dataset.preferred_format, safe="")
+    source_url = _dataset_api_url(
+        validated_config, logical_name, f"/exports/{export_format}"
+    )
+    filename = f"{dataset.dataset_id}.{dataset.preferred_format}"
+    archive_path = cache_dir / filename
+    metadata_path = cache_dir / f"{filename}.metadata.json"
+    _require_no_cache_recovery_material(archive_path, metadata_path)
+    cached = _load_cached_download(
+        archive_path,
+        metadata_path,
+        validated_config,
+        logical_name,
+        source_url,
+    )
+    if cached is not None:
+        return cached
 
-**Tests**
+    temporary_archive = archive_path.with_suffix(f"{archive_path.suffix}.part")
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    try:
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        _prepare_temporary_cache_file(temporary_archive)
+        _prepare_temporary_cache_file(temporary_metadata)
+    except RteOdreDownloadError:
+        raise
+    except OSError as error:
+        raise RteOdreDownloadError(
+            "RTE/ODRE cache paths cannot be prepared safely"
+        ) from error
+    try:
+        dataset_metadata = fetch_rte_odre_dataset_metadata(
+            validated_config, logical_name, timeout=timeout
+        )
+        with (
+            open_safe_https(
+                source_url,
+                timeout=timeout,
+                headers={"User-Agent": "LandScout-AI/0.1"},
+            ) as response,
+            temporary_archive.open("xb") as output,
+        ):
+            copyfileobj(response, output, length=DOWNLOAD_CHUNK_SIZE)
+        summary = _validate_geojson(temporary_archive)
+        _validate_records_count(dataset_metadata, summary)
+        if summary.feature_count > 0 and summary.non_null_geometry_count == 0:
+            dataset_metadata = replace(
+                dataset_metadata, geometry_precision_status="MISSING"
+            )
 
-- `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network`
-- `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh`
-- `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network`
-- `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed`
-- `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused`
-- `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files`
-- `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected`
-- `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity`
-- `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected`
-- `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair`
-- `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected`
-- `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted`
-- `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error`
-- `tests/unit/test_rte_odre_fr.py::test_successful_download`
-- `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network`
-- `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted`
+        result = RteOdreDownload(
+            logical_name=logical_name,
+            dataset_id=dataset.dataset_id,
+            provider=validated_config.provider,
+            portal=validated_config.portal,
+            source_url=source_url,
+            export_format=dataset.preferred_format,
+            download_timestamp=datetime.now(UTC).isoformat(),
+            filename=filename,
+            file_size=temporary_archive.stat().st_size,
+            sha256=_sha256(temporary_archive),
+            path=archive_path,
+            cache_hit=False,
+            dataset_metadata=dataset_metadata,
+            export_summary=summary,
+        )
+        lineage = asdict(result)
+        lineage.pop("path")
+        lineage.pop("cache_hit")
+        with temporary_metadata.open("x", encoding="utf-8") as output:
+            output.write(json.dumps(lineage, indent=2, sort_keys=True) + "\n")
+        _publish_cache_pair(
+            temporary_archive, temporary_metadata, archive_path, metadata_path
+        )
+        return result
+    except RteOdreDownloadError:
+        raise
+    except (HTTPError, URLError, OSError) as error:
+        raise RteOdreDownloadError(f"RTE/ODRE download failed: {source_url}") from error
+    finally:
+        _cleanup_temporary_cache_files(
+            (temporary_archive, temporary_metadata),
+            sys.exception(),
+        )
+```
 
-**Business interpretation**
-
-This symbol contributes to the `grid` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Grid proximity is proxy evidence; it does not prove capacity, connection feasibility, cost, or authorization.
 
+
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `EXACT_NOT_CLAIMED` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `GENERALIZED_OR_RESTRICTED` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `MISSING` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `UNKNOWN` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `coordinates` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `data_processed` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `dataset_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `dataset_metadata` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `download_timestamp` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `export_format` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `export_summary` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `feature_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `file_size` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `filename` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `geojson` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry_precision_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry_types` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `license` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `logical_name` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `metadata_processed` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `modified` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `non_null_geometry_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `null_geometry_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `overhead_lines` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `portal` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `provider` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `publisher` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `records_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `sha256` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `sites` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_url` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `title` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `underground_lines` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
+- Configured source identity: frozen/revalidated official ODRÉ API origin/path and exact logical dataset IDs/export format.
+- URL/safe transport: metadata/export URLs are config-built and use open_safe_https.
+- Physical bytes/cache: GeoJSON and strict sidecar are size/SHA/source/summary/count validated; recovery material fails before network.
+- Archive/extraction/layer: no archive extraction; the GeoJSON dataset is the physical payload and recursive geometry structure is validated.
+- Result/later revalidation: immutable metadata/download/export summaries bind the payload; downstream consumers must use those envelopes rather than textual provider fields alone.
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `grid` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the grid/source flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -2261,8 +3137,8 @@ This file contributes to LandScout's `grid` evidence flow as described by its pu
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

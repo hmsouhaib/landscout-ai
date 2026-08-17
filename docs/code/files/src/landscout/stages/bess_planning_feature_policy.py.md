@@ -4,9 +4,9 @@
 
 - Repository path: `src/landscout/stages/bess_planning_feature_policy.py`
 - File type: Python source
-- Primary responsibility: Compiles and validates the checked-in BESS policy for official CNIG planning-feature meanings.
-- Layer / domain: `stage` / `planning`
-- Public or internal role: Contains an explicit module/package export surface; helpers prefixed with `_` remain internal unless re-exported elsewhere.
+- Layer: processing/policy stage
+- Domain: planning
+- Responsibility: Compiles and validates the checked-in BESS policy for official CNIG planning-feature meanings.
 - Source SHA256: `9ca9a70b5930e6e3054dd80bf83e04a658916d64d24133162140f713bd5c23d0`
 
 ## 1. Purpose
@@ -15,58 +15,286 @@ Compiles and validates the checked-in BESS policy for official CNIG planning-fea
 
 ## 2. Position in LandScout architecture
 
-This file is a `stage` artifact in the `planning` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **processing/policy stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from __future__ import annotations` — required by the implementation paths and symbols documented below.
-- `import json` — required by the implementation paths and symbols documented below.
-- `import math` — required by the implementation paths and symbols documented below.
-- `import re` — required by the implementation paths and symbols documented below.
-- `from collections.abc import Mapping` — required by the implementation paths and symbols documented below.
-- `from dataclasses import dataclass, replace` — required by the implementation paths and symbols documented below.
-- `from datetime import date, datetime` — required by the implementation paths and symbols documented below.
-- `from hashlib import sha256` — required by the implementation paths and symbols documented below.
-- `from io import BytesIO` — required by the implementation paths and symbols documented below.
-- `from numbers import Integral, Real` — required by the implementation paths and symbols documented below.
-- `from pathlib import Path` — required by the implementation paths and symbols documented below.
-- `from typing import Literal` — required by the implementation paths and symbols documented below.
+- `from __future__ import annotations`
+- `import json`
+- `import math`
+- `import re`
+- `from collections.abc import Mapping`
+- `from dataclasses import dataclass, replace`
+- `from datetime import date, datetime`
+- `from hashlib import sha256`
+- `from io import BytesIO`
+- `from numbers import Integral, Real`
+- `from pathlib import Path`
+- `from typing import Literal`
 
-### Third-party
+### Third-party packages
 
-- `import geopandas as gpd` — required by the implementation paths and symbols documented below.
-- `import numpy as np` — required by the implementation paths and symbols documented below.
-- `import pandas as pd` — required by the implementation paths and symbols documented below.
-- `import yaml` — required by the implementation paths and symbols documented below.
-- `from pydantic import ( BaseModel, ConfigDict, StrictBool, StrictInt, StrictStr, model_validator, )` — required by the implementation paths and symbols documented below.
+- `import geopandas as gpd`
+- `import numpy as np`
+- `import pandas as pd`
+- `import yaml`
+- `from pydantic import (
+    BaseModel,
+    ConfigDict,
+    StrictBool,
+    StrictInt,
+    StrictStr,
+    model_validator,
+)`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout.common.artifact_paths import validate_portable_parquet_filename` — required by the implementation paths and symbols documented below.
-- `from landscout.common.frame_integrity import deterministic_frame_schema_signature` — required by the implementation paths and symbols documented below.
-- `from landscout.sources.gpu_fr import GpuPlanningDocument` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.resolve_planning_feature_codes import ( CnigFeatureCodeProfile, PlanningFeatureCodeResult, validate_planning_feature_code_result, )` — required by the implementation paths and symbols documented below.
+- `from landscout.common.artifact_paths import validate_portable_parquet_filename`
+- `from landscout.common.frame_integrity import deterministic_frame_schema_signature`
+- `from landscout.sources.gpu_fr import GpuPlanningDocument`
+- `from landscout.stages.resolve_planning_feature_codes import (
+    CnigFeatureCodeProfile,
+    PlanningFeatureCodeResult,
+    validate_planning_feature_code_result,
+)`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `POLICY_SCHEMA_VERSION` | `1` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `RESULT_HASH_SCHEMA_VERSION` | `1` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `ARTIFACT_MANIFEST_SCHEMA_VERSION` | `2` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `POLICY_SCOPE` | `"OFFICIAL_CNIG_CODE_MEANING_ONLY"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `ARTIFACT_KIND` | `"BESS_CNIG_FEATURE_POLICY_RESULT"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `ALLOWED_STATUSES` | `frozenset( { "LIKELY_MATERIAL_CONSTRAINT", "MATERIAL_REVIEW_REQUIRED", "DESIGN_REVIEW_REQUIRED", "CONTEXT_REVIEW_REQUIRED", "UNKNOWN", } )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `ALLOWED_CONFIDENCES` | `frozenset({"HIGH", "MEDIUM", "LOW"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `CODE_PATTERN` | `re.compile(r"[0-9]{2}")` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `SHA_PATTERN` | `re.compile(r"[0-9a-f]{64}")` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `POLICY_TABLE_COLUMNS` | `( "feature_family", "type_code", "subtype_code", "official_label", "official_legal_reference", "official_regulation_reference", "precheck_status", "confidence", "status_priority", "rationale", "required_human_action", "limitations", "policy_scope", "local_feature_text_interpreted", "local_regulation_content_interpreted", "legal_conclusion_produced", "policy_profile", "policy_sha256", "cnig_profile", "cnig_profile_sha256", "cnig_complete_result_content_sha256", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `POLICY_TABLE_DTYPES` | `tuple( "int64" if column == "status_priority" else "bool" if column in { "local_feature_text_interpreted", "local_regulation_content_interpreted", "legal_conclusion_produced", } else "str" for column in POLICY_TABLE_COLUMNS )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `POLICY_TABLE_SCHEMA_SIGNATURE` | `{ "columns": list(POLICY_TABLE_COLUMNS), "dtypes": list(POLICY_TABLE_DTYPES), "index_class": "pandas.Index", "index_names": [None], "index_level_dtypes": ["int64"], }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `NULL_REFERENCE_LITERALS` | `frozenset({"None", "nan", "<NA>"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `POLICY_RESULT_SCALAR_FIELDS` | `( "policy_schema_version", "result_hash_schema_version", "policy_profile", "policy_scope", "policy_sha256", "source_document_id", "source_archive_sha256", "cnig_profile", "cnig_profile_schema_version", "cnig_profile_sha256", "cnig_result_hash_schema_version", "cnig_complete_result_content_sha256", "policy_table_content_sha256", "complete_result_content_sha256", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `POLICY_SCHEMA_VERSION`
+
+```python
+POLICY_SCHEMA_VERSION = 1
+```
+
+Supported schema/hash/manifest compatibility version used by validators and canonical hashing.
+
+#### `RESULT_HASH_SCHEMA_VERSION`
+
+```python
+RESULT_HASH_SCHEMA_VERSION = 1
+```
+
+Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_build_result` (value argument/reference), `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` (value argument/reference).
+
+#### `ARTIFACT_MANIFEST_SCHEMA_VERSION`
+
+```python
+ARTIFACT_MANIFEST_SCHEMA_VERSION = 2
+```
+
+Supported schema/hash/manifest compatibility version used by validators and canonical hashing.
+
+#### `POLICY_SCOPE`
+
+```python
+POLICY_SCOPE = "OFFICIAL_CNIG_CODE_MEANING_ONLY"
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` (import/re-export), `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` (import/re-export).
+
+#### `ARTIFACT_KIND`
+
+```python
+ARTIFACT_KIND = "BESS_CNIG_FEATURE_POLICY_RESULT"
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+
+#### `ALLOWED_STATUSES`
+
+```python
+ALLOWED_STATUSES = frozenset(
+    {
+        "LIKELY_MATERIAL_CONSTRAINT",
+        "MATERIAL_REVIEW_REQUIRED",
+        "DESIGN_REVIEW_REQUIRED",
+        "CONTEXT_REVIEW_REQUIRED",
+        "UNKNOWN",
+    }
+)
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+
+#### `ALLOWED_CONFIDENCES`
+
+```python
+ALLOWED_CONFIDENCES = frozenset({"HIGH", "MEDIUM", "LOW"})
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` (import/re-export).
+
+#### `CODE_PATTERN`
+
+```python
+CODE_PATTERN = re.compile(r"[0-9]{2}")
+```
+
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+
+#### `SHA_PATTERN`
+
+```python
+SHA_PATTERN = re.compile(r"[0-9a-f]{64}")
+```
+
+Compiled/text regular expression used by the named validation path; the fenced declaration preserves every metacharacter exactly.
+
+#### `POLICY_TABLE_COLUMNS`
+
+```python
+POLICY_TABLE_COLUMNS = (
+    "feature_family",
+    "type_code",
+    "subtype_code",
+    "official_label",
+    "official_legal_reference",
+    "official_regulation_reference",
+    "precheck_status",
+    "confidence",
+    "status_priority",
+    "rationale",
+    "required_human_action",
+    "limitations",
+    "policy_scope",
+    "local_feature_text_interpreted",
+    "local_regulation_content_interpreted",
+    "legal_conclusion_produced",
+    "policy_profile",
+    "policy_sha256",
+    "cnig_profile",
+    "cnig_profile_sha256",
+    "cnig_complete_result_content_sha256",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/bess_planning_feature_policy.py::<module>` (value argument/reference), `src/landscout/stages/bess_planning_feature_policy.py::_policy_table` (value argument/reference).
+
+#### `POLICY_TABLE_DTYPES`
+
+```python
+POLICY_TABLE_DTYPES = tuple(
+    "int64"
+    if column == "status_priority"
+    else "bool"
+    if column
+    in {
+        "local_feature_text_interpreted",
+        "local_regulation_content_interpreted",
+        "legal_conclusion_produced",
+    }
+    else "str"
+    for column in POLICY_TABLE_COLUMNS
+)
+```
+
+Canonical Pandas/GeoPandas dtype contract aligned with the named schema. Consumers include `src/landscout/stages/bess_planning_feature_policy.py::<module>` (value argument/reference).
+
+#### `POLICY_TABLE_SCHEMA_SIGNATURE`
+
+```python
+POLICY_TABLE_SCHEMA_SIGNATURE: dict[str, object] = {
+    "columns": list(POLICY_TABLE_COLUMNS),
+    "dtypes": list(POLICY_TABLE_DTYPES),
+    "index_class": "pandas.Index",
+    "index_names": [None],
+    "index_level_dtypes": ["int64"],
+}
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `NULL_REFERENCE_LITERALS`
+
+```python
+NULL_REFERENCE_LITERALS = frozenset({"None", "nan", "<NA>"})
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `POLICY_RESULT_SCALAR_FIELDS`
+
+```python
+POLICY_RESULT_SCALAR_FIELDS = (
+    "policy_schema_version",
+    "result_hash_schema_version",
+    "policy_profile",
+    "policy_scope",
+    "policy_sha256",
+    "source_document_id",
+    "source_archive_sha256",
+    "cnig_profile",
+    "cnig_profile_schema_version",
+    "cnig_profile_sha256",
+    "cnig_result_hash_schema_version",
+    "cnig_complete_result_content_sha256",
+    "policy_table_content_sha256",
+    "complete_result_content_sha256",
+)
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+
+### B. Type aliases and closed domains
+
+#### `FeatureFamily`
+
+```python
+FeatureFamily = Literal["PRESCRIPTION", "INFORMATION"]
+```
+
+Official planning-feature family domain: PRESCRIPTION or INFORMATION. It is consumed by annotations or Pydantic validation in this module.
+
+#### `PrecheckStatus`
+
+```python
+PrecheckStatus = Literal[
+    "LIKELY_MATERIAL_CONSTRAINT",
+    "MATERIAL_REVIEW_REQUIRED",
+    "DESIGN_REVIEW_REQUIRED",
+    "CONTEXT_REVIEW_REQUIRED",
+    "UNKNOWN",
+]
+```
+
+Closed Literal value domain shown exactly above; members are values, not frame columns. It is consumed by annotations or Pydantic validation in this module.
+
+#### `Confidence`
+
+```python
+Confidence = Literal["HIGH", "MEDIUM", "LOW"]
+```
+
+Written-zoning evidence confidence domain: HIGH, MEDIUM, or LOW. It is consumed by annotations or Pydantic validation in this module.
+
+
+### C. Meaningful dunder contracts
+
+- `__all__` — explicit public export allow-list.
+```python
+__all__ = [
+    "BessPlanningFeaturePolicyArtifactManifest",
+    "BessPlanningFeaturePolicyConfig",
+    "BessPlanningFeaturePolicyError",
+    "BessPlanningFeaturePolicyResult",
+    "compile_bess_planning_feature_policy",
+    "load_bess_planning_feature_policy_artifacts",
+    "load_bess_planning_feature_policy_config",
+    "validate_bess_planning_feature_policy_result",
+    "validate_bess_planning_feature_policy_result_envelope",
+]
+```
+
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
@@ -74,228 +302,820 @@ This file is a `stage` artifact in the `planning` domain. Its actual upstream in
 
 **Purpose:** Raised when the official-code BESS policy cannot be proven exact.
 
+**Kind:** controlled exception.
+
 **Inheritance:** `ValueError`.
 
-**Model form and mutability:** class inheriting from `ValueError`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields:** none declared directly on this class.
 
-- No annotated instance fields are declared directly on this class.
+**Interface consumers**
 
-**Validators and methods:**
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyArtifactManifest,
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_artifacts,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+    validate_bess_planning_feature_policy_result_envelope,
+)`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_canonical_json_sha256` via `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_construct_unique_mapping` via `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::load_bess_planning_feature_policy_config` via `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_resolved_policy_config` via `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_canonical_value` via `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_source_lock` via `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_dictionary_by_pair` via `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_completeness` via `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_table_rows` via `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_result_envelope` via `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result_envelope` via `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_unique_json_object` via `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::load_bess_planning_feature_policy_artifacts` via `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_coded_source` via `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::compile_bess_planning_feature_policy` via `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `BessPlanningFeaturePolicyError`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_null_reference_literal_is_rejected_by_local_envelope` via `pytest.raises(BessPlanningFeaturePolicyError, match='reference|null|missing')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_source_lock_mismatch_is_rejected` via `pytest.raises(BessPlanningFeaturePolicyError, match='lock|source|CNIG')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_missing_policy_pair_is_rejected` via `pytest.raises(BessPlanningFeaturePolicyError, match='missing|pair')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_extra_policy_pair_is_rejected_without_type_fallback` via `pytest.raises(BessPlanningFeaturePolicyError, match='extra|pair')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_prescription_information_code_spaces_remain_separate` via `pytest.raises(BessPlanningFeaturePolicyError, match='missing|extra|pair')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_official_meaning_mismatch_is_rejected` via `pytest.raises(BessPlanningFeaturePolicyError, match=message)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_duplicate_yaml_key_is_rejected` via `pytest.raises(BessPlanningFeaturePolicyError, match='Duplicate YAML')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_in_memory_config_is_revalidated_before_compilation` via `pytest.raises(BessPlanningFeaturePolicyError, match='in-memory|canonical')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_policy_table_mutation_is_rejected` via `pytest.raises(BessPlanningFeaturePolicyError, match='hash|table|rebuilt')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_coordinated_policy_table_and_hash_mutation_is_rejected` via `pytest.raises(BessPlanningFeaturePolicyError, match='table|rebuilt')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_manifest_mismatch` via `pytest.raises(BessPlanningFeaturePolicyError, match=message)`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_duplicate_json_key` via `pytest.raises(BessPlanningFeaturePolicyError, match='Duplicate JSON')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_parquet_replacement` via `pytest.raises(BessPlanningFeaturePolicyError, match='size|SHA|hash')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `pytest.raises(BessPlanningFeaturePolicyError, match='type|schema|hash|result')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `pytest.raises(BessPlanningFeaturePolicyError, match='lock|document')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `pytest.raises(BessPlanningFeaturePolicyError, match='Source-complete|source')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_step_7d_5b_2b_5_exposes_lightweight_policy_result_validator` via `pytest.raises(BessPlanningFeaturePolicyError, match='hash')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_policy_artifact_loader_rejects_source_schema_before_parquet_read` via `pytest.raises(BessPlanningFeaturePolicyError, match='CNIG|cnig|schema|version')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_rejects_canonical_empty_policy_table` via `pytest.raises(BessPlanningFeaturePolicyError, match='policy|table|empty|entry')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_cnig_profile_schema_two` via `pytest.raises(BessPlanningFeaturePolicyError, match='profile schema|schema')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_cnig_result_schema_five` via `pytest.raises(BessPlanningFeaturePolicyError, match='CNIG result|schema')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_validates_every_intrinsic_row_contract` via `pytest.raises(BessPlanningFeaturePolicyError, match='policy|pair|order|code|status|confidence|priority|scope|flag|CNIG|null|schema')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_exact_type_and_accepts_valid_schema_v1` via `pytest.raises(BessPlanningFeaturePolicyError, match='type|result')`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_controls_malformed_result_type` via `pytest.raises(BessPlanningFeaturePolicyError)`.
+- import/re-export: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+)`.
 
-- None.
+**Exact class source**
+
+```python
+class BessPlanningFeaturePolicyError(ValueError):
+    """Raised when the official-code BESS policy cannot be proven exact."""
+```
 
 ### `_StrictPolicyModel`
 
-**Purpose:** Represents a validated policy configuration or compiled policy evidence envelope.
+**Purpose:** Validates the planning contract carried by its explicit validators and inherited fields.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `BaseModel`.
 
-**Model form and mutability:** Pydantic model; `model_config` and validators below define strictness, mutation, and extra-field behavior. Decorators: `none`.
+**Exact decorators:** none.
 
-**Validation configuration:** `model_config = ConfigDict(extra="forbid", frozen=True)`.
+**Fields:** none declared directly on this class.
 
-**Fields:**
+**Interface consumers**
 
-- No annotated instance fields are declared directly on this class.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
 
-**Validators and methods:**
+**Exact class source**
 
-- None.
+```python
+class _StrictPolicyModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+```
 
 ### `PolicyTableSchemaSignature`
 
 **Purpose:** Immutable persisted schema identity for the normalized policy table.
 
+**Kind:** Pydantic model.
+
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `columns` | `tuple[StrictStr, ...]` | `required` | `tuple[StrictStr, ...]` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `dtypes` | `tuple[StrictStr, ...]` | `required` | `tuple[StrictStr, ...]` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `index_class` | `StrictStr` | `required` | `StrictStr` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `index_names` | `tuple[StrictStr | None, ...]` | `required` | `tuple[StrictStr | None, ...]` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `index_level_dtypes` | `tuple[StrictStr, ...]` | `required` | `tuple[StrictStr, ...]` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `columns` | `columns: tuple[StrictStr, ...]` | Structured `columns` collection owned by `PolicyTableSchemaSignature`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `dtypes` | `dtypes: tuple[StrictStr, ...]` | Closed or validated `dtypes` classification on `PolicyTableSchemaSignature`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `index_class` | `index_class: StrictStr` | Closed or validated `index class` classification on `PolicyTableSchemaSignature`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `index_names` | `index_names: tuple[StrictStr \| None, ...]` | Structured `index names` collection owned by `PolicyTableSchemaSignature`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `index_level_dtypes` | `index_level_dtypes: tuple[StrictStr, ...]` | Closed or validated `index level dtypes` classification on `PolicyTableSchemaSignature`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
 
-**Validators and methods:**
+**Interface consumers**
 
-- None.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class PolicyTableSchemaSignature(_StrictPolicyModel):
+    """Immutable persisted schema identity for the normalized policy table."""
+
+    columns: tuple[StrictStr, ...]
+    dtypes: tuple[StrictStr, ...]
+    index_class: StrictStr
+    index_names: tuple[StrictStr | None, ...]
+    index_level_dtypes: tuple[StrictStr, ...]
+```
 
 ### `PolicySourceLock`
 
-**Purpose:** Represents a validated policy configuration or compiled policy evidence envelope.
+**Purpose:** Exact upstream document/archive/CNIG or planning-result identity that the owning policy must match before compilation/application.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `document_id` | `StrictStr` | `required` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `archive_sha256` | `StrictStr` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `cnig_profile` | `StrictStr` | `required` | `StrictStr` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `cnig_profile_schema_version` | `StrictInt` | `required` | Strict integer schema version controlling compatibility; unsupported versions are rejected, not coerced. |
-| `cnig_profile_sha256` | `StrictStr` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `cnig_result_hash_schema_version` | `StrictInt` | `required` | Strict integer schema version controlling compatibility; unsupported versions are rejected, not coerced. |
-| `cnig_complete_result_content_sha256` | `StrictStr` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `document_id` | `document_id: StrictStr` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
+| `archive_sha256` | `archive_sha256: StrictStr` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `cnig_profile` | `cnig_profile: StrictStr` | Stores `PolicySourceLock`'s `cnig profile` value under exact annotation `StrictStr`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `cnig_profile_schema_version` | `cnig_profile_schema_version: StrictInt` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `cnig_profile_sha256` | `cnig_profile_sha256: StrictStr` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `cnig_result_hash_schema_version` | `cnig_result_hash_schema_version: StrictInt` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `cnig_complete_result_content_sha256` | `cnig_complete_result_content_sha256: StrictStr` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `_validate_lock` — `def _validate_lock(self) -> PolicySourceLock:`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`_validate_lock`:
+
+```python
+def _validate_lock(self) -> PolicySourceLock:
+        _exact_string(self.document_id, "document_id")
+        _sha256_string(self.archive_sha256, "archive_sha256")
+        _exact_string(self.cnig_profile, "cnig_profile")
+        _sha256_string(self.cnig_profile_sha256, "cnig_profile_sha256")
+        _sha256_string(
+            self.cnig_complete_result_content_sha256,
+            "cnig_complete_result_content_sha256",
+        )
+        for value, label in (
+            (self.cnig_profile_schema_version, "cnig_profile_schema_version"),
+            (self.cnig_result_hash_schema_version, "cnig_result_hash_schema_version"),
+        ):
+            if type(value) is not int or value < 1:
+                raise ValueError(f"{label} must be a strict positive integer")
+        return self
+```
+
+**Interface consumers**
+
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class PolicySourceLock(_StrictPolicyModel):
+    document_id: StrictStr
+    archive_sha256: StrictStr
+    cnig_profile: StrictStr
+    cnig_profile_schema_version: StrictInt
+    cnig_profile_sha256: StrictStr
+    cnig_result_hash_schema_version: StrictInt
+    cnig_complete_result_content_sha256: StrictStr
+
+    @model_validator(mode="after")
+    def _validate_lock(self) -> PolicySourceLock:
+        _exact_string(self.document_id, "document_id")
+        _sha256_string(self.archive_sha256, "archive_sha256")
+        _exact_string(self.cnig_profile, "cnig_profile")
+        _sha256_string(self.cnig_profile_sha256, "cnig_profile_sha256")
+        _sha256_string(
+            self.cnig_complete_result_content_sha256,
+            "cnig_complete_result_content_sha256",
+        )
+        for value, label in (
+            (self.cnig_profile_schema_version, "cnig_profile_schema_version"),
+            (self.cnig_result_hash_schema_version, "cnig_result_hash_schema_version"),
+        ):
+            if type(value) is not int or value < 1:
+                raise ValueError(f"{label} must be a strict positive integer")
+        return self
+```
 
 ### `PolicyEntry`
 
-**Purpose:** Represents a validated policy configuration or compiled policy evidence envelope.
+**Purpose:** One exact CNIG family/type/subtype policy row with official meaning, precheck outcome, confidence, priority, rationale, action, limitations, and false legal/interpretation flags.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `feature_family` | `FeatureFamily` | `required` | `FeatureFamily` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `type_code` | `StrictStr` | `required` | Exact configured or source code whose vocabulary/format is enforced by the owning validator. |
-| `subtype_code` | `StrictStr` | `required` | Exact configured or source code whose vocabulary/format is enforced by the owning validator. |
-| `expected_official_label` | `StrictStr` | `required` | `StrictStr` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `expected_legal_reference` | `StrictStr | None` | `required` | `StrictStr | None` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `expected_regulation_reference` | `StrictStr | None` | `required` | `StrictStr | None` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `precheck_status` | `PrecheckStatus` | `required` | Categorical factual, technical, policy, or diagnostic status; the owning constants/validators define the closed vocabulary. |
-| `confidence` | `Confidence` | `required` | `Confidence` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `rationale` | `StrictStr` | `required` | `StrictStr` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `required_human_action` | `StrictStr` | `required` | `StrictStr` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `limitations` | `StrictStr` | `required` | `StrictStr` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `feature_family` | `feature_family: FeatureFamily` | Closed or validated `feature family` classification on `PolicyEntry`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `type_code` | `type_code: StrictStr` | Closed or validated `type code` classification on `PolicyEntry`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `subtype_code` | `subtype_code: StrictStr` | Closed or validated `subtype code` classification on `PolicyEntry`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `expected_official_label` | `expected_official_label: StrictStr` | `PolicyEntry`'s `expected official label` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr` and is not promoted to a legal conclusion. |
+| `expected_legal_reference` | `expected_legal_reference: StrictStr \| None` | `PolicyEntry`'s `expected legal reference` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr | None` and is not promoted to a legal conclusion. |
+| `expected_regulation_reference` | `expected_regulation_reference: StrictStr \| None` | `PolicyEntry`'s `expected regulation reference` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr | None` and is not promoted to a legal conclusion. |
+| `precheck_status` | `precheck_status: PrecheckStatus` | Closed or validated `precheck status` classification on `PolicyEntry`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `confidence` | `confidence: Confidence` | Stores `PolicyEntry`'s `confidence` value under exact annotation `Confidence`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `rationale` | `rationale: StrictStr` | `PolicyEntry`'s `rationale` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr` and is not promoted to a legal conclusion. |
+| `required_human_action` | `required_human_action: StrictStr` | `PolicyEntry`'s `required human action` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr` and is not promoted to a legal conclusion. |
+| `limitations` | `limitations: StrictStr` | `PolicyEntry`'s `limitations` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr` and is not promoted to a legal conclusion. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `_validate_entry` — `def _validate_entry(self) -> PolicyEntry:`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`_validate_entry`:
+
+```python
+def _validate_entry(self) -> PolicyEntry:
+        if CODE_PATTERN.fullmatch(self.type_code) is None:
+            raise ValueError("type_code must be an exact two-character digit string")
+        if CODE_PATTERN.fullmatch(self.subtype_code) is None:
+            raise ValueError("subtype_code must be an exact two-character digit string")
+        _exact_string(self.expected_official_label, "expected_official_label")
+        _optional_exact_string(
+            self.expected_legal_reference, "expected_legal_reference"
+        )
+        _optional_exact_string(
+            self.expected_regulation_reference,
+            "expected_regulation_reference",
+        )
+        _exact_string(self.rationale, "rationale")
+        _exact_string(self.required_human_action, "required_human_action")
+        _exact_string(self.limitations, "limitations")
+        return self
+```
+
+**Interface consumers**
+
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class PolicyEntry(_StrictPolicyModel):
+    feature_family: FeatureFamily
+    type_code: StrictStr
+    subtype_code: StrictStr
+    expected_official_label: StrictStr
+    expected_legal_reference: StrictStr | None
+    expected_regulation_reference: StrictStr | None
+    precheck_status: PrecheckStatus
+    confidence: Confidence
+    rationale: StrictStr
+    required_human_action: StrictStr
+    limitations: StrictStr
+
+    @model_validator(mode="after")
+    def _validate_entry(self) -> PolicyEntry:
+        if CODE_PATTERN.fullmatch(self.type_code) is None:
+            raise ValueError("type_code must be an exact two-character digit string")
+        if CODE_PATTERN.fullmatch(self.subtype_code) is None:
+            raise ValueError("subtype_code must be an exact two-character digit string")
+        _exact_string(self.expected_official_label, "expected_official_label")
+        _optional_exact_string(
+            self.expected_legal_reference, "expected_legal_reference"
+        )
+        _optional_exact_string(
+            self.expected_regulation_reference,
+            "expected_regulation_reference",
+        )
+        _exact_string(self.rationale, "rationale")
+        _exact_string(self.required_human_action, "required_human_action")
+        _exact_string(self.limitations, "limitations")
+        return self
+```
 
 ### `BessPlanningFeaturePolicyConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the planning contract carried by `schema_version`, `profile`, `policy_scope`, `local_feature_text_interpreted`, `local_regulation_content_interpreted`, `legal_conclusion_produced`, `source_lock`, `status_priority`, `canonical_policy_entries_sha256`, `entries`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `schema_version` | `StrictInt` | `required` | `StrictInt` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `profile` | `StrictStr` | `required` | `StrictStr` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `policy_scope` | `Literal['OFFICIAL_CNIG_CODE_MEANING_ONLY']` | `required` | `Literal['OFFICIAL_CNIG_CODE_MEANING_ONLY']` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `local_feature_text_interpreted` | `StrictBool` | `required` | `StrictBool` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `local_regulation_content_interpreted` | `StrictBool` | `required` | `StrictBool` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `legal_conclusion_produced` | `StrictBool` | `required` | `StrictBool` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `source_lock` | `PolicySourceLock` | `required` | Source lineage or source-bound object whose exact identity is checked before downstream use. |
-| `status_priority` | `dict[PrecheckStatus, StrictInt]` | `required` | `dict[PrecheckStatus, StrictInt]` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `canonical_policy_entries_sha256` | `StrictStr` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `entries` | `tuple[PolicyEntry, ...]` | `required` | `tuple[PolicyEntry, ...]` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `schema_version` | `schema_version: StrictInt` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `profile` | `profile: StrictStr` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
+| `policy_scope` | `policy_scope: Literal["OFFICIAL_CNIG_CODE_MEANING_ONLY"]` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
+| `local_feature_text_interpreted` | `local_feature_text_interpreted: StrictBool` | Boolean `local feature text interpreted` flag on `BessPlanningFeaturePolicyConfig`; exact strictness and cross-field effects are defined by the reproduced declaration and validators. |
+| `local_regulation_content_interpreted` | `local_regulation_content_interpreted: StrictBool` | Boolean `local regulation content interpreted` flag on `BessPlanningFeaturePolicyConfig`; exact strictness and cross-field effects are defined by the reproduced declaration and validators. |
+| `legal_conclusion_produced` | `legal_conclusion_produced: StrictBool` | Boolean `legal conclusion produced` flag on `BessPlanningFeaturePolicyConfig`; exact strictness and cross-field effects are defined by the reproduced declaration and validators. |
+| `source_lock` | `source_lock: PolicySourceLock` | Source fact or textual lineage named by the suffix; it becomes physical proof only where a validator rechecks bytes/source content. |
+| `status_priority` | `status_priority: dict[PrecheckStatus, StrictInt]` | Closed or validated `status priority` classification on `BessPlanningFeaturePolicyConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `canonical_policy_entries_sha256` | `canonical_policy_entries_sha256: StrictStr` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `entries` | `entries: tuple[PolicyEntry, ...]` | Structured `entries` collection owned by `BessPlanningFeaturePolicyConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `_validate_policy` — `def _validate_policy(self) -> BessPlanningFeaturePolicyConfig:`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`_validate_policy`:
+
+```python
+def _validate_policy(self) -> BessPlanningFeaturePolicyConfig:
+        if (
+            type(self.schema_version) is not int
+            or self.schema_version != POLICY_SCHEMA_VERSION
+        ):
+            raise ValueError(
+                f"policy schema version must equal {POLICY_SCHEMA_VERSION}"
+            )
+        _exact_string(self.profile, "profile")
+        if self.policy_scope != POLICY_SCOPE:
+            raise ValueError("policy_scope is unsupported")
+        if (
+            self.local_feature_text_interpreted is not False
+            or self.local_regulation_content_interpreted is not False
+            or self.legal_conclusion_produced is not False
+        ):
+            raise ValueError(
+                "policy interpretation and legal-conclusion flags must be false"
+            )
+        if set(self.status_priority) != ALLOWED_STATUSES:
+            raise ValueError(
+                "status priority must contain every allowed status exactly once"
+            )
+        priorities = list(self.status_priority.values())
+        if any(type(value) is not int or value <= 0 for value in priorities):
+            raise ValueError("status priority values must be strict positive integers")
+        if len(set(priorities)) != len(priorities):
+            raise ValueError("status priority values must be unique")
+        keys = [
+            (entry.feature_family, entry.type_code, entry.subtype_code)
+            for entry in self.entries
+        ]
+        if len(keys) != len(set(keys)):
+            raise ValueError(
+                "policy entries contain a duplicate family/type/subtype pair"
+            )
+        if keys != sorted(keys):
+            raise ValueError(
+                "policy entries must use deterministic family/type/subtype order"
+            )
+        _sha256_string(
+            self.canonical_policy_entries_sha256,
+            "canonical_policy_entries_sha256",
+        )
+        if _policy_entries_sha256(self.entries) != self.canonical_policy_entries_sha256:
+            raise ValueError(
+                "canonical policy-entry SHA256 differs from policy entries"
+            )
+        return self
+```
+
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyArtifactManifest,
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_artifacts,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+    validate_bess_planning_feature_policy_result_envelope,
+)`.
+- import/re-export: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyResult,
+)`.
+- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyResult,
+    validate_bess_planning_feature_policy_result,
+    validate_bess_planning_feature_policy_result_envelope,
+)`.
+- callback/function object: `src/landscout/stages/bess_planning_feature_policy.py::_resolved_policy_config` via `isinstance(config, BessPlanningFeaturePolicyConfig)`.
+- import/re-export: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+)`.
+
+**Exact class source**
+
+```python
+class BessPlanningFeaturePolicyConfig(_StrictPolicyModel):
+    schema_version: StrictInt
+    profile: StrictStr
+    policy_scope: Literal["OFFICIAL_CNIG_CODE_MEANING_ONLY"]
+    local_feature_text_interpreted: StrictBool
+    local_regulation_content_interpreted: StrictBool
+    legal_conclusion_produced: StrictBool
+    source_lock: PolicySourceLock
+    status_priority: dict[PrecheckStatus, StrictInt]
+    canonical_policy_entries_sha256: StrictStr
+    entries: tuple[PolicyEntry, ...]
+
+    @model_validator(mode="after")
+    def _validate_policy(self) -> BessPlanningFeaturePolicyConfig:
+        if (
+            type(self.schema_version) is not int
+            or self.schema_version != POLICY_SCHEMA_VERSION
+        ):
+            raise ValueError(
+                f"policy schema version must equal {POLICY_SCHEMA_VERSION}"
+            )
+        _exact_string(self.profile, "profile")
+        if self.policy_scope != POLICY_SCOPE:
+            raise ValueError("policy_scope is unsupported")
+        if (
+            self.local_feature_text_interpreted is not False
+            or self.local_regulation_content_interpreted is not False
+            or self.legal_conclusion_produced is not False
+        ):
+            raise ValueError(
+                "policy interpretation and legal-conclusion flags must be false"
+            )
+        if set(self.status_priority) != ALLOWED_STATUSES:
+            raise ValueError(
+                "status priority must contain every allowed status exactly once"
+            )
+        priorities = list(self.status_priority.values())
+        if any(type(value) is not int or value <= 0 for value in priorities):
+            raise ValueError("status priority values must be strict positive integers")
+        if len(set(priorities)) != len(priorities):
+            raise ValueError("status priority values must be unique")
+        keys = [
+            (entry.feature_family, entry.type_code, entry.subtype_code)
+            for entry in self.entries
+        ]
+        if len(keys) != len(set(keys)):
+            raise ValueError(
+                "policy entries contain a duplicate family/type/subtype pair"
+            )
+        if keys != sorted(keys):
+            raise ValueError(
+                "policy entries must use deterministic family/type/subtype order"
+            )
+        _sha256_string(
+            self.canonical_policy_entries_sha256,
+            "canonical_policy_entries_sha256",
+        )
+        if _policy_entries_sha256(self.entries) != self.canonical_policy_entries_sha256:
+            raise ValueError(
+                "canonical policy-entry SHA256 differs from policy entries"
+            )
+        return self
+```
 
 ### `_UniqueKeyLoader`
 
-**Purpose:** Groups the `UniqueKeyLoader` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Private PyYAML SafeLoader subclass whose mapping constructor is replaced to reject duplicate YAML keys.
+
+**Kind:** PyYAML loader subclass.
 
 **Inheritance:** `yaml.SafeLoader`.
 
-**Model form and mutability:** class inheriting from `yaml.SafeLoader`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields:** none declared directly on this class.
 
-- No annotated instance fields are declared directly on this class.
+**Interface consumers**
 
-**Validators and methods:**
+- callback/function object: `src/landscout/stages/bess_planning_feature_policy.py::load_bess_planning_feature_policy_config` via `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
+- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::load_bess_zoning_policy_config` via `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
+- callback/function object: `src/landscout/stages/resolve_planning_feature_codes.py::load_cnig_feature_code_profile` via `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
+- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::load_ign_road_vehicle_proxy_policy` via `yaml.load(policy_bytes.decode('utf-8'), Loader=_UniqueKeyLoader)`.
+- callback/function object: `src/landscout/stages/structure_planning_regulation.py::load_planning_regulation_structure_config` via `yaml.load(config_path.read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
 
-- None.
+**Exact class source**
+
+```python
+class _UniqueKeyLoader(yaml.SafeLoader):
+    pass
+```
 
 ### `BessPlanningFeaturePolicyResult`
 
 **Purpose:** Immutable normalized policy table and its source-complete hash envelope.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `policy_schema_version` | `int` | `required` | Strict integer schema version controlling compatibility; unsupported versions are rejected, not coerced. |
-| `result_hash_schema_version` | `int` | `required` | Strict integer schema version controlling compatibility; unsupported versions are rejected, not coerced. |
-| `policy_profile` | `str` | `required` | `str` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `policy_scope` | `str` | `required` | `str` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `policy_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `source_document_id` | `str` | `required` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `source_archive_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `cnig_profile` | `str` | `required` | `str` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `cnig_profile_schema_version` | `int` | `required` | Strict integer schema version controlling compatibility; unsupported versions are rejected, not coerced. |
-| `cnig_profile_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `cnig_result_hash_schema_version` | `int` | `required` | Strict integer schema version controlling compatibility; unsupported versions are rejected, not coerced. |
-| `cnig_complete_result_content_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `policy_table_content_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `complete_result_content_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `policy_table` | `pd.DataFrame` | `required` | `pd.DataFrame` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `policy_schema_version` | `policy_schema_version: int` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `result_hash_schema_version` | `result_hash_schema_version: int` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `policy_profile` | `policy_profile: str` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
+| `policy_scope` | `policy_scope: str` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
+| `policy_sha256` | `policy_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `source_document_id` | `source_document_id: str` | Exact source-lineage scalar named by the field; it is compared with configuration/result/row lineage but is not physical proof without source-byte revalidation. |
+| `source_archive_sha256` | `source_archive_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `cnig_profile` | `cnig_profile: str` | Stores `BessPlanningFeaturePolicyResult`'s `cnig profile` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `cnig_profile_schema_version` | `cnig_profile_schema_version: int` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `cnig_profile_sha256` | `cnig_profile_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `cnig_result_hash_schema_version` | `cnig_result_hash_schema_version: int` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `cnig_complete_result_content_sha256` | `cnig_complete_result_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `policy_table_content_sha256` | `policy_table_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `complete_result_content_sha256` | `complete_result_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `policy_table` | `policy_table: pd.DataFrame` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
 
-- None.
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyArtifactManifest,
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_artifacts,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+    validate_bess_planning_feature_policy_result_envelope,
+)`.
+- import/re-export: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyResult,
+)`.
+- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyResult,
+    validate_bess_planning_feature_policy_result,
+    validate_bess_planning_feature_policy_result_envelope,
+)`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_build_result` via `BessPlanningFeaturePolicyResult`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::load_bess_planning_feature_policy_artifacts` via `BessPlanningFeaturePolicyResult`.
+- callback/function object: `tests/unit/test_bess_planning_feature_policy.py::_artifact_manifest` via `fields(BessPlanningFeaturePolicyResult)`.
+- import/re-export: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+)`.
+
+**Exact class source**
+
+```python
+class BessPlanningFeaturePolicyResult:
+    """Immutable normalized policy table and its source-complete hash envelope."""
+
+    policy_schema_version: int
+    result_hash_schema_version: int
+    policy_profile: str
+    policy_scope: str
+    policy_sha256: str
+    source_document_id: str
+    source_archive_sha256: str
+    cnig_profile: str
+    cnig_profile_schema_version: int
+    cnig_profile_sha256: str
+    cnig_result_hash_schema_version: int
+    cnig_complete_result_content_sha256: str
+    policy_table_content_sha256: str
+    complete_result_content_sha256: str
+    policy_table: pd.DataFrame
+```
 
 ### `BessPlanningFeaturePolicyArtifactManifest`
 
 **Purpose:** Strict physical binding between one policy table and its hash envelope.
 
+**Kind:** Pydantic model.
+
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `schema_version` | `StrictInt` | `required` | `StrictInt` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `artifact_kind` | `Literal['BESS_CNIG_FEATURE_POLICY_RESULT']` | `required` | `Literal['BESS_CNIG_FEATURE_POLICY_RESULT']` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `policy_schema_version` | `StrictInt` | `required` | Strict integer schema version controlling compatibility; unsupported versions are rejected, not coerced. |
-| `result_hash_schema_version` | `StrictInt` | `required` | Strict integer schema version controlling compatibility; unsupported versions are rejected, not coerced. |
-| `policy_profile` | `StrictStr` | `required` | `StrictStr` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `policy_scope` | `Literal['OFFICIAL_CNIG_CODE_MEANING_ONLY']` | `required` | `Literal['OFFICIAL_CNIG_CODE_MEANING_ONLY']` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `policy_sha256` | `StrictStr` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `source_document_id` | `StrictStr` | `required` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `source_archive_sha256` | `StrictStr` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `cnig_profile` | `StrictStr` | `required` | `StrictStr` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `cnig_profile_schema_version` | `StrictInt` | `required` | Strict integer schema version controlling compatibility; unsupported versions are rejected, not coerced. |
-| `cnig_profile_sha256` | `StrictStr` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `cnig_result_hash_schema_version` | `StrictInt` | `required` | Strict integer schema version controlling compatibility; unsupported versions are rejected, not coerced. |
-| `cnig_complete_result_content_sha256` | `StrictStr` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `policy_table_content_sha256` | `StrictStr` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `complete_result_content_sha256` | `StrictStr` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `parquet_filename` | `StrictStr` | `required` | `StrictStr` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `parquet_row_count` | `StrictInt` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `parquet_size_bytes` | `StrictInt` | `required` | `StrictInt` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `parquet_sha256` | `StrictStr` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `policy_table_schema_signature` | `PolicyTableSchemaSignature` | `required` | `PolicyTableSchemaSignature` state used by `src/landscout/stages/bess_planning_feature_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `schema_version` | `schema_version: StrictInt` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `artifact_kind` | `artifact_kind: Literal["BESS_CNIG_FEATURE_POLICY_RESULT"]` | Closed or validated `artifact kind` classification on `BessPlanningFeaturePolicyArtifactManifest`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `policy_schema_version` | `policy_schema_version: StrictInt` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `result_hash_schema_version` | `result_hash_schema_version: StrictInt` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `policy_profile` | `policy_profile: StrictStr` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
+| `policy_scope` | `policy_scope: Literal["OFFICIAL_CNIG_CODE_MEANING_ONLY"]` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
+| `policy_sha256` | `policy_sha256: StrictStr` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `source_document_id` | `source_document_id: StrictStr` | Exact source-lineage scalar named by the field; it is compared with configuration/result/row lineage but is not physical proof without source-byte revalidation. |
+| `source_archive_sha256` | `source_archive_sha256: StrictStr` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `cnig_profile` | `cnig_profile: StrictStr` | Stores `BessPlanningFeaturePolicyArtifactManifest`'s `cnig profile` value under exact annotation `StrictStr`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `cnig_profile_schema_version` | `cnig_profile_schema_version: StrictInt` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `cnig_profile_sha256` | `cnig_profile_sha256: StrictStr` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `cnig_result_hash_schema_version` | `cnig_result_hash_schema_version: StrictInt` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `cnig_complete_result_content_sha256` | `cnig_complete_result_content_sha256: StrictStr` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `policy_table_content_sha256` | `policy_table_content_sha256: StrictStr` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `complete_result_content_sha256` | `complete_result_content_sha256: StrictStr` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `parquet_filename` | `parquet_filename: StrictStr` | Portable basename for the named physical file; it must agree with the owning path/manifest contract where validated. |
+| `parquet_row_count` | `parquet_row_count: StrictInt` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `parquet_size_bytes` | `parquet_size_bytes: StrictInt` | Stores `BessPlanningFeaturePolicyArtifactManifest`'s `parquet size bytes` value under exact annotation `StrictInt`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `parquet_sha256` | `parquet_sha256: StrictStr` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `policy_table_schema_signature` | `policy_table_schema_signature: PolicyTableSchemaSignature` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `_validate_manifest` — `def _validate_manifest(self) -> BessPlanningFeaturePolicyArtifactManifest:`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`_validate_manifest`:
+
+```python
+def _validate_manifest(self) -> BessPlanningFeaturePolicyArtifactManifest:
+        if (
+            type(self.schema_version) is not int
+            or self.schema_version != ARTIFACT_MANIFEST_SCHEMA_VERSION
+        ):
+            raise ValueError(
+                "artifact manifest schema version must equal "
+                f"{ARTIFACT_MANIFEST_SCHEMA_VERSION}"
+            )
+        if (
+            type(self.policy_schema_version) is not int
+            or self.policy_schema_version != POLICY_SCHEMA_VERSION
+        ):
+            raise ValueError("artifact policy schema version is unsupported")
+        if (
+            type(self.result_hash_schema_version) is not int
+            or self.result_hash_schema_version != RESULT_HASH_SCHEMA_VERSION
+        ):
+            raise ValueError("artifact result hash schema version is unsupported")
+        if (
+            type(self.cnig_profile_schema_version) is not int
+            or self.cnig_profile_schema_version != 2
+        ):
+            raise ValueError("artifact CNIG profile schema version is unsupported")
+        if (
+            type(self.cnig_result_hash_schema_version) is not int
+            or self.cnig_result_hash_schema_version != 5
+        ):
+            raise ValueError("artifact CNIG result hash schema version is unsupported")
+        for exact_value, label in (
+            (self.policy_profile, "policy_profile"),
+            (self.source_document_id, "source_document_id"),
+            (self.cnig_profile, "cnig_profile"),
+        ):
+            _exact_string(exact_value, label)
+        for hash_value, label in (
+            (self.policy_sha256, "policy_sha256"),
+            (self.source_archive_sha256, "source_archive_sha256"),
+            (self.cnig_profile_sha256, "cnig_profile_sha256"),
+            (
+                self.cnig_complete_result_content_sha256,
+                "cnig_complete_result_content_sha256",
+            ),
+            (self.policy_table_content_sha256, "policy_table_content_sha256"),
+            (self.complete_result_content_sha256, "complete_result_content_sha256"),
+            (self.parquet_sha256, "parquet_sha256"),
+        ):
+            _sha256_string(hash_value, label)
+        for integer_value, label, allow_zero in (
+            (self.parquet_row_count, "parquet_row_count", True),
+            (self.parquet_size_bytes, "parquet_size_bytes", False),
+        ):
+            minimum = 0 if allow_zero else 1
+            if type(integer_value) is not int or integer_value < minimum:
+                raise ValueError(f"{label} is invalid")
+        validate_portable_parquet_filename(self.parquet_filename, "parquet_filename")
+        return self
+```
+
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyArtifactManifest,
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_artifacts,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+    validate_bess_planning_feature_policy_result_envelope,
+)`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_manifest_model_is_strict_and_frozen` via `module.BessPlanningFeaturePolicyArtifactManifest`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_policy_manifest_rejects_nonportable_parquet_filename` via `module.BessPlanningFeaturePolicyArtifactManifest`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_policy_manifest_rejects_unsupported_cnig_source_schema` via `module.BessPlanningFeaturePolicyArtifactManifest`.
+
+**Exact class source**
+
+```python
+class BessPlanningFeaturePolicyArtifactManifest(_StrictPolicyModel):
+    """Strict physical binding between one policy table and its hash envelope."""
+
+    schema_version: StrictInt
+    artifact_kind: Literal["BESS_CNIG_FEATURE_POLICY_RESULT"]
+    policy_schema_version: StrictInt
+    result_hash_schema_version: StrictInt
+    policy_profile: StrictStr
+    policy_scope: Literal["OFFICIAL_CNIG_CODE_MEANING_ONLY"]
+    policy_sha256: StrictStr
+    source_document_id: StrictStr
+    source_archive_sha256: StrictStr
+    cnig_profile: StrictStr
+    cnig_profile_schema_version: StrictInt
+    cnig_profile_sha256: StrictStr
+    cnig_result_hash_schema_version: StrictInt
+    cnig_complete_result_content_sha256: StrictStr
+    policy_table_content_sha256: StrictStr
+    complete_result_content_sha256: StrictStr
+    parquet_filename: StrictStr
+    parquet_row_count: StrictInt
+    parquet_size_bytes: StrictInt
+    parquet_sha256: StrictStr
+    policy_table_schema_signature: PolicyTableSchemaSignature
+
+    @model_validator(mode="after")
+    def _validate_manifest(self) -> BessPlanningFeaturePolicyArtifactManifest:
+        if (
+            type(self.schema_version) is not int
+            or self.schema_version != ARTIFACT_MANIFEST_SCHEMA_VERSION
+        ):
+            raise ValueError(
+                "artifact manifest schema version must equal "
+                f"{ARTIFACT_MANIFEST_SCHEMA_VERSION}"
+            )
+        if (
+            type(self.policy_schema_version) is not int
+            or self.policy_schema_version != POLICY_SCHEMA_VERSION
+        ):
+            raise ValueError("artifact policy schema version is unsupported")
+        if (
+            type(self.result_hash_schema_version) is not int
+            or self.result_hash_schema_version != RESULT_HASH_SCHEMA_VERSION
+        ):
+            raise ValueError("artifact result hash schema version is unsupported")
+        if (
+            type(self.cnig_profile_schema_version) is not int
+            or self.cnig_profile_schema_version != 2
+        ):
+            raise ValueError("artifact CNIG profile schema version is unsupported")
+        if (
+            type(self.cnig_result_hash_schema_version) is not int
+            or self.cnig_result_hash_schema_version != 5
+        ):
+            raise ValueError("artifact CNIG result hash schema version is unsupported")
+        for exact_value, label in (
+            (self.policy_profile, "policy_profile"),
+            (self.source_document_id, "source_document_id"),
+            (self.cnig_profile, "cnig_profile"),
+        ):
+            _exact_string(exact_value, label)
+        for hash_value, label in (
+            (self.policy_sha256, "policy_sha256"),
+            (self.source_archive_sha256, "source_archive_sha256"),
+            (self.cnig_profile_sha256, "cnig_profile_sha256"),
+            (
+                self.cnig_complete_result_content_sha256,
+                "cnig_complete_result_content_sha256",
+            ),
+            (self.policy_table_content_sha256, "policy_table_content_sha256"),
+            (self.complete_result_content_sha256, "complete_result_content_sha256"),
+            (self.parquet_sha256, "parquet_sha256"),
+        ):
+            _sha256_string(hash_value, label)
+        for integer_value, label, allow_zero in (
+            (self.parquet_row_count, "parquet_row_count", True),
+            (self.parquet_size_bytes, "parquet_size_bytes", False),
+        ):
+            minimum = 0 if allow_zero else 1
+            if type(integer_value) is not int or integer_value < minimum:
+                raise ValueError(f"{label} is invalid")
+        validate_portable_parquet_filename(self.parquet_filename, "parquet_filename")
+        return self
+```
+
 
 ## 6. Functions and methods
 
 ### `_exact_string`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _exact_string(value: object, label: str) -> str:
@@ -303,64 +1123,75 @@ def _exact_string(value: object, label: str) -> str:
 
 **Purpose**
 
-Implements exact string according to the exact implementation and guards in this file.
+Private `planning` helper for exact string; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+value
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `value`.
-
-**Algorithm**
-
-1. Checks `not isinstance(value, str) or not value or value != value.strip()`. When true: Raises `ValueError(f'{label} must be an exact non-empty string without edge whitespace')`.
-2. Returns `value`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(value, str) or not value or value != value.strip()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(value, str) or not value or value != value.strip()`.
+- Explicit raise expressions: `ValueError(f'{label} must be an exact non-empty string without edge whitespace')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `isinstance`, `value.strip`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_sha256` via `_exact_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_optional_official_string` via `_exact_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_exact_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_relation_identity_string` via `_exact_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::BessPlanningFeatureApplicationArtifactManifest._validate_manifest` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_optional_exact_string` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::PolicySourceLock._validate_lock` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::PolicyEntry._validate_entry` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyConfig._validate_policy` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyArtifactManifest._validate_manifest` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_table_rows` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_official_text` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeProfile._validate_profile` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_strict_string` via `_exact_string`.
+- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::<module>` via `AfterValidator(_exact_string)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `BessPlanningFeaturePolicyArtifactManifest._validate_manifest`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `BessPlanningFeaturePolicyConfig._validate_policy`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `PolicyEntry._validate_entry`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `PolicySourceLock._validate_lock`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_optional_exact_string`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_sha256_string`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_validate_policy_table_rows`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_validate_result_envelope`
+```python
+def _exact_string(value: object, label: str) -> str:
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise ValueError(
+            f"{label} must be an exact non-empty string without edge whitespace"
+        )
+    return value
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_optional_exact_string`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _optional_exact_string(value: object, label: str) -> str | None:
@@ -368,57 +1199,54 @@ def _optional_exact_string(value: object, label: str) -> str | None:
 
 **Purpose**
 
-Implements optional exact string according to the exact implementation and guards in this file.
+Private `planning` helper for optional exact string; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str | None`.
+- Every observed return expression is reproduced without truncation:
+```python
+_exact_string(value, label)
 
-**Returns**
+None
+```
 
-- Declared return type: `str | None`. Observed return expression(s): `_exact_string(value, label)`; `None`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Checks `value is None`. When true: Returns `None`.
-2. Returns `_exact_string(value, label)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::PolicyEntry._validate_entry` via `_optional_exact_string`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `PolicyEntry._validate_entry`
+```python
+def _optional_exact_string(value: object, label: str) -> str | None:
+    if value is None:
+        return None
+    return _exact_string(value, label)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_sha256_string`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _sha256_string(value: object, label: str) -> str:
@@ -426,61 +1254,62 @@ def _sha256_string(value: object, label: str) -> str:
 
 **Purpose**
 
-Implements sha256 string according to the exact implementation and guards in this file.
+Private `planning` helper for sha256 string; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+text
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `text`.
-
-**Algorithm**
-
-1. Computes `text` from `_exact_string(value, label)`.
-2. Checks `SHA_PATTERN.fullmatch(text) is None`. When true: Raises `ValueError(f'{label} must be a lowercase SHA256')`.
-3. Returns `text`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `SHA_PATTERN.fullmatch(text) is None` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `SHA_PATTERN.fullmatch(text) is None`.
+- Explicit raise expressions: `ValueError(f'{label} must be a lowercase SHA256')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `SHA_PATTERN.fullmatch`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `SHA_PATTERN.fullmatch`, `ValueError`, `_exact_string`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::BessPlanningFeatureParcelAggregationArtifactRecord._validate_record` via `_sha256_string`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::BessPlanningFeatureParcelAggregationArtifactManifest._validate_manifest` via `_sha256_string`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_sha256_string`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::BessPlanningFeatureApplicationArtifactRecord._validate_record` via `_sha256_string`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::BessPlanningFeatureApplicationArtifactManifest._validate_manifest` via `_sha256_string`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `_sha256_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::PolicySourceLock._validate_lock` via `_sha256_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyConfig._validate_policy` via `_sha256_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyArtifactManifest._validate_manifest` via `_sha256_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_result_envelope` via `_sha256_string`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `BessPlanningFeaturePolicyArtifactManifest._validate_manifest`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `BessPlanningFeaturePolicyConfig._validate_policy`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `PolicySourceLock._validate_lock`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_validate_result_envelope`
+```python
+def _sha256_string(value: object, label: str) -> str:
+    text = _exact_string(value, label)
+    if SHA_PATTERN.fullmatch(text) is None:
+        raise ValueError(f"{label} must be a lowercase SHA256")
+    return text
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `PolicySourceLock._validate_lock`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_lock(self) -> PolicySourceLock:
@@ -488,61 +1317,64 @@ def _validate_lock(self) -> PolicySourceLock:
 
 **Purpose**
 
-Validates and rejects malformed lock according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent lock; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `PolicySourceLock`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `PolicySourceLock`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Calls `_exact_string(self.document_id, 'document_id')` for its validation or side effect.
-2. Calls `_sha256_string(self.archive_sha256, 'archive_sha256')` for its validation or side effect.
-3. Calls `_exact_string(self.cnig_profile, 'cnig_profile')` for its validation or side effect.
-4. Calls `_sha256_string(self.cnig_profile_sha256, 'cnig_profile_sha256')` for its validation or side effect.
-5. Calls `_sha256_string(self.cnig_complete_result_content_sha256, 'cnig_complete_result_content_sha256')` for its validation or side effect.
-6. Iterates `(value, label)` over `((self.cnig_profile_schema_version, 'cnig_profile_schema_version'), (self.cnig_result_hash_schema_version, 'cnig_result_hash_schema_version'))`. For each value: Checks `type(value) is not int or value < 1`. When true: Raises `ValueError(f'{label} must be a strict positive integer')`.
-7. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `type(value) is not int or value < 1` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `type(value) is not int or value < 1`.
+- Explicit raise expressions: `ValueError(f'{label} must be a strict positive integer')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_sha256_string`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `_exact_string`, `_sha256_string`, `model_validator`, `type`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _validate_lock(self) -> PolicySourceLock:
+        _exact_string(self.document_id, "document_id")
+        _sha256_string(self.archive_sha256, "archive_sha256")
+        _exact_string(self.cnig_profile, "cnig_profile")
+        _sha256_string(self.cnig_profile_sha256, "cnig_profile_sha256")
+        _sha256_string(
+            self.cnig_complete_result_content_sha256,
+            "cnig_complete_result_content_sha256",
+        )
+        for value, label in (
+            (self.cnig_profile_schema_version, "cnig_profile_schema_version"),
+            (self.cnig_result_hash_schema_version, "cnig_result_hash_schema_version"),
+        ):
+            if type(value) is not int or value < 1:
+                raise ValueError(f"{label} must be a strict positive integer")
+        return self
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `PolicyEntry._validate_entry`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_entry(self) -> PolicyEntry:
@@ -550,64 +1382,66 @@ def _validate_entry(self) -> PolicyEntry:
 
 **Purpose**
 
-Validates and rejects malformed entry according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent entry; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `PolicyEntry`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `PolicyEntry`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Checks `CODE_PATTERN.fullmatch(self.type_code) is None`. When true: Raises `ValueError('type_code must be an exact two-character digit string')`.
-2. Checks `CODE_PATTERN.fullmatch(self.subtype_code) is None`. When true: Raises `ValueError('subtype_code must be an exact two-character digit string')`.
-3. Calls `_exact_string(self.expected_official_label, 'expected_official_label')` for its validation or side effect.
-4. Calls `_optional_exact_string(self.expected_legal_reference, 'expected_legal_reference')` for its validation or side effect.
-5. Calls `_optional_exact_string(self.expected_regulation_reference, 'expected_regulation_reference')` for its validation or side effect.
-6. Calls `_exact_string(self.rationale, 'rationale')` for its validation or side effect.
-7. Calls `_exact_string(self.required_human_action, 'required_human_action')` for its validation or side effect.
-8. Calls `_exact_string(self.limitations, 'limitations')` for its validation or side effect.
-9. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `CODE_PATTERN.fullmatch(self.type_code) is None` is true.
-- Rejects or diverts the path when `CODE_PATTERN.fullmatch(self.subtype_code) is None` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `CODE_PATTERN.fullmatch(self.type_code) is None`.
+- Guard with a raise path: `CODE_PATTERN.fullmatch(self.subtype_code) is None`.
+- Explicit raise expressions: `ValueError('subtype_code must be an exact two-character digit string')`, `ValueError('type_code must be an exact two-character digit string')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `CODE_PATTERN.fullmatch`, `ValueError`, `_exact_string`, `_optional_exact_string`, `model_validator`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _validate_entry(self) -> PolicyEntry:
+        if CODE_PATTERN.fullmatch(self.type_code) is None:
+            raise ValueError("type_code must be an exact two-character digit string")
+        if CODE_PATTERN.fullmatch(self.subtype_code) is None:
+            raise ValueError("subtype_code must be an exact two-character digit string")
+        _exact_string(self.expected_official_label, "expected_official_label")
+        _optional_exact_string(
+            self.expected_legal_reference, "expected_legal_reference"
+        )
+        _optional_exact_string(
+            self.expected_regulation_reference,
+            "expected_regulation_reference",
+        )
+        _exact_string(self.rationale, "rationale")
+        _exact_string(self.required_human_action, "required_human_action")
+        _exact_string(self.limitations, "limitations")
+        return self
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_canonical_json_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _canonical_json_sha256(value: object) -> str:
@@ -615,59 +1449,74 @@ def _canonical_json_sha256(value: object) -> str:
 
 **Purpose**
 
-Implements canonical json sha256 according to the exact implementation and guards in this file.
+Private `planning` helper for canonical json sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+sha256(encoded).hexdigest()
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `sha256(encoded).hexdigest()`.
-
-**Algorithm**
-
-1. Runs guarded operation: Computes `encoded` from `json.dumps(value, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(',', ':')).encode('utf-8')`. Handles `(TypeError, ValueError)`.
-2. Returns `sha256(encoded).hexdigest()`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError('Policy integrity payload is not canonical JSON')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `sha256`, `sha256(encoded).hexdigest`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyError`, `json.dumps`, `json.dumps(value, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(',', ':')).encode`, `sha256`, `sha256(encoded).hexdigest`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_component_sha256` via `_canonical_json_sha256`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_complete_result_sha256` via `_canonical_json_sha256`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_policy_entries_sha256` via `_canonical_json_sha256`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_policy_sha256` via `_canonical_json_sha256`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_policy_table_sha256` via `_canonical_json_sha256`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_complete_result_sha256` via `_canonical_json_sha256`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_records_sha256` via `_canonical_json_sha256`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_profile_sha256` via `_canonical_json_sha256`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_source_frame_sha256` via `_canonical_json_sha256`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` via `_canonical_json_sha256`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_normalized_catalogs_input_sha256` via `_canonical_json_sha256`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_sha256` via `_canonical_json_sha256`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_complete_sha256` via `_canonical_json_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_complete_result_sha256`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_policy_entries_sha256`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_policy_sha256`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_policy_table_sha256`
+```python
+def _canonical_json_sha256(value: object) -> str:
+    try:
+        encoded = json.dumps(
+            value,
+            ensure_ascii=False,
+            allow_nan=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    except (TypeError, ValueError) as error:
+        raise BessPlanningFeaturePolicyError(
+            "Policy integrity payload is not canonical JSON"
+        ) from error
+    return sha256(encoded).hexdigest()
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_policy_entries_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _policy_entries_sha256(entries: tuple[PolicyEntry, ...]) -> str:
@@ -675,55 +1524,50 @@ def _policy_entries_sha256(entries: tuple[PolicyEntry, ...]) -> str:
 
 **Purpose**
 
-Implements policy entries sha256 according to the exact implementation and guards in this file.
+Private `planning` helper for policy entries sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `entries` (`tuple[PolicyEntry, ...]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+_canonical_json_sha256([entry.model_dump(mode='json') for entry in entries])
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `_canonical_json_sha256([entry.model_dump(mode='json') for entry in entries])`.
-
-**Algorithm**
-
-1. Returns `_canonical_json_sha256([entry.model_dump(mode='json') for entry in entries])`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_canonical_json_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_json_sha256`, `entry.model_dump`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyConfig._validate_policy` via `_policy_entries_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `BessPlanningFeaturePolicyConfig._validate_policy`
+```python
+def _policy_entries_sha256(entries: tuple[PolicyEntry, ...]) -> str:
+    return _canonical_json_sha256([entry.model_dump(mode="json") for entry in entries])
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `BessPlanningFeaturePolicyConfig._validate_policy`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_policy(self) -> BessPlanningFeaturePolicyConfig:
@@ -731,76 +1575,105 @@ def _validate_policy(self) -> BessPlanningFeaturePolicyConfig:
 
 **Purpose**
 
-Validates and rejects malformed policy according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent policy; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessPlanningFeaturePolicyConfig`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessPlanningFeaturePolicyConfig`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Checks `type(self.schema_version) is not int or self.schema_version != POLICY_SCHEMA_VERSION`. When true: Raises `ValueError(f'policy schema version must equal {POLICY_SCHEMA_VERSION}')`.
-2. Calls `_exact_string(self.profile, 'profile')` for its validation or side effect.
-3. Checks `self.policy_scope != POLICY_SCOPE`. When true: Raises `ValueError('policy_scope is unsupported')`.
-4. Checks `self.local_feature_text_interpreted is not False or self.local_regulation_content_interpreted is not False or self.legal_conclusion_produced is not False`. When true: Raises `ValueError('policy interpretation and legal-conclusion flags must be false')`.
-5. Checks `set(self.status_priority) != ALLOWED_STATUSES`. When true: Raises `ValueError('status priority must contain every allowed status exactly once')`.
-6. Computes `priorities` from `list(self.status_priority.values())`.
-7. Checks `any((type(value) is not int or value <= 0 for value in priorities))`. When true: Raises `ValueError('status priority values must be strict positive integers')`.
-8. Checks `len(set(priorities)) != len(priorities)`. When true: Raises `ValueError('status priority values must be unique')`.
-9. Computes `keys` from `[(entry.feature_family, entry.type_code, entry.subtype_code) for entry in self.entries]`.
-10. Checks `len(keys) != len(set(keys))`. When true: Raises `ValueError('policy entries contain a duplicate family/type/subtype pair')`.
-11. Checks `keys != sorted(keys)`. When true: Raises `ValueError('policy entries must use deterministic family/type/subtype order')`.
-12. Calls `_sha256_string(self.canonical_policy_entries_sha256, 'canonical_policy_entries_sha256')` for its validation or side effect.
-13. Checks `_policy_entries_sha256(self.entries) != self.canonical_policy_entries_sha256`. When true: Raises `ValueError('canonical policy-entry SHA256 differs from policy entries')`.
-14. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `type(self.schema_version) is not int or self.schema_version != POLICY_SCHEMA_VERSION` is true.
-- Rejects or diverts the path when `self.policy_scope != POLICY_SCOPE` is true.
-- Rejects or diverts the path when `self.local_feature_text_interpreted is not False or self.local_regulation_content_interpreted is not False or self.legal_conclusion_produced is not False` is true.
-- Rejects or diverts the path when `set(self.status_priority) != ALLOWED_STATUSES` is true.
-- Rejects or diverts the path when `any((type(value) is not int or value <= 0 for value in priorities))` is true.
-- Rejects or diverts the path when `len(set(priorities)) != len(priorities)` is true.
-- Rejects or diverts the path when `len(keys) != len(set(keys))` is true.
-- Rejects or diverts the path when `keys != sorted(keys)` is true.
-- Rejects or diverts the path when `_policy_entries_sha256(self.entries) != self.canonical_policy_entries_sha256` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `type(self.schema_version) is not int or self.schema_version != POLICY_SCHEMA_VERSION`.
+- Guard with a raise path: `self.policy_scope != POLICY_SCOPE`.
+- Guard with a raise path: `self.local_feature_text_interpreted is not False or self.local_regulation_content_interpreted is not False or self.legal_conclusion_produced is not False`.
+- Guard with a raise path: `set(self.status_priority) != ALLOWED_STATUSES`.
+- Guard with a raise path: `any((type(value) is not int or value <= 0 for value in priorities))`.
+- Guard with a raise path: `len(set(priorities)) != len(priorities)`.
+- Guard with a raise path: `len(keys) != len(set(keys))`.
+- Guard with a raise path: `keys != sorted(keys)`.
+- Guard with a raise path: `_policy_entries_sha256(self.entries) != self.canonical_policy_entries_sha256`.
+- Explicit raise expressions: `ValueError('canonical policy-entry SHA256 differs from policy entries')`, `ValueError('policy entries contain a duplicate family/type/subtype pair')`, `ValueError('policy entries must use deterministic family/type/subtype order')`, `ValueError('policy interpretation and legal-conclusion flags must be false')`, `ValueError('policy_scope is unsupported')`, `ValueError('status priority must contain every allowed status exactly once')`, `ValueError('status priority values must be strict positive integers')`, `ValueError('status priority values must be unique')`, `ValueError(f'policy schema version must equal {POLICY_SCHEMA_VERSION}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: `self.status_priority.values`.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_policy_entries_sha256`, `_sha256_string`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `_exact_string`, `_policy_entries_sha256`, `_sha256_string`, `any`, `len`, `list`, `model_validator`, `self.status_priority.values`, `set`, `sorted`, `type`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _validate_policy(self) -> BessPlanningFeaturePolicyConfig:
+        if (
+            type(self.schema_version) is not int
+            or self.schema_version != POLICY_SCHEMA_VERSION
+        ):
+            raise ValueError(
+                f"policy schema version must equal {POLICY_SCHEMA_VERSION}"
+            )
+        _exact_string(self.profile, "profile")
+        if self.policy_scope != POLICY_SCOPE:
+            raise ValueError("policy_scope is unsupported")
+        if (
+            self.local_feature_text_interpreted is not False
+            or self.local_regulation_content_interpreted is not False
+            or self.legal_conclusion_produced is not False
+        ):
+            raise ValueError(
+                "policy interpretation and legal-conclusion flags must be false"
+            )
+        if set(self.status_priority) != ALLOWED_STATUSES:
+            raise ValueError(
+                "status priority must contain every allowed status exactly once"
+            )
+        priorities = list(self.status_priority.values())
+        if any(type(value) is not int or value <= 0 for value in priorities):
+            raise ValueError("status priority values must be strict positive integers")
+        if len(set(priorities)) != len(priorities):
+            raise ValueError("status priority values must be unique")
+        keys = [
+            (entry.feature_family, entry.type_code, entry.subtype_code)
+            for entry in self.entries
+        ]
+        if len(keys) != len(set(keys)):
+            raise ValueError(
+                "policy entries contain a duplicate family/type/subtype pair"
+            )
+        if keys != sorted(keys):
+            raise ValueError(
+                "policy entries must use deterministic family/type/subtype order"
+            )
+        _sha256_string(
+            self.canonical_policy_entries_sha256,
+            "canonical_policy_entries_sha256",
+        )
+        if _policy_entries_sha256(self.entries) != self.canonical_policy_entries_sha256:
+            raise ValueError(
+                "canonical policy-entry SHA256 differs from policy entries"
+            )
+        return self
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_construct_unique_mapping`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _construct_unique_mapping(
@@ -812,59 +1685,64 @@ def _construct_unique_mapping(
 
 **Purpose**
 
-Implements construct unique mapping according to the exact implementation and guards in this file.
+Private `planning` helper for construct unique mapping; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `loader` (`yaml.SafeLoader`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `node` (`yaml.MappingNode`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `deep` (`bool`; optional/default `False`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[object, object]`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[object, object]`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Defines `result` with annotation `dict[object, object]` from `{}`.
-2. Iterates `(key_node, value_node)` over `node.value`. For each value: Computes `key` from `loader.construct_object(key_node, deep=deep)`. Checks `key in result`. When true: Raises `BessPlanningFeaturePolicyError(f'Duplicate YAML policy key: {key!r}')`. Computes `result[key]` from `loader.construct_object(value_node, deep=deep)`.
-3. Returns `result`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `key in result` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `key in result`.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError(f'Duplicate YAML policy key: {key!r}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `result[key]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyError`, `loader.construct_object`.
+- callback/function object: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
+- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
+- callback/function object: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
+- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
+- callback/function object: `src/landscout/stages/structure_planning_regulation.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _construct_unique_mapping(
+    loader: yaml.SafeLoader,
+    node: yaml.MappingNode,
+    deep: bool = False,
+) -> dict[object, object]:
+    result: dict[object, object] = {}
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node, deep=deep)
+        if key in result:
+            raise BessPlanningFeaturePolicyError(f"Duplicate YAML policy key: {key!r}")
+        result[key] = loader.construct_object(value_node, deep=deep)
+    return result
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `load_bess_planning_feature_policy_config`
 
-**Signature**
+**Exact signature**
 
 ```python
 def load_bess_planning_feature_policy_config(
@@ -876,63 +1754,89 @@ def load_bess_planning_feature_policy_config(
 
 Load a strict offline BESS policy for official CNIG feature-code pairs.
 
-**Inputs**
+**Return contract**
 
-- `path` (`str | Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessPlanningFeaturePolicyConfig`.
+- Every observed return expression is reproduced without truncation:
+```python
+BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessPlanningFeaturePolicyConfig`. Observed return expression(s): `BessPlanningFeaturePolicyConfig.model_validate(payload)`.
-
-**Algorithm**
-
-1. Runs guarded operation: Computes `payload` from `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`. Checks `not isinstance(payload, Mapping)`. When true: Raises `BessPlanningFeaturePolicyError('BESS CNIG policy must be a mapping')`. Returns `BessPlanningFeaturePolicyConfig.model_validate(payload)`. Handles `BessPlanningFeaturePolicyError`, `Exception`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(payload, Mapping)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(payload, Mapping)`.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError('BESS CNIG feature policy is invalid')`, `BessPlanningFeaturePolicyError('BESS CNIG policy must be a mapping')`, `re-raise`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `Path(path).read_text`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: `Path(path).read_text`.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyConfig.model_validate`, `BessPlanningFeaturePolicyError`, `Path`, `Path(path).read_text`, `isinstance`, `yaml.load`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyArtifactManifest,
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_artifacts,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+    validate_bess_planning_feature_policy_result_envelope,
+)`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_resolved_policy_config` via `load_bess_planning_feature_policy_config`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `load_bess_planning_feature_policy_config`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_policy_pins_all_twelve_exact_muret_decisions` via `load_bess_planning_feature_policy_config`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_policy_complete_snapshot_is_immutable` via `load_bess_planning_feature_policy_config`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_policy_text_drift` via `load_bess_planning_feature_policy_config`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_source_lock_drift` via `load_bess_planning_feature_policy_config`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_duplicate_yaml_key_is_rejected` via `load_bess_planning_feature_policy_config`.
+- import/re-export: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_resolved_policy_config`
-- `tests/unit/test_bess_planning_feature_policy.py` — `_checked_in_policy_result`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_checked_in_policy_complete_snapshot_is_immutable`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_checked_in_policy_pins_all_twelve_exact_muret_decisions`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_duplicate_yaml_key_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_profile_v1_snapshot_detects_policy_text_drift`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_profile_v1_snapshot_detects_source_lock_drift`
+```python
+def load_bess_planning_feature_policy_config(
+    path: str | Path,
+) -> BessPlanningFeaturePolicyConfig:
+    """Load a strict offline BESS policy for official CNIG feature-code pairs."""
 
-**Tests**
+    try:
+        payload = yaml.load(
+            Path(path).read_text(encoding="utf-8"), Loader=_UniqueKeyLoader
+        )
+        if not isinstance(payload, Mapping):
+            raise BessPlanningFeaturePolicyError("BESS CNIG policy must be a mapping")
+        return BessPlanningFeaturePolicyConfig.model_validate(payload)
+    except BessPlanningFeaturePolicyError:
+        raise
+    except Exception as error:
+        raise BessPlanningFeaturePolicyError(
+            "BESS CNIG feature policy is invalid"
+        ) from error
+```
 
-- `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_policy_complete_snapshot_is_immutable`
-- `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_policy_pins_all_twelve_exact_muret_decisions`
-- `tests/unit/test_bess_planning_feature_policy.py::test_duplicate_yaml_key_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_policy_text_drift`
-- `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_source_lock_drift`
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_resolved_policy_config`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _resolved_policy_config(
@@ -942,57 +1846,63 @@ def _resolved_policy_config(
 
 **Purpose**
 
-Implements resolved policy config according to the exact implementation and guards in this file.
+Private `planning` helper for resolved policy config; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `config` (`BessPlanningFeaturePolicyConfig | str | Path`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessPlanningFeaturePolicyConfig`.
+- Every observed return expression is reproduced without truncation:
+```python
+load_bess_planning_feature_policy_config(config)
 
-**Returns**
+BessPlanningFeaturePolicyConfig.model_validate(payload)
+```
 
-- Declared return type: `BessPlanningFeaturePolicyConfig`. Observed return expression(s): `load_bess_planning_feature_policy_config(config)`; `BessPlanningFeaturePolicyConfig.model_validate(payload)`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Checks `not isinstance(config, BessPlanningFeaturePolicyConfig)`. When true: Returns `load_bess_planning_feature_policy_config(config)`.
-2. Runs guarded operation: Computes `payload` from `config.model_dump(mode='python', warnings='error')`. Returns `BessPlanningFeaturePolicyConfig.model_validate(payload)`. Handles `Exception`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError('in-memory BESS planning-feature policy config is invalid')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `load_bess_planning_feature_policy_config`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyConfig.model_validate`, `BessPlanningFeaturePolicyError`, `config.model_dump`, `isinstance`, `load_bess_planning_feature_policy_config`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::compile_bess_planning_feature_policy` via `_resolved_policy_config`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `_resolved_policy_config`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `compile_bess_planning_feature_policy`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `validate_bess_planning_feature_policy_result`
+```python
+def _resolved_policy_config(
+    config: BessPlanningFeaturePolicyConfig | str | Path,
+) -> BessPlanningFeaturePolicyConfig:
+    if not isinstance(config, BessPlanningFeaturePolicyConfig):
+        return load_bess_planning_feature_policy_config(config)
+    try:
+        payload = config.model_dump(mode="python", warnings="error")
+        return BessPlanningFeaturePolicyConfig.model_validate(payload)
+    except Exception as error:
+        raise BessPlanningFeaturePolicyError(
+            "in-memory BESS planning-feature policy config is invalid"
+        ) from error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_policy_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _policy_sha256(config: BessPlanningFeaturePolicyConfig) -> str:
@@ -1000,55 +1910,51 @@ def _policy_sha256(config: BessPlanningFeaturePolicyConfig) -> str:
 
 **Purpose**
 
-Implements policy sha256 according to the exact implementation and guards in this file.
+Private `planning` helper for policy sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `config` (`BessPlanningFeaturePolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+_canonical_json_sha256(config.model_dump(mode='json'))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `_canonical_json_sha256(config.model_dump(mode='json'))`.
-
-**Algorithm**
-
-1. Returns `_canonical_json_sha256(config.model_dump(mode='json'))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_canonical_json_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_json_sha256`, `config.model_dump`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_build_result` via `_policy_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_policy_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_build_result`
+```python
+def _policy_sha256(config: BessPlanningFeaturePolicyConfig) -> str:
+    return _canonical_json_sha256(config.model_dump(mode="json"))
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `BessPlanningFeaturePolicyArtifactManifest._validate_manifest`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_manifest(self) -> BessPlanningFeaturePolicyArtifactManifest:
@@ -1056,69 +1962,110 @@ def _validate_manifest(self) -> BessPlanningFeaturePolicyArtifactManifest:
 
 **Purpose**
 
-Validates and rejects malformed manifest according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent manifest; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessPlanningFeaturePolicyArtifactManifest`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessPlanningFeaturePolicyArtifactManifest`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Checks `type(self.schema_version) is not int or self.schema_version != ARTIFACT_MANIFEST_SCHEMA_VERSION`. When true: Raises `ValueError(f'artifact manifest schema version must equal {ARTIFACT_MANIFEST_SCHEMA_VERSION}')`.
-2. Checks `type(self.policy_schema_version) is not int or self.policy_schema_version != POLICY_SCHEMA_VERSION`. When true: Raises `ValueError('artifact policy schema version is unsupported')`.
-3. Checks `type(self.result_hash_schema_version) is not int or self.result_hash_schema_version != RESULT_HASH_SCHEMA_VERSION`. When true: Raises `ValueError('artifact result hash schema version is unsupported')`.
-4. Checks `type(self.cnig_profile_schema_version) is not int or self.cnig_profile_schema_version != 2`. When true: Raises `ValueError('artifact CNIG profile schema version is unsupported')`.
-5. Checks `type(self.cnig_result_hash_schema_version) is not int or self.cnig_result_hash_schema_version != 5`. When true: Raises `ValueError('artifact CNIG result hash schema version is unsupported')`.
-6. Iterates `(exact_value, label)` over `((self.policy_profile, 'policy_profile'), (self.source_document_id, 'source_document_id'), (self.cnig_profile, 'cnig_profile'))`. For each value: Calls `_exact_string(exact_value, label)` for its validation or side effect.
-7. Iterates `(hash_value, label)` over `((self.policy_sha256, 'policy_sha256'), (self.source_archive_sha256, 'source_archive_sha256'), (self.cnig_profile_sha256, 'cnig_profile_sha256'), (self.cnig_complete_result_content_sha256, 'cnig_complete_result_content_sha256'), (self.policy_table_content_sha256, 'policy_table_content_sha256'), (self.complete_result_c…`. For each value: Calls `_sha256_string(hash_value, label)` for its validation or side effect.
-8. Iterates `(integer_value, label, allow_zero)` over `((self.parquet_row_count, 'parquet_row_count', True), (self.parquet_size_bytes, 'parquet_size_bytes', False))`. For each value: Computes `minimum` from `0 if allow_zero else 1`. Checks `type(integer_value) is not int or integer_value < minimum`. When true: Raises `ValueError(f'{label} is invalid')`.
-9. Calls `validate_portable_parquet_filename(self.parquet_filename, 'parquet_filename')` for its validation or side effect.
-10. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `type(self.schema_version) is not int or self.schema_version != ARTIFACT_MANIFEST_SCHEMA_VERSION` is true.
-- Rejects or diverts the path when `type(self.policy_schema_version) is not int or self.policy_schema_version != POLICY_SCHEMA_VERSION` is true.
-- Rejects or diverts the path when `type(self.result_hash_schema_version) is not int or self.result_hash_schema_version != RESULT_HASH_SCHEMA_VERSION` is true.
-- Rejects or diverts the path when `type(self.cnig_profile_schema_version) is not int or self.cnig_profile_schema_version != 2` is true.
-- Rejects or diverts the path when `type(self.cnig_result_hash_schema_version) is not int or self.cnig_result_hash_schema_version != 5` is true.
-- Rejects or diverts the path when `type(integer_value) is not int or integer_value < minimum` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `type(self.schema_version) is not int or self.schema_version != ARTIFACT_MANIFEST_SCHEMA_VERSION`.
+- Guard with a raise path: `type(self.policy_schema_version) is not int or self.policy_schema_version != POLICY_SCHEMA_VERSION`.
+- Guard with a raise path: `type(self.result_hash_schema_version) is not int or self.result_hash_schema_version != RESULT_HASH_SCHEMA_VERSION`.
+- Guard with a raise path: `type(self.cnig_profile_schema_version) is not int or self.cnig_profile_schema_version != 2`.
+- Guard with a raise path: `type(self.cnig_result_hash_schema_version) is not int or self.cnig_result_hash_schema_version != 5`.
+- Guard with a raise path: `type(integer_value) is not int or integer_value < minimum`.
+- Explicit raise expressions: `ValueError('artifact CNIG profile schema version is unsupported')`, `ValueError('artifact CNIG result hash schema version is unsupported')`, `ValueError('artifact policy schema version is unsupported')`, `ValueError('artifact result hash schema version is unsupported')`, `ValueError(f'artifact manifest schema version must equal {ARTIFACT_MANIFEST_SCHEMA_VERSION}')`, `ValueError(f'{label} is invalid')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_sha256_string`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `_exact_string`, `_sha256_string`, `model_validator`, `type`, `validate_portable_parquet_filename`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _validate_manifest(self) -> BessPlanningFeaturePolicyArtifactManifest:
+        if (
+            type(self.schema_version) is not int
+            or self.schema_version != ARTIFACT_MANIFEST_SCHEMA_VERSION
+        ):
+            raise ValueError(
+                "artifact manifest schema version must equal "
+                f"{ARTIFACT_MANIFEST_SCHEMA_VERSION}"
+            )
+        if (
+            type(self.policy_schema_version) is not int
+            or self.policy_schema_version != POLICY_SCHEMA_VERSION
+        ):
+            raise ValueError("artifact policy schema version is unsupported")
+        if (
+            type(self.result_hash_schema_version) is not int
+            or self.result_hash_schema_version != RESULT_HASH_SCHEMA_VERSION
+        ):
+            raise ValueError("artifact result hash schema version is unsupported")
+        if (
+            type(self.cnig_profile_schema_version) is not int
+            or self.cnig_profile_schema_version != 2
+        ):
+            raise ValueError("artifact CNIG profile schema version is unsupported")
+        if (
+            type(self.cnig_result_hash_schema_version) is not int
+            or self.cnig_result_hash_schema_version != 5
+        ):
+            raise ValueError("artifact CNIG result hash schema version is unsupported")
+        for exact_value, label in (
+            (self.policy_profile, "policy_profile"),
+            (self.source_document_id, "source_document_id"),
+            (self.cnig_profile, "cnig_profile"),
+        ):
+            _exact_string(exact_value, label)
+        for hash_value, label in (
+            (self.policy_sha256, "policy_sha256"),
+            (self.source_archive_sha256, "source_archive_sha256"),
+            (self.cnig_profile_sha256, "cnig_profile_sha256"),
+            (
+                self.cnig_complete_result_content_sha256,
+                "cnig_complete_result_content_sha256",
+            ),
+            (self.policy_table_content_sha256, "policy_table_content_sha256"),
+            (self.complete_result_content_sha256, "complete_result_content_sha256"),
+            (self.parquet_sha256, "parquet_sha256"),
+        ):
+            _sha256_string(hash_value, label)
+        for integer_value, label, allow_zero in (
+            (self.parquet_row_count, "parquet_row_count", True),
+            (self.parquet_size_bytes, "parquet_size_bytes", False),
+        ):
+            minimum = 0 if allow_zero else 1
+            if type(integer_value) is not int or integer_value < minimum:
+                raise ValueError(f"{label} is invalid")
+        validate_portable_parquet_filename(self.parquet_filename, "parquet_filename")
+        return self
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_null_value`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _null_value(value: object) -> object:
@@ -1126,60 +2073,70 @@ def _null_value(value: object) -> object:
 
 **Purpose**
 
-Implements null value according to the exact implementation and guards in this file.
+Private `planning` helper for null value; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `object`.
+- Every observed return expression is reproduced without truncation:
+```python
+value
 
-**Returns**
+None
 
-- Declared return type: `object`. Observed return expression(s): `value`; `None`.
+None
+```
 
-**Algorithm**
+**Validation and exceptions**
 
-1. Checks `value is None or value is pd.NA`. When true: Returns `None`.
-2. Runs guarded operation: Computes `missing` from `pd.isna(value)`. Handles `(TypeError, ValueError)`.
-3. Checks `isinstance(missing, (bool, np.bool_)) and bool(missing)`. When true: Returns `None`.
-4. Returns `value`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `bool`, `isinstance`, `pd.isna`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_optional_official_string` via `_null_value`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_null_value`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_canonical_value` via `_null_value`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_local_domains` via `_null_value`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_canonical_value` via `_null_value`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_null_safe_equal` via `_null_value`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_null_safe_equal` via `_null_value`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_canonical_value` via `_null_value`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_table_rows` via `_null_value`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_canonical_value`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_null_safe_equal`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_validate_policy_table_rows`
+```python
+def _null_value(value: object) -> object:
+    if value is None or value is pd.NA:
+        return None
+    try:
+        missing = pd.isna(value)
+    except (TypeError, ValueError):
+        missing = False
+    if isinstance(missing, (bool, np.bool_)) and bool(missing):
+        return None
+    return value
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_null_safe_equal`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _null_safe_equal(left: object, right: object) -> bool:
@@ -1187,59 +2144,68 @@ def _null_safe_equal(left: object, right: object) -> bool:
 
 **Purpose**
 
-Implements null safe equal according to the exact implementation and guards in this file.
+Private `planning` helper for null safe equal; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `left` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `right` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `bool`.
+- Every observed return expression is reproduced without truncation:
+```python
+normalized_left is None and normalized_right is None
 
-**Returns**
+bool(normalized_left == normalized_right)
 
-- Declared return type: `bool`. Observed return expression(s): `normalized_left is None and normalized_right is None`; `bool(normalized_left == normalized_right)`; `False`.
+False
+```
 
-**Algorithm**
+**Validation and exceptions**
 
-1. Computes `normalized_left` from `_null_value(left)`.
-2. Computes `normalized_right` from `_null_value(right)`.
-3. Checks `normalized_left is None or normalized_right is None`. When true: Returns `normalized_left is None and normalized_right is None`.
-4. Runs guarded operation: Returns `bool(normalized_left == normalized_right)`. Handles `(TypeError, ValueError)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_null_value`, `bool`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_apply_relations` via `_null_safe_equal`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `_null_safe_equal`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_coded_policy_compatibility` via `_null_safe_equal`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_completeness` via `_null_safe_equal`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_relation_catalog_consistency` via `_null_safe_equal`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_compare_rebuilt_relations` via `_null_safe_equal`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_validate_selected_evidence` via `_null_safe_equal`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_coded_meaning_rows` via `_null_safe_equal`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_validate_policy_completeness`
+```python
+def _null_safe_equal(left: object, right: object) -> bool:
+    normalized_left = _null_value(left)
+    normalized_right = _null_value(right)
+    if normalized_left is None or normalized_right is None:
+        return normalized_left is None and normalized_right is None
+    try:
+        return bool(normalized_left == normalized_right)
+    except (TypeError, ValueError):
+        return False
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_canonical_value`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _canonical_value(value: object) -> object:
@@ -1247,64 +2213,100 @@ def _canonical_value(value: object) -> object:
 
 **Purpose**
 
-Implements canonical value according to the exact implementation and guards in this file.
+Private `planning` helper for canonical value; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `object`.
+- Every observed return expression is reproduced without truncation:
+```python
+None
 
-**Returns**
+value.isoformat()
 
-- Declared return type: `object`. Observed return expression(s): `None`; `value.isoformat()`; `_canonical_value(value.item())`; `value`; `int(value)`; `number`.
+_canonical_value(value.item())
 
-**Algorithm**
+value
 
-1. Computes `value` from `_null_value(value)`.
-2. Checks `value is None`. When true: Returns `None`.
-3. Checks `isinstance(value, (datetime, date, pd.Timestamp))`. When true: Returns `value.isoformat()`.
-4. Checks `isinstance(value, np.generic)`. When true: Returns `_canonical_value(value.item())`.
-5. Checks `isinstance(value, bool)`. When true: Returns `value`.
-6. Checks `isinstance(value, Integral)`. When true: Returns `int(value)`.
-7. Checks `isinstance(value, Real)`. When true: Computes `number` from `float(value)`. Checks `not math.isfinite(number)`. When true: Raises `BessPlanningFeaturePolicyError('Policy integrity payload contains non-finite data')`. Returns `number`.
-8. Checks `isinstance(value, str)`. When true: Returns `value`.
-9. Raises `BessPlanningFeaturePolicyError(f'Policy integrity payload contains unsupported {type(value).__name__}')`.
+int(value)
 
-**Validation and invariants**
+number
 
-- Rejects or diverts the path when `isinstance(value, Real)` is true.
-- Rejects or diverts the path when `not math.isfinite(number)` is true.
+value
+```
 
-**Exceptions**
+**Validation and exceptions**
 
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `isinstance(value, Real)`.
+- Guard with a raise path: `not math.isfinite(number)`.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError('Policy integrity payload contains non-finite data')`, `BessPlanningFeaturePolicyError(f'Policy integrity payload contains unsupported {type(value).__name__}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyError`, `_canonical_value`, `_null_value`, `float`, `int`, `isinstance`, `math.isfinite`, `type`, `value.isoformat`, `value.item`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_canonical_value` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_frame_payload` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_canonical_value` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_frame_payload` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_frame_payload` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_canonical_value` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_canonical_sha256` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_frame_payload` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_frames` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_canonical_value` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_payload` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_compare_frame` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_value` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_sha256` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_frame_rows` via `_canonical_value`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_frame_payload`
+```python
+def _canonical_value(value: object) -> object:
+    value = _null_value(value)
+    if value is None:
+        return None
+    if isinstance(value, (datetime, date, pd.Timestamp)):
+        return value.isoformat()
+    if isinstance(value, np.generic):
+        return _canonical_value(value.item())
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, Integral):
+        return int(value)
+    if isinstance(value, Real):
+        number = float(value)
+        if not math.isfinite(number):
+            raise BessPlanningFeaturePolicyError(
+                "Policy integrity payload contains non-finite data"
+            )
+        return number
+    if isinstance(value, str):
+        return value
+    raise BessPlanningFeaturePolicyError(
+        f"Policy integrity payload contains unsupported {type(value).__name__}"
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_frame_payload`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _frame_payload(frame: pd.DataFrame) -> dict[str, object]:
@@ -1312,56 +2314,72 @@ def _frame_payload(frame: pd.DataFrame) -> dict[str, object]:
 
 **Purpose**
 
-Implements frame payload according to the exact implementation and guards in this file.
+Private `planning` helper for frame payload; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[str, object]`.
+- Every observed return expression is reproduced without truncation:
+```python
+{'schema': deterministic_frame_schema_signature(frame), 'index': [_canonical_value(value) for value in frame.index.tolist()], 'rows': [[_canonical_value(value) for value in row] for row in frame.itertuples(index=False, name=None)]}
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[str, object]`. Observed return expression(s): `{'schema': deterministic_frame_schema_signature(frame), 'index': [_canonical_value(value) for value in frame.index.tolist()], 'rows': [[_canonical_value(value) for value in row] for row in frame.itertuples(index=False, name=None)]}`.
-
-**Algorithm**
-
-1. Returns `{'schema': deterministic_frame_schema_signature(frame), 'index': [_canonical_value(value) for value in frame.index.tolist()], 'rows': [[_canonical_value(value) for value in row] for row in frame.itertuples(index=False, name=None)]}`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_value`, `deterministic_frame_schema_signature`, `frame.index.tolist`, `frame.itertuples`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_frame_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_result_with_hashes` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_compare_frame` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_component_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_compare_frame` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_policy_table_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_frame_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_mapping_input_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_result_frame_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_frames` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_source_frame_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_normalized_catalogs_input_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_compare_frame` via `_frame_payload`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_policy_table_sha256`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `validate_bess_planning_feature_policy_result`
+```python
+def _frame_payload(frame: pd.DataFrame) -> dict[str, object]:
+    return {
+        "schema": deterministic_frame_schema_signature(frame),
+        "index": [_canonical_value(value) for value in frame.index.tolist()],
+        "rows": [
+            [_canonical_value(value) for value in row]
+            for row in frame.itertuples(index=False, name=None)
+        ],
+    }
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_source_lock`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_source_lock(
@@ -1372,59 +2390,77 @@ def _validate_source_lock(
 
 **Purpose**
 
-Validates and rejects malformed source lock according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent source lock; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `config` (`BessPlanningFeaturePolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `coded_result` (`PlanningFeatureCodeResult`; required) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `lock` from `config.source_lock`.
-2. Computes `comparisons` from `((lock.document_id, coded_result.source_document_id, 'document ID'), (lock.archive_sha256, coded_result.source_archive_sha256, 'archive SHA256'), (lock.cnig_profile, coded_result.profile, 'CNIG profile'), (lock.cnig_profile_schema_version, coded_result.profile_schema_version, 'CNIG profile schema version'), (lock.cnig…`.
-3. Iterates `(configured, actual, label)` over `comparisons`. For each value: Checks `configured != actual`. When true: Raises `BessPlanningFeaturePolicyError(f'Policy source lock differs from validated {label}')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `configured != actual` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `configured != actual`.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError(f'Policy source lock differs from validated {label}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyError`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::compile_bess_planning_feature_policy` via `_validate_source_lock`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `_validate_source_lock`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `compile_bess_planning_feature_policy`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `validate_bess_planning_feature_policy_result`
+```python
+def _validate_source_lock(
+    config: BessPlanningFeaturePolicyConfig,
+    coded_result: PlanningFeatureCodeResult,
+) -> None:
+    lock = config.source_lock
+    comparisons = (
+        (lock.document_id, coded_result.source_document_id, "document ID"),
+        (lock.archive_sha256, coded_result.source_archive_sha256, "archive SHA256"),
+        (lock.cnig_profile, coded_result.profile, "CNIG profile"),
+        (
+            lock.cnig_profile_schema_version,
+            coded_result.profile_schema_version,
+            "CNIG profile schema version",
+        ),
+        (lock.cnig_profile_sha256, coded_result.profile_sha256, "CNIG profile SHA256"),
+        (
+            lock.cnig_result_hash_schema_version,
+            coded_result.result_hash_schema_version,
+            "CNIG result hash schema version",
+        ),
+        (
+            lock.cnig_complete_result_content_sha256,
+            coded_result.complete_result_content_sha256,
+            "CNIG complete result SHA256",
+        ),
+    )
+    for configured, actual, label in comparisons:
+        if configured != actual:
+            raise BessPlanningFeaturePolicyError(
+                f"Policy source lock differs from validated {label}"
+            )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_dictionary_by_pair`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _dictionary_by_pair(
@@ -1434,58 +2470,65 @@ def _dictionary_by_pair(
 
 **Purpose**
 
-Implements dictionary by pair according to the exact implementation and guards in this file.
+Private `planning` helper for dictionary by pair; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `coded_result` (`PlanningFeatureCodeResult`; required) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[tuple[str, str, str], dict[str, object]]`.
+- Every observed return expression is reproduced without truncation:
+```python
+indexed
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[tuple[str, str, str], dict[str, object]]`. Observed return expression(s): `indexed`.
-
-**Algorithm**
-
-1. Computes `rows` from `coded_result.code_dictionary.to_dict('records')`.
-2. Defines `indexed` with annotation `dict[tuple[str, str, str], dict[str, object]]` from `{}`.
-3. Iterates `row` over `rows`. For each value: Computes `key` from `(str(row['feature_family']), str(row['type_code']), str(row['subtype_code']))`. Checks `key in indexed`. When true: Raises `BessPlanningFeaturePolicyError('Validated CNIG code dictionary contains a duplicate pair')`. Computes `indexed[key]` from `row`.
-4. Returns `indexed`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `key in indexed` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `key in indexed`.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError('Validated CNIG code dictionary contains a duplicate pair')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `indexed[key]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyError`, `coded_result.code_dictionary.to_dict`, `str`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_completeness` via `_dictionary_by_pair`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_validate_policy_completeness`
+```python
+def _dictionary_by_pair(
+    coded_result: PlanningFeatureCodeResult,
+) -> dict[tuple[str, str, str], dict[str, object]]:
+    rows = coded_result.code_dictionary.to_dict("records")
+    indexed: dict[tuple[str, str, str], dict[str, object]] = {}
+    for row in rows:
+        key = (
+            str(row["feature_family"]),
+            str(row["type_code"]),
+            str(row["subtype_code"]),
+        )
+        if key in indexed:
+            raise BessPlanningFeaturePolicyError(
+                "Validated CNIG code dictionary contains a duplicate pair"
+            )
+        indexed[key] = row
+    return indexed
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_policy_completeness`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_policy_completeness(
@@ -1496,67 +2539,89 @@ def _validate_policy_completeness(
 
 **Purpose**
 
-Validates and rejects malformed policy completeness according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent policy completeness; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `config` (`BessPlanningFeaturePolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `coded_result` (`PlanningFeatureCodeResult`; required) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[tuple[str, str, str], dict[str, object]]`.
+- Every observed return expression is reproduced without truncation:
+```python
+dictionary
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[tuple[str, str, str], dict[str, object]]`. Observed return expression(s): `dictionary`.
-
-**Algorithm**
-
-1. Computes `dictionary` from `_dictionary_by_pair(coded_result)`.
-2. Defines `entries` with annotation `dict[tuple[str, str, str], PolicyEntry]` from `{(entry.feature_family, entry.type_code, entry.subtype_code): entry for entry in config.entries}`.
-3. Computes `missing` from `sorted(set(dictionary) - set(entries))`.
-4. Computes `extra` from `sorted(set(entries) - set(dictionary))`.
-5. Checks `missing`. When true: Raises `BessPlanningFeaturePolicyError(f'Policy is missing validated CNIG pair(s): {missing}')`.
-6. Checks `extra`. When true: Raises `BessPlanningFeaturePolicyError(f'Policy contains extra CNIG pair(s): {extra}')`.
-7. Iterates `(key, row)` over `dictionary.items()`. For each value: Computes `entry` from `entries[key]`. Checks `entry.expected_official_label != row['official_label']`. When true: Raises `BessPlanningFeaturePolicyError(f'Policy official label mismatch for pair {key}')`. Checks `not _null_safe_equal(entry.expected_legal_reference, row['legal_reference'])`. When true: Raises `BessPlanningFeaturePolicyError(f'Policy legal reference mismatch for pair {key}')`. Executes 1 additional source-ordered statement(s).
-8. Returns `dictionary`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `extra` is true.
-- Rejects or diverts the path when `entry.expected_official_label != row['official_label']` is true.
-- Rejects or diverts the path when `not _null_safe_equal(entry.expected_legal_reference, row['legal_reference'])` is true.
-- Rejects or diverts the path when `not _null_safe_equal(entry.expected_regulation_reference, row['regulation_or_annex_reference'])` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `extra`.
+- Guard with a raise path: `entry.expected_official_label != row['official_label']`.
+- Guard with a raise path: `not _null_safe_equal(entry.expected_legal_reference, row['legal_reference'])`.
+- Guard with a raise path: `not _null_safe_equal(entry.expected_regulation_reference, row['regulation_or_annex_reference'])`.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError(f'Policy contains extra CNIG pair(s): {extra}')`, `BessPlanningFeaturePolicyError(f'Policy is missing validated CNIG pair(s): {missing}')`, `BessPlanningFeaturePolicyError(f'Policy legal reference mismatch for pair {key}')`, `BessPlanningFeaturePolicyError(f'Policy official label mismatch for pair {key}')`, `BessPlanningFeaturePolicyError(f'Policy regulation reference mismatch for pair {key}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyError`, `_dictionary_by_pair`, `_null_safe_equal`, `dictionary.items`, `set`, `sorted`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_build_result` via `_validate_policy_completeness`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_build_result`
+```python
+def _validate_policy_completeness(
+    config: BessPlanningFeaturePolicyConfig,
+    coded_result: PlanningFeatureCodeResult,
+) -> dict[tuple[str, str, str], dict[str, object]]:
+    dictionary = _dictionary_by_pair(coded_result)
+    entries: dict[tuple[str, str, str], PolicyEntry] = {
+        (entry.feature_family, entry.type_code, entry.subtype_code): entry
+        for entry in config.entries
+    }
+    missing = sorted(set(dictionary) - set(entries))
+    extra = sorted(set(entries) - set(dictionary))
+    if missing:
+        raise BessPlanningFeaturePolicyError(
+            f"Policy is missing validated CNIG pair(s): {missing}"
+        )
+    if extra:
+        raise BessPlanningFeaturePolicyError(
+            f"Policy contains extra CNIG pair(s): {extra}"
+        )
+    for key, row in dictionary.items():
+        entry = entries[key]
+        if entry.expected_official_label != row["official_label"]:
+            raise BessPlanningFeaturePolicyError(
+                f"Policy official label mismatch for pair {key}"
+            )
+        if not _null_safe_equal(entry.expected_legal_reference, row["legal_reference"]):
+            raise BessPlanningFeaturePolicyError(
+                f"Policy legal reference mismatch for pair {key}"
+            )
+        if not _null_safe_equal(
+            entry.expected_regulation_reference,
+            row["regulation_or_annex_reference"],
+        ):
+            raise BessPlanningFeaturePolicyError(
+                f"Policy regulation reference mismatch for pair {key}"
+            )
+    return dictionary
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_policy_table`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _policy_table(
@@ -1569,66 +2634,114 @@ def _policy_table(
 
 **Purpose**
 
-Implements policy table according to the exact implementation and guards in this file.
+Private `planning` helper for policy table; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `config` (`BessPlanningFeaturePolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `coded_result` (`PlanningFeatureCodeResult`; required) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `dictionary` (`dict[tuple[str, str, str], dict[str, object]]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_hash` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+output
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `output`.
-
-**Algorithm**
-
-1. Defines `rows` with annotation `list[dict[str, object]]` from `[]`.
-2. Iterates `entry` over `config.entries`. For each value: Computes `key` from `(entry.feature_family, entry.type_code, entry.subtype_code)`. Computes `official` from `dictionary[key]`. Calls `rows.append({'feature_family': entry.feature_family, 'type_code': entry.type_code, 'subtype_code': entry.subtype_code, 'official_label': official['official_label'], 'official_legal_reference': official['legal_reference'], 'official_regulation_reference': official['regulation_or_annex_reference'], 'precheck_status': entry.precheck_status, 'confidence': entry…` for its validation or side effect.
-3. Computes `output` from `pd.DataFrame(rows, columns=POLICY_TABLE_COLUMNS)`.
-4. Computes `string_columns` from `tuple((column for column in POLICY_TABLE_COLUMNS if column not in {'status_priority', 'local_feature_text_interpreted', 'local_regulation_content_interpreted', 'legal_conclusion_produced'}))`.
-5. Iterates `column` over `string_columns`. For each value: Computes `output[column]` from `pd.array(output[column].tolist(), dtype='str')`.
-6. Computes `output['status_priority']` from `output['status_priority'].astype('int64')`.
-7. Iterates `column` over `('local_feature_text_interpreted', 'local_regulation_content_interpreted', 'legal_conclusion_produced')`. For each value: Computes `output[column]` from `output[column].astype('bool')`.
-8. Computes `output.index` from `pd.Index(output.index.to_numpy(copy=True), name=output.index.name)`.
-9. Returns `output`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `output.index`, `output['status_priority']`, `output[column]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `output.index.to_numpy`, `output['status_priority'].astype`, `output[column].astype`, `output[column].tolist`, `pd.DataFrame`, `pd.Index`, `pd.array`, `rows.append`, `tuple`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_build_result` via `_policy_table`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_build_result`
+```python
+def _policy_table(
+    config: BessPlanningFeaturePolicyConfig,
+    coded_result: PlanningFeatureCodeResult,
+    dictionary: dict[tuple[str, str, str], dict[str, object]],
+    policy_hash: str,
+) -> pd.DataFrame:
+    rows: list[dict[str, object]] = []
+    for entry in config.entries:
+        key = (entry.feature_family, entry.type_code, entry.subtype_code)
+        official = dictionary[key]
+        rows.append(
+            {
+                "feature_family": entry.feature_family,
+                "type_code": entry.type_code,
+                "subtype_code": entry.subtype_code,
+                "official_label": official["official_label"],
+                "official_legal_reference": official["legal_reference"],
+                "official_regulation_reference": (
+                    official["regulation_or_annex_reference"]
+                ),
+                "precheck_status": entry.precheck_status,
+                "confidence": entry.confidence,
+                "status_priority": config.status_priority[entry.precheck_status],
+                "rationale": entry.rationale,
+                "required_human_action": entry.required_human_action,
+                "limitations": entry.limitations,
+                "policy_scope": config.policy_scope,
+                "local_feature_text_interpreted": (
+                    config.local_feature_text_interpreted
+                ),
+                "local_regulation_content_interpreted": (
+                    config.local_regulation_content_interpreted
+                ),
+                "legal_conclusion_produced": config.legal_conclusion_produced,
+                "policy_profile": config.profile,
+                "policy_sha256": policy_hash,
+                "cnig_profile": coded_result.profile,
+                "cnig_profile_sha256": coded_result.profile_sha256,
+                "cnig_complete_result_content_sha256": (
+                    coded_result.complete_result_content_sha256
+                ),
+            }
+        )
+    output = pd.DataFrame(rows, columns=POLICY_TABLE_COLUMNS)
+    string_columns = tuple(
+        column
+        for column in POLICY_TABLE_COLUMNS
+        if column
+        not in {
+            "status_priority",
+            "local_feature_text_interpreted",
+            "local_regulation_content_interpreted",
+            "legal_conclusion_produced",
+        }
+    )
+    for column in string_columns:
+        output[column] = pd.array(output[column].tolist(), dtype="str")
+    output["status_priority"] = output["status_priority"].astype("int64")
+    for column in (
+        "local_feature_text_interpreted",
+        "local_regulation_content_interpreted",
+        "legal_conclusion_produced",
+    ):
+        output[column] = output[column].astype("bool")
+    output.index = pd.Index(output.index.to_numpy(copy=True), name=output.index.name)
+    return output
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_component_metadata`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _component_metadata(result: BessPlanningFeaturePolicyResult) -> dict[str, object]:
@@ -1636,56 +2749,71 @@ def _component_metadata(result: BessPlanningFeaturePolicyResult) -> dict[str, ob
 
 **Purpose**
 
-Implements component metadata according to the exact implementation and guards in this file.
+Private `planning` helper for component metadata; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `result` (`BessPlanningFeaturePolicyResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[str, object]`.
+- Every observed return expression is reproduced without truncation:
+```python
+{'policy_schema_version': result.policy_schema_version, 'result_hash_schema_version': result.result_hash_schema_version, 'policy_profile': result.policy_profile, 'policy_scope': result.policy_scope, 'policy_sha256': result.policy_sha256, 'source_document_id': result.source_document_id, 'source_archive_sha256': result.source_archive_sha256, 'cnig_profile': result.cnig_profile, 'cnig_profile_schema_version': result.cnig_profile_schema_version, 'cnig_profile_sha256': result.cnig_profile_sha256, 'cnig_result_hash_schema_version': result.cnig_result_hash_schema_version, 'cnig_complete_result_content_sha256': result.cnig_complete_result_content_sha256}
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[str, object]`. Observed return expression(s): `{'policy_schema_version': result.policy_schema_version, 'result_hash_schema_version': result.result_hash_schema_version, 'policy_profile': result.policy_profile, 'policy_scope': result.policy_scope, 'policy_sha256': result.policy_sha256, 'source_document_id': result.source_document_id, 'source_archive_sha256': result.source_archive_sha256, 'cnig_profile': result.cnig_profile, 'cnig_profile_schema…`.
-
-**Algorithm**
-
-1. Returns `{'policy_schema_version': result.policy_schema_version, 'result_hash_schema_version': result.result_hash_schema_version, 'policy_profile': result.policy_profile, 'policy_scope': result.policy_scope, 'policy_sha256': result.policy_sha256, 'source_document_id': result.source_document_id, 'source_archive_sha256': result.source_archive_sha256, 'cnig_profile': r…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- No function calls.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_result_with_hashes` via `_component_metadata`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_component_sha256` via `_component_metadata`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_complete_result_sha256` via `_component_metadata`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_policy_table_sha256` via `_component_metadata`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_complete_result_sha256` via `_component_metadata`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_sha256` via `_component_metadata`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_complete_sha256` via `_component_metadata`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_complete_result_sha256`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_policy_table_sha256`
+```python
+def _component_metadata(result: BessPlanningFeaturePolicyResult) -> dict[str, object]:
+    return {
+        "policy_schema_version": result.policy_schema_version,
+        "result_hash_schema_version": result.result_hash_schema_version,
+        "policy_profile": result.policy_profile,
+        "policy_scope": result.policy_scope,
+        "policy_sha256": result.policy_sha256,
+        "source_document_id": result.source_document_id,
+        "source_archive_sha256": result.source_archive_sha256,
+        "cnig_profile": result.cnig_profile,
+        "cnig_profile_schema_version": result.cnig_profile_schema_version,
+        "cnig_profile_sha256": result.cnig_profile_sha256,
+        "cnig_result_hash_schema_version": result.cnig_result_hash_schema_version,
+        "cnig_complete_result_content_sha256": (
+            result.cnig_complete_result_content_sha256
+        ),
+    }
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_policy_table_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _policy_table_sha256(result: BessPlanningFeaturePolicyResult) -> str:
@@ -1693,55 +2821,56 @@ def _policy_table_sha256(result: BessPlanningFeaturePolicyResult) -> str:
 
 **Purpose**
 
-Implements policy table sha256 according to the exact implementation and guards in this file.
+Private `planning` helper for policy table sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `result` (`BessPlanningFeaturePolicyResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+_canonical_json_sha256({'domain': 'landscout.bess_cnig_feature_policy.table', **_component_metadata(result), 'frame': _frame_payload(result.policy_table)})
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `_canonical_json_sha256({'domain': 'landscout.bess_cnig_feature_policy.table', **_component_metadata(result), 'frame': _frame_payload(result.policy_table)})`.
-
-**Algorithm**
-
-1. Returns `_canonical_json_sha256({'domain': 'landscout.bess_cnig_feature_policy.table', **_component_metadata(result), 'frame': _frame_payload(result.policy_table)})`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_canonical_json_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_json_sha256`, `_component_metadata`, `_frame_payload`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_result_with_hashes` via `_policy_table_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_result_with_hashes`
+```python
+def _policy_table_sha256(result: BessPlanningFeaturePolicyResult) -> str:
+    return _canonical_json_sha256(
+        {
+            "domain": "landscout.bess_cnig_feature_policy.table",
+            **_component_metadata(result),
+            "frame": _frame_payload(result.policy_table),
+        }
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_complete_result_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _complete_result_sha256(result: BessPlanningFeaturePolicyResult) -> str:
@@ -1749,55 +2878,58 @@ def _complete_result_sha256(result: BessPlanningFeaturePolicyResult) -> str:
 
 **Purpose**
 
-Implements complete result sha256 according to the exact implementation and guards in this file.
+Private `planning` helper for complete result sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `result` (`BessPlanningFeaturePolicyResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+_canonical_json_sha256({'domain': 'landscout.bess_cnig_feature_policy.result', **_component_metadata(result), 'policy_table_content_sha256': result.policy_table_content_sha256})
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `_canonical_json_sha256({'domain': 'landscout.bess_cnig_feature_policy.result', **_component_metadata(result), 'policy_table_content_sha256': result.policy_table_content_sha256})`.
-
-**Algorithm**
-
-1. Returns `_canonical_json_sha256({'domain': 'landscout.bess_cnig_feature_policy.result', **_component_metadata(result), 'policy_table_content_sha256': result.policy_table_content_sha256})`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_canonical_json_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_json_sha256`, `_component_metadata`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_result_with_hashes` via `_complete_result_sha256`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_result_with_hashes` via `_complete_result_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` via `_complete_result_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_result_with_hashes`
+```python
+def _complete_result_sha256(result: BessPlanningFeaturePolicyResult) -> str:
+    return _canonical_json_sha256(
+        {
+            "domain": "landscout.bess_cnig_feature_policy.result",
+            **_component_metadata(result),
+            "policy_table_content_sha256": result.policy_table_content_sha256,
+        }
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_result_with_hashes`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _result_with_hashes(
@@ -1807,57 +2939,157 @@ def _result_with_hashes(
 
 **Purpose**
 
-Implements result with hashes according to the exact implementation and guards in this file.
+Private `planning` helper for result with hashes; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `result` (`BessPlanningFeaturePolicyResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessPlanningFeaturePolicyResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+replace(component, complete_result_content_sha256=_complete_result_sha256(component))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessPlanningFeaturePolicyResult`. Observed return expression(s): `replace(component, complete_result_content_sha256=_complete_result_sha256(component))`.
-
-**Algorithm**
-
-1. Computes `component` from `replace(result, policy_table_content_sha256=_policy_table_sha256(result))`.
-2. Returns `replace(component, complete_result_content_sha256=_complete_result_sha256(component))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `replace`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_complete_result_sha256`, `_policy_table_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_complete_result_sha256`, `_policy_table_sha256`, `replace`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_build_result` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_build_result` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_result_envelope` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `importlib.import_module('landscout.stages.apply_bess_planning_feature_policy')._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `importlib.import_module('landscout.stages.apply_bess_planning_feature_policy')._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_only_application_result_schema_two_is_accepted` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_only_application_result_schema_two_is_accepted` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_decision_status_domain_rejects_forbidden_vocabulary` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_decision_status_domain_rejects_forbidden_vocabulary` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_persisted_feature_id_json_must_be_portable_and_canonical` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_persisted_feature_id_json_must_be_portable_and_canonical` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_changed_parcel_geometry_upstreams` via `application_module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_changed_parcel_geometry_upstreams` via `application_module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_policy_mutation` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_policy_mutation` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_feature_id_mutation` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_feature_id_mutation` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_surface_touch_with_positive_area` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_surface_touch_with_positive_area` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_schema_v1_dimension_blind_hash_representation_is_rejected_locally` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_schema_v1_dimension_blind_hash_representation_is_rejected_locally` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_complete_relation_facts_must_match_referenced_feature` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_complete_relation_facts_must_match_referenced_feature` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_feature_or_relation_policy_mutation_is_rejected` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_feature_or_relation_policy_mutation_is_rejected` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_application_relation_pair_is_rejected_locally` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_application_relation_pair_is_rejected_locally` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_parcel_id_is_exact` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_parcel_id_is_exact` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_application_relation_type_is_rejected_locally` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_application_relation_type_is_rejected_locally` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_official_and_application_statuses_cannot_contradict` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_official_and_application_statuses_cannot_contradict` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_pair_artifact_fails_local_loading` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_pair_artifact_fails_local_loading` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_wrong_2d_feature_geometry_fails_local_artifact_loading` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_wrong_2d_feature_geometry_fails_local_artifact_loading` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_geometry_role_is_intrinsic` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_geometry_role_is_intrinsic` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_metric_must_match_geometry` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_metric_must_match_geometry` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_catalog_identity_fields_are_intrinsic` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_catalog_identity_fields_are_intrinsic` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_requires_canonical_crs_and_global_identity` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_requires_canonical_crs_and_global_identity` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_identity_is_validated_locally` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_identity_is_validated_locally` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_participates_in_global_policy_mapping` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_participates_in_global_policy_mapping` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_policy_result_schema_exactly` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_policy_result_schema_exactly` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_cnig_result_schema_exactly` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_cnig_result_schema_exactly` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_replace_application_frame` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_replace_application_frame` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_referenced_lineage_mutation` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_referenced_lineage_mutation` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_row_lineage_must_match_application_envelope` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_row_lineage_must_match_application_envelope` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_swap_referenced_feature_values` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_swap_referenced_feature_values` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_factual_prefix_lineage_change` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_factual_prefix_lineage_change` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `coding_module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `coding_module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `policy_module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `policy_module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_unreferenced_feature_and_row_reordering` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_unreferenced_feature_and_row_reordering` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_compatible_policy_mutation` via `module._result_with_hashes`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_build_result`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_validate_result_envelope`
+```python
+def _result_with_hashes(
+    result: BessPlanningFeaturePolicyResult,
+) -> BessPlanningFeaturePolicyResult:
+    component = replace(
+        result, policy_table_content_sha256=_policy_table_sha256(result)
+    )
+    return replace(
+        component,
+        complete_result_content_sha256=_complete_result_sha256(component),
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_policy_table_rows`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_policy_table_rows(result: BessPlanningFeaturePolicyResult) -> None:
@@ -1865,71 +3097,156 @@ def _validate_policy_table_rows(result: BessPlanningFeaturePolicyResult) -> None
 
 **Purpose**
 
-Validates and rejects malformed policy table rows according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent policy table rows; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `result` (`BessPlanningFeaturePolicyResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Defines `records` with annotation `dict[tuple[str, str, str], dict[str, object]]` from `{}`.
-2. Defines `ordered_keys` with annotation `list[tuple[str, str, str]]` from `[]`.
-3. Defines `priority_to_status` with annotation `dict[int, str]` from `{}`.
-4. Defines `status_to_priority` with annotation `dict[str, int]` from `{}`.
-5. Iterates `(position, row)` over `enumerate(result.policy_table.to_dict('records'))`. For each value: Computes `family` from `row['feature_family']`. Computes `type_code` from `row['type_code']`. Computes `subtype_code` from `row['subtype_code']`. Executes 20 additional source-ordered statement(s).
-6. Checks `ordered_keys != sorted(ordered_keys)`. When true: Raises `BessPlanningFeaturePolicyError('policy table pair order is not canonical')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `ordered_keys != sorted(ordered_keys)` is true.
-- Rejects or diverts the path when `family not in {'PRESCRIPTION', 'INFORMATION'}` is true.
-- Rejects or diverts the path when `key in records` is true.
-- Rejects or diverts the path when `status not in ALLOWED_STATUSES` is true.
-- Rejects or diverts the path when `confidence not in ALLOWED_CONFIDENCES` is true.
-- Rejects or diverts the path when `type(priority) is not int or priority <= 0` is true.
-- Rejects or diverts the path when `previous_status != status or previous_priority != priority` is true.
-- Rejects or diverts the path when `row['policy_scope'] != result.policy_scope` is true.
-- Rejects or diverts the path when `row['policy_profile'] != result.policy_profile or row['policy_sha256'] != result.policy_sha256 or row['cnig_profile'] != result.cnig_profile or (row['cnig_profile_sha256'] != result.cnig_profile_sha256) or (row['cnig_complete_result_content_sha256'] != result.cnig_complete_result_content_sha256)` is true.
-- Rejects or diverts the path when `not isinstance(value, str) or CODE_PATTERN.fullmatch(value) is None` is true.
-- Rejects or diverts the path when `isinstance(value, str) and value in NULL_REFERENCE_LITERALS` is true.
-- Rejects or diverts the path when `row[field] is not False` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `ordered_keys != sorted(ordered_keys)`.
+- Guard with a raise path: `family not in {'PRESCRIPTION', 'INFORMATION'}`.
+- Guard with a raise path: `key in records`.
+- Guard with a raise path: `status not in ALLOWED_STATUSES`.
+- Guard with a raise path: `confidence not in ALLOWED_CONFIDENCES`.
+- Guard with a raise path: `type(priority) is not int or priority <= 0`.
+- Guard with a raise path: `previous_status != status or previous_priority != priority`.
+- Guard with a raise path: `row['policy_scope'] != result.policy_scope`.
+- Guard with a raise path: `row['policy_profile'] != result.policy_profile or row['policy_sha256'] != result.policy_sha256 or row['cnig_profile'] != result.cnig_profile or (row['cnig_profile_sha256'] != result.cnig_profile_sha256) or (row['cnig_complete_result_content_sha256'] != result.cnig_complete_result_content_sha256)`.
+- Guard with a raise path: `not isinstance(value, str) or CODE_PATTERN.fullmatch(value) is None`.
+- Guard with a raise path: `isinstance(value, str) and value in NULL_REFERENCE_LITERALS`.
+- Guard with a raise path: `row[field] is not False`.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError('policy table contains a duplicate code pair')`, `BessPlanningFeaturePolicyError('policy table pair order is not canonical')`, `BessPlanningFeaturePolicyError('policy table status and priority mapping is not one-to-one')`, `BessPlanningFeaturePolicyError(f'policy table row {position} confidence is invalid')`, `BessPlanningFeaturePolicyError(f'policy table row {position} feature family is invalid')`, `BessPlanningFeaturePolicyError(f'policy table row {position} priority is invalid')`, `BessPlanningFeaturePolicyError(f'policy table row {position} result lineage differs')`, `BessPlanningFeaturePolicyError(f'policy table row {position} scope differs from result')`, `BessPlanningFeaturePolicyError(f'policy table row {position} status is invalid')`, `BessPlanningFeaturePolicyError(f'policy table row {position} {field} must be false')`, `BessPlanningFeaturePolicyError(f'policy table row {position} {label} is invalid')`, `BessPlanningFeaturePolicyError(f'{field} contains a literal null replacement')`, `BessPlanningFeaturePolicyError(str(error))`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `records[key]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyError`, `CODE_PATTERN.fullmatch`, `_exact_string`, `_null_value`, `enumerate`, `isinstance`, `ordered_keys.append`, `priority_to_status.setdefault`, `result.policy_table.to_dict`, `sorted`, `status_to_priority.setdefault`, `str`, `type`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_result_envelope` via `_validate_policy_table_rows`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `_validate_result_envelope`
+```python
+def _validate_policy_table_rows(result: BessPlanningFeaturePolicyResult) -> None:
+    records: dict[tuple[str, str, str], dict[str, object]] = {}
+    ordered_keys: list[tuple[str, str, str]] = []
+    priority_to_status: dict[int, str] = {}
+    status_to_priority: dict[str, int] = {}
+    for position, row in enumerate(result.policy_table.to_dict("records")):
+        family = row["feature_family"]
+        type_code = row["type_code"]
+        subtype_code = row["subtype_code"]
+        if family not in {"PRESCRIPTION", "INFORMATION"}:
+            raise BessPlanningFeaturePolicyError(
+                f"policy table row {position} feature family is invalid"
+            )
+        for value, label in (
+            (type_code, "type code"),
+            (subtype_code, "subtype code"),
+        ):
+            if not isinstance(value, str) or CODE_PATTERN.fullmatch(value) is None:
+                raise BessPlanningFeaturePolicyError(
+                    f"policy table row {position} {label} is invalid"
+                )
+        key = (family, type_code, subtype_code)
+        if key in records:
+            raise BessPlanningFeaturePolicyError(
+                "policy table contains a duplicate code pair"
+            )
+        for field, label in (
+            ("official_label", "official label"),
+            ("rationale", "rationale"),
+            ("required_human_action", "required human action"),
+            ("limitations", "limitations"),
+        ):
+            try:
+                _exact_string(row[field], f"policy row {position} {label}")
+            except ValueError as error:
+                raise BessPlanningFeaturePolicyError(str(error)) from error
+        for field in (
+            "official_legal_reference",
+            "official_regulation_reference",
+        ):
+            value = row[field]
+            if _null_value(value) is None:
+                continue
+            if isinstance(value, str) and value in NULL_REFERENCE_LITERALS:
+                raise BessPlanningFeaturePolicyError(
+                    f"{field} contains a literal null replacement"
+                )
+            try:
+                _exact_string(value, f"policy row {position} {field}")
+            except ValueError as error:
+                raise BessPlanningFeaturePolicyError(str(error)) from error
+        status = row["precheck_status"]
+        confidence = row["confidence"]
+        priority = row["status_priority"]
+        if status not in ALLOWED_STATUSES:
+            raise BessPlanningFeaturePolicyError(
+                f"policy table row {position} status is invalid"
+            )
+        if confidence not in ALLOWED_CONFIDENCES:
+            raise BessPlanningFeaturePolicyError(
+                f"policy table row {position} confidence is invalid"
+            )
+        if type(priority) is not int or priority <= 0:
+            raise BessPlanningFeaturePolicyError(
+                f"policy table row {position} priority is invalid"
+            )
+        previous_status = priority_to_status.setdefault(priority, status)
+        previous_priority = status_to_priority.setdefault(status, priority)
+        if previous_status != status or previous_priority != priority:
+            raise BessPlanningFeaturePolicyError(
+                "policy table status and priority mapping is not one-to-one"
+            )
+        if row["policy_scope"] != result.policy_scope:
+            raise BessPlanningFeaturePolicyError(
+                f"policy table row {position} scope differs from result"
+            )
+        for field in (
+            "local_feature_text_interpreted",
+            "local_regulation_content_interpreted",
+            "legal_conclusion_produced",
+        ):
+            if row[field] is not False:
+                raise BessPlanningFeaturePolicyError(
+                    f"policy table row {position} {field} must be false"
+                )
+        if (
+            row["policy_profile"] != result.policy_profile
+            or row["policy_sha256"] != result.policy_sha256
+            or row["cnig_profile"] != result.cnig_profile
+            or row["cnig_profile_sha256"] != result.cnig_profile_sha256
+            or row["cnig_complete_result_content_sha256"]
+            != result.cnig_complete_result_content_sha256
+        ):
+            raise BessPlanningFeaturePolicyError(
+                f"policy table row {position} result lineage differs"
+            )
+        records[key] = row
+        ordered_keys.append(key)
+    if ordered_keys != sorted(ordered_keys):
+        raise BessPlanningFeaturePolicyError("policy table pair order is not canonical")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_build_result`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _build_result(
@@ -1940,60 +3257,101 @@ def _build_result(
 
 **Purpose**
 
-Builds result according to the exact implementation and guards in this file.
+Constructs result; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `config` (`BessPlanningFeaturePolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `coded_result` (`PlanningFeatureCodeResult`; required) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessPlanningFeaturePolicyResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+_result_with_hashes(result)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessPlanningFeaturePolicyResult`. Observed return expression(s): `_result_with_hashes(result)`.
-
-**Algorithm**
-
-1. Computes `dictionary` from `_validate_policy_completeness(config, coded_result)`.
-2. Computes `policy_hash` from `_policy_sha256(config)`.
-3. Computes `result` from `BessPlanningFeaturePolicyResult(policy_schema_version=config.schema_version, result_hash_schema_version=RESULT_HASH_SCHEMA_VERSION, policy_profile=config.profile, policy_scope=config.policy_scope, policy_sha256=policy_hash, source_document_id=coded_result.source_document_id, source_archive_sha256=coded_result.source_a…`.
-4. Returns `_result_with_hashes(result)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_policy_sha256`, `_result_with_hashes`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyResult`, `_policy_sha256`, `_policy_table`, `_result_with_hashes`, `_validate_policy_completeness`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::aggregate_bess_planning_feature_policy_to_parcels` via `_build_result`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::validate_bess_planning_feature_parcel_aggregation_result` via `_build_result`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::load_bess_planning_feature_parcel_aggregation_artifacts` via `_build_result`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::apply_bess_planning_feature_policy` via `_build_result`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::validate_bess_planning_feature_application_result` via `_build_result`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::load_bess_planning_feature_application_artifacts` via `_build_result`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::compile_bess_planning_feature_policy` via `_build_result`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `_build_result`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `_build_result`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `_build_result`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `_build_result`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `_build_result`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `module._build_result`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `module._build_result`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_surface_touch_semantic_corruption_result` via `module._build_result`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_surface_touch_semantic_corruption_result` via `module._build_result`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_validate_parcel_geometries` via `module._build_result`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_validate_parcel_geometries` via `module._build_result`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `module._build_result`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `module._build_result`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `module._build_result`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._build_result`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._build_result`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_validates_upstreams_and_rebuilds_once_lightweight` via `module._build_result`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `policy_module._build_result`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `policy_module._build_result`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `interpret_module._build_result`.
+- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `interpret_module._build_result`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `compile_bess_planning_feature_policy`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `validate_bess_planning_feature_policy_result`
+```python
+def _build_result(
+    config: BessPlanningFeaturePolicyConfig,
+    coded_result: PlanningFeatureCodeResult,
+) -> BessPlanningFeaturePolicyResult:
+    dictionary = _validate_policy_completeness(config, coded_result)
+    policy_hash = _policy_sha256(config)
+    result = BessPlanningFeaturePolicyResult(
+        policy_schema_version=config.schema_version,
+        result_hash_schema_version=RESULT_HASH_SCHEMA_VERSION,
+        policy_profile=config.profile,
+        policy_scope=config.policy_scope,
+        policy_sha256=policy_hash,
+        source_document_id=coded_result.source_document_id,
+        source_archive_sha256=coded_result.source_archive_sha256,
+        cnig_profile=coded_result.profile,
+        cnig_profile_schema_version=coded_result.profile_schema_version,
+        cnig_profile_sha256=coded_result.profile_sha256,
+        cnig_result_hash_schema_version=coded_result.result_hash_schema_version,
+        cnig_complete_result_content_sha256=(
+            coded_result.complete_result_content_sha256
+        ),
+        policy_table_content_sha256="",
+        complete_result_content_sha256="",
+        policy_table=_policy_table(config, coded_result, dictionary, policy_hash),
+    )
+    return _result_with_hashes(result)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_result_envelope`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_result_envelope(result: BessPlanningFeaturePolicyResult) -> None:
@@ -2001,78 +3359,211 @@ def _validate_result_envelope(result: BessPlanningFeaturePolicyResult) -> None:
 
 **Purpose**
 
-Validates and rejects malformed result envelope according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent result envelope; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `result` (`BessPlanningFeaturePolicyResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `type(result) is not BessPlanningFeaturePolicyResult`. When true: Raises `BessPlanningFeaturePolicyError('result must be a BessPlanningFeaturePolicyResult')`.
-2. Iterates `(version, expected, label)` over `((result.policy_schema_version, POLICY_SCHEMA_VERSION, 'policy schema'), (result.result_hash_schema_version, RESULT_HASH_SCHEMA_VERSION, 'result hash schema'), (result.cnig_profile_schema_version, 2, 'CNIG profile schema'), (result.cnig_result_hash_schema_version, 5, 'CNIG result hash schema'))`. For each value: Checks `type(version) is not int or version != expected`. When true: Raises `BessPlanningFeaturePolicyError(f'unsupported {label} version')`.
-3. Checks `result.policy_scope != POLICY_SCOPE`. When true: Raises `BessPlanningFeaturePolicyError('result policy scope is invalid')`.
-4. Iterates `(value, label)` over `((result.policy_profile, 'policy profile'), (result.source_document_id, 'source document ID'), (result.cnig_profile, 'CNIG profile'))`. For each value: Runs guarded operation: Calls `_exact_string(value, label)` for its validation or side effect. Handles `ValueError`.
-5. Checks `not isinstance(result.policy_table, pd.DataFrame) or isinstance(result.policy_table, gpd.GeoDataFrame)`. When true: Raises `BessPlanningFeaturePolicyError('policy table must be a DataFrame')`.
-6. Checks `result.policy_table.columns.duplicated().any() or tuple(result.policy_table.columns) != POLICY_TABLE_COLUMNS`. When true: Raises `BessPlanningFeaturePolicyError('policy table schema is invalid')`.
-7. Checks `deterministic_frame_schema_signature(result.policy_table) != POLICY_TABLE_SCHEMA_SIGNATURE`. When true: Raises `BessPlanningFeaturePolicyError('policy table schema is invalid')`.
-8. Checks `result.policy_table.empty`. When true: Raises `BessPlanningFeaturePolicyError('policy table must contain at least one policy entry')`.
-9. Iterates `field` over `POLICY_RESULT_SCALAR_FIELDS`. For each value: Checks `not field.endswith('_sha256')`. When true: Executes `continue` control flow. Runs guarded operation: Calls `_sha256_string(getattr(result, field), field)` for its validation or side effect. Handles `ValueError`.
-10. Calls `_validate_policy_table_rows(result)` for its validation or side effect.
-11. Computes `rebuilt` from `_result_with_hashes(result)`.
-12. Checks `result.policy_table_content_sha256 != rebuilt.policy_table_content_sha256`. When true: Raises `BessPlanningFeaturePolicyError('policy table hash is invalid')`.
-13. Checks `result.complete_result_content_sha256 != rebuilt.complete_result_content_sha256`. When true: Raises `BessPlanningFeaturePolicyError('complete result hash is invalid')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `type(result) is not BessPlanningFeaturePolicyResult` is true.
-- Rejects or diverts the path when `result.policy_scope != POLICY_SCOPE` is true.
-- Rejects or diverts the path when `not isinstance(result.policy_table, pd.DataFrame) or isinstance(result.policy_table, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `result.policy_table.columns.duplicated().any() or tuple(result.policy_table.columns) != POLICY_TABLE_COLUMNS` is true.
-- Rejects or diverts the path when `deterministic_frame_schema_signature(result.policy_table) != POLICY_TABLE_SCHEMA_SIGNATURE` is true.
-- Rejects or diverts the path when `result.policy_table.empty` is true.
-- Rejects or diverts the path when `result.policy_table_content_sha256 != rebuilt.policy_table_content_sha256` is true.
-- Rejects or diverts the path when `result.complete_result_content_sha256 != rebuilt.complete_result_content_sha256` is true.
-- Rejects or diverts the path when `type(version) is not int or version != expected` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `type(result) is not BessPlanningFeaturePolicyResult`.
+- Guard with a raise path: `result.policy_scope != POLICY_SCOPE`.
+- Guard with a raise path: `not isinstance(result.policy_table, pd.DataFrame) or isinstance(result.policy_table, gpd.GeoDataFrame)`.
+- Guard with a raise path: `result.policy_table.columns.duplicated().any() or tuple(result.policy_table.columns) != POLICY_TABLE_COLUMNS`.
+- Guard with a raise path: `deterministic_frame_schema_signature(result.policy_table) != POLICY_TABLE_SCHEMA_SIGNATURE`.
+- Guard with a raise path: `result.policy_table.empty`.
+- Guard with a raise path: `result.policy_table_content_sha256 != rebuilt.policy_table_content_sha256`.
+- Guard with a raise path: `result.complete_result_content_sha256 != rebuilt.complete_result_content_sha256`.
+- Guard with a raise path: `type(version) is not int or version != expected`.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError('complete result hash is invalid')`, `BessPlanningFeaturePolicyError('policy table hash is invalid')`, `BessPlanningFeaturePolicyError('policy table must be a DataFrame')`, `BessPlanningFeaturePolicyError('policy table must contain at least one policy entry')`, `BessPlanningFeaturePolicyError('policy table schema is invalid')`, `BessPlanningFeaturePolicyError('result must be a BessPlanningFeaturePolicyResult')`, `BessPlanningFeaturePolicyError('result policy scope is invalid')`, `BessPlanningFeaturePolicyError(f'unsupported {label} version')`, `BessPlanningFeaturePolicyError(str(error))`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_result_with_hashes`, `_sha256_string`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyError`, `_exact_string`, `_result_with_hashes`, `_sha256_string`, `_validate_policy_table_rows`, `deterministic_frame_schema_signature`, `field.endswith`, `getattr`, `isinstance`, `result.policy_table.columns.duplicated`, `result.policy_table.columns.duplicated().any`, `str`, `tuple`, `type`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::aggregate_bess_planning_feature_policy_to_parcels` via `_validate_result_envelope`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::validate_bess_planning_feature_parcel_aggregation_result` via `_validate_result_envelope`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::load_bess_planning_feature_parcel_aggregation_artifacts` via `_validate_result_envelope`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::validate_bess_planning_feature_application_result_envelope` via `_validate_result_envelope`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::apply_bess_planning_feature_policy` via `_validate_result_envelope`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::validate_bess_planning_feature_application_result` via `_validate_result_envelope`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::load_bess_planning_feature_application_artifacts` via `_validate_result_envelope`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result_envelope` via `_validate_result_envelope`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::load_bess_planning_feature_policy_artifacts` via `_validate_result_envelope`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::compile_bess_planning_feature_policy` via `_validate_result_envelope`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `_validate_result_envelope`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result_envelope` via `_validate_result_envelope`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `_validate_result_envelope`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `_validate_result_envelope`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_load_legacy_local_aggregation_artifacts` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_load_legacy_local_aggregation_artifacts` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_validate_parcel_geometries` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_validate_parcel_geometries` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_output_columns_are_rejected_intrinsically` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_duplicate_output_columns_are_rejected_intrinsically` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_only_application_result_schema_two_is_accepted` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_only_application_result_schema_two_is_accepted` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_application_result_schema_two_remains_accepted` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_application_result_schema_two_remains_accepted` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_decision_status_domain_rejects_forbidden_vocabulary` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_decision_status_domain_rejects_forbidden_vocabulary` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_persisted_feature_id_json_must_be_portable_and_canonical` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_persisted_feature_id_json_must_be_portable_and_canonical` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_parcel_area_is_bound_to_real_parcel_geometry` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_relation_parcel_area_is_bound_to_real_parcel_geometry` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_validation_uses_reprojected_calculation_copy` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_area_validation_uses_reprojected_calculation_copy` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_changed_parcel_geometry_upstreams` via `application_module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_changed_parcel_geometry_upstreams` via `application_module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_schema_v1_dimension_blind_hash_representation_is_rejected_locally` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_schema_v1_dimension_blind_hash_representation_is_rejected_locally` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_m_and_zm_application_geometries_are_rejected` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_m_and_zm_application_geometries_are_rejected` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_complete_relation_facts_must_match_referenced_feature` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_complete_relation_facts_must_match_referenced_feature` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_application_relation_pair_is_rejected_locally` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_application_relation_pair_is_rejected_locally` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_feature_id_is_exact_and_portable` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_feature_id_is_exact_and_portable` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_parcel_id_is_exact` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_parcel_id_is_exact` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_application_relation_type_is_rejected_locally` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_application_relation_type_is_rejected_locally` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_invalid_policy_domains_fail_local_validation` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_invalid_policy_domains_fail_local_validation` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_literal_null_replacements_are_rejected` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_literal_null_replacements_are_rejected` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_self_consistent_wrong_policy_suffix_dtype_is_rejected` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_self_consistent_wrong_policy_suffix_dtype_is_rejected` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_official_and_application_statuses_cannot_contradict` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_official_and_application_statuses_cannot_contradict` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_any_true_row_boundary_flag_is_rejected` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_any_true_row_boundary_flag_is_rejected` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_geometry_role_is_intrinsic` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_geometry_role_is_intrinsic` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_metric_must_match_geometry` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_metric_must_match_geometry` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_catalog_identity_fields_are_intrinsic` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_catalog_identity_fields_are_intrinsic` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_requires_canonical_crs_and_global_identity` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_requires_canonical_crs_and_global_identity` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_policy_result_schema_exactly` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_policy_result_schema_exactly` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_cnig_result_schema_exactly` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_cnig_result_schema_exactly` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_accepts_only_current_policy_and_cnig_source_schemas` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_accepts_only_current_policy_and_cnig_source_schemas` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_row_lineage_must_match_application_envelope` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_row_lineage_must_match_application_envelope` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_referenced_row_lineage_cannot_bypass_envelope` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_referenced_row_lineage_cannot_bypass_envelope` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_resolved_official_row_requires_label_and_envelope_profile` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_resolved_official_row_requires_label_and_envelope_profile` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_official_row_rejects_invented_label_or_url` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_official_row_rejects_invented_label_or_url` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_feature_prefix_has_exact_canonical_schema` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_feature_prefix_has_exact_canonical_schema` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_prefix_has_exact_canonical_schema` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_prefix_has_exact_canonical_schema` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_application_loader_rejects_locally_valid_rationale_change` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_application_loader_rejects_locally_valid_rationale_change` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_valid_domain_cross_pair_swaps` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_valid_domain_cross_pair_swaps` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_factual_prefix_lineage_change` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_factual_prefix_lineage_change` via `module._validate_result_envelope`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._validate_result_envelope`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._validate_result_envelope`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `compile_bess_planning_feature_policy`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `load_bess_planning_feature_policy_artifacts`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `validate_bess_planning_feature_policy_result_envelope`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `validate_bess_planning_feature_policy_result`
+```python
+def _validate_result_envelope(result: BessPlanningFeaturePolicyResult) -> None:
+    if type(result) is not BessPlanningFeaturePolicyResult:
+        raise BessPlanningFeaturePolicyError(
+            "result must be a BessPlanningFeaturePolicyResult"
+        )
+    for version, expected, label in (
+        (result.policy_schema_version, POLICY_SCHEMA_VERSION, "policy schema"),
+        (
+            result.result_hash_schema_version,
+            RESULT_HASH_SCHEMA_VERSION,
+            "result hash schema",
+        ),
+        (result.cnig_profile_schema_version, 2, "CNIG profile schema"),
+        (result.cnig_result_hash_schema_version, 5, "CNIG result hash schema"),
+    ):
+        if type(version) is not int or version != expected:
+            raise BessPlanningFeaturePolicyError(f"unsupported {label} version")
+    if result.policy_scope != POLICY_SCOPE:
+        raise BessPlanningFeaturePolicyError("result policy scope is invalid")
+    for value, label in (
+        (result.policy_profile, "policy profile"),
+        (result.source_document_id, "source document ID"),
+        (result.cnig_profile, "CNIG profile"),
+    ):
+        try:
+            _exact_string(value, label)
+        except ValueError as error:
+            raise BessPlanningFeaturePolicyError(str(error)) from error
+    if not isinstance(result.policy_table, pd.DataFrame) or isinstance(
+        result.policy_table, gpd.GeoDataFrame
+    ):
+        raise BessPlanningFeaturePolicyError("policy table must be a DataFrame")
+    if (
+        result.policy_table.columns.duplicated().any()
+        or tuple(result.policy_table.columns) != POLICY_TABLE_COLUMNS
+    ):
+        raise BessPlanningFeaturePolicyError("policy table schema is invalid")
+    if (
+        deterministic_frame_schema_signature(result.policy_table)
+        != POLICY_TABLE_SCHEMA_SIGNATURE
+    ):
+        raise BessPlanningFeaturePolicyError("policy table schema is invalid")
+    if result.policy_table.empty:
+        raise BessPlanningFeaturePolicyError(
+            "policy table must contain at least one policy entry"
+        )
+    for field in POLICY_RESULT_SCALAR_FIELDS:
+        if not field.endswith("_sha256"):
+            continue
+        try:
+            _sha256_string(getattr(result, field), field)
+        except ValueError as error:
+            raise BessPlanningFeaturePolicyError(str(error)) from error
+    _validate_policy_table_rows(result)
+    rebuilt = _result_with_hashes(result)
+    if result.policy_table_content_sha256 != rebuilt.policy_table_content_sha256:
+        raise BessPlanningFeaturePolicyError("policy table hash is invalid")
+    if result.complete_result_content_sha256 != rebuilt.complete_result_content_sha256:
+        raise BessPlanningFeaturePolicyError("complete result hash is invalid")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `validate_bess_planning_feature_policy_result_envelope`
 
-**Signature**
+**Exact signature**
 
 ```python
 def validate_bess_planning_feature_policy_result_envelope(
@@ -2084,53 +3575,92 @@ def validate_bess_planning_feature_policy_result_envelope(
 
 Validate one compiled-policy envelope without rebuilding CNIG sources.
 
-**Inputs**
+**Return contract**
 
-- `result` (`BessPlanningFeaturePolicyResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Runs guarded operation: Calls `_validate_result_envelope(result)` for its validation or side effect. Handles `BessPlanningFeaturePolicyError`, `Exception`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError('BESS planning-feature policy result envelope is invalid')`, `re-raise`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyError`, `_validate_result_envelope`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyArtifactManifest,
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_artifacts,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+    validate_bess_planning_feature_policy_result_envelope,
+)`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::load_bess_planning_feature_application_artifacts` via `validate_bess_planning_feature_policy_result_envelope`.
+- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyResult,
+    validate_bess_planning_feature_policy_result,
+    validate_bess_planning_feature_policy_result_envelope,
+)`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_validates_upstreams_and_rebuilds_once_lightweight` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_step_7d_5b_2b_5_exposes_lightweight_policy_result_validator` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_step_7d_5b_2b_5_exposes_lightweight_policy_result_validator` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_rejects_canonical_empty_policy_table` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_rejects_canonical_empty_policy_table` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_accepts_one_exact_policy_row` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_accepts_one_exact_policy_row` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_accepts_current_twelve_row_snapshot` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_accepts_current_twelve_row_snapshot` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_cnig_profile_schema_two` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_cnig_profile_schema_two` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_cnig_result_schema_five` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_cnig_result_schema_five` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_validates_every_intrinsic_row_contract` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_validates_every_intrinsic_row_contract` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_exact_type_and_accepts_valid_schema_v1` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_requires_exact_type_and_accepts_valid_schema_v1` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_controls_malformed_result_type` via `module.validate_bess_planning_feature_policy_result_envelope`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_policy_envelope_controls_malformed_result_type` via `module.validate_bess_planning_feature_policy_result_envelope`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/apply_bess_planning_feature_policy.py` — `load_bess_planning_feature_application_artifacts`
+```python
+def validate_bess_planning_feature_policy_result_envelope(
+    result: BessPlanningFeaturePolicyResult,
+) -> None:
+    """Validate one compiled-policy envelope without rebuilding CNIG sources."""
 
-**Tests**
+    try:
+        _validate_result_envelope(result)
+    except BessPlanningFeaturePolicyError:
+        raise
+    except Exception as error:
+        raise BessPlanningFeaturePolicyError(
+            "BESS planning-feature policy result envelope is invalid"
+        ) from error
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_unique_json_object`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -2138,57 +3668,61 @@ def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
 
 **Purpose**
 
-Implements unique json object according to the exact implementation and guards in this file.
+Private `planning` helper for unique json object; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `pairs` (`list[tuple[str, object]]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[str, object]`.
+- Every observed return expression is reproduced without truncation:
+```python
+output
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[str, object]`. Observed return expression(s): `output`.
-
-**Algorithm**
-
-1. Defines `output` with annotation `dict[str, object]` from `{}`.
-2. Iterates `(key, value)` over `pairs`. For each value: Checks `key in output`. When true: Raises `BessPlanningFeaturePolicyError(f'Duplicate JSON artifact key: {key!r}')`. Computes `output[key]` from `value`.
-3. Returns `output`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `key in output` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `key in output`.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError(f'Duplicate JSON artifact key: {key!r}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `output[key]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyError`.
+- callback/function object: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::load_bess_planning_feature_parcel_aggregation_artifacts` via `json.loads(Path(manifest_path).read_text(encoding='utf-8'), object_pairs_hook=_unique_json_object)`.
+- callback/function object: `src/landscout/stages/apply_bess_planning_feature_policy.py::load_bess_planning_feature_application_artifacts` via `json.loads(Path(manifest_path).read_text(encoding='utf-8'), object_pairs_hook=_unique_json_object)`.
+- callback/function object: `src/landscout/stages/bess_planning_feature_policy.py::load_bess_planning_feature_policy_artifacts` via `json.loads(manifest_file.read_text(encoding='utf-8'), object_pairs_hook=_unique_json_object)`.
+- callback/property argument: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_load_legacy_local_aggregation_artifacts` via `json.loads(Path(manifest_path).read_text(encoding='utf-8'), object_pairs_hook=module._unique_json_object)`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_load_legacy_local_aggregation_artifacts` via `module._unique_json_object`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _unique_json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    output: dict[str, object] = {}
+    for key, value in pairs:
+        if key in output:
+            raise BessPlanningFeaturePolicyError(
+                f"Duplicate JSON artifact key: {key!r}"
+            )
+        output[key] = value
+    return output
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `load_bess_planning_feature_policy_artifacts`
 
-**Signature**
+**Exact signature**
 
 ```python
 def load_bess_planning_feature_policy_artifacts(
@@ -2201,58 +3735,122 @@ def load_bess_planning_feature_policy_artifacts(
 
 Load and locally validate one physically sealed compiled-policy artifact.
 
-**Inputs**
+**Return contract**
 
-- `parquet_path` (`str | Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `manifest_path` (`str | Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessPlanningFeaturePolicyResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessPlanningFeaturePolicyResult`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Runs guarded operation: Computes `parquet` from `Path(parquet_path)`. Computes `manifest_file` from `Path(manifest_path)`. Computes `payload` from `json.loads(manifest_file.read_text(encoding='utf-8'), object_pairs_hook=_unique_json_object)`. Computes `manifest` from `BessPlanningFeaturePolicyArtifactManifest.model_validate(payload)`. Executes 12 additional source-ordered statement(s). Handles `BessPlanningFeaturePolicyError`, `Exception`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `manifest.parquet_filename != parquet.name` is true.
-- Rejects or diverts the path when `len(parquet_payload) != manifest.parquet_size_bytes` is true.
-- Rejects or diverts the path when `sha256(parquet_payload).hexdigest() != manifest.parquet_sha256` is true.
-- Rejects or diverts the path when `len(table) != manifest.parquet_row_count` is true.
-- Rejects or diverts the path when `actual_schema != declared_schema` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `manifest.parquet_filename != parquet.name`.
+- Guard with a raise path: `len(parquet_payload) != manifest.parquet_size_bytes`.
+- Guard with a raise path: `sha256(parquet_payload).hexdigest() != manifest.parquet_sha256`.
+- Guard with a raise path: `len(table) != manifest.parquet_row_count`.
+- Guard with a raise path: `actual_schema != declared_schema`.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError('Artifact manifest Parquet SHA256 differs from the supplied file')`, `BessPlanningFeaturePolicyError('Artifact manifest Parquet filename differs from the supplied file')`, `BessPlanningFeaturePolicyError('Artifact manifest Parquet row count differs from the supplied file')`, `BessPlanningFeaturePolicyError('Artifact manifest Parquet size differs from the supplied file')`, `BessPlanningFeaturePolicyError('Artifact manifest policy-table schema differs from the supplied file')`, `BessPlanningFeaturePolicyError(f'BESS CNIG feature policy artifacts are invalid: {error}')`, `re-raise`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `manifest_file.read_text`, `parquet.read_bytes`, `pd.read_parquet`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: `manifest_file.read_text`, `parquet.read_bytes`, `pd.read_parquet`.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `sha256`, `sha256(parquet_payload).hexdigest`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyArtifactManifest.model_validate`, `BessPlanningFeaturePolicyError`, `BessPlanningFeaturePolicyResult`, `BytesIO`, `Path`, `_validate_result_envelope`, `deterministic_frame_schema_signature`, `getattr`, `json.loads`, `len`, `manifest.policy_table_schema_signature.model_dump`, `manifest_file.read_text`, `parquet.read_bytes`, `pd.read_parquet`, `sha256`, `sha256(parquet_payload).hexdigest`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyArtifactManifest,
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_artifacts,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+    validate_bess_planning_feature_policy_result_envelope,
+)`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_persisted_parquet_and_json_readback_is_source_complete` via `module.load_bess_planning_feature_policy_artifacts`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_persisted_parquet_and_json_readback_is_source_complete` via `module.load_bess_planning_feature_policy_artifacts`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_manifest_mismatch` via `module.load_bess_planning_feature_policy_artifacts`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_manifest_mismatch` via `module.load_bess_planning_feature_policy_artifacts`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_duplicate_json_key` via `module.load_bess_planning_feature_policy_artifacts`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_duplicate_json_key` via `module.load_bess_planning_feature_policy_artifacts`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_parquet_replacement` via `module.load_bess_planning_feature_policy_artifacts`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_rejects_parquet_replacement` via `module.load_bess_planning_feature_policy_artifacts`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_parses_the_exact_verified_parquet_bytes` via `module.load_bess_planning_feature_policy_artifacts`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_artifact_loader_parses_the_exact_verified_parquet_bytes` via `module.load_bess_planning_feature_policy_artifacts`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_artifact_loader_rejects_source_schema_before_parquet_read` via `module.load_bess_planning_feature_policy_artifacts`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_policy_artifact_loader_rejects_source_schema_before_parquet_read` via `module.load_bess_planning_feature_policy_artifacts`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def load_bess_planning_feature_policy_artifacts(
+    parquet_path: str | Path,
+    manifest_path: str | Path,
+) -> BessPlanningFeaturePolicyResult:
+    """Load and locally validate one physically sealed compiled-policy artifact."""
 
-**Tests**
+    try:
+        parquet = Path(parquet_path)
+        manifest_file = Path(manifest_path)
+        payload = json.loads(
+            manifest_file.read_text(encoding="utf-8"),
+            object_pairs_hook=_unique_json_object,
+        )
+        manifest = BessPlanningFeaturePolicyArtifactManifest.model_validate(payload)
+        if manifest.parquet_filename != parquet.name:
+            raise BessPlanningFeaturePolicyError(
+                "Artifact manifest Parquet filename differs from the supplied file"
+            )
+        parquet_payload = parquet.read_bytes()
+        if len(parquet_payload) != manifest.parquet_size_bytes:
+            raise BessPlanningFeaturePolicyError(
+                "Artifact manifest Parquet size differs from the supplied file"
+            )
+        if sha256(parquet_payload).hexdigest() != manifest.parquet_sha256:
+            raise BessPlanningFeaturePolicyError(
+                "Artifact manifest Parquet SHA256 differs from the supplied file"
+            )
+        table = pd.read_parquet(BytesIO(parquet_payload))
+        if len(table) != manifest.parquet_row_count:
+            raise BessPlanningFeaturePolicyError(
+                "Artifact manifest Parquet row count differs from the supplied file"
+            )
+        actual_schema = deterministic_frame_schema_signature(table)
+        declared_schema = manifest.policy_table_schema_signature.model_dump(mode="json")
+        if actual_schema != declared_schema:
+            raise BessPlanningFeaturePolicyError(
+                "Artifact manifest policy-table schema differs from the supplied file"
+            )
+        result = BessPlanningFeaturePolicyResult(
+            **{name: getattr(manifest, name) for name in POLICY_RESULT_SCALAR_FIELDS},
+            policy_table=table,
+        )
+        _validate_result_envelope(result)
+        return result
+    except BessPlanningFeaturePolicyError:
+        raise
+    except Exception as error:
+        raise BessPlanningFeaturePolicyError(
+            f"BESS CNIG feature policy artifacts are invalid: {error}"
+        ) from error
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_coded_source`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_coded_source(
@@ -2269,63 +3867,71 @@ def _validate_coded_source(
 
 **Purpose**
 
-Validates and rejects malformed coded source according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent coded source; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `planning_document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `surface_features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `line_features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `point_features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `relations` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `code_profile` (`CnigFeatureCodeProfile | str | Path`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `coded_result` (`PlanningFeatureCodeResult`; required) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Runs guarded operation: Calls `validate_planning_feature_code_result(planning_document, parcels, surface_features, line_features, point_features, relations, code_profile, coded_result)` for its validation or side effect. Handles `Exception`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError('Source-complete CNIG result validation failed')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyError`, `validate_planning_feature_code_result`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::compile_bess_planning_feature_policy` via `_validate_coded_source`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `_validate_coded_source`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/bess_planning_feature_policy.py` — `compile_bess_planning_feature_policy`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `validate_bess_planning_feature_policy_result`
+```python
+def _validate_coded_source(
+    planning_document: GpuPlanningDocument,
+    parcels: gpd.GeoDataFrame,
+    surface_features: gpd.GeoDataFrame,
+    line_features: gpd.GeoDataFrame,
+    point_features: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+    code_profile: CnigFeatureCodeProfile | str | Path,
+    coded_result: PlanningFeatureCodeResult,
+) -> None:
+    try:
+        validate_planning_feature_code_result(
+            planning_document,
+            parcels,
+            surface_features,
+            line_features,
+            point_features,
+            relations,
+            code_profile,
+            coded_result,
+        )
+    except Exception as error:
+        raise BessPlanningFeaturePolicyError(
+            "Source-complete CNIG result validation failed"
+        ) from error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `compile_bess_planning_feature_policy`
 
-**Signature**
+**Exact signature**
 
 ```python
 def compile_bess_planning_feature_policy(
@@ -2345,72 +3951,112 @@ def compile_bess_planning_feature_policy(
 
 Compile the exact source-locked policy without applying it to features.
 
-**Inputs**
+**Return contract**
 
-- `planning_document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `surface_features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `line_features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `point_features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `relations` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `code_profile` (`CnigFeatureCodeProfile | str | Path`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `coded_result` (`PlanningFeatureCodeResult`; required) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_config` (`BessPlanningFeaturePolicyConfig | str | Path`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessPlanningFeaturePolicyResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessPlanningFeaturePolicyResult`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Runs guarded operation: Computes `config` from `_resolved_policy_config(policy_config)`. Calls `_validate_source_lock(config, coded_result)` for its validation or side effect. Calls `_validate_coded_source(planning_document, parcels, surface_features, line_features, point_features, relations, code_profile, coded_result)` for its validation or side effect. Computes `result` from `_build_result(config, coded_result)`. Executes 2 additional source-ordered statement(s). Handles `BessPlanningFeaturePolicyError`, `Exception`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError('BESS CNIG feature policy compilation failed safely')`, `re-raise`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyError`, `_build_result`, `_resolved_policy_config`, `_validate_coded_source`, `_validate_result_envelope`, `_validate_source_lock`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyArtifactManifest,
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_artifacts,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+    validate_bess_planning_feature_policy_result_envelope,
+)`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_compiled_fixture` via `compile_bess_planning_feature_policy`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_source_lock_mismatch_is_rejected` via `compile_bess_planning_feature_policy`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_missing_policy_pair_is_rejected` via `compile_bess_planning_feature_policy`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_extra_policy_pair_is_rejected_without_type_fallback` via `compile_bess_planning_feature_policy`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_prescription_information_code_spaces_remain_separate` via `compile_bess_planning_feature_policy`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_official_meaning_mismatch_is_rejected` via `compile_bess_planning_feature_policy`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_in_memory_config_is_revalidated_before_compilation` via `compile_bess_planning_feature_policy`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `module.compile_bess_planning_feature_policy`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_wrong_source_lock_fast_fails_before_source_validation` via `module.compile_bess_planning_feature_policy`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `module.compile_bess_planning_feature_policy`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_forged_matching_lock_still_runs_source_complete_validation` via `module.compile_bess_planning_feature_policy`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `module.compile_bess_planning_feature_policy`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `module.compile_bess_planning_feature_policy`.
+- import/re-export: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_bess_planning_feature_policy.py` — `_compiled_fixture`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_extra_policy_pair_is_rejected_without_type_fallback`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_in_memory_config_is_revalidated_before_compilation`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_missing_policy_pair_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_official_meaning_mismatch_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_prescription_information_code_spaces_remain_separate`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_source_lock_mismatch_is_rejected`
+```python
+def compile_bess_planning_feature_policy(
+    planning_document: GpuPlanningDocument,
+    parcels: gpd.GeoDataFrame,
+    surface_features: gpd.GeoDataFrame,
+    line_features: gpd.GeoDataFrame,
+    point_features: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+    code_profile: CnigFeatureCodeProfile | str | Path,
+    coded_result: PlanningFeatureCodeResult,
+    policy_config: BessPlanningFeaturePolicyConfig | str | Path,
+) -> BessPlanningFeaturePolicyResult:
+    """Compile the exact source-locked policy without applying it to features."""
 
-**Tests**
+    try:
+        config = _resolved_policy_config(policy_config)
+        _validate_source_lock(config, coded_result)
+        _validate_coded_source(
+            planning_document,
+            parcels,
+            surface_features,
+            line_features,
+            point_features,
+            relations,
+            code_profile,
+            coded_result,
+        )
+        result = _build_result(config, coded_result)
+        _validate_result_envelope(result)
+        return result
+    except BessPlanningFeaturePolicyError:
+        raise
+    except Exception as error:
+        raise BessPlanningFeaturePolicyError(
+            "BESS CNIG feature policy compilation failed safely"
+        ) from error
+```
 
-- `tests/unit/test_bess_planning_feature_policy.py::test_extra_policy_pair_is_rejected_without_type_fallback`
-- `tests/unit/test_bess_planning_feature_policy.py::test_in_memory_config_is_revalidated_before_compilation`
-- `tests/unit/test_bess_planning_feature_policy.py::test_missing_policy_pair_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_official_meaning_mismatch_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_prescription_information_code_spaces_remain_separate`
-- `tests/unit/test_bess_planning_feature_policy.py::test_source_lock_mismatch_is_rejected`
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `validate_bess_planning_feature_policy_result`
 
-**Signature**
+**Exact signature**
 
 ```python
 def validate_bess_planning_feature_policy_result(
@@ -2431,136 +4077,255 @@ def validate_bess_planning_feature_policy_result(
 
 Rebuild and validate a normalized policy from every factual source input.
 
-**Inputs**
+**Return contract**
 
-- `planning_document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `surface_features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `line_features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `point_features` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `relations` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `code_profile` (`CnigFeatureCodeProfile | str | Path`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `coded_result` (`PlanningFeatureCodeResult`; required) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_config` (`BessPlanningFeaturePolicyConfig | str | Path`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `result` (`BessPlanningFeaturePolicyResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Runs guarded operation: Calls `_validate_result_envelope(result)` for its validation or side effect. Computes `config` from `_resolved_policy_config(policy_config)`. Calls `_validate_source_lock(config, coded_result)` for its validation or side effect. Calls `_validate_coded_source(planning_document, parcels, surface_features, line_features, point_features, relations, code_profile, coded_result)` for its validation or side effect. Executes 3 additional source-ordered statement(s). Handles `BessPlanningFeaturePolicyError`, `Exception`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `_frame_payload(result.policy_table) != _frame_payload(expected.policy_table)` is true.
-- Rejects or diverts the path when `getattr(result, field) != getattr(expected, field)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessPlanningFeaturePolicyError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `_frame_payload(result.policy_table) != _frame_payload(expected.policy_table)`.
+- Guard with a raise path: `getattr(result, field) != getattr(expected, field)`.
+- Explicit raise expressions: `BessPlanningFeaturePolicyError('BESS CNIG feature policy result validation failed safely')`, `BessPlanningFeaturePolicyError('policy table differs from rebuilt policy')`, `BessPlanningFeaturePolicyError(f'result {field} differs from rebuilt policy')`, `re-raise`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessPlanningFeaturePolicyError`, `_build_result`, `_frame_payload`, `_resolved_policy_config`, `_validate_coded_source`, `_validate_result_envelope`, `_validate_source_lock`, `getattr`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyArtifactManifest,
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_artifacts,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+    validate_bess_planning_feature_policy_result_envelope,
+)`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_policy_source` via `validate_bess_planning_feature_policy_result`.
+- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyResult,
+    validate_bess_planning_feature_policy_result,
+    validate_bess_planning_feature_policy_result_envelope,
+)`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_and_public_validator_heavy_validation_counts` via `module.validate_bess_planning_feature_policy_result`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status` via `validate_bess_planning_feature_policy_result`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_table_mutation_is_rejected` via `validate_bess_planning_feature_policy_result`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_coordinated_policy_table_and_hash_mutation_is_rejected` via `validate_bess_planning_feature_policy_result`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_persisted_parquet_and_json_readback_is_source_complete` via `validate_bess_planning_feature_policy_result`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `module.validate_bess_planning_feature_policy_result`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_locally_invalid_result_fast_fails_before_source_validation` via `module.validate_bess_planning_feature_policy_result`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `module.validate_bess_planning_feature_policy_result`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::test_compiler_and_public_validator_invoke_source_complete_coding_validation` via `module.validate_bess_planning_feature_policy_result`.
+- import/re-export: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.stages.bess_planning_feature_policy import (
+    BessPlanningFeaturePolicyConfig,
+    BessPlanningFeaturePolicyError,
+    BessPlanningFeaturePolicyResult,
+    compile_bess_planning_feature_policy,
+    load_bess_planning_feature_policy_config,
+    validate_bess_planning_feature_policy_result,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/apply_bess_planning_feature_policy.py` — `_validate_policy_source`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_coordinated_policy_table_and_hash_mutation_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_persisted_parquet_and_json_readback_is_source_complete`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_policy_table_mutation_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status`
+```python
+def validate_bess_planning_feature_policy_result(
+    planning_document: GpuPlanningDocument,
+    parcels: gpd.GeoDataFrame,
+    surface_features: gpd.GeoDataFrame,
+    line_features: gpd.GeoDataFrame,
+    point_features: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+    code_profile: CnigFeatureCodeProfile | str | Path,
+    coded_result: PlanningFeatureCodeResult,
+    policy_config: BessPlanningFeaturePolicyConfig | str | Path,
+    result: BessPlanningFeaturePolicyResult,
+) -> None:
+    """Rebuild and validate a normalized policy from every factual source input."""
 
-**Tests**
+    try:
+        _validate_result_envelope(result)
+        config = _resolved_policy_config(policy_config)
+        _validate_source_lock(config, coded_result)
+        _validate_coded_source(
+            planning_document,
+            parcels,
+            surface_features,
+            line_features,
+            point_features,
+            relations,
+            code_profile,
+            coded_result,
+        )
+        expected = _build_result(config, coded_result)
+        for field in POLICY_RESULT_SCALAR_FIELDS:
+            if getattr(result, field) != getattr(expected, field):
+                raise BessPlanningFeaturePolicyError(
+                    f"result {field} differs from rebuilt policy"
+                )
+        if _frame_payload(result.policy_table) != _frame_payload(expected.policy_table):
+            raise BessPlanningFeaturePolicyError(
+                "policy table differs from rebuilt policy"
+            )
+    except BessPlanningFeaturePolicyError:
+        raise
+    except Exception as error:
+        raise BessPlanningFeaturePolicyError(
+            "BESS CNIG feature policy result validation failed safely"
+        ) from error
+```
 
-- `tests/unit/test_bess_planning_feature_policy.py::test_coordinated_policy_table_and_hash_mutation_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_persisted_parquet_and_json_readback_is_source_complete`
-- `tests/unit/test_bess_planning_feature_policy.py::test_policy_table_mutation_is_rejected`
-- `tests/unit/test_bess_planning_feature_policy.py::test_valid_exact_policy_compiles_without_applying_feature_or_parcel_status`
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
+
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+### `POLICY_TABLE_COLUMNS` — canonical or derived frame-column schema
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `BESS_CNIG_FEATURE_POLICY_RESULT` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `CONTEXT_REVIEW_REQUIRED` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `DESIGN_REVIEW_REQUIRED` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `HIGH` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `INFORMATION` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `LIKELY_MATERIAL_CONSTRAINT` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `LOW` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `MATERIAL_REVIEW_REQUIRED` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `MEDIUM` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `OFFICIAL_CNIG_CODE_MEANING_ONLY` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `PRESCRIPTION` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `UNKNOWN` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `cnig_complete_result_content_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `cnig_profile` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `cnig_profile_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `confidence` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `feature_family` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `legal_conclusion_produced` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `legal_reference` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `limitations` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `local_feature_text_interpreted` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `local_regulation_content_interpreted` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `official_label` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `official_legal_reference` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `official_regulation_reference` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `policy_profile` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `policy_scope` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `policy_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `precheck_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `rationale` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `regulation_or_annex_reference` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `required_human_action` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `status_priority` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `subtype_code` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `type_code` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
+```python
+POLICY_TABLE_COLUMNS = (
+    "feature_family",
+    "type_code",
+    "subtype_code",
+    "official_label",
+    "official_legal_reference",
+    "official_regulation_reference",
+    "precheck_status",
+    "confidence",
+    "status_priority",
+    "rationale",
+    "required_human_action",
+    "limitations",
+    "policy_scope",
+    "local_feature_text_interpreted",
+    "local_regulation_content_interpreted",
+    "legal_conclusion_produced",
+    "policy_profile",
+    "policy_sha256",
+    "cnig_profile",
+    "cnig_profile_sha256",
+    "cnig_complete_result_content_sha256",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `feature_family` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `type_code` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `subtype_code` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `official_label` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `official_legal_reference` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `official_regulation_reference` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `precheck_status` | Pandas nullable string dtype | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 8 | `confidence` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `status_priority` | NumPy int64 | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 10 | `rationale` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `required_human_action` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 12 | `limitations` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `policy_scope` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 14 | `local_feature_text_interpreted` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 15 | `local_regulation_content_interpreted` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 16 | `legal_conclusion_produced` | non-null Boolean dtype | non-null under this dtype contract | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 17 | `policy_profile` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 18 | `policy_sha256` | Pandas nullable string dtype | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 19 | `cnig_profile` | Pandas nullable string dtype | physical dtype permits true null; row-semantic validators below determine where null is allowed | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 20 | `cnig_profile_sha256` | Pandas nullable string dtype | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 21 | `cnig_complete_result_content_sha256` | Pandas nullable string dtype | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+
+### `POLICY_TABLE_DTYPES` — dtype contract aligned with a canonical schema
+
+```python
+POLICY_TABLE_DTYPES = tuple(
+    "int64"
+    if column == "status_priority"
+    else "bool"
+    if column
+    in {
+        "local_feature_text_interpreted",
+        "local_regulation_content_interpreted",
+        "legal_conclusion_produced",
+    }
+    else "str"
+    for column in POLICY_TABLE_COLUMNS
+)
+```
+
+### `POLICY_TABLE_SCHEMA_SIGNATURE` — portable schema/index signature
+
+```python
+POLICY_TABLE_SCHEMA_SIGNATURE: dict[str, object] = {
+    "columns": list(POLICY_TABLE_COLUMNS),
+    "dtypes": list(POLICY_TABLE_DTYPES),
+    "index_class": "pandas.Index",
+    "index_names": [None],
+    "index_level_dtypes": ["int64"],
+}
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `columns` | ['feature_family', 'type_code', 'subtype_code', 'official_label', 'official_legal_reference', 'official_regulation_reference', 'precheck_status', 'confidence', 'status_priority', 'rationale', 'required_human_action', 'limitations', 'policy_scope', 'local_feature_text_interpreted', 'local_regulation_content_interpreted', 'legal_conclusion_produced', 'policy_profile', 'policy_sha256', 'cnig_profile', 'cnig_profile_sha256', 'cnig_complete_result_content_sha256'] | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `dtypes` | ['str', 'str', 'str', 'str', 'str', 'str', 'str', 'str', 'int64', 'str', 'str', 'str', 'str', 'bool', 'bool', 'bool', 'str', 'str', 'str', 'str', 'str'] | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `index_class` | pandas.Index | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 4 | `index_names` | [None] | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `index_level_dtypes` | ['int64'] | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+
+
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module defines an exact `__all__` contract:
+
+| Export | Kind | Origin | Included in `__all__` |
+|---|---|---|---|
+| `BessPlanningFeaturePolicyArtifactManifest` | re-exported/defined Python symbol | `defined in `src/landscout/stages/bess_planning_feature_policy.py`` | yes |
+| `BessPlanningFeaturePolicyConfig` | re-exported/defined Python symbol | `defined in `src/landscout/stages/bess_planning_feature_policy.py`` | yes |
+| `BessPlanningFeaturePolicyError` | re-exported/defined Python symbol | `defined in `src/landscout/stages/bess_planning_feature_policy.py`` | yes |
+| `BessPlanningFeaturePolicyResult` | re-exported/defined Python symbol | `defined in `src/landscout/stages/bess_planning_feature_policy.py`` | yes |
+| `compile_bess_planning_feature_policy` | re-exported/defined Python symbol | `defined in `src/landscout/stages/bess_planning_feature_policy.py`` | yes |
+| `load_bess_planning_feature_policy_artifacts` | re-exported/defined Python symbol | `defined in `src/landscout/stages/bess_planning_feature_policy.py`` | yes |
+| `load_bess_planning_feature_policy_config` | re-exported/defined Python symbol | `defined in `src/landscout/stages/bess_planning_feature_policy.py`` | yes |
+| `validate_bess_planning_feature_policy_result` | re-exported/defined Python symbol | `defined in `src/landscout/stages/bess_planning_feature_policy.py`` | yes |
+| `validate_bess_planning_feature_policy_result_envelope` | re-exported/defined Python symbol | `defined in `src/landscout/stages/bess_planning_feature_policy.py`` | yes |
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `planning` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the planning flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -2568,8 +4333,8 @@ This file contributes to LandScout's `planning` evidence flow as described by it
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

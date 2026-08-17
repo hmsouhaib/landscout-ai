@@ -4,9 +4,9 @@
 
 - Repository path: `src/landscout/geo/crs.py`
 - File type: Python source
-- Primary responsibility: Exposes canonical storage and metric CRS constants.
-- Layer / domain: `GIS utility` / `common`
-- Public or internal role: Module symbols without a package re-export are internal unless imported directly by repository code.
+- Layer: Geo/GIS utility
+- Domain: geo/GIS
+- Responsibility: Exposes canonical storage and metric CRS constants.
 - Source SHA256: `22f5eff7b49ed92b2e4fffed3bc02ab2e0f159f809a16bf49d05d6ef177f2de5`
 
 ## 1. Purpose
@@ -15,77 +15,107 @@ Exposes canonical storage and metric CRS constants.
 
 ## 2. Position in LandScout architecture
 
-This file is a `GIS utility` artifact in the `common` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **Geo/GIS utility** layer and the **geo/GIS** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- None.
+- `None.`
 
-### Third-party
+### Third-party packages
 
-- `from pyproj import CRS` — required by the implementation paths and symbols documented below.
+- `from pyproj import CRS`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- None.
+- `None.`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `WGS84` | `CRS.from_epsg(4326)` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `LAMBERT93` | `CRS.from_epsg(2154)` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `WGS84`
+
+```python
+WGS84 = CRS.from_epsg(4326)
+```
+
+Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `src/landscout/geo/__init__.py::<module>` (import/re-export), `src/landscout/geo/geometry.py::centroid_to_latlon` (value argument/reference), `src/landscout/geo/geometry.py::<module>` (import/re-export), `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` (value argument/reference), `src/landscout/stages/enrich_shape.py::<module>` (import/re-export), `src/landscout/stages/normalize_cadastre.py::normalize_cadastre_parcels` (value argument/reference), `src/landscout/stages/normalize_cadastre.py::<module>` (import/re-export), `tests/unit/test_crs.py::test_reproject_to_lambert93_and_back_to_latlon` (value argument/reference), `tests/unit/test_crs.py::<module>` (import/re-export), `tests/unit/test_geometry.py::test_metric_calculation_in_wgs84_fails` (value argument/reference), `tests/unit/test_geometry.py::test_shape_metrics_reject_geographic_crs` (value argument/reference), `tests/unit/test_geometry.py::test_shape_metrics_reject_geographic_crs` (value argument/reference), `tests/unit/test_geometry.py::test_shape_metrics_reject_geographic_crs` (value argument/reference), `tests/unit/test_geometry.py::test_shape_metrics_reject_geographic_crs` (value argument/reference), `tests/unit/test_geometry.py::test_centralized_shape_metrics_reject_geographic_crs` (value argument/reference), `tests/unit/test_geometry.py::<module>` (import/re-export).
+
+#### `LAMBERT93`
+
+```python
+LAMBERT93 = CRS.from_epsg(2154)
+```
+
+Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `src/landscout/geo/__init__.py::<module>` (import/re-export), `src/landscout/geo/geometry.py::reproject_to_lambert93` (value argument/reference), `src/landscout/geo/geometry.py::<module>` (import/re-export), `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` (value argument/reference), `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` (value argument/reference), `src/landscout/stages/enrich_shape.py::enrich_parcel_shapes` (value argument/reference), `src/landscout/stages/enrich_shape.py::<module>` (import/re-export), `src/landscout/stages/normalize_cadastre.py::normalize_cadastre_parcels` (value argument/reference), `src/landscout/stages/normalize_cadastre.py::<module>` (import/re-export), `tests/unit/test_crs.py::test_reproject_to_lambert93_and_back_to_latlon` (value argument/reference), `tests/unit/test_crs.py::<module>` (import/re-export), `tests/unit/test_enrich_shape.py::test_enrichment_matches_centralized_shape_metrics` (value argument/reference), `tests/unit/test_enrich_shape.py::test_enrichment_matches_centralized_shape_metrics` (value argument/reference), `tests/unit/test_enrich_shape.py::<module>` (import/re-export), `tests/unit/test_geometry.py::test_valid_polygon_in_lambert93` (value argument/reference), `tests/unit/test_geometry.py::test_area_in_square_metres` (value argument/reference), `tests/unit/test_geometry.py::test_perimeter_in_metres` (value argument/reference), `tests/unit/test_geometry.py::test_empty_geometry_fails` (value argument/reference), `tests/unit/test_geometry.py::test_invalid_geometry_fails` (value argument/reference), `tests/unit/test_geometry.py::test_multipolygon` (value argument/reference).
+
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
-No class, model, or dataclass is declared in this file.
+No class/model/dataclass is declared.
 
 ## 6. Functions and methods
 
-No function or method is declared in this file.
+No function or method is declared.
 
 ## 7. Data contracts
 
-No DataFrame/GeoDataFrame column is referenced directly. Object and scalar contracts are documented through classes, parameters, returns, constants, and validators.
+No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
+
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `common` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the geo/GIS flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
-- This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
+- Geometry utilities measure or validate geometry only; they do not decide parcel suitability, authorization, capacity, access, or ownership.
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

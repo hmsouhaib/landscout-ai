@@ -4,74 +4,456 @@
 
 - Repository path: `src/landscout/stages/interpret_bess_zoning.py`
 - File type: Python source
-- Primary responsibility: Applies the checked-in written-zoning evidence policy to structured regulation evidence and parcel zoning facts.
-- Layer / domain: `stage` / `project`
-- Public or internal role: Contains an explicit module/package export surface; helpers prefixed with `_` remain internal unless re-exported elsewhere.
+- Layer: processing/policy stage
+- Domain: planning
+- Responsibility: Applies the source-locked Muret written-zoning evidence policy to structured regulation and parcel-zone facts to produce deterministic planning precheck evidence.
 - Source SHA256: `f230e39abedb5c61a7f51b227800c3a185df9689611f3526aa49cf362ffc99c9`
 
 ## 1. Purpose
 
-Applies the checked-in written-zoning evidence policy to structured regulation evidence and parcel zoning facts.
+Applies the source-locked Muret written-zoning evidence policy to structured regulation and parcel-zone facts to produce deterministic planning precheck evidence.
 
 ## 2. Position in LandScout architecture
 
-This file is a `stage` artifact in the `project` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **processing/policy stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from __future__ import annotations` — required by the implementation paths and symbols documented below.
-- `import json` — required by the implementation paths and symbols documented below.
-- `import math` — required by the implementation paths and symbols documented below.
-- `import re` — required by the implementation paths and symbols documented below.
-- `from collections.abc import Mapping, Sequence` — required by the implementation paths and symbols documented below.
-- `from dataclasses import dataclass, replace` — required by the implementation paths and symbols documented below.
-- `from datetime import date, datetime` — required by the implementation paths and symbols documented below.
-- `from hashlib import sha256` — required by the implementation paths and symbols documented below.
-- `from numbers import Integral, Real` — required by the implementation paths and symbols documented below.
-- `from pathlib import Path` — required by the implementation paths and symbols documented below.
-- `from typing import Literal` — required by the implementation paths and symbols documented below.
+- `from __future__ import annotations`
+- `import json`
+- `import math`
+- `import re`
+- `from collections.abc import Mapping, Sequence`
+- `from dataclasses import dataclass, replace`
+- `from datetime import date, datetime`
+- `from hashlib import sha256`
+- `from numbers import Integral, Real`
+- `from pathlib import Path`
+- `from typing import Literal`
 
-### Third-party
+### Third-party packages
 
-- `import geopandas as gpd` — required by the implementation paths and symbols documented below.
-- `import numpy as np` — required by the implementation paths and symbols documented below.
-- `import pandas as pd` — required by the implementation paths and symbols documented below.
-- `import yaml` — required by the implementation paths and symbols documented below.
-- `from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, model_validator` — required by the implementation paths and symbols documented below.
-- `from pyproj import CRS` — required by the implementation paths and symbols documented below.
-- `from shapely import to_wkb` — required by the implementation paths and symbols documented below.
-- `from shapely.geometry.base import BaseGeometry` — required by the implementation paths and symbols documented below.
+- `import geopandas as gpd`
+- `import numpy as np`
+- `import pandas as pd`
+- `import yaml`
+- `from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr, model_validator`
+- `from pyproj import CRS`
+- `from shapely import to_wkb`
+- `from shapely.geometry.base import BaseGeometry`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout.sources.gpu_fr import GpuPlanningDocument` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.enrich_planning_zoning import ( PlanningZoningError, validate_normalized_planning_zoning_inputs, )` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.index_planning_regulation import ( PlanningRegulationIndex, validate_planning_regulation_index, )` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.planning_overlay import technical_overlay_tolerance` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.structure_planning_regulation import ( PlanningRegulationStructureConfig, PlanningRegulationStructureError, PlanningRegulationStructureResult, validate_planning_regulation_structure_with_fragments, )` — required by the implementation paths and symbols documented below.
+- `from landscout.sources.gpu_fr import GpuPlanningDocument`
+- `from landscout.stages.enrich_planning_zoning import (
+    PlanningZoningError,
+    validate_normalized_planning_zoning_inputs,
+)`
+- `from landscout.stages.index_planning_regulation import (
+    PlanningRegulationIndex,
+    validate_planning_regulation_index,
+)`
+- `from landscout.stages.planning_overlay import technical_overlay_tolerance`
+- `from landscout.stages.structure_planning_regulation import (
+    PlanningRegulationStructureConfig,
+    PlanningRegulationStructureError,
+    PlanningRegulationStructureResult,
+    validate_planning_regulation_structure_with_fragments,
+)`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `POLICY_SCHEMA_VERSION` | `5` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `RESULT_HASH_SCHEMA_VERSION` | `5` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `PLANNING_PRECHECK_SCOPE` | `"WRITTEN_ZONING_REGULATION_ONLY"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `REVIEW_SCOPE` | `"CONFIGURED_USE_CONTROL_ARTICLES_ONLY"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_CHAPTER_STATUSES` | `frozenset( {"POTENTIALLY_COMPATIBLE", "CONDITIONAL_REVIEW", "LIKELY_DIFFICULT", "UNKNOWN"} )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_PARCEL_STATUSES` | `_CHAPTER_STATUSES &#124; {"MIXED_REVIEW_REQUIRED"}` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_CONFIDENCES` | `frozenset({"HIGH", "MEDIUM", "LOW"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_RESOLVED_MAPPING_STATUSES` | `frozenset({"EXACT", "CONFIG_ALIAS"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `CHAPTER_POLICY_COLUMNS` | `( "resolved_zone_chapter_label", "chapter_section_id", "review_completeness", "review_scope", "reviewed_section_ids", "missing_required_section_ids", "review_note", "zoning_precheck_status", "zoning_precheck_confidence", "evidence_count", "evidence_ids", "decision_evidence_ids", "context_evidence_ids", "rationale", "missing_information", "planning_precheck_scope", "policy_profile", "policy_sha256", "document_id", "archive_sha256", "pdf_sha256", "index_content_sha256", "structure_result_content_sha256", "structure_profile", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `EVIDENCE_CATALOG_COLUMNS` | `( "evidence_id", "resolved_zone_chapter_label", "section_id", "page_number", "evidence_kind", "evidence_direction", "linked_route_ids", "linked_route_roles", "decision_linked", "exact_raw_excerpt", "excerpt_sha256", "section_page_fragment_sha256", "excerpt_start", "excerpt_end", "source_rule_id", "source_rule_excerpt", "source_rule_sha256", "source_rule_start", "source_rule_end", "interpretation_note", "review_completeness", "review_scope", "policy_profile", "policy_sha256", "document_id", "archive_sha256", "pdf_sha256", "index_content_sha256", "structure_result_content_sha256", "structure_profile", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_EVIDENCE_OCCURRENCE_COLUMNS` | `( "resolved_zone_chapter_label", "section_id", "page_number", "section_page_fragment_sha256", "excerpt_start", "excerpt_end", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `ROUTE_ASSESSMENT_COLUMNS` | `( "route_id", "resolved_zone_chapter_label", "route_kind", "derived_route_status", "positive_evidence_ids", "condition_evidence_ids", "difficulty_evidence_ids", "applicability_note", "review_completeness", "review_scope", "policy_profile", "policy_sha256", "document_id", "archive_sha256", "pdf_sha256", "index_content_sha256", "structure_result_content_sha256", "structure_profile", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `EVIDENCE_ROUTE_LINK_COLUMNS` | `( "route_id", "resolved_zone_chapter_label", "route_kind", "evidence_id", "route_role", "evidence_direction", "review_completeness", "review_scope", "policy_profile", "policy_sha256", "document_id", "archive_sha256", "pdf_sha256", "index_content_sha256", "structure_result_content_sha256", "structure_profile", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `SOURCE_ZONE_POLICY_COLUMNS` | `( "source_zone_label_raw", "resolved_zone_chapter_label", "mapping_status", "matched_section_id", "source_layer", "zoning_precheck_status", "zoning_precheck_confidence", "evidence_ids", "decision_evidence_ids", "context_evidence_ids", "review_scope", "planning_precheck_scope", "policy_profile", "policy_sha256", "document_id", "archive_sha256", "pdf_sha256", "index_content_sha256", "structure_result_content_sha256", "structure_profile", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `PARCEL_ZONE_POLICY_COLUMNS` | `( "parcel_id", "planning_zone_id", "source_zone_id", "source_zone_label_raw", "resolved_zone_chapter_label", "intersection_area_m2", "parcel_share_pct", "zoning_precheck_status", "zoning_precheck_confidence", "evidence_ids", "decision_evidence_ids", "context_evidence_ids", "review_scope", "planning_precheck_scope", "policy_profile", "policy_sha256", "document_id", "archive_sha256", "pdf_sha256", "index_content_sha256", "structure_result_content_sha256", "structure_profile", "source_layer", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `PARCEL_PRECHECK_COLUMNS` | `( "zoning_precheck_status", "dominant_zone_precheck_status", "dominant_zone_precheck_confidence", "positive_area_zone_count", "distinct_zone_status_count", "non_dominant_different_status_count", "touch_only_zone_count", "zoning_precheck_evidence_ids", "zoning_precheck_context_evidence_ids", "zoning_precheck_requires_formal_review", "planning_precheck_scope", "review_scope", "non_zoning_planning_features_interpreted", "zoning_precheck_policy_profile", "zoning_precheck_policy_sha256", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `POLICY_SCHEMA_VERSION`
+
+```python
+POLICY_SCHEMA_VERSION = 5
+```
+
+Supported schema/hash/manifest compatibility version used by validators and canonical hashing.
+
+#### `RESULT_HASH_SCHEMA_VERSION`
+
+```python
+RESULT_HASH_SCHEMA_VERSION = 5
+```
+
+Supported schema/hash/manifest compatibility version used by validators and canonical hashing. Consumers include `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/apply_bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/bess_planning_feature_policy.py::_build_result` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_build_result` (value argument/reference), `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` (value argument/reference).
+
+#### `PLANNING_PRECHECK_SCOPE`
+
+```python
+PLANNING_PRECHECK_SCOPE = "WRITTEN_ZONING_REGULATION_ONLY"
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_build_result` (value argument/reference).
+
+#### `REVIEW_SCOPE`
+
+```python
+REVIEW_SCOPE = "CONFIGURED_USE_CONTROL_ARTICLES_ONLY"
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_build_result` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference).
+
+#### `_CHAPTER_STATUSES`
+
+```python
+_CHAPTER_STATUSES = frozenset(
+    {"POTENTIALLY_COMPATIBLE", "CONDITIONAL_REVIEW", "LIKELY_DIFFICULT", "UNKNOWN"}
+)
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference).
+
+#### `_PARCEL_STATUSES`
+
+```python
+_PARCEL_STATUSES = _CHAPTER_STATUSES | {"MIXED_REVIEW_REQUIRED"}
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference).
+
+#### `_CONFIDENCES`
+
+```python
+_CONFIDENCES = frozenset({"HIGH", "MEDIUM", "LOW"})
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference).
+
+#### `_RESOLVED_MAPPING_STATUSES`
+
+```python
+_RESOLVED_MAPPING_STATUSES = frozenset({"EXACT", "CONFIG_ALIAS"})
+```
+
+Explicit mapping between source/input and target/output fields; keys and values are documented separately.
+
+#### `CHAPTER_POLICY_COLUMNS`
+
+```python
+CHAPTER_POLICY_COLUMNS = (
+    "resolved_zone_chapter_label",
+    "chapter_section_id",
+    "review_completeness",
+    "review_scope",
+    "reviewed_section_ids",
+    "missing_required_section_ids",
+    "review_note",
+    "zoning_precheck_status",
+    "zoning_precheck_confidence",
+    "evidence_count",
+    "evidence_ids",
+    "decision_evidence_ids",
+    "context_evidence_ids",
+    "rationale",
+    "missing_information",
+    "planning_precheck_scope",
+    "policy_profile",
+    "policy_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_result_content_sha256",
+    "structure_profile",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export).
+
+#### `EVIDENCE_CATALOG_COLUMNS`
+
+```python
+EVIDENCE_CATALOG_COLUMNS = (
+    "evidence_id",
+    "resolved_zone_chapter_label",
+    "section_id",
+    "page_number",
+    "evidence_kind",
+    "evidence_direction",
+    "linked_route_ids",
+    "linked_route_roles",
+    "decision_linked",
+    "exact_raw_excerpt",
+    "excerpt_sha256",
+    "section_page_fragment_sha256",
+    "excerpt_start",
+    "excerpt_end",
+    "source_rule_id",
+    "source_rule_excerpt",
+    "source_rule_sha256",
+    "source_rule_start",
+    "source_rule_end",
+    "interpretation_note",
+    "review_completeness",
+    "review_scope",
+    "policy_profile",
+    "policy_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_result_content_sha256",
+    "structure_profile",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export).
+
+#### `_EVIDENCE_OCCURRENCE_COLUMNS`
+
+```python
+_EVIDENCE_OCCURRENCE_COLUMNS = (
+    "resolved_zone_chapter_label",
+    "section_id",
+    "page_number",
+    "section_page_fragment_sha256",
+    "excerpt_start",
+    "excerpt_end",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_validate_evidence_occurrence_uniqueness` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_validate_evidence_occurrence_uniqueness` (value argument/reference).
+
+#### `ROUTE_ASSESSMENT_COLUMNS`
+
+```python
+ROUTE_ASSESSMENT_COLUMNS = (
+    "route_id",
+    "resolved_zone_chapter_label",
+    "route_kind",
+    "derived_route_status",
+    "positive_evidence_ids",
+    "condition_evidence_ids",
+    "difficulty_evidence_ids",
+    "applicability_note",
+    "review_completeness",
+    "review_scope",
+    "policy_profile",
+    "policy_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_result_content_sha256",
+    "structure_profile",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_build_route_assessments` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export).
+
+#### `EVIDENCE_ROUTE_LINK_COLUMNS`
+
+```python
+EVIDENCE_ROUTE_LINK_COLUMNS = (
+    "route_id",
+    "resolved_zone_chapter_label",
+    "route_kind",
+    "evidence_id",
+    "route_role",
+    "evidence_direction",
+    "review_completeness",
+    "review_scope",
+    "policy_profile",
+    "policy_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_result_content_sha256",
+    "structure_profile",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_build_evidence_route_links` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export).
+
+#### `SOURCE_ZONE_POLICY_COLUMNS`
+
+```python
+SOURCE_ZONE_POLICY_COLUMNS = (
+    "source_zone_label_raw",
+    "resolved_zone_chapter_label",
+    "mapping_status",
+    "matched_section_id",
+    "source_layer",
+    "zoning_precheck_status",
+    "zoning_precheck_confidence",
+    "evidence_ids",
+    "decision_evidence_ids",
+    "context_evidence_ids",
+    "review_scope",
+    "planning_precheck_scope",
+    "policy_profile",
+    "policy_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_result_content_sha256",
+    "structure_profile",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export).
+
+#### `PARCEL_ZONE_POLICY_COLUMNS`
+
+```python
+PARCEL_ZONE_POLICY_COLUMNS = (
+    "parcel_id",
+    "planning_zone_id",
+    "source_zone_id",
+    "source_zone_label_raw",
+    "resolved_zone_chapter_label",
+    "intersection_area_m2",
+    "parcel_share_pct",
+    "zoning_precheck_status",
+    "zoning_precheck_confidence",
+    "evidence_ids",
+    "decision_evidence_ids",
+    "context_evidence_ids",
+    "review_scope",
+    "planning_precheck_scope",
+    "policy_profile",
+    "policy_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_result_content_sha256",
+    "structure_profile",
+    "source_layer",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_zone_interpretations` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` (value argument/reference), `src/landscout/stages/interpret_bess_zoning.py::_compare_results` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export).
+
+#### `PARCEL_PRECHECK_COLUMNS`
+
+```python
+PARCEL_PRECHECK_COLUMNS = (
+    "zoning_precheck_status",
+    "dominant_zone_precheck_status",
+    "dominant_zone_precheck_confidence",
+    "positive_area_zone_count",
+    "distinct_zone_status_count",
+    "non_dominant_different_status_count",
+    "touch_only_zone_count",
+    "zoning_precheck_evidence_ids",
+    "zoning_precheck_context_evidence_ids",
+    "zoning_precheck_requires_formal_review",
+    "planning_precheck_scope",
+    "review_scope",
+    "non_zoning_planning_features_interpreted",
+    "zoning_precheck_policy_profile",
+    "zoning_precheck_policy_sha256",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` (value argument/reference).
+
+
+### B. Type aliases and closed domains
+
+#### `ChapterStatus`
+
+```python
+ChapterStatus = Literal[
+    "POTENTIALLY_COMPATIBLE",
+    "CONDITIONAL_REVIEW",
+    "LIKELY_DIFFICULT",
+    "UNKNOWN",
+]
+```
+
+Written-zoning precheck result domain: POTENTIALLY_COMPATIBLE, CONDITIONAL_REVIEW, LIKELY_DIFFICULT, or UNKNOWN. It is consumed by annotations or Pydantic validation in this module.
+
+#### `Confidence`
+
+```python
+Confidence = Literal["HIGH", "MEDIUM", "LOW"]
+```
+
+Written-zoning evidence confidence domain: HIGH, MEDIUM, or LOW. It is consumed by annotations or Pydantic validation in this module.
+
+#### `ReviewCompleteness`
+
+```python
+ReviewCompleteness = Literal[
+    "COMPLETE_FOR_CONFIGURED_USE_CONTROL_ARTICLES", "INCOMPLETE"
+]
+```
+
+Whether configured use-control articles are complete or the review remains incomplete. It is consumed by annotations or Pydantic validation in this module.
+
+#### `RouteKind`
+
+```python
+RouteKind = Literal[
+    "DIRECT_ROUTE",
+    "CONDITIONAL_ROUTE",
+    "RESTRICTION_EXCEPTION_ROUTE",
+    "DIFFICULTY_ONLY",
+]
+```
+
+Configured written-zoning evidence-route kind consumed by _route_status. It is consumed by annotations or Pydantic validation in this module.
+
+#### `EvidenceKind`
+
+```python
+EvidenceKind = Literal[
+    "USE_PERMISSION",
+    "USE_RESTRICTION",
+    "PUBLIC_INTEREST_EXCEPTION",
+    "TECHNICAL_EQUIPMENT_RULE",
+    "ICPE_RULE",
+    "RISK_OR_NUISANCE_CONDITION",
+    "ACCESS_OR_NETWORK_CONDITION",
+    "OTHER_RELEVANT_RULE",
+]
+```
+
+Taxonomy of exact written-regulation evidence occurrences. It is consumed by annotations or Pydantic validation in this module.
+
+#### `EvidenceDirection`
+
+```python
+EvidenceDirection = Literal[
+    "SUPPORTS_POTENTIAL_COMPATIBILITY",
+    "SUPPORTS_DIFFICULTY",
+    "CONDITION",
+    "CONTEXT_ONLY",
+]
+```
+
+Decision relationship of evidence: supports compatibility/difficulty, condition, or contextual only. It is consumed by annotations or Pydantic validation in this module.
+
+
+### C. Meaningful dunder contracts
+
+- `__all__` — explicit public export allow-list.
+```python
+__all__ = [
+    "BessZoningPolicyConfig",
+    "BessZoningPrecheckError",
+    "BessZoningPrecheckResult",
+    "interpret_bess_zoning",
+    "load_bess_zoning_policy_config",
+    "validate_bess_zoning_precheck",
+]
+```
+
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
@@ -79,236 +461,1049 @@ This file is a `stage` artifact in the `project` domain. Its actual upstream inp
 
 **Purpose:** Raised when the preliminary zoning interpretation cannot be proven.
 
+**Kind:** controlled exception.
+
 **Inheritance:** `ValueError`.
 
-**Model form and mutability:** class inheriting from `ValueError`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields:** none declared directly on this class.
 
-- No annotated instance fields are declared directly on this class.
+**Interface consumers**
 
-**Validators and methods:**
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+    BessZoningPolicyConfig,
+    BessZoningPrecheckError,
+    BessZoningPrecheckResult,
+    interpret_bess_zoning,
+    load_bess_zoning_policy_config,
+    validate_bess_zoning_precheck,
+)`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_construct_unique_mapping` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::load_bess_zoning_policy_config` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_strict_string` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_strict_nonnegative_integer` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_strict_positive_integer` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validated_sha256` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_strict_nonnegative_number` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_canonical_value` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_canonical_sha256` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_frame_payload` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_resolved_policy` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_lock` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_exact_id_series` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_zones` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_chapter_rows` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_evidence_occurrence_uniqueness` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_route_assessments` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_evidence_route_links` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_frames` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `BessZoningPrecheckError`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_source_lock_mismatch_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from factual source')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_missing_and_extra_chapter_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='completeness differs')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_missing_and_extra_chapter_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='extra=.*EXTRA')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_regulation_zone_chapter_labels_and_ids_must_be_unique` via `pytest.raises(BessZoningPrecheckError, match='labels must be unique')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_regulation_zone_chapter_labels_and_ids_must_be_unique` via `pytest.raises(BessZoningPrecheckError, match='section IDs must be unique')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_source_complete_validator_rejects_later_duplicate_chapter` via `pytest.raises(BessZoningPrecheckError)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_duplicate_yaml_key_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='Duplicate YAML policy key')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_source_rule_identity_and_containment_are_strict` via `pytest.raises(BessZoningPrecheckError, match='source-rule offsets')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_absent_excerpt_and_section_page_mismatch_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='offsets')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_absent_excerpt_and_section_page_mismatch_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='section/page fragment')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_reviewed_sections_cover_required_articles` via `pytest.raises(BessZoningPrecheckError, match='omits required reviewed')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_evidence_must_be_inside_reviewed_sections` via `pytest.raises(BessZoningPrecheckError, match='outside reviewed sections')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_review_cannot_claim_another_chapter_section` via `pytest.raises(BessZoningPrecheckError, match='another chapter')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_repeated_excerpt_occurrence_is_bound_to_policy` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_wrong_occurrence_identity_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='fragment|offset')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_unmapped_dominant_zone_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='Factual regulation structure')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_policy_change_after_result_creation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='policy_config_sha256')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_evidence_change_after_result_creation_is_rejected` via `pytest.raises(BessZoningPrecheckError)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_zoning_relation_and_zone_mapping_changes_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='Factual regulation structure')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_structure_config_and_hierarchy_changes_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='Factual regulation structure')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_invalid_physical_zoning_fails_before_policy_interpretation` via `pytest.raises(BessZoningPrecheckError, match='physical source invalid')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_relation_area_denominators_are_required` via `pytest.raises(BessZoningPrecheckError)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_relation_percentages_must_match_denominators` via `pytest.raises(BessZoningPrecheckError)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_factual_zone_mapping_counts_are_recomputed` via `pytest.raises(BessZoningPrecheckError, match='Factual regulation structure')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_factual_zone_mapping_counts_are_recomputed` via `pytest.raises(BessZoningPrecheckError)`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_result_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_catalog_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_catalog_occurrence_duplicate_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='duplicate chapter-scoped evidence occurrence')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_route_table_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_route_link_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_coordinated_reverse_link_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_evidence_route_link_hash_mutation_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='differs from rebuilt')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_old_result_hash_schemas_are_rejected` via `pytest.raises(BessZoningPrecheckError, match='result_hash_schema_version')`.
+- callback/function object: `tests/unit/test_interpret_bess_zoning.py::test_relation_identity_change_is_rejected` via `pytest.raises(BessZoningPrecheckError, match='Factual regulation structure')`.
+- import/re-export: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+    CHAPTER_POLICY_COLUMNS,
+    EVIDENCE_CATALOG_COLUMNS,
+    EVIDENCE_ROUTE_LINK_COLUMNS,
+    PARCEL_ZONE_POLICY_COLUMNS,
+    ROUTE_ASSESSMENT_COLUMNS,
+    SOURCE_ZONE_POLICY_COLUMNS,
+    BessZoningPolicyConfig,
+    BessZoningPrecheckError,
+    _result_with_hashes,
+    interpret_bess_zoning,
+    load_bess_zoning_policy_config,
+    validate_bess_zoning_precheck,
+)`.
 
-- None.
+**Exact class source**
+
+```python
+class BessZoningPrecheckError(ValueError):
+    """Raised when the preliminary zoning interpretation cannot be proven."""
+```
 
 ### `_StrictConfigModel`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the planning contract carried by its explicit validators and inherited fields.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `BaseModel`.
 
-**Model form and mutability:** Pydantic model; `model_config` and validators below define strictness, mutation, and extra-field behavior. Decorators: `none`.
+**Exact decorators:** none.
 
-**Validation configuration:** `model_config = ConfigDict(extra="forbid", frozen=True)`.
+**Fields:** none declared directly on this class.
 
-**Fields:**
+**Interface consumers**
 
-- No annotated instance fields are declared directly on this class.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
 
-**Validators and methods:**
+**Exact class source**
 
-- None.
+```python
+class _StrictConfigModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+```
 
 ### `PolicySourceLock`
 
-**Purpose:** Represents a validated policy configuration or compiled policy evidence envelope.
+**Purpose:** Exact upstream document/archive/CNIG or planning-result identity that the owning policy must match before compilation/application.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictConfigModel`.
 
-**Model form and mutability:** class inheriting from `_StrictConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `document_id` | `StrictStr` | `Field(min_length=1)` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `archive_sha256` | `StrictStr` | `Field(pattern='^[0-9a-f]{64}$')` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `pdf_sha256` | `StrictStr` | `Field(pattern='^[0-9a-f]{64}$')` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `index_content_sha256` | `StrictStr` | `Field(pattern='^[0-9a-f]{64}$')` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `structure_result_content_sha256` | `StrictStr` | `Field(pattern='^[0-9a-f]{64}$')` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `structure_profile` | `StrictStr` | `Field(min_length=1)` | `StrictStr` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `document_id` | `document_id: StrictStr = Field(min_length=1)` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
+| `archive_sha256` | `archive_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `pdf_sha256` | `pdf_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `index_content_sha256` | `index_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `structure_result_content_sha256` | `structure_result_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `structure_profile` | `structure_profile: StrictStr = Field(min_length=1)` | Stores `PolicySourceLock`'s `structure profile` value under exact annotation `StrictStr`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-**Validators and methods:**
+**Interface consumers**
 
-- None.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class PolicySourceLock(_StrictConfigModel):
+    document_id: StrictStr = Field(min_length=1)
+    archive_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+    pdf_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+    index_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+    structure_result_content_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+    structure_profile: StrictStr = Field(min_length=1)
+```
 
 ### `PolicyEvidence`
 
-**Purpose:** Represents a validated policy configuration or compiled policy evidence envelope.
+**Purpose:** One source-locked written-regulation evidence occurrence, including direction, kind, exact excerpt/span/hash, source rule, applicability note, and route links.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictConfigModel`.
 
-**Model form and mutability:** class inheriting from `_StrictConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `evidence_id` | `StrictStr` | `Field(min_length=1)` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `section_id` | `StrictStr` | `Field(min_length=1)` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `page_number` | `StrictInt` | `Field(ge=1)` | `StrictInt` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `evidence_kind` | `EvidenceKind` | `required` | `EvidenceKind` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `evidence_direction` | `EvidenceDirection` | `required` | `EvidenceDirection` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `exact_raw_excerpt` | `StrictStr` | `Field(min_length=1, max_length=600)` | `StrictStr` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `excerpt_sha256` | `StrictStr` | `Field(pattern='^[0-9a-f]{64}$')` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `section_page_fragment_sha256` | `StrictStr` | `Field(pattern='^[0-9a-f]{64}$')` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `excerpt_start` | `StrictInt` | `Field(ge=0)` | `StrictInt` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `excerpt_end` | `StrictInt` | `Field(ge=1)` | `StrictInt` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `source_rule_id` | `StrictStr` | `Field(min_length=1)` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `source_rule_excerpt` | `StrictStr` | `Field(min_length=1)` | Source lineage or source-bound object whose exact identity is checked before downstream use. |
-| `source_rule_sha256` | `StrictStr` | `Field(pattern='^[0-9a-f]{64}$')` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `source_rule_start` | `StrictInt` | `Field(ge=0)` | Source lineage or source-bound object whose exact identity is checked before downstream use. |
-| `source_rule_end` | `StrictInt` | `Field(ge=1)` | Source lineage or source-bound object whose exact identity is checked before downstream use. |
-| `interpretation_note` | `StrictStr` | `Field(min_length=1)` | `StrictStr` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `evidence_id` | `evidence_id: StrictStr = Field(min_length=1)` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
+| `section_id` | `section_id: StrictStr = Field(min_length=1)` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
+| `page_number` | `page_number: StrictInt = Field(ge=1)` | Stores `PolicyEvidence`'s `page number` value under exact annotation `StrictInt`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `evidence_kind` | `evidence_kind: EvidenceKind` | Closed or validated `evidence kind` classification on `PolicyEvidence`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `evidence_direction` | `evidence_direction: EvidenceDirection` | Closed or validated `evidence direction` classification on `PolicyEvidence`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `exact_raw_excerpt` | `exact_raw_excerpt: StrictStr = Field(min_length=1, max_length=600)` | Stores `PolicyEvidence`'s `exact raw excerpt` value under exact annotation `StrictStr`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `excerpt_sha256` | `excerpt_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `section_page_fragment_sha256` | `section_page_fragment_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `excerpt_start` | `excerpt_start: StrictInt = Field(ge=0)` | Stores `PolicyEvidence`'s `excerpt start` value under exact annotation `StrictInt`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `excerpt_end` | `excerpt_end: StrictInt = Field(ge=1)` | Stores `PolicyEvidence`'s `excerpt end` value under exact annotation `StrictInt`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `source_rule_id` | `source_rule_id: StrictStr = Field(min_length=1)` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
+| `source_rule_excerpt` | `source_rule_excerpt: StrictStr = Field(min_length=1)` | Source fact or textual lineage named by the suffix; it becomes physical proof only where a validator rechecks bytes/source content. |
+| `source_rule_sha256` | `source_rule_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `source_rule_start` | `source_rule_start: StrictInt = Field(ge=0)` | Source fact or textual lineage named by the suffix; it becomes physical proof only where a validator rechecks bytes/source content. |
+| `source_rule_end` | `source_rule_end: StrictInt = Field(ge=1)` | Source fact or textual lineage named by the suffix; it becomes physical proof only where a validator rechecks bytes/source content. |
+| `interpretation_note` | `interpretation_note: StrictStr = Field(min_length=1)` | `PolicyEvidence`'s `interpretation note` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr` and is not promoted to a legal conclusion. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `_validate_exact_strings` — `def _validate_exact_strings(self) -> PolicyEvidence:`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`_validate_exact_strings`:
+
+```python
+def _validate_exact_strings(self) -> PolicyEvidence:
+        for value, label in (
+            (self.evidence_id, "evidence ID"),
+            (self.section_id, "evidence section ID"),
+            (self.exact_raw_excerpt, "exact raw excerpt"),
+            (self.source_rule_id, "source rule ID"),
+            (self.source_rule_excerpt, "source rule excerpt"),
+            (self.interpretation_note, "interpretation note"),
+        ):
+            _config_string(value, label)
+        if sha256(self.exact_raw_excerpt.encode("utf-8")).hexdigest() != self.excerpt_sha256:
+            raise ValueError("evidence excerpt SHA256 differs from exact_raw_excerpt")
+        if self.excerpt_end <= self.excerpt_start:
+            raise ValueError("evidence excerpt offsets must be ordered")
+        if sha256(self.source_rule_excerpt.encode("utf-8")).hexdigest() != (
+            self.source_rule_sha256
+        ):
+            raise ValueError("source rule SHA256 differs from source_rule_excerpt")
+        if self.source_rule_end <= self.source_rule_start:
+            raise ValueError("source rule offsets must be ordered")
+        if not (
+            self.source_rule_start <= self.excerpt_start
+            and self.excerpt_end <= self.source_rule_end
+        ):
+            raise ValueError("evidence excerpt must lie inside its source rule")
+        allowed_directions: dict[str, frozenset[str]] = {
+            "USE_PERMISSION": frozenset(
+                {"SUPPORTS_POTENTIAL_COMPATIBILITY", "CONTEXT_ONLY"}
+            ),
+            "USE_RESTRICTION": frozenset({"SUPPORTS_DIFFICULTY", "CONTEXT_ONLY"}),
+            "PUBLIC_INTEREST_EXCEPTION": frozenset(
+                {
+                    "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                    "CONDITION",
+                    "CONTEXT_ONLY",
+                }
+            ),
+            "TECHNICAL_EQUIPMENT_RULE": frozenset(
+                {
+                    "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                    "SUPPORTS_DIFFICULTY",
+                    "CONDITION",
+                    "CONTEXT_ONLY",
+                }
+            ),
+            "ICPE_RULE": frozenset(
+                {
+                    "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                    "SUPPORTS_DIFFICULTY",
+                    "CONDITION",
+                    "CONTEXT_ONLY",
+                }
+            ),
+            "RISK_OR_NUISANCE_CONDITION": frozenset(
+                {"SUPPORTS_DIFFICULTY", "CONDITION", "CONTEXT_ONLY"}
+            ),
+            "ACCESS_OR_NETWORK_CONDITION": frozenset(
+                {"SUPPORTS_DIFFICULTY", "CONDITION", "CONTEXT_ONLY"}
+            ),
+            "OTHER_RELEVANT_RULE": frozenset(
+                {"SUPPORTS_DIFFICULTY", "CONDITION", "CONTEXT_ONLY"}
+            ),
+        }
+        allowed = allowed_directions[self.evidence_kind]
+        if self.evidence_direction not in allowed:
+            raise ValueError("evidence kind and direction are incompatible")
+        return self
+```
+
+**Interface consumers**
+
+- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_every_evidence_kind_has_an_explicit_direction_matrix` via `interpret_module.PolicyEvidence`.
+
+**Exact class source**
+
+```python
+class PolicyEvidence(_StrictConfigModel):
+    evidence_id: StrictStr = Field(min_length=1)
+    section_id: StrictStr = Field(min_length=1)
+    page_number: StrictInt = Field(ge=1)
+    evidence_kind: EvidenceKind
+    evidence_direction: EvidenceDirection
+    exact_raw_excerpt: StrictStr = Field(min_length=1, max_length=600)
+    excerpt_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+    section_page_fragment_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+    excerpt_start: StrictInt = Field(ge=0)
+    excerpt_end: StrictInt = Field(ge=1)
+    source_rule_id: StrictStr = Field(min_length=1)
+    source_rule_excerpt: StrictStr = Field(min_length=1)
+    source_rule_sha256: StrictStr = Field(pattern=r"^[0-9a-f]{64}$")
+    source_rule_start: StrictInt = Field(ge=0)
+    source_rule_end: StrictInt = Field(ge=1)
+    interpretation_note: StrictStr = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _validate_exact_strings(self) -> PolicyEvidence:
+        for value, label in (
+            (self.evidence_id, "evidence ID"),
+            (self.section_id, "evidence section ID"),
+            (self.exact_raw_excerpt, "exact raw excerpt"),
+            (self.source_rule_id, "source rule ID"),
+            (self.source_rule_excerpt, "source rule excerpt"),
+            (self.interpretation_note, "interpretation note"),
+        ):
+            _config_string(value, label)
+        if sha256(self.exact_raw_excerpt.encode("utf-8")).hexdigest() != self.excerpt_sha256:
+            raise ValueError("evidence excerpt SHA256 differs from exact_raw_excerpt")
+        if self.excerpt_end <= self.excerpt_start:
+            raise ValueError("evidence excerpt offsets must be ordered")
+        if sha256(self.source_rule_excerpt.encode("utf-8")).hexdigest() != (
+            self.source_rule_sha256
+        ):
+            raise ValueError("source rule SHA256 differs from source_rule_excerpt")
+        if self.source_rule_end <= self.source_rule_start:
+            raise ValueError("source rule offsets must be ordered")
+        if not (
+            self.source_rule_start <= self.excerpt_start
+            and self.excerpt_end <= self.source_rule_end
+        ):
+            raise ValueError("evidence excerpt must lie inside its source rule")
+        allowed_directions: dict[str, frozenset[str]] = {
+            "USE_PERMISSION": frozenset(
+                {"SUPPORTS_POTENTIAL_COMPATIBILITY", "CONTEXT_ONLY"}
+            ),
+            "USE_RESTRICTION": frozenset({"SUPPORTS_DIFFICULTY", "CONTEXT_ONLY"}),
+            "PUBLIC_INTEREST_EXCEPTION": frozenset(
+                {
+                    "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                    "CONDITION",
+                    "CONTEXT_ONLY",
+                }
+            ),
+            "TECHNICAL_EQUIPMENT_RULE": frozenset(
+                {
+                    "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                    "SUPPORTS_DIFFICULTY",
+                    "CONDITION",
+                    "CONTEXT_ONLY",
+                }
+            ),
+            "ICPE_RULE": frozenset(
+                {
+                    "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                    "SUPPORTS_DIFFICULTY",
+                    "CONDITION",
+                    "CONTEXT_ONLY",
+                }
+            ),
+            "RISK_OR_NUISANCE_CONDITION": frozenset(
+                {"SUPPORTS_DIFFICULTY", "CONDITION", "CONTEXT_ONLY"}
+            ),
+            "ACCESS_OR_NETWORK_CONDITION": frozenset(
+                {"SUPPORTS_DIFFICULTY", "CONDITION", "CONTEXT_ONLY"}
+            ),
+            "OTHER_RELEVANT_RULE": frozenset(
+                {"SUPPORTS_DIFFICULTY", "CONDITION", "CONTEXT_ONLY"}
+            ),
+        }
+        allowed = allowed_directions[self.evidence_kind]
+        if self.evidence_direction not in allowed:
+            raise ValueError("evidence kind and direction are incompatible")
+        return self
+```
 
 ### `RouteAssessment`
 
-**Purpose:** Groups the `RouteAssessment` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** One configured written-zoning evidence route and its deterministic status, evidence-role lists, applicability, review, policy, and source lineage.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictConfigModel`.
 
-**Model form and mutability:** class inheriting from `_StrictConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `route_id` | `StrictStr` | `Field(min_length=1)` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `route_kind` | `RouteKind` | `required` | `RouteKind` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `positive_evidence_ids` | `tuple[StrictStr, ...]` | `()` | `tuple[StrictStr, ...]` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `condition_evidence_ids` | `tuple[StrictStr, ...]` | `()` | `tuple[StrictStr, ...]` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `difficulty_evidence_ids` | `tuple[StrictStr, ...]` | `()` | `tuple[StrictStr, ...]` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `applicability_note` | `StrictStr` | `Field(min_length=1)` | `StrictStr` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `route_id` | `route_id: StrictStr = Field(min_length=1)` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
+| `route_kind` | `route_kind: RouteKind` | Closed or validated `route kind` classification on `RouteAssessment`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `positive_evidence_ids` | `positive_evidence_ids: tuple[StrictStr, ...] = ()` | `RouteAssessment`'s `positive evidence ids` evidence/text field; it retains the exact configured or source meaning under annotation `tuple[StrictStr, ...]` and is not promoted to a legal conclusion. |
+| `condition_evidence_ids` | `condition_evidence_ids: tuple[StrictStr, ...] = ()` | `RouteAssessment`'s `condition evidence ids` evidence/text field; it retains the exact configured or source meaning under annotation `tuple[StrictStr, ...]` and is not promoted to a legal conclusion. |
+| `difficulty_evidence_ids` | `difficulty_evidence_ids: tuple[StrictStr, ...] = ()` | `RouteAssessment`'s `difficulty evidence ids` evidence/text field; it retains the exact configured or source meaning under annotation `tuple[StrictStr, ...]` and is not promoted to a legal conclusion. |
+| `applicability_note` | `applicability_note: StrictStr = Field(min_length=1)` | `RouteAssessment`'s `applicability note` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr` and is not promoted to a legal conclusion. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `_validate_route_shape` — `def _validate_route_shape(self) -> RouteAssessment:`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`_validate_route_shape`:
+
+```python
+def _validate_route_shape(self) -> RouteAssessment:
+        _config_string(self.route_id, "route ID")
+        _config_string(self.applicability_note, "route applicability note")
+        roles = {
+            "positive": self.positive_evidence_ids,
+            "condition": self.condition_evidence_ids,
+            "difficulty": self.difficulty_evidence_ids,
+        }
+        combined: list[str] = []
+        for role, values in roles.items():
+            normalized = [_config_string(value, f"{role} evidence ID") for value in values]
+            if len(set(normalized)) != len(normalized):
+                raise ValueError(f"{role} evidence IDs must be unique within a route")
+            combined.extend(normalized)
+        if len(set(combined)) != len(combined):
+            raise ValueError("one evidence ID cannot occupy incompatible route roles")
+        positive = bool(self.positive_evidence_ids)
+        condition = bool(self.condition_evidence_ids)
+        difficulty = bool(self.difficulty_evidence_ids)
+        expected = {
+            "DIRECT_ROUTE": (True, False, False),
+            "CONDITIONAL_ROUTE": (True, True, False),
+            "RESTRICTION_EXCEPTION_ROUTE": (True, False, True),
+            "DIFFICULTY_ONLY": (False, False, True),
+        }[self.route_kind]
+        if (positive, condition, difficulty) != expected:
+            raise ValueError(
+                f"{self.route_kind} has incompatible evidence-role membership"
+            )
+        return self
+```
+
+**Interface consumers**
+
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class RouteAssessment(_StrictConfigModel):
+    route_id: StrictStr = Field(min_length=1)
+    route_kind: RouteKind
+    positive_evidence_ids: tuple[StrictStr, ...] = ()
+    condition_evidence_ids: tuple[StrictStr, ...] = ()
+    difficulty_evidence_ids: tuple[StrictStr, ...] = ()
+    applicability_note: StrictStr = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _validate_route_shape(self) -> RouteAssessment:
+        _config_string(self.route_id, "route ID")
+        _config_string(self.applicability_note, "route applicability note")
+        roles = {
+            "positive": self.positive_evidence_ids,
+            "condition": self.condition_evidence_ids,
+            "difficulty": self.difficulty_evidence_ids,
+        }
+        combined: list[str] = []
+        for role, values in roles.items():
+            normalized = [_config_string(value, f"{role} evidence ID") for value in values]
+            if len(set(normalized)) != len(normalized):
+                raise ValueError(f"{role} evidence IDs must be unique within a route")
+            combined.extend(normalized)
+        if len(set(combined)) != len(combined):
+            raise ValueError("one evidence ID cannot occupy incompatible route roles")
+        positive = bool(self.positive_evidence_ids)
+        condition = bool(self.condition_evidence_ids)
+        difficulty = bool(self.difficulty_evidence_ids)
+        expected = {
+            "DIRECT_ROUTE": (True, False, False),
+            "CONDITIONAL_ROUTE": (True, True, False),
+            "RESTRICTION_EXCEPTION_ROUTE": (True, False, True),
+            "DIFFICULTY_ONLY": (False, False, True),
+        }[self.route_kind]
+        if (positive, condition, difficulty) != expected:
+            raise ValueError(
+                f"{self.route_kind} has incompatible evidence-role membership"
+            )
+        return self
+```
 
 ### `ChapterPolicy`
 
-**Purpose:** Represents a validated policy configuration or compiled policy evidence envelope.
+**Purpose:** One zone chapter's reviewed sections, completeness, evidence/routes, precheck status/confidence, rationale, missing information, and scope.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictConfigModel`.
 
-**Model form and mutability:** class inheriting from `_StrictConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `resolved_zone_chapter_label` | `StrictStr` | `Field(min_length=1)` | `StrictStr` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `review_completeness` | `ReviewCompleteness` | `required` | `ReviewCompleteness` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `reviewed_section_ids` | `tuple[StrictStr, ...]` | `()` | `tuple[StrictStr, ...]` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `review_note` | `StrictStr` | `Field(min_length=1)` | `StrictStr` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `zoning_precheck_status` | `ChapterStatus` | `required` | Categorical factual, technical, policy, or diagnostic status; the owning constants/validators define the closed vocabulary. |
-| `zoning_precheck_confidence` | `Confidence` | `required` | `Confidence` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `rationale` | `StrictStr` | `Field(min_length=1)` | `StrictStr` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `missing_information` | `StrictStr` | `Field(min_length=1)` | `StrictStr` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `evidence` | `tuple[PolicyEvidence, ...]` | `()` | `tuple[PolicyEvidence, ...]` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `route_assessments` | `tuple[RouteAssessment, ...]` | `()` | `tuple[RouteAssessment, ...]` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `resolved_zone_chapter_label` | `resolved_zone_chapter_label: StrictStr = Field(min_length=1)` | `ChapterPolicy`'s `resolved zone chapter label` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr` and is not promoted to a legal conclusion. |
+| `review_completeness` | `review_completeness: ReviewCompleteness` | Stores `ChapterPolicy`'s `review completeness` value under exact annotation `ReviewCompleteness`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `reviewed_section_ids` | `reviewed_section_ids: tuple[StrictStr, ...] = ()` | Structured `reviewed section ids` collection owned by `ChapterPolicy`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `review_note` | `review_note: StrictStr = Field(min_length=1)` | `ChapterPolicy`'s `review note` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr` and is not promoted to a legal conclusion. |
+| `zoning_precheck_status` | `zoning_precheck_status: ChapterStatus` | Closed or validated `zoning precheck status` classification on `ChapterPolicy`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `zoning_precheck_confidence` | `zoning_precheck_confidence: Confidence` | Stores `ChapterPolicy`'s `zoning precheck confidence` value under exact annotation `Confidence`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `rationale` | `rationale: StrictStr = Field(min_length=1)` | `ChapterPolicy`'s `rationale` evidence/text field; it retains the exact configured or source meaning under annotation `StrictStr` and is not promoted to a legal conclusion. |
+| `missing_information` | `missing_information: StrictStr = Field(min_length=1)` | Closed or validated `missing information` classification on `ChapterPolicy`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `evidence` | `evidence: tuple[PolicyEvidence, ...] = ()` | `ChapterPolicy`'s `evidence` evidence/text field; it retains the exact configured or source meaning under annotation `tuple[PolicyEvidence, ...]` and is not promoted to a legal conclusion. |
+| `route_assessments` | `route_assessments: tuple[RouteAssessment, ...] = ()` | Structured `route assessments` collection owned by `ChapterPolicy`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `_validate_evidence_semantics` — `def _validate_evidence_semantics(self) -> ChapterPolicy:`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`_validate_evidence_semantics`:
+
+```python
+def _validate_evidence_semantics(self) -> ChapterPolicy:
+        _config_string(self.resolved_zone_chapter_label, "chapter label")
+        _config_string(self.review_note, "chapter review note")
+        _config_string(self.rationale, "chapter rationale")
+        _config_string(self.missing_information, "chapter missing information")
+        reviewed = [
+            _config_string(value, "reviewed section ID")
+            for value in self.reviewed_section_ids
+        ]
+        if len(set(reviewed)) != len(reviewed):
+            raise ValueError("reviewed section IDs must be unique")
+        if self.review_completeness == "INCOMPLETE" and (
+            self.zoning_precheck_status != "UNKNOWN"
+            or self.zoning_precheck_confidence != "LOW"
+        ):
+            raise ValueError("incomplete review requires UNKNOWN / LOW")
+        route_ids = [route.route_id for route in self.route_assessments]
+        if len(set(route_ids)) != len(route_ids):
+            raise ValueError("route IDs must be unique within a chapter")
+        expected_status = _derived_chapter_status(
+            self.review_completeness,
+            self.route_assessments,
+        )
+        if self.zoning_precheck_status != expected_status:
+            raise ValueError(
+                "declared chapter status differs from coherent linked route assessments"
+            )
+        return self
+```
+
+**Interface consumers**
+
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class ChapterPolicy(_StrictConfigModel):
+    resolved_zone_chapter_label: StrictStr = Field(min_length=1)
+    review_completeness: ReviewCompleteness
+    reviewed_section_ids: tuple[StrictStr, ...] = ()
+    review_note: StrictStr = Field(min_length=1)
+    zoning_precheck_status: ChapterStatus
+    zoning_precheck_confidence: Confidence
+    rationale: StrictStr = Field(min_length=1)
+    missing_information: StrictStr = Field(min_length=1)
+    evidence: tuple[PolicyEvidence, ...] = ()
+    route_assessments: tuple[RouteAssessment, ...] = ()
+
+    @model_validator(mode="after")
+    def _validate_evidence_semantics(self) -> ChapterPolicy:
+        _config_string(self.resolved_zone_chapter_label, "chapter label")
+        _config_string(self.review_note, "chapter review note")
+        _config_string(self.rationale, "chapter rationale")
+        _config_string(self.missing_information, "chapter missing information")
+        reviewed = [
+            _config_string(value, "reviewed section ID")
+            for value in self.reviewed_section_ids
+        ]
+        if len(set(reviewed)) != len(reviewed):
+            raise ValueError("reviewed section IDs must be unique")
+        if self.review_completeness == "INCOMPLETE" and (
+            self.zoning_precheck_status != "UNKNOWN"
+            or self.zoning_precheck_confidence != "LOW"
+        ):
+            raise ValueError("incomplete review requires UNKNOWN / LOW")
+        route_ids = [route.route_id for route in self.route_assessments]
+        if len(set(route_ids)) != len(route_ids):
+            raise ValueError("route IDs must be unique within a chapter")
+        expected_status = _derived_chapter_status(
+            self.review_completeness,
+            self.route_assessments,
+        )
+        if self.zoning_precheck_status != expected_status:
+            raise ValueError(
+                "declared chapter status differs from coherent linked route assessments"
+            )
+        return self
+```
 
 ### `BessZoningPolicyConfig`
 
 **Purpose:** Strict source-locked interpretation policy.
 
+**Kind:** Pydantic model.
+
 **Inheritance:** `_StrictConfigModel`.
 
-**Model form and mutability:** class inheriting from `_StrictConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `schema_version` | `StrictInt` | `required` | `StrictInt` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `policy_profile` | `StrictStr` | `Field(min_length=1)` | `StrictStr` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `planning_precheck_scope` | `Literal['WRITTEN_ZONING_REGULATION_ONLY']` | `required` | `Literal['WRITTEN_ZONING_REGULATION_ONLY']` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `review_scope` | `Literal['CONFIGURED_USE_CONTROL_ARTICLES_ONLY']` | `required` | `Literal['CONFIGURED_USE_CONTROL_ARTICLES_ONLY']` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `source_lock` | `PolicySourceLock` | `required` | Source lineage or source-bound object whose exact identity is checked before downstream use. |
-| `required_zone_article_numbers` | `tuple[StrictStr, ...]` | `Field(min_length=1)` | `tuple[StrictStr, ...]` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `chapters` | `tuple[ChapterPolicy, ...]` | `Field(min_length=1)` | `tuple[ChapterPolicy, ...]` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `schema_version` | `schema_version: StrictInt` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `policy_profile` | `policy_profile: StrictStr = Field(min_length=1)` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
+| `planning_precheck_scope` | `planning_precheck_scope: Literal["WRITTEN_ZONING_REGULATION_ONLY"]` | Closed or validated `planning precheck scope` classification on `BessZoningPolicyConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `review_scope` | `review_scope: Literal["CONFIGURED_USE_CONTROL_ARTICLES_ONLY"]` | Closed or validated `review scope` classification on `BessZoningPolicyConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `source_lock` | `source_lock: PolicySourceLock` | Source fact or textual lineage named by the suffix; it becomes physical proof only where a validator rechecks bytes/source content. |
+| `required_zone_article_numbers` | `required_zone_article_numbers: tuple[StrictStr, ...] = Field(min_length=1)` | Structured `required zone article numbers` collection owned by `BessZoningPolicyConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `chapters` | `chapters: tuple[ChapterPolicy, ...] = Field(min_length=1)` | Structured `chapters` collection owned by `BessZoningPolicyConfig`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `_validate_policy` — `def _validate_policy(self) -> BessZoningPolicyConfig:`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`_validate_policy`:
+
+```python
+def _validate_policy(self) -> BessZoningPolicyConfig:
+        if self.schema_version != POLICY_SCHEMA_VERSION:
+            raise ValueError(f"unsupported BESS zoning policy schema: {self.schema_version}")
+        _config_string(self.policy_profile, "policy profile")
+        _config_string(self.source_lock.document_id, "policy document ID")
+        _config_string(self.source_lock.structure_profile, "policy structure profile")
+        article_numbers = [
+            _config_string(value, "required zone article number")
+            for value in self.required_zone_article_numbers
+        ]
+        if len(set(article_numbers)) != len(article_numbers):
+            raise ValueError("required zone article numbers must be unique")
+        labels = [chapter.resolved_zone_chapter_label for chapter in self.chapters]
+        if len(set(labels)) != len(labels):
+            raise ValueError("chapter policy labels must be unique")
+        evidence_ids: set[str] = set()
+        route_ids: set[str] = set()
+        chapter_occurrences: dict[
+            tuple[str, str, int, str, int, int], tuple[str, str, str]
+        ] = {}
+        source_rules: dict[str, tuple[object, ...]] = {}
+        source_rule_occurrences: dict[tuple[object, ...], str] = {}
+        source_rule_ranges: dict[tuple[str, int, str], list[tuple[int, int, str]]] = {}
+        for chapter in self.chapters:
+            chapter_evidence = {
+                evidence.evidence_id: evidence for evidence in chapter.evidence
+            }
+            linked_evidence_ids: set[str] = set()
+            for evidence in chapter.evidence:
+                if evidence.evidence_id in evidence_ids:
+                    raise ValueError("evidence IDs must be globally unique")
+                evidence_ids.add(evidence.evidence_id)
+                key = (
+                    chapter.resolved_zone_chapter_label,
+                    evidence.section_id,
+                    evidence.page_number,
+                    evidence.section_page_fragment_sha256,
+                    evidence.excerpt_start,
+                    evidence.excerpt_end,
+                )
+                previous = chapter_occurrences.get(key)
+                if previous is not None:
+                    raise ValueError(
+                        "one chapter-scoped evidence occurrence must resolve to exactly one evidence ID, kind, and direction"
+                    )
+                chapter_occurrences[key] = (
+                    evidence.evidence_id,
+                    evidence.evidence_kind,
+                    evidence.evidence_direction,
+                )
+                rule_identity = (
+                    evidence.section_id,
+                    evidence.page_number,
+                    evidence.section_page_fragment_sha256,
+                    evidence.source_rule_start,
+                    evidence.source_rule_end,
+                    evidence.source_rule_sha256,
+                    evidence.source_rule_excerpt,
+                )
+                prior_rule = source_rules.get(evidence.source_rule_id)
+                if prior_rule is not None and prior_rule != rule_identity:
+                    raise ValueError(
+                        "one source rule ID must resolve to one exact occurrence"
+                    )
+                source_rules[evidence.source_rule_id] = rule_identity
+                occurrence = rule_identity[:5]
+                prior_rule_id = source_rule_occurrences.get(occurrence)
+                if prior_rule_id is not None and prior_rule_id != evidence.source_rule_id:
+                    raise ValueError(
+                        "one exact source-rule occurrence must use one source rule ID"
+                    )
+                source_rule_occurrences[occurrence] = evidence.source_rule_id
+                range_key = (
+                    evidence.section_id,
+                    evidence.page_number,
+                    evidence.section_page_fragment_sha256,
+                )
+                ranges = source_rule_ranges.setdefault(range_key, [])
+                current = (
+                    evidence.source_rule_start,
+                    evidence.source_rule_end,
+                    evidence.source_rule_id,
+                )
+                for start, end, rule_id in ranges:
+                    overlaps = max(start, current[0]) < min(end, current[1])
+                    identical = start == current[0] and end == current[1]
+                    if overlaps and not identical:
+                        raise ValueError(
+                            f"source rule {evidence.source_rule_id!r} partially overlaps {rule_id!r}"
+                        )
+                if current not in ranges:
+                    ranges.append(current)
+            for route in chapter.route_assessments:
+                if route.route_id in route_ids:
+                    raise ValueError("route IDs must be globally unique")
+                route_ids.add(route.route_id)
+                roles = (
+                    (
+                        route.positive_evidence_ids,
+                        "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                        "positive",
+                    ),
+                    (route.condition_evidence_ids, "CONDITION", "condition"),
+                    (
+                        route.difficulty_evidence_ids,
+                        "SUPPORTS_DIFFICULTY",
+                        "difficulty",
+                    ),
+                )
+                for identifiers, expected_direction, role in roles:
+                    for evidence_id in identifiers:
+                        referenced_evidence = chapter_evidence.get(evidence_id)
+                        if referenced_evidence is None:
+                            raise ValueError(
+                                f"route references unknown or another-chapter evidence ID {evidence_id!r}"
+                            )
+                        if referenced_evidence.evidence_direction != expected_direction:
+                            raise ValueError(
+                                f"route assigns evidence ID {evidence_id!r} to an incompatible {role} role"
+                            )
+                        linked_evidence_ids.add(evidence_id)
+            for evidence in chapter.evidence:
+                is_linked = evidence.evidence_id in linked_evidence_ids
+                if evidence.evidence_direction == "CONTEXT_ONLY" and is_linked:
+                    raise ValueError("CONTEXT_ONLY evidence must not be linked to a route")
+                if evidence.evidence_direction != "CONTEXT_ONLY" and not is_linked:
+                    raise ValueError(
+                        "decision evidence must be linked to at least one route"
+                    )
+        return self
+```
+
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+    BessZoningPolicyConfig,
+    BessZoningPrecheckError,
+    BessZoningPrecheckResult,
+    interpret_bess_zoning,
+    load_bess_zoning_policy_config,
+    validate_bess_zoning_precheck,
+)`.
+- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::_resolved_policy` via `isinstance(policy, BessZoningPolicyConfig)`.
+- import/re-export: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+    CHAPTER_POLICY_COLUMNS,
+    EVIDENCE_CATALOG_COLUMNS,
+    EVIDENCE_ROUTE_LINK_COLUMNS,
+    PARCEL_ZONE_POLICY_COLUMNS,
+    ROUTE_ASSESSMENT_COLUMNS,
+    SOURCE_ZONE_POLICY_COLUMNS,
+    BessZoningPolicyConfig,
+    BessZoningPrecheckError,
+    _result_with_hashes,
+    interpret_bess_zoning,
+    load_bess_zoning_policy_config,
+    validate_bess_zoning_precheck,
+)`.
+
+**Exact class source**
+
+```python
+class BessZoningPolicyConfig(_StrictConfigModel):
+    """Strict source-locked interpretation policy."""
+
+    schema_version: StrictInt
+    policy_profile: StrictStr = Field(min_length=1)
+    planning_precheck_scope: Literal["WRITTEN_ZONING_REGULATION_ONLY"]
+    review_scope: Literal["CONFIGURED_USE_CONTROL_ARTICLES_ONLY"]
+    source_lock: PolicySourceLock
+    required_zone_article_numbers: tuple[StrictStr, ...] = Field(min_length=1)
+    chapters: tuple[ChapterPolicy, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _validate_policy(self) -> BessZoningPolicyConfig:
+        if self.schema_version != POLICY_SCHEMA_VERSION:
+            raise ValueError(f"unsupported BESS zoning policy schema: {self.schema_version}")
+        _config_string(self.policy_profile, "policy profile")
+        _config_string(self.source_lock.document_id, "policy document ID")
+        _config_string(self.source_lock.structure_profile, "policy structure profile")
+        article_numbers = [
+            _config_string(value, "required zone article number")
+            for value in self.required_zone_article_numbers
+        ]
+        if len(set(article_numbers)) != len(article_numbers):
+            raise ValueError("required zone article numbers must be unique")
+        labels = [chapter.resolved_zone_chapter_label for chapter in self.chapters]
+        if len(set(labels)) != len(labels):
+            raise ValueError("chapter policy labels must be unique")
+        evidence_ids: set[str] = set()
+        route_ids: set[str] = set()
+        chapter_occurrences: dict[
+            tuple[str, str, int, str, int, int], tuple[str, str, str]
+        ] = {}
+        source_rules: dict[str, tuple[object, ...]] = {}
+        source_rule_occurrences: dict[tuple[object, ...], str] = {}
+        source_rule_ranges: dict[tuple[str, int, str], list[tuple[int, int, str]]] = {}
+        for chapter in self.chapters:
+            chapter_evidence = {
+                evidence.evidence_id: evidence for evidence in chapter.evidence
+            }
+            linked_evidence_ids: set[str] = set()
+            for evidence in chapter.evidence:
+                if evidence.evidence_id in evidence_ids:
+                    raise ValueError("evidence IDs must be globally unique")
+                evidence_ids.add(evidence.evidence_id)
+                key = (
+                    chapter.resolved_zone_chapter_label,
+                    evidence.section_id,
+                    evidence.page_number,
+                    evidence.section_page_fragment_sha256,
+                    evidence.excerpt_start,
+                    evidence.excerpt_end,
+                )
+                previous = chapter_occurrences.get(key)
+                if previous is not None:
+                    raise ValueError(
+                        "one chapter-scoped evidence occurrence must resolve to exactly one evidence ID, kind, and direction"
+                    )
+                chapter_occurrences[key] = (
+                    evidence.evidence_id,
+                    evidence.evidence_kind,
+                    evidence.evidence_direction,
+                )
+                rule_identity = (
+                    evidence.section_id,
+                    evidence.page_number,
+                    evidence.section_page_fragment_sha256,
+                    evidence.source_rule_start,
+                    evidence.source_rule_end,
+                    evidence.source_rule_sha256,
+                    evidence.source_rule_excerpt,
+                )
+                prior_rule = source_rules.get(evidence.source_rule_id)
+                if prior_rule is not None and prior_rule != rule_identity:
+                    raise ValueError(
+                        "one source rule ID must resolve to one exact occurrence"
+                    )
+                source_rules[evidence.source_rule_id] = rule_identity
+                occurrence = rule_identity[:5]
+                prior_rule_id = source_rule_occurrences.get(occurrence)
+                if prior_rule_id is not None and prior_rule_id != evidence.source_rule_id:
+                    raise ValueError(
+                        "one exact source-rule occurrence must use one source rule ID"
+                    )
+                source_rule_occurrences[occurrence] = evidence.source_rule_id
+                range_key = (
+                    evidence.section_id,
+                    evidence.page_number,
+                    evidence.section_page_fragment_sha256,
+                )
+                ranges = source_rule_ranges.setdefault(range_key, [])
+                current = (
+                    evidence.source_rule_start,
+                    evidence.source_rule_end,
+                    evidence.source_rule_id,
+                )
+                for start, end, rule_id in ranges:
+                    overlaps = max(start, current[0]) < min(end, current[1])
+                    identical = start == current[0] and end == current[1]
+                    if overlaps and not identical:
+                        raise ValueError(
+                            f"source rule {evidence.source_rule_id!r} partially overlaps {rule_id!r}"
+                        )
+                if current not in ranges:
+                    ranges.append(current)
+            for route in chapter.route_assessments:
+                if route.route_id in route_ids:
+                    raise ValueError("route IDs must be globally unique")
+                route_ids.add(route.route_id)
+                roles = (
+                    (
+                        route.positive_evidence_ids,
+                        "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                        "positive",
+                    ),
+                    (route.condition_evidence_ids, "CONDITION", "condition"),
+                    (
+                        route.difficulty_evidence_ids,
+                        "SUPPORTS_DIFFICULTY",
+                        "difficulty",
+                    ),
+                )
+                for identifiers, expected_direction, role in roles:
+                    for evidence_id in identifiers:
+                        referenced_evidence = chapter_evidence.get(evidence_id)
+                        if referenced_evidence is None:
+                            raise ValueError(
+                                f"route references unknown or another-chapter evidence ID {evidence_id!r}"
+                            )
+                        if referenced_evidence.evidence_direction != expected_direction:
+                            raise ValueError(
+                                f"route assigns evidence ID {evidence_id!r} to an incompatible {role} role"
+                            )
+                        linked_evidence_ids.add(evidence_id)
+            for evidence in chapter.evidence:
+                is_linked = evidence.evidence_id in linked_evidence_ids
+                if evidence.evidence_direction == "CONTEXT_ONLY" and is_linked:
+                    raise ValueError("CONTEXT_ONLY evidence must not be linked to a route")
+                if evidence.evidence_direction != "CONTEXT_ONLY" and not is_linked:
+                    raise ValueError(
+                        "decision evidence must be linked to at least one route"
+                    )
+        return self
+```
 
 ### `BessZoningPrecheckResult`
 
 **Purpose:** Immutable envelope around the conservative written-zoning precheck.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `result_hash_schema_version` | `int` | `required` | Strict integer schema version controlling compatibility; unsupported versions are rejected, not coerced. |
-| `policy_schema_version` | `int` | `required` | Strict integer schema version controlling compatibility; unsupported versions are rejected, not coerced. |
-| `policy_profile` | `str` | `required` | `str` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `planning_precheck_scope` | `str` | `required` | `str` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `review_scope` | `str` | `required` | `str` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `document_id` | `str` | `required` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `archive_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `pdf_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `index_content_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `structure_result_content_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `structure_profile` | `str` | `required` | `str` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `policy_config_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `factual_structure_content_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `zone_mapping_input_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `zoning_relation_hash_columns` | `tuple[str, ...]` | `required` | `tuple[str, ...]` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `zoning_relations_input_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `evidence_catalog_content_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `evidence_route_links_content_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `route_assessments_content_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `chapter_policy_content_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `source_zone_policy_content_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `parcel_zone_policy_content_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `parcel_output_content_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `complete_result_content_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `touch_only_relation_count` | `int` | `required` | Strict count; Boolean coercion is rejected where the model/validator requires an exact integer. |
-| `evidence_catalog` | `pd.DataFrame` | `required` | `pd.DataFrame` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `evidence_route_links` | `pd.DataFrame` | `required` | `pd.DataFrame` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `route_assessments` | `pd.DataFrame` | `required` | `pd.DataFrame` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `chapter_policy` | `pd.DataFrame` | `required` | `pd.DataFrame` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `source_zone_policy` | `pd.DataFrame` | `required` | Source lineage or source-bound object whose exact identity is checked before downstream use. |
-| `parcel_zone_interpretations` | `pd.DataFrame` | `required` | `pd.DataFrame` state used by `src/landscout/stages/interpret_bess_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `parcels` | `gpd.GeoDataFrame` | `required` | Tabular/spatial evidence carried with the schema, dtype, index, geometry, and preservation contract documented in this module. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `result_hash_schema_version` | `result_hash_schema_version: int` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `policy_schema_version` | `policy_schema_version: int` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `policy_profile` | `policy_profile: str` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
+| `planning_precheck_scope` | `planning_precheck_scope: str` | Closed or validated `planning precheck scope` classification on `BessZoningPrecheckResult`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `review_scope` | `review_scope: str` | Closed or validated `review scope` classification on `BessZoningPrecheckResult`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `document_id` | `document_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
+| `archive_sha256` | `archive_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `pdf_sha256` | `pdf_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `index_content_sha256` | `index_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `structure_result_content_sha256` | `structure_result_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `structure_profile` | `structure_profile: str` | Stores `BessZoningPrecheckResult`'s `structure profile` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `policy_config_sha256` | `policy_config_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `factual_structure_content_sha256` | `factual_structure_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `zone_mapping_input_sha256` | `zone_mapping_input_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `zoning_relation_hash_columns` | `zoning_relation_hash_columns: tuple[str, ...]` | Structured `zoning relation hash columns` collection owned by `BessZoningPrecheckResult`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `zoning_relations_input_sha256` | `zoning_relations_input_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `evidence_catalog_content_sha256` | `evidence_catalog_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `evidence_route_links_content_sha256` | `evidence_route_links_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `route_assessments_content_sha256` | `route_assessments_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `chapter_policy_content_sha256` | `chapter_policy_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `source_zone_policy_content_sha256` | `source_zone_policy_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `parcel_zone_policy_content_sha256` | `parcel_zone_policy_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `parcel_output_content_sha256` | `parcel_output_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `complete_result_content_sha256` | `complete_result_content_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `touch_only_relation_count` | `touch_only_relation_count: int` | Count/byte quantity with exact integer strictness and bounds enforced by the owning model/function. |
+| `evidence_catalog` | `evidence_catalog: pd.DataFrame` | `BessZoningPrecheckResult`'s `evidence catalog` evidence/text field; it retains the exact configured or source meaning under annotation `pd.DataFrame` and is not promoted to a legal conclusion. |
+| `evidence_route_links` | `evidence_route_links: pd.DataFrame` | `BessZoningPrecheckResult`'s `evidence route links` evidence/text field; it retains the exact configured or source meaning under annotation `pd.DataFrame` and is not promoted to a legal conclusion. |
+| `route_assessments` | `route_assessments: pd.DataFrame` | Stores `BessZoningPrecheckResult`'s `route assessments` value under exact annotation `pd.DataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `chapter_policy` | `chapter_policy: pd.DataFrame` | Stores `BessZoningPrecheckResult`'s `chapter policy` value under exact annotation `pd.DataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `source_zone_policy` | `source_zone_policy: pd.DataFrame` | Source fact or textual lineage named by the suffix; it becomes physical proof only where a validator rechecks bytes/source content. |
+| `parcel_zone_interpretations` | `parcel_zone_interpretations: pd.DataFrame` | Stores `BessZoningPrecheckResult`'s `parcel zone interpretations` value under exact annotation `pd.DataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `parcels` | `parcels: gpd.GeoDataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
 
-- None.
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+    BessZoningPolicyConfig,
+    BessZoningPrecheckError,
+    BessZoningPrecheckResult,
+    interpret_bess_zoning,
+    load_bess_zoning_policy_config,
+    validate_bess_zoning_precheck,
+)`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `BessZoningPrecheckResult`.
+- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `isinstance(result, BessZoningPrecheckResult)`.
+
+**Exact class source**
+
+```python
+class BessZoningPrecheckResult:
+    """Immutable envelope around the conservative written-zoning precheck."""
+
+    result_hash_schema_version: int
+    policy_schema_version: int
+    policy_profile: str
+    planning_precheck_scope: str
+    review_scope: str
+    document_id: str
+    archive_sha256: str
+    pdf_sha256: str
+    index_content_sha256: str
+    structure_result_content_sha256: str
+    structure_profile: str
+    policy_config_sha256: str
+    factual_structure_content_sha256: str
+    zone_mapping_input_sha256: str
+    zoning_relation_hash_columns: tuple[str, ...]
+    zoning_relations_input_sha256: str
+    evidence_catalog_content_sha256: str
+    evidence_route_links_content_sha256: str
+    route_assessments_content_sha256: str
+    chapter_policy_content_sha256: str
+    source_zone_policy_content_sha256: str
+    parcel_zone_policy_content_sha256: str
+    parcel_output_content_sha256: str
+    complete_result_content_sha256: str
+    touch_only_relation_count: int
+    evidence_catalog: pd.DataFrame
+    evidence_route_links: pd.DataFrame
+    route_assessments: pd.DataFrame
+    chapter_policy: pd.DataFrame
+    source_zone_policy: pd.DataFrame
+    parcel_zone_interpretations: pd.DataFrame
+    parcels: gpd.GeoDataFrame
+```
 
 ### `_UniqueKeyLoader`
 
-**Purpose:** Groups the `UniqueKeyLoader` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Private PyYAML SafeLoader subclass whose mapping constructor is replaced to reject duplicate YAML keys.
+
+**Kind:** PyYAML loader subclass.
 
 **Inheritance:** `yaml.SafeLoader`.
 
-**Model form and mutability:** class inheriting from `yaml.SafeLoader`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields:** none declared directly on this class.
 
-- No annotated instance fields are declared directly on this class.
+**Interface consumers**
 
-**Validators and methods:**
+- callback/function object: `src/landscout/stages/bess_planning_feature_policy.py::load_bess_planning_feature_policy_config` via `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
+- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::load_bess_zoning_policy_config` via `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
+- callback/function object: `src/landscout/stages/resolve_planning_feature_codes.py::load_cnig_feature_code_profile` via `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
+- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::load_ign_road_vehicle_proxy_policy` via `yaml.load(policy_bytes.decode('utf-8'), Loader=_UniqueKeyLoader)`.
+- callback/function object: `src/landscout/stages/structure_planning_regulation.py::load_planning_regulation_structure_config` via `yaml.load(config_path.read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
 
-- None.
+**Exact class source**
+
+```python
+class _UniqueKeyLoader(yaml.SafeLoader):
+    pass
+```
+
 
 ## 6. Functions and methods
 
 ### `PolicyEvidence._validate_exact_strings`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_exact_strings(self) -> PolicyEvidence:
@@ -316,69 +1511,123 @@ def _validate_exact_strings(self) -> PolicyEvidence:
 
 **Purpose**
 
-Validates and rejects malformed exact strings according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent exact strings; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `PolicyEvidence`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `PolicyEvidence`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Iterates `(value, label)` over `((self.evidence_id, 'evidence ID'), (self.section_id, 'evidence section ID'), (self.exact_raw_excerpt, 'exact raw excerpt'), (self.source_rule_id, 'source rule ID'), (self.source_rule_excerpt, 'source rule excerpt'), (self.interpretation_note, 'interpretation note'))`. For each value: Calls `_config_string(value, label)` for its validation or side effect.
-2. Checks `sha256(self.exact_raw_excerpt.encode('utf-8')).hexdigest() != self.excerpt_sha256`. When true: Raises `ValueError('evidence excerpt SHA256 differs from exact_raw_excerpt')`.
-3. Checks `self.excerpt_end <= self.excerpt_start`. When true: Raises `ValueError('evidence excerpt offsets must be ordered')`.
-4. Checks `sha256(self.source_rule_excerpt.encode('utf-8')).hexdigest() != self.source_rule_sha256`. When true: Raises `ValueError('source rule SHA256 differs from source_rule_excerpt')`.
-5. Checks `self.source_rule_end <= self.source_rule_start`. When true: Raises `ValueError('source rule offsets must be ordered')`.
-6. Checks `not (self.source_rule_start <= self.excerpt_start and self.excerpt_end <= self.source_rule_end)`. When true: Raises `ValueError('evidence excerpt must lie inside its source rule')`.
-7. Defines `allowed_directions` with annotation `dict[str, frozenset[str]]` from `{'USE_PERMISSION': frozenset({'SUPPORTS_POTENTIAL_COMPATIBILITY', 'CONTEXT_ONLY'}), 'USE_RESTRICTION': frozenset({'SUPPORTS_DIFFICULTY', 'CONTEXT_ONLY'}), 'PUBLIC_INTEREST_EXCEPTION': frozenset({'SUPPORTS_POTENTIAL_COMPATIBILITY', 'CONDITION', 'CONTEXT_ONLY'}), 'TECHNICAL_EQUIPMENT_RULE': frozenset({'SUPPORTS_POTENTIA…`.
-8. Computes `allowed` from `allowed_directions[self.evidence_kind]`.
-9. Checks `self.evidence_direction not in allowed`. When true: Raises `ValueError('evidence kind and direction are incompatible')`.
-10. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `sha256(self.exact_raw_excerpt.encode('utf-8')).hexdigest() != self.excerpt_sha256` is true.
-- Rejects or diverts the path when `self.excerpt_end <= self.excerpt_start` is true.
-- Rejects or diverts the path when `sha256(self.source_rule_excerpt.encode('utf-8')).hexdigest() != self.source_rule_sha256` is true.
-- Rejects or diverts the path when `self.source_rule_end <= self.source_rule_start` is true.
-- Rejects or diverts the path when `not (self.source_rule_start <= self.excerpt_start and self.excerpt_end <= self.source_rule_end)` is true.
-- Rejects or diverts the path when `self.evidence_direction not in allowed` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `sha256(self.exact_raw_excerpt.encode('utf-8')).hexdigest() != self.excerpt_sha256`.
+- Guard with a raise path: `self.excerpt_end <= self.excerpt_start`.
+- Guard with a raise path: `sha256(self.source_rule_excerpt.encode('utf-8')).hexdigest() != self.source_rule_sha256`.
+- Guard with a raise path: `self.source_rule_end <= self.source_rule_start`.
+- Guard with a raise path: `not (self.source_rule_start <= self.excerpt_start and self.excerpt_end <= self.source_rule_end)`.
+- Guard with a raise path: `self.evidence_direction not in allowed`.
+- Explicit raise expressions: `ValueError('evidence excerpt SHA256 differs from exact_raw_excerpt')`, `ValueError('evidence excerpt must lie inside its source rule')`, `ValueError('evidence excerpt offsets must be ordered')`, `ValueError('evidence kind and direction are incompatible')`, `ValueError('source rule SHA256 differs from source_rule_excerpt')`, `ValueError('source rule offsets must be ordered')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `sha256`, `sha256(self.exact_raw_excerpt.encode('utf-8')).hexdigest`, `sha256(self.source_rule_excerpt.encode('utf-8')).hexdigest`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `_config_string`, `frozenset`, `model_validator`, `self.exact_raw_excerpt.encode`, `self.source_rule_excerpt.encode`, `sha256`, `sha256(self.exact_raw_excerpt.encode('utf-8')).hexdigest`, `sha256(self.source_rule_excerpt.encode('utf-8')).hexdigest`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_ids` via `_validate_exact_strings`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_validate_exact_strings`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_exact_strings`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_result` via `_validate_exact_strings`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _validate_exact_strings(self) -> PolicyEvidence:
+        for value, label in (
+            (self.evidence_id, "evidence ID"),
+            (self.section_id, "evidence section ID"),
+            (self.exact_raw_excerpt, "exact raw excerpt"),
+            (self.source_rule_id, "source rule ID"),
+            (self.source_rule_excerpt, "source rule excerpt"),
+            (self.interpretation_note, "interpretation note"),
+        ):
+            _config_string(value, label)
+        if sha256(self.exact_raw_excerpt.encode("utf-8")).hexdigest() != self.excerpt_sha256:
+            raise ValueError("evidence excerpt SHA256 differs from exact_raw_excerpt")
+        if self.excerpt_end <= self.excerpt_start:
+            raise ValueError("evidence excerpt offsets must be ordered")
+        if sha256(self.source_rule_excerpt.encode("utf-8")).hexdigest() != (
+            self.source_rule_sha256
+        ):
+            raise ValueError("source rule SHA256 differs from source_rule_excerpt")
+        if self.source_rule_end <= self.source_rule_start:
+            raise ValueError("source rule offsets must be ordered")
+        if not (
+            self.source_rule_start <= self.excerpt_start
+            and self.excerpt_end <= self.source_rule_end
+        ):
+            raise ValueError("evidence excerpt must lie inside its source rule")
+        allowed_directions: dict[str, frozenset[str]] = {
+            "USE_PERMISSION": frozenset(
+                {"SUPPORTS_POTENTIAL_COMPATIBILITY", "CONTEXT_ONLY"}
+            ),
+            "USE_RESTRICTION": frozenset({"SUPPORTS_DIFFICULTY", "CONTEXT_ONLY"}),
+            "PUBLIC_INTEREST_EXCEPTION": frozenset(
+                {
+                    "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                    "CONDITION",
+                    "CONTEXT_ONLY",
+                }
+            ),
+            "TECHNICAL_EQUIPMENT_RULE": frozenset(
+                {
+                    "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                    "SUPPORTS_DIFFICULTY",
+                    "CONDITION",
+                    "CONTEXT_ONLY",
+                }
+            ),
+            "ICPE_RULE": frozenset(
+                {
+                    "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                    "SUPPORTS_DIFFICULTY",
+                    "CONDITION",
+                    "CONTEXT_ONLY",
+                }
+            ),
+            "RISK_OR_NUISANCE_CONDITION": frozenset(
+                {"SUPPORTS_DIFFICULTY", "CONDITION", "CONTEXT_ONLY"}
+            ),
+            "ACCESS_OR_NETWORK_CONDITION": frozenset(
+                {"SUPPORTS_DIFFICULTY", "CONDITION", "CONTEXT_ONLY"}
+            ),
+            "OTHER_RELEVANT_RULE": frozenset(
+                {"SUPPORTS_DIFFICULTY", "CONDITION", "CONTEXT_ONLY"}
+            ),
+        }
+        allowed = allowed_directions[self.evidence_kind]
+        if self.evidence_direction not in allowed:
+            raise ValueError("evidence kind and direction are incompatible")
+        return self
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `RouteAssessment._validate_route_shape`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_route_shape(self) -> RouteAssessment:
@@ -386,68 +1635,80 @@ def _validate_route_shape(self) -> RouteAssessment:
 
 **Purpose**
 
-Validates and rejects malformed route shape according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent route shape; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `RouteAssessment`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `RouteAssessment`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Calls `_config_string(self.route_id, 'route ID')` for its validation or side effect.
-2. Calls `_config_string(self.applicability_note, 'route applicability note')` for its validation or side effect.
-3. Computes `roles` from `{'positive': self.positive_evidence_ids, 'condition': self.condition_evidence_ids, 'difficulty': self.difficulty_evidence_ids}`.
-4. Defines `combined` with annotation `list[str]` from `[]`.
-5. Iterates `(role, values)` over `roles.items()`. For each value: Computes `normalized` from `[_config_string(value, f'{role} evidence ID') for value in values]`. Checks `len(set(normalized)) != len(normalized)`. When true: Raises `ValueError(f'{role} evidence IDs must be unique within a route')`. Calls `combined.extend(normalized)` for its validation or side effect.
-6. Checks `len(set(combined)) != len(combined)`. When true: Raises `ValueError('one evidence ID cannot occupy incompatible route roles')`.
-7. Computes `positive` from `bool(self.positive_evidence_ids)`.
-8. Computes `condition` from `bool(self.condition_evidence_ids)`.
-9. Computes `difficulty` from `bool(self.difficulty_evidence_ids)`.
-10. Computes `expected` from `{'DIRECT_ROUTE': (True, False, False), 'CONDITIONAL_ROUTE': (True, True, False), 'RESTRICTION_EXCEPTION_ROUTE': (True, False, True), 'DIFFICULTY_ONLY': (False, False, True)}[self.route_kind]`.
-11. Checks `(positive, condition, difficulty) != expected`. When true: Raises `ValueError(f'{self.route_kind} has incompatible evidence-role membership')`.
-12. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(set(combined)) != len(combined)` is true.
-- Rejects or diverts the path when `(positive, condition, difficulty) != expected` is true.
-- Rejects or diverts the path when `len(set(normalized)) != len(normalized)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(set(combined)) != len(combined)`.
+- Guard with a raise path: `(positive, condition, difficulty) != expected`.
+- Guard with a raise path: `len(set(normalized)) != len(normalized)`.
+- Explicit raise expressions: `ValueError('one evidence ID cannot occupy incompatible route roles')`, `ValueError(f'{role} evidence IDs must be unique within a route')`, `ValueError(f'{self.route_kind} has incompatible evidence-role membership')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `_config_string`, `bool`, `combined.extend`, `len`, `model_validator`, `roles.items`, `set`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _validate_route_shape(self) -> RouteAssessment:
+        _config_string(self.route_id, "route ID")
+        _config_string(self.applicability_note, "route applicability note")
+        roles = {
+            "positive": self.positive_evidence_ids,
+            "condition": self.condition_evidence_ids,
+            "difficulty": self.difficulty_evidence_ids,
+        }
+        combined: list[str] = []
+        for role, values in roles.items():
+            normalized = [_config_string(value, f"{role} evidence ID") for value in values]
+            if len(set(normalized)) != len(normalized):
+                raise ValueError(f"{role} evidence IDs must be unique within a route")
+            combined.extend(normalized)
+        if len(set(combined)) != len(combined):
+            raise ValueError("one evidence ID cannot occupy incompatible route roles")
+        positive = bool(self.positive_evidence_ids)
+        condition = bool(self.condition_evidence_ids)
+        difficulty = bool(self.difficulty_evidence_ids)
+        expected = {
+            "DIRECT_ROUTE": (True, False, False),
+            "CONDITIONAL_ROUTE": (True, True, False),
+            "RESTRICTION_EXCEPTION_ROUTE": (True, False, True),
+            "DIFFICULTY_ONLY": (False, False, True),
+        }[self.route_kind]
+        if (positive, condition, difficulty) != expected:
+            raise ValueError(
+                f"{self.route_kind} has incompatible evidence-role membership"
+            )
+        return self
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_derived_chapter_status`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _derived_chapter_status(
@@ -458,61 +1719,70 @@ def _derived_chapter_status(
 
 **Purpose**
 
-Implements derived chapter status according to the exact implementation and guards in this file.
+Private `planning` helper for derived chapter status; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `review_completeness` (`ReviewCompleteness`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `routes` (`Sequence[RouteAssessment]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `ChapterStatus`.
+- Every observed return expression is reproduced without truncation:
+```python
+'UNKNOWN'
 
-**Returns**
+'UNKNOWN'
 
-- Declared return type: `ChapterStatus`. Observed return expression(s): `'UNKNOWN'`; `'CONDITIONAL_REVIEW'`; `'UNKNOWN' if 'DIFFICULTY_ONLY' in kinds else 'POTENTIALLY_COMPATIBLE'`; `'LIKELY_DIFFICULT'`.
+'CONDITIONAL_REVIEW'
 
-**Algorithm**
+'UNKNOWN' if 'DIFFICULTY_ONLY' in kinds else 'POTENTIALLY_COMPATIBLE'
 
-1. Checks `review_completeness == 'INCOMPLETE'`. When true: Returns `'UNKNOWN'`.
-2. Computes `kinds` from `{route.route_kind for route in routes}`.
-3. Checks `kinds.intersection({'CONDITIONAL_ROUTE', 'RESTRICTION_EXCEPTION_ROUTE'})`. When true: Returns `'CONDITIONAL_REVIEW'`.
-4. Checks `'DIRECT_ROUTE' in kinds`. When true: Returns `'UNKNOWN' if 'DIFFICULTY_ONLY' in kinds else 'POTENTIALLY_COMPATIBLE'`.
-5. Checks `'DIFFICULTY_ONLY' in kinds`. When true: Returns `'LIKELY_DIFFICULT'`.
-6. Returns `'UNKNOWN'`.
+'LIKELY_DIFFICULT'
+```
 
-**Validation and invariants**
+**Validation and exceptions**
 
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `kinds.intersection`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `kinds.intersection`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::ChapterPolicy._validate_evidence_semantics` via `_derived_chapter_status`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `ChapterPolicy._validate_evidence_semantics`
+```python
+def _derived_chapter_status(
+    review_completeness: ReviewCompleteness,
+    routes: Sequence[RouteAssessment],
+) -> ChapterStatus:
+    if review_completeness == "INCOMPLETE":
+        return "UNKNOWN"
+    kinds = {route.route_kind for route in routes}
+    if kinds.intersection({"CONDITIONAL_ROUTE", "RESTRICTION_EXCEPTION_ROUTE"}):
+        return "CONDITIONAL_REVIEW"
+    if "DIRECT_ROUTE" in kinds:
+        return "UNKNOWN" if "DIFFICULTY_ONLY" in kinds else "POTENTIALLY_COMPATIBLE"
+    if "DIFFICULTY_ONLY" in kinds:
+        return "LIKELY_DIFFICULT"
+    return "UNKNOWN"
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `ChapterPolicy._validate_evidence_semantics`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_evidence_semantics(self) -> ChapterPolicy:
@@ -520,69 +1790,79 @@ def _validate_evidence_semantics(self) -> ChapterPolicy:
 
 **Purpose**
 
-Validates and rejects malformed evidence semantics according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent evidence semantics; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `ChapterPolicy`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `ChapterPolicy`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Calls `_config_string(self.resolved_zone_chapter_label, 'chapter label')` for its validation or side effect.
-2. Calls `_config_string(self.review_note, 'chapter review note')` for its validation or side effect.
-3. Calls `_config_string(self.rationale, 'chapter rationale')` for its validation or side effect.
-4. Calls `_config_string(self.missing_information, 'chapter missing information')` for its validation or side effect.
-5. Computes `reviewed` from `[_config_string(value, 'reviewed section ID') for value in self.reviewed_section_ids]`.
-6. Checks `len(set(reviewed)) != len(reviewed)`. When true: Raises `ValueError('reviewed section IDs must be unique')`.
-7. Checks `self.review_completeness == 'INCOMPLETE' and (self.zoning_precheck_status != 'UNKNOWN' or self.zoning_precheck_confidence != 'LOW')`. When true: Raises `ValueError('incomplete review requires UNKNOWN / LOW')`.
-8. Computes `route_ids` from `[route.route_id for route in self.route_assessments]`.
-9. Checks `len(set(route_ids)) != len(route_ids)`. When true: Raises `ValueError('route IDs must be unique within a chapter')`.
-10. Computes `expected_status` from `_derived_chapter_status(self.review_completeness, self.route_assessments)`.
-11. Checks `self.zoning_precheck_status != expected_status`. When true: Raises `ValueError('declared chapter status differs from coherent linked route assessments')`.
-12. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(set(reviewed)) != len(reviewed)` is true.
-- Rejects or diverts the path when `self.review_completeness == 'INCOMPLETE' and (self.zoning_precheck_status != 'UNKNOWN' or self.zoning_precheck_confidence != 'LOW')` is true.
-- Rejects or diverts the path when `len(set(route_ids)) != len(route_ids)` is true.
-- Rejects or diverts the path when `self.zoning_precheck_status != expected_status` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(set(reviewed)) != len(reviewed)`.
+- Guard with a raise path: `self.review_completeness == 'INCOMPLETE' and (self.zoning_precheck_status != 'UNKNOWN' or self.zoning_precheck_confidence != 'LOW')`.
+- Guard with a raise path: `len(set(route_ids)) != len(route_ids)`.
+- Guard with a raise path: `self.zoning_precheck_status != expected_status`.
+- Explicit raise expressions: `ValueError('declared chapter status differs from coherent linked route assessments')`, `ValueError('incomplete review requires UNKNOWN / LOW')`, `ValueError('reviewed section IDs must be unique')`, `ValueError('route IDs must be unique within a chapter')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `_config_string`, `_derived_chapter_status`, `len`, `model_validator`, `set`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _validate_evidence_semantics(self) -> ChapterPolicy:
+        _config_string(self.resolved_zone_chapter_label, "chapter label")
+        _config_string(self.review_note, "chapter review note")
+        _config_string(self.rationale, "chapter rationale")
+        _config_string(self.missing_information, "chapter missing information")
+        reviewed = [
+            _config_string(value, "reviewed section ID")
+            for value in self.reviewed_section_ids
+        ]
+        if len(set(reviewed)) != len(reviewed):
+            raise ValueError("reviewed section IDs must be unique")
+        if self.review_completeness == "INCOMPLETE" and (
+            self.zoning_precheck_status != "UNKNOWN"
+            or self.zoning_precheck_confidence != "LOW"
+        ):
+            raise ValueError("incomplete review requires UNKNOWN / LOW")
+        route_ids = [route.route_id for route in self.route_assessments]
+        if len(set(route_ids)) != len(route_ids):
+            raise ValueError("route IDs must be unique within a chapter")
+        expected_status = _derived_chapter_status(
+            self.review_completeness,
+            self.route_assessments,
+        )
+        if self.zoning_precheck_status != expected_status:
+            raise ValueError(
+                "declared chapter status differs from coherent linked route assessments"
+            )
+        return self
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `BessZoningPolicyConfig._validate_policy`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_policy(self) -> BessZoningPolicyConfig:
@@ -590,82 +1870,190 @@ def _validate_policy(self) -> BessZoningPolicyConfig:
 
 **Purpose**
 
-Validates and rejects malformed policy according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent policy; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessZoningPolicyConfig`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessZoningPolicyConfig`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Checks `self.schema_version != POLICY_SCHEMA_VERSION`. When true: Raises `ValueError(f'unsupported BESS zoning policy schema: {self.schema_version}')`.
-2. Calls `_config_string(self.policy_profile, 'policy profile')` for its validation or side effect.
-3. Calls `_config_string(self.source_lock.document_id, 'policy document ID')` for its validation or side effect.
-4. Calls `_config_string(self.source_lock.structure_profile, 'policy structure profile')` for its validation or side effect.
-5. Computes `article_numbers` from `[_config_string(value, 'required zone article number') for value in self.required_zone_article_numbers]`.
-6. Checks `len(set(article_numbers)) != len(article_numbers)`. When true: Raises `ValueError('required zone article numbers must be unique')`.
-7. Computes `labels` from `[chapter.resolved_zone_chapter_label for chapter in self.chapters]`.
-8. Checks `len(set(labels)) != len(labels)`. When true: Raises `ValueError('chapter policy labels must be unique')`.
-9. Defines `evidence_ids` with annotation `set[str]` from `set()`.
-10. Defines `route_ids` with annotation `set[str]` from `set()`.
-11. Defines `chapter_occurrences` with annotation `dict[tuple[str, str, int, str, int, int], tuple[str, str, str]]` from `{}`.
-12. Defines `source_rules` with annotation `dict[str, tuple[object, ...]]` from `{}`.
-13. Defines `source_rule_occurrences` with annotation `dict[tuple[object, ...], str]` from `{}`.
-14. Defines `source_rule_ranges` with annotation `dict[tuple[str, int, str], list[tuple[int, int, str]]]` from `{}`.
-15. Iterates `chapter` over `self.chapters`. For each value: Computes `chapter_evidence` from `{evidence.evidence_id: evidence for evidence in chapter.evidence}`. Defines `linked_evidence_ids` with annotation `set[str]` from `set()`. Iterates `evidence` over `chapter.evidence`. For each value: Checks `evidence.evidence_id in evidence_ids`. When true: Raises `ValueError('evidence IDs must be globally unique')`. Calls `evidence_ids.add(evidence.evidence_id)` for its validation or side effect. Computes `key` from `(chapter.resolved_zone_chapter_label, evidence.section_id, evidence.page_number, evidence.section_page_fragment_sha256, evidence.excerpt_start, evidence.excerpt_end)`. Executes 16 additional source-ordered statement(s). Executes 2 additional source-ordered statement(s).
-16. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `self.schema_version != POLICY_SCHEMA_VERSION` is true.
-- Rejects or diverts the path when `len(set(article_numbers)) != len(article_numbers)` is true.
-- Rejects or diverts the path when `len(set(labels)) != len(labels)` is true.
-- Rejects or diverts the path when `evidence.evidence_id in evidence_ids` is true.
-- Rejects or diverts the path when `previous is not None` is true.
-- Rejects or diverts the path when `prior_rule is not None and prior_rule != rule_identity` is true.
-- Rejects or diverts the path when `prior_rule_id is not None and prior_rule_id != evidence.source_rule_id` is true.
-- Rejects or diverts the path when `route.route_id in route_ids` is true.
-- Rejects or diverts the path when `evidence.evidence_direction == 'CONTEXT_ONLY' and is_linked` is true.
-- Rejects or diverts the path when `evidence.evidence_direction != 'CONTEXT_ONLY' and (not is_linked)` is true.
-- Rejects or diverts the path when `overlaps and (not identical)` is true.
-- Rejects or diverts the path when `referenced_evidence is None` is true.
-- Rejects or diverts the path when `referenced_evidence.evidence_direction != expected_direction` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `self.schema_version != POLICY_SCHEMA_VERSION`.
+- Guard with a raise path: `len(set(article_numbers)) != len(article_numbers)`.
+- Guard with a raise path: `len(set(labels)) != len(labels)`.
+- Guard with a raise path: `evidence.evidence_id in evidence_ids`.
+- Guard with a raise path: `previous is not None`.
+- Guard with a raise path: `prior_rule is not None and prior_rule != rule_identity`.
+- Guard with a raise path: `prior_rule_id is not None and prior_rule_id != evidence.source_rule_id`.
+- Guard with a raise path: `route.route_id in route_ids`.
+- Guard with a raise path: `evidence.evidence_direction == 'CONTEXT_ONLY' and is_linked`.
+- Guard with a raise path: `evidence.evidence_direction != 'CONTEXT_ONLY' and (not is_linked)`.
+- Guard with a raise path: `overlaps and (not identical)`.
+- Guard with a raise path: `referenced_evidence is None`.
+- Guard with a raise path: `referenced_evidence.evidence_direction != expected_direction`.
+- Explicit raise expressions: `ValueError('CONTEXT_ONLY evidence must not be linked to a route')`, `ValueError('chapter policy labels must be unique')`, `ValueError('decision evidence must be linked to at least one route')`, `ValueError('evidence IDs must be globally unique')`, `ValueError('one chapter-scoped evidence occurrence must resolve to exactly one evidence ID, kind, and direction')`, `ValueError('one exact source-rule occurrence must use one source rule ID')`, `ValueError('one source rule ID must resolve to one exact occurrence')`, `ValueError('required zone article numbers must be unique')`, `ValueError('route IDs must be globally unique')`, `ValueError(f'route assigns evidence ID {evidence_id!r} to an incompatible {role} role')`, `ValueError(f'route references unknown or another-chapter evidence ID {evidence_id!r}')`, `ValueError(f'source rule {evidence.source_rule_id!r} partially overlaps {rule_id!r}')`, `ValueError(f'unsupported BESS zoning policy schema: {self.schema_version}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `chapter_occurrences[key]`, `source_rule_occurrences[occurrence]`, `source_rules[evidence.source_rule_id]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `_config_string`, `chapter_evidence.get`, `chapter_occurrences.get`, `evidence_ids.add`, `len`, `linked_evidence_ids.add`, `max`, `min`, `model_validator`, `ranges.append`, `route_ids.add`, `set`, `source_rule_occurrences.get`, `source_rule_ranges.setdefault`, `source_rules.get`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _validate_policy(self) -> BessZoningPolicyConfig:
+        if self.schema_version != POLICY_SCHEMA_VERSION:
+            raise ValueError(f"unsupported BESS zoning policy schema: {self.schema_version}")
+        _config_string(self.policy_profile, "policy profile")
+        _config_string(self.source_lock.document_id, "policy document ID")
+        _config_string(self.source_lock.structure_profile, "policy structure profile")
+        article_numbers = [
+            _config_string(value, "required zone article number")
+            for value in self.required_zone_article_numbers
+        ]
+        if len(set(article_numbers)) != len(article_numbers):
+            raise ValueError("required zone article numbers must be unique")
+        labels = [chapter.resolved_zone_chapter_label for chapter in self.chapters]
+        if len(set(labels)) != len(labels):
+            raise ValueError("chapter policy labels must be unique")
+        evidence_ids: set[str] = set()
+        route_ids: set[str] = set()
+        chapter_occurrences: dict[
+            tuple[str, str, int, str, int, int], tuple[str, str, str]
+        ] = {}
+        source_rules: dict[str, tuple[object, ...]] = {}
+        source_rule_occurrences: dict[tuple[object, ...], str] = {}
+        source_rule_ranges: dict[tuple[str, int, str], list[tuple[int, int, str]]] = {}
+        for chapter in self.chapters:
+            chapter_evidence = {
+                evidence.evidence_id: evidence for evidence in chapter.evidence
+            }
+            linked_evidence_ids: set[str] = set()
+            for evidence in chapter.evidence:
+                if evidence.evidence_id in evidence_ids:
+                    raise ValueError("evidence IDs must be globally unique")
+                evidence_ids.add(evidence.evidence_id)
+                key = (
+                    chapter.resolved_zone_chapter_label,
+                    evidence.section_id,
+                    evidence.page_number,
+                    evidence.section_page_fragment_sha256,
+                    evidence.excerpt_start,
+                    evidence.excerpt_end,
+                )
+                previous = chapter_occurrences.get(key)
+                if previous is not None:
+                    raise ValueError(
+                        "one chapter-scoped evidence occurrence must resolve to exactly one evidence ID, kind, and direction"
+                    )
+                chapter_occurrences[key] = (
+                    evidence.evidence_id,
+                    evidence.evidence_kind,
+                    evidence.evidence_direction,
+                )
+                rule_identity = (
+                    evidence.section_id,
+                    evidence.page_number,
+                    evidence.section_page_fragment_sha256,
+                    evidence.source_rule_start,
+                    evidence.source_rule_end,
+                    evidence.source_rule_sha256,
+                    evidence.source_rule_excerpt,
+                )
+                prior_rule = source_rules.get(evidence.source_rule_id)
+                if prior_rule is not None and prior_rule != rule_identity:
+                    raise ValueError(
+                        "one source rule ID must resolve to one exact occurrence"
+                    )
+                source_rules[evidence.source_rule_id] = rule_identity
+                occurrence = rule_identity[:5]
+                prior_rule_id = source_rule_occurrences.get(occurrence)
+                if prior_rule_id is not None and prior_rule_id != evidence.source_rule_id:
+                    raise ValueError(
+                        "one exact source-rule occurrence must use one source rule ID"
+                    )
+                source_rule_occurrences[occurrence] = evidence.source_rule_id
+                range_key = (
+                    evidence.section_id,
+                    evidence.page_number,
+                    evidence.section_page_fragment_sha256,
+                )
+                ranges = source_rule_ranges.setdefault(range_key, [])
+                current = (
+                    evidence.source_rule_start,
+                    evidence.source_rule_end,
+                    evidence.source_rule_id,
+                )
+                for start, end, rule_id in ranges:
+                    overlaps = max(start, current[0]) < min(end, current[1])
+                    identical = start == current[0] and end == current[1]
+                    if overlaps and not identical:
+                        raise ValueError(
+                            f"source rule {evidence.source_rule_id!r} partially overlaps {rule_id!r}"
+                        )
+                if current not in ranges:
+                    ranges.append(current)
+            for route in chapter.route_assessments:
+                if route.route_id in route_ids:
+                    raise ValueError("route IDs must be globally unique")
+                route_ids.add(route.route_id)
+                roles = (
+                    (
+                        route.positive_evidence_ids,
+                        "SUPPORTS_POTENTIAL_COMPATIBILITY",
+                        "positive",
+                    ),
+                    (route.condition_evidence_ids, "CONDITION", "condition"),
+                    (
+                        route.difficulty_evidence_ids,
+                        "SUPPORTS_DIFFICULTY",
+                        "difficulty",
+                    ),
+                )
+                for identifiers, expected_direction, role in roles:
+                    for evidence_id in identifiers:
+                        referenced_evidence = chapter_evidence.get(evidence_id)
+                        if referenced_evidence is None:
+                            raise ValueError(
+                                f"route references unknown or another-chapter evidence ID {evidence_id!r}"
+                            )
+                        if referenced_evidence.evidence_direction != expected_direction:
+                            raise ValueError(
+                                f"route assigns evidence ID {evidence_id!r} to an incompatible {role} role"
+                            )
+                        linked_evidence_ids.add(evidence_id)
+            for evidence in chapter.evidence:
+                is_linked = evidence.evidence_id in linked_evidence_ids
+                if evidence.evidence_direction == "CONTEXT_ONLY" and is_linked:
+                    raise ValueError("CONTEXT_ONLY evidence must not be linked to a route")
+                if evidence.evidence_direction != "CONTEXT_ONLY" and not is_linked:
+                    raise ValueError(
+                        "decision evidence must be linked to at least one route"
+                    )
+        return self
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_construct_unique_mapping`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _construct_unique_mapping(
@@ -677,59 +2065,64 @@ def _construct_unique_mapping(
 
 **Purpose**
 
-Implements construct unique mapping according to the exact implementation and guards in this file.
+Private `planning` helper for construct unique mapping; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `loader` (`yaml.SafeLoader`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `node` (`yaml.MappingNode`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `deep` (`bool`; optional/default `False`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[object, object]`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[object, object]`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Defines `result` with annotation `dict[object, object]` from `{}`.
-2. Iterates `(key_node, value_node)` over `node.value`. For each value: Computes `key` from `loader.construct_object(key_node, deep=deep)`. Checks `key in result`. When true: Raises `BessZoningPrecheckError(f'Duplicate YAML policy key: {key!r}')`. Computes `result[key]` from `loader.construct_object(value_node, deep=deep)`.
-3. Returns `result`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `key in result` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `key in result`.
+- Explicit raise expressions: `BessZoningPrecheckError(f'Duplicate YAML policy key: {key!r}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `result[key]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `loader.construct_object`.
+- callback/function object: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
+- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
+- callback/function object: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
+- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
+- callback/function object: `src/landscout/stages/structure_planning_regulation.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _construct_unique_mapping(
+    loader: yaml.SafeLoader,
+    node: yaml.MappingNode,
+    deep: bool = False,
+) -> dict[object, object]:
+    result: dict[object, object] = {}
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node, deep=deep)
+        if key in result:
+            raise BessZoningPrecheckError(f"Duplicate YAML policy key: {key!r}")
+        result[key] = loader.construct_object(value_node, deep=deep)
+    return result
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_config_string`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _config_string(value: str, label: str) -> str:
@@ -737,60 +2130,55 @@ def _config_string(value: str, label: str) -> str:
 
 **Purpose**
 
-Implements config string according to the exact implementation and guards in this file.
+Private `planning` helper for config string; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+value
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `value`.
-
-**Algorithm**
-
-1. Checks `not value or value != value.strip()`. When true: Raises `ValueError(f'{label} must be a non-empty exact string')`.
-2. Returns `value`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not value or value != value.strip()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not value or value != value.strip()`.
+- Explicit raise expressions: `ValueError(f'{label} must be a non-empty exact string')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `value.strip`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::PolicyEvidence._validate_exact_strings` via `_config_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::RouteAssessment._validate_route_shape` via `_config_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::ChapterPolicy._validate_evidence_semantics` via `_config_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::BessZoningPolicyConfig._validate_policy` via `_config_string`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `BessZoningPolicyConfig._validate_policy`
-- `src/landscout/stages/interpret_bess_zoning.py` — `ChapterPolicy._validate_evidence_semantics`
-- `src/landscout/stages/interpret_bess_zoning.py` — `PolicyEvidence._validate_exact_strings`
-- `src/landscout/stages/interpret_bess_zoning.py` — `RouteAssessment._validate_route_shape`
+```python
+def _config_string(value: str, label: str) -> str:
+    if not value or value != value.strip():
+        raise ValueError(f"{label} must be a non-empty exact string")
+    return value
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `load_bess_zoning_policy_config`
 
-**Signature**
+**Exact signature**
 
 ```python
 def load_bess_zoning_policy_config(path: str | Path) -> BessZoningPolicyConfig:
@@ -800,64 +2188,86 @@ def load_bess_zoning_policy_config(path: str | Path) -> BessZoningPolicyConfig:
 
 Load a strict policy while rejecting duplicate YAML keys.
 
-**Inputs**
+**Return contract**
 
-- `path` (`str | Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessZoningPolicyConfig`.
+- Every observed return expression is reproduced without truncation:
+```python
+BessZoningPolicyConfig.model_validate(payload)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessZoningPolicyConfig`. Observed return expression(s): `BessZoningPolicyConfig.model_validate(payload)`.
-
-**Algorithm**
-
-1. Runs guarded operation: Computes `payload` from `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`. Checks `not isinstance(payload, Mapping)`. When true: Raises `BessZoningPrecheckError('BESS zoning policy must be a mapping')`. Returns `BessZoningPolicyConfig.model_validate(payload)`. Handles `BessZoningPrecheckError`, `Exception`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(payload, Mapping)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(payload, Mapping)`.
+- Explicit raise expressions: `BessZoningPrecheckError('BESS zoning policy is invalid')`, `BessZoningPrecheckError('BESS zoning policy must be a mapping')`, `re-raise`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `Path(path).read_text`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: `Path(path).read_text`.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPolicyConfig.model_validate`, `BessZoningPrecheckError`, `Path`, `Path(path).read_text`, `isinstance`, `yaml.load`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+    BessZoningPolicyConfig,
+    BessZoningPrecheckError,
+    BessZoningPrecheckResult,
+    interpret_bess_zoning,
+    load_bess_zoning_policy_config,
+    validate_bess_zoning_precheck,
+)`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_resolved_policy` via `load_bess_zoning_policy_config`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_duplicate_yaml_key_is_rejected` via `load_bess_zoning_policy_config`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_source_rules_preserve_conditional_and_exception_frames` via `load_bess_zoning_policy_config`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_up_route_does_not_use_the_separate_icpe_condition` via `load_bess_zoning_policy_config`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_aup_route_uses_the_general_infrastructure_prerequisite` via `load_bess_zoning_policy_config`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_real_muret_up_and_aup_keep_icpe_applicability_as_context` via `load_bess_zoning_policy_config`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_policy_yaml_roundtrip_is_strict` via `load_bess_zoning_policy_config`.
+- import/re-export: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+    CHAPTER_POLICY_COLUMNS,
+    EVIDENCE_CATALOG_COLUMNS,
+    EVIDENCE_ROUTE_LINK_COLUMNS,
+    PARCEL_ZONE_POLICY_COLUMNS,
+    ROUTE_ASSESSMENT_COLUMNS,
+    SOURCE_ZONE_POLICY_COLUMNS,
+    BessZoningPolicyConfig,
+    BessZoningPrecheckError,
+    _result_with_hashes,
+    interpret_bess_zoning,
+    load_bess_zoning_policy_config,
+    validate_bess_zoning_precheck,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_resolved_policy`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_duplicate_yaml_key_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_policy_yaml_roundtrip_is_strict`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_real_muret_aup_route_uses_the_general_infrastructure_prerequisite`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_real_muret_source_rules_preserve_conditional_and_exception_frames`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_real_muret_up_and_aup_keep_icpe_applicability_as_context`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_real_muret_up_route_does_not_use_the_separate_icpe_condition`
+```python
+def load_bess_zoning_policy_config(path: str | Path) -> BessZoningPolicyConfig:
+    """Load a strict policy while rejecting duplicate YAML keys."""
 
-**Tests**
+    try:
+        payload = yaml.load(Path(path).read_text(encoding="utf-8"), Loader=_UniqueKeyLoader)
+        if not isinstance(payload, Mapping):
+            raise BessZoningPrecheckError("BESS zoning policy must be a mapping")
+        return BessZoningPolicyConfig.model_validate(payload)
+    except BessZoningPrecheckError:
+        raise
+    except Exception as error:
+        raise BessZoningPrecheckError("BESS zoning policy is invalid") from error
+```
 
-- `tests/unit/test_interpret_bess_zoning.py::test_duplicate_yaml_key_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py::test_policy_yaml_roundtrip_is_strict`
-- `tests/unit/test_interpret_bess_zoning.py::test_real_muret_aup_route_uses_the_general_infrastructure_prerequisite`
-- `tests/unit/test_interpret_bess_zoning.py::test_real_muret_source_rules_preserve_conditional_and_exception_frames`
-- `tests/unit/test_interpret_bess_zoning.py::test_real_muret_up_and_aup_keep_icpe_applicability_as_context`
-- `tests/unit/test_interpret_bess_zoning.py::test_real_muret_up_route_does_not_use_the_separate_icpe_condition`
+**Business boundary**
 
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_strict_string`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _strict_string(value: object, label: str) -> str:
@@ -865,66 +2275,89 @@ def _strict_string(value: object, label: str) -> str:
 
 **Purpose**
 
-Implements strict string according to the exact implementation and guards in this file.
+Private `planning` helper for strict string; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+value
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `value`.
-
-**Algorithm**
-
-1. Checks `not isinstance(value, str) or not value or value != value.strip()`. When true: Raises `BessZoningPrecheckError(f'{label} must be a non-empty exact string')`.
-2. Returns `value`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(value, str) or not value or value != value.strip()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(value, str) or not value or value != value.strip()`.
+- Explicit raise expressions: `BessZoningPrecheckError(f'{label} must be a non-empty exact string')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `isinstance`, `value.strip`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_exact_strings` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_optional_exact_strings` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_standard_model` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_identity` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_sha256` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_relative_path` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_pdf_basename` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_written_file_matches` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validated_terms` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validated_sha256` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_exact_id_series` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_zones` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_chapter_rows` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_standard` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_coded_relations` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_inspected_layer_payload` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_planning_document_context_sha256` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validated_sha256` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_chapter_label` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_source_label_values` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_build_zone_mapping` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_string`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_strict_string`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_chapter_policy`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_parcel_output`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_source_zone_policy`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_exact_id_series`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validate_mapping`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validate_policy_evidence`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validate_relations`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validate_zones`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validated_sha256`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_zone_chapter_rows`
+```python
+def _strict_string(value: object, label: str) -> str:
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise BessZoningPrecheckError(f"{label} must be a non-empty exact string")
+    return value
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_strict_nonnegative_integer`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _strict_nonnegative_integer(value: object, label: str) -> int:
@@ -932,62 +2365,69 @@ def _strict_nonnegative_integer(value: object, label: str) -> int:
 
 **Purpose**
 
-Implements strict nonnegative integer according to the exact implementation and guards in this file.
+Private `planning` helper for strict nonnegative integer; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `int`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `int`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Checks `isinstance(value, bool) or not isinstance(value, Integral)`. When true: Raises `BessZoningPrecheckError(f'{label} must be an integer')`.
-2. Computes `result` from `int(value)`.
-3. Checks `result < 0`. When true: Raises `BessZoningPrecheckError(f'{label} must be non-negative')`.
-4. Returns `result`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `isinstance(value, bool) or not isinstance(value, Integral)` is true.
-- Rejects or diverts the path when `result < 0` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `isinstance(value, bool) or not isinstance(value, Integral)`.
+- Guard with a raise path: `result < 0`.
+- Explicit raise expressions: `BessZoningPrecheckError(f'{label} must be an integer')`, `BessZoningPrecheckError(f'{label} must be non-negative')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `int`, `isinstance`.
+- direct call or construction: `src/landscout/stages/assess_grid_coverage.py::_validate_coverage_summary` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_layer_summary` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_integer_values` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::search_planning_regulation` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_strict_positive_integer` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_zone_mapping` via `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_nonnegative_integer`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_compare_results`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_strict_positive_integer`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validate_parcels`
+```python
+def _strict_nonnegative_integer(value: object, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, Integral):
+        raise BessZoningPrecheckError(f"{label} must be an integer")
+    result = int(value)
+    if result < 0:
+        raise BessZoningPrecheckError(f"{label} must be non-negative")
+    return result
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_strict_positive_integer`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _strict_positive_integer(value: object, label: str) -> int:
@@ -995,59 +2435,65 @@ def _strict_positive_integer(value: object, label: str) -> int:
 
 **Purpose**
 
-Implements strict positive integer according to the exact implementation and guards in this file.
+Private `planning` helper for strict positive integer; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `int`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `int`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Computes `result` from `_strict_nonnegative_integer(value, label)`.
-2. Checks `result < 1`. When true: Raises `BessZoningPrecheckError(f'{label} must be positive')`.
-3. Returns `result`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `result < 1` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `result < 1`.
+- Explicit raise expressions: `BessZoningPrecheckError(f'{label} must be positive')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_strict_nonnegative_integer`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_supported_schema_version` via `_strict_positive_integer`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_strict_positive_integer`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_strict_positive_integer`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_strict_positive_integer`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_strict_positive_integer`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_strict_positive_integer`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_strict_positive_integer`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_document_lock` via `_strict_positive_integer`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_line_records` via `_strict_positive_integer`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_page_tuple` via `_strict_positive_integer`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_strict_positive_integer`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_topic_evidence` via `_strict_positive_integer`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_strict_positive_integer`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_compare_results`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validate_policy_evidence`
+```python
+def _strict_positive_integer(value: object, label: str) -> int:
+    result = _strict_nonnegative_integer(value, label)
+    if result < 1:
+        raise BessZoningPrecheckError(f"{label} must be positive")
+    return result
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validated_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validated_sha256(value: object, label: str) -> str:
@@ -1055,58 +2501,62 @@ def _validated_sha256(value: object, label: str) -> str:
 
 **Purpose**
 
-Validates and returns canonical sha256 according to the exact implementation and guards in this file.
+Checks and returns canonical sha256; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+checksum
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `checksum`.
-
-**Algorithm**
-
-1. Computes `checksum` from `_strict_string(value, label)`.
-2. Checks `re.fullmatch('[0-9a-f]{64}', checksum) is None`. When true: Raises `BessZoningPrecheckError(f'{label} must be exactly 64 lowercase hexadecimal characters')`.
-3. Returns `checksum`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `re.fullmatch('[0-9a-f]{64}', checksum) is None` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `re.fullmatch('[0-9a-f]{64}', checksum) is None`.
+- Explicit raise expressions: `BessZoningPrecheckError(f'{label} must be exactly 64 lowercase hexadecimal characters')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_strict_string`, `re.fullmatch`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_document_lineage` via `_validated_sha256`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_locate_regulation_pdf` via `_validated_sha256`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_pages` via `_validated_sha256`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_index` via `_validated_sha256`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_validate_planning_regulation_search_result` via `_validated_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_validated_sha256`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_sections` via `_validated_sha256`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_validated_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_compare_results`
+```python
+def _validated_sha256(value: object, label: str) -> str:
+    checksum = _strict_string(value, label)
+    if re.fullmatch(r"[0-9a-f]{64}", checksum) is None:
+        raise BessZoningPrecheckError(
+            f"{label} must be exactly 64 lowercase hexadecimal characters"
+        )
+    return checksum
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_strict_nonnegative_number`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _strict_nonnegative_number(value: object, label: str) -> float:
@@ -1114,60 +2564,59 @@ def _strict_nonnegative_number(value: object, label: str) -> float:
 
 **Purpose**
 
-Implements strict nonnegative number according to the exact implementation and guards in this file.
+Private `planning` helper for strict nonnegative number; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `float`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `float`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Checks `isinstance(value, bool) or not isinstance(value, Real)`. When true: Raises `BessZoningPrecheckError(f'{label} must be numeric')`.
-2. Runs guarded operation: Computes `result` from `float(value)`. Handles `(TypeError, ValueError, OverflowError)`.
-3. Checks `not math.isfinite(result) or result < 0`. When true: Raises `BessZoningPrecheckError(f'{label} must be finite and non-negative')`.
-4. Returns `result`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `isinstance(value, bool) or not isinstance(value, Real)` is true.
-- Rejects or diverts the path when `not math.isfinite(result) or result < 0` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `isinstance(value, bool) or not isinstance(value, Real)`.
+- Guard with a raise path: `not math.isfinite(result) or result < 0`.
+- Explicit raise expressions: `BessZoningPrecheckError(f'{label} must be finite and non-negative')`, `BessZoningPrecheckError(f'{label} must be finite')`, `BessZoningPrecheckError(f'{label} must be numeric')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `float`, `isinstance`, `math.isfinite`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `_strict_nonnegative_number`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validate_relations`
+```python
+def _strict_nonnegative_number(value: object, label: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise BessZoningPrecheckError(f"{label} must be numeric")
+    try:
+        result = float(value)
+    except (TypeError, ValueError, OverflowError) as error:
+        raise BessZoningPrecheckError(f"{label} must be finite") from error
+    if not math.isfinite(result) or result < 0:
+        raise BessZoningPrecheckError(f"{label} must be finite and non-negative")
+    return result
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_canonical_value`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _canonical_value(value: object) -> object:
@@ -1175,67 +2624,101 @@ def _canonical_value(value: object) -> object:
 
 **Purpose**
 
-Implements canonical value according to the exact implementation and guards in this file.
+Private `planning` helper for canonical value; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `object`.
+- Every observed return expression is reproduced without truncation:
+```python
+None
 
-**Returns**
+_canonical_value(value.item())
 
-- Declared return type: `object`. Observed return expression(s): `None`; `_canonical_value(value.item())`; `to_wkb(value, hex=True, include_srid=False)`; `value.isoformat()`; `value.hex()`; `[_canonical_value(item) for item in value]`; `{str(key): _canonical_value(item) for key, item in value.items()}`; `value`.
+to_wkb(value, hex=True, include_srid=False)
 
-**Algorithm**
+value.isoformat()
 
-1. Checks `value is None or value is pd.NA`. When true: Returns `None`.
-2. Checks `isinstance(value, np.generic)`. When true: Returns `_canonical_value(value.item())`.
-3. Checks `isinstance(value, BaseGeometry)`. When true: Returns `to_wkb(value, hex=True, include_srid=False)`.
-4. Checks `isinstance(value, (pd.Timestamp, datetime, date))`. When true: Returns `value.isoformat()`.
-5. Checks `isinstance(value, bytes)`. When true: Returns `value.hex()`.
-6. Checks `isinstance(value, (tuple, list, np.ndarray))`. When true: Returns `[_canonical_value(item) for item in value]`.
-7. Checks `isinstance(value, Mapping)`. When true: Returns `{str(key): _canonical_value(item) for key, item in value.items()}`.
-8. Checks `isinstance(value, float) and math.isnan(value)`. When true: Returns `None`.
-9. Checks `isinstance(value, (str, int, float, bool))`. When true: Returns `value`.
-10. Raises `BessZoningPrecheckError(f'Value of type {type(value).__name__} cannot be canonically serialized')`.
+value.hex()
 
-**Validation and invariants**
+[_canonical_value(item) for item in value]
 
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
+{str(key): _canonical_value(item) for key, item in value.items()}
 
-**Exceptions**
+None
 
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+value
+```
+
+**Validation and exceptions**
+
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `BessZoningPrecheckError(f'Value of type {type(value).__name__} cannot be canonically serialized')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_canonical_value`, `isinstance`, `math.isnan`, `str`, `to_wkb`, `type`, `value.hex`, `value.isoformat`, `value.item`, `value.items`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_canonical_value` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_frame_payload` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_canonical_value` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_frame_payload` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_canonical_value` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_frame_payload` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_canonical_sha256` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_frame_payload` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_frames` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_canonical_value` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_payload` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_compare_frame` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_value` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_sha256` via `_canonical_value`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_canonical_frame_rows` via `_canonical_value`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_canonical_sha256`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_compare_frames`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_compare_results`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_frame_payload`
+```python
+def _canonical_value(value: object) -> object:
+    if value is None or value is pd.NA:
+        return None
+    if isinstance(value, np.generic):
+        return _canonical_value(value.item())
+    if isinstance(value, BaseGeometry):
+        return to_wkb(value, hex=True, include_srid=False)
+    if isinstance(value, (pd.Timestamp, datetime, date)):
+        return value.isoformat()
+    if isinstance(value, bytes):
+        return value.hex()
+    if isinstance(value, (tuple, list, np.ndarray)):
+        return [_canonical_value(item) for item in value]
+    if isinstance(value, Mapping):
+        return {str(key): _canonical_value(item) for key, item in value.items()}
+    if isinstance(value, float) and math.isnan(value):
+        return None
+    if isinstance(value, (str, int, float, bool)):
+        return value
+    raise BessZoningPrecheckError(
+        f"Value of type {type(value).__name__} cannot be canonically serialized"
+    )
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_canonical_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _canonical_sha256(value: object) -> str:
@@ -1243,61 +2726,92 @@ def _canonical_sha256(value: object) -> str:
 
 **Purpose**
 
-Implements canonical sha256 according to the exact implementation and guards in this file.
+Private `planning` helper for canonical sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+sha256(serialized).hexdigest()
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `sha256(serialized).hexdigest()`.
-
-**Algorithm**
-
-1. Runs guarded operation: Computes `serialized` from `json.dumps(_canonical_value(value), ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(',', ':')).encode('utf-8')`. Handles `BessZoningPrecheckError`, `Exception`.
-2. Returns `sha256(serialized).hexdigest()`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `BessZoningPrecheckError('Canonical integrity serialization failed')`, `re-raise`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `sha256`, `sha256(serialized).hexdigest`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_canonical_value`, `json.dumps`, `json.dumps(_canonical_value(value), ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(',', ':')).encode`, `sha256`, `sha256(serialized).hexdigest`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_frame_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_result_with_hashes` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_page_content_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_pages_content_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_content_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_source_selection_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_hits_content_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_frame_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_policy_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_factual_structure_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_mapping_input_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_result_frame_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_complete_result_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_config_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_source_records_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_section_content_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_input_frame_sha256` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_frame_hash` via `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_structure_result_content_sha256` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_policy_payload` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_validated_config` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_checked_in_policy_complete_snapshot_is_immutable` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_policy_text_drift` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_profile_v1_snapshot_detects_source_lock_drift` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_duplicate_policy_pair_is_rejected` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_or_legal_conclusion_status_is_rejected` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_invalid_confidence_is_rejected` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_noncanonical_whitespace_is_rejected` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_policy_entries_require_deterministic_order` via `_canonical_sha256`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_canonical_hash_serialization_failure_is_controlled_and_chained` via `regulation_module._canonical_sha256`.
+- property/attribute access: `tests/unit/test_index_planning_regulation.py::test_canonical_hash_serialization_failure_is_controlled_and_chained` via `regulation_module._canonical_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_complete_result_sha256`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_factual_structure_sha256`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_frame_sha256`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_policy_sha256`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_result_frame_sha256`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_zone_mapping_input_sha256`
+```python
+def _canonical_sha256(value: object) -> str:
+    try:
+        serialized = json.dumps(
+            _canonical_value(value),
+            ensure_ascii=False,
+            allow_nan=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    except BessZoningPrecheckError:
+        raise
+    except Exception as error:
+        raise BessZoningPrecheckError("Canonical integrity serialization failed") from error
+    return sha256(serialized).hexdigest()
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_frame_payload`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _frame_payload(frame: pd.DataFrame, columns: Sequence[str]) -> dict[str, object]:
@@ -1305,63 +2819,89 @@ def _frame_payload(frame: pd.DataFrame, columns: Sequence[str]) -> dict[str, obj
 
 **Purpose**
 
-Implements frame payload according to the exact implementation and guards in this file.
+Private `planning` helper for frame payload; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `columns` (`Sequence[str]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[str, object]`.
+- Every observed return expression is reproduced without truncation:
+```python
+payload
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[str, object]`. Observed return expression(s): `payload`.
-
-**Algorithm**
-
-1. Runs guarded operation: Checks `frame.columns.has_duplicates`. When true: Raises `BessZoningPrecheckError('DataFrame columns must be unique')`. Computes `missing` from `[column for column in columns if column not in frame.columns]`. Checks `missing`. When true: Raises `BessZoningPrecheckError(f'DataFrame is missing columns: {missing}')`. Defines `payload` with annotation `dict[str, object]` from `{'columns': list(columns), 'index_names': list(frame.index.names), 'index': [_canonical_value(value) for value in frame.index.tolist()], 'rows': frame.loc[:, columns].to_dict('records')}`. Executes 2 additional source-ordered statement(s). Handles `BessZoningPrecheckError`, `Exception`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `frame.columns.has_duplicates` is true.
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `isinstance(frame, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `frame.crs is None` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `frame.columns.has_duplicates`.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `isinstance(frame, gpd.GeoDataFrame)`.
+- Guard with a raise path: `frame.crs is None`.
+- Explicit raise expressions: `BessZoningPrecheckError('DataFrame columns must be unique')`, `BessZoningPrecheckError('DataFrame integrity serialization failed')`, `BessZoningPrecheckError('GeoDataFrame CRS is required')`, `BessZoningPrecheckError(f'DataFrame is missing columns: {missing}')`, `re-raise`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `payload['crs']`, `payload['geometry_column']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `CRS.from_user_input`, `CRS.from_user_input(frame.crs).to_json_dict`, `_canonical_value`, `frame.index.tolist`, `frame.loc[:, columns].to_dict`, `isinstance`, `list`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_frame_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_result_with_hashes` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_compare_frame` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_component_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_compare_frame` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_policy_table_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_frame_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_zone_mapping_input_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_result_frame_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_frames` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_source_frame_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_normalized_catalogs_input_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_frame_sha256` via `_frame_payload`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_compare_frame` via `_frame_payload`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_compare_frames`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_compare_results`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_frame_sha256`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_result_frame_sha256`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_zone_mapping_input_sha256`
+```python
+def _frame_payload(frame: pd.DataFrame, columns: Sequence[str]) -> dict[str, object]:
+    try:
+        if frame.columns.has_duplicates:
+            raise BessZoningPrecheckError("DataFrame columns must be unique")
+        missing = [column for column in columns if column not in frame.columns]
+        if missing:
+            raise BessZoningPrecheckError(f"DataFrame is missing columns: {missing}")
+        payload: dict[str, object] = {
+            "columns": list(columns),
+            "index_names": list(frame.index.names),
+            "index": [_canonical_value(value) for value in frame.index.tolist()],
+            "rows": frame.loc[:, columns].to_dict("records"),
+        }
+        if isinstance(frame, gpd.GeoDataFrame):
+            if frame.crs is None:
+                raise BessZoningPrecheckError("GeoDataFrame CRS is required")
+            payload["crs"] = CRS.from_user_input(frame.crs).to_json_dict()
+            payload["geometry_column"] = frame.geometry.name
+        return payload
+    except BessZoningPrecheckError:
+        raise
+    except Exception as error:
+        raise BessZoningPrecheckError("DataFrame integrity serialization failed") from error
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_frame_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _frame_sha256(domain: str, frame: pd.DataFrame, columns: Sequence[str]) -> str:
@@ -1369,57 +2909,58 @@ def _frame_sha256(domain: str, frame: pd.DataFrame, columns: Sequence[str]) -> s
 
 **Purpose**
 
-Implements frame sha256 according to the exact implementation and guards in this file.
+Private `planning` helper for frame sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `domain` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `frame` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `columns` (`Sequence[str]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+_canonical_sha256({'domain': domain, **_frame_payload(frame, columns)})
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `_canonical_sha256({'domain': domain, **_frame_payload(frame, columns)})`.
-
-**Algorithm**
-
-1. Returns `_canonical_sha256({'domain': domain, **_frame_payload(frame, columns)})`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_canonical_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_sha256`, `_frame_payload`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` via `_frame_sha256`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_frame_sha256`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_source_locks` via `_frame_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_frame_sha256`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_result_with_hashes` via `_frame_sha256`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` via `module._frame_sha256`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` via `module._frame_sha256`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `module._frame_sha256`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `module._frame_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _frame_sha256(domain: str, frame: pd.DataFrame, columns: Sequence[str]) -> str:
+    return _canonical_sha256({"domain": domain, **_frame_payload(frame, columns)})
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_policy_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _policy_sha256(config: BessZoningPolicyConfig) -> str:
@@ -1427,55 +2968,56 @@ def _policy_sha256(config: BessZoningPolicyConfig) -> str:
 
 **Purpose**
 
-Implements policy sha256 according to the exact implementation and guards in this file.
+Private `planning` helper for policy sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `config` (`BessZoningPolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+_canonical_sha256({'domain': 'landscout.bess_zoning.policy_config', 'config': config.model_dump(mode='json')})
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `_canonical_sha256({'domain': 'landscout.bess_zoning.policy_config', 'config': config.model_dump(mode='json')})`.
-
-**Algorithm**
-
-1. Returns `_canonical_sha256({'domain': 'landscout.bess_zoning.policy_config', 'config': config.model_dump(mode='json')})`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_canonical_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_sha256`, `config.model_dump`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_build_result` via `_policy_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_policy_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _policy_sha256(config: BessZoningPolicyConfig) -> str:
+    return _canonical_sha256(
+        {
+            "domain": "landscout.bess_zoning.policy_config",
+            "config": config.model_dump(mode="json"),
+        }
+    )
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_factual_structure_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _factual_structure_sha256(
@@ -1485,55 +3027,62 @@ def _factual_structure_sha256(
 
 **Purpose**
 
-Implements factual structure sha256 according to the exact implementation and guards in this file.
+Private `planning` helper for factual structure sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+_canonical_sha256({'domain': 'landscout.bess_zoning.factual_structure_input', 'structure_result_content_sha256': structure.structure_result_content_sha256, 'section_hash_schema_version': structure.section_hash_schema_version, 'structure_config_sha256': structure.structure_config_sha256, 'sections_content_sha256': structure.sections_content_sha256, 'zone_map_content_sha256': structure.zone_map_content_sha256, 'topic_evidence_content_sha256': structure.topic_evidence_content_sha256})
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `_canonical_sha256({'domain': 'landscout.bess_zoning.factual_structure_input', 'structure_result_content_sha256': structure.structure_result_content_sha256, 'section_hash_schema_version': structure.section_hash_schema_version, 'structure_config_sha256': structure.structure_config_sha256, 'sections_content_sha256': structure.sections_content_sha256, 'zone_map_content_sha256': structure.zone_map_con…`.
-
-**Algorithm**
-
-1. Returns `_canonical_sha256({'domain': 'landscout.bess_zoning.factual_structure_input', 'structure_result_content_sha256': structure.structure_result_content_sha256, 'section_hash_schema_version': structure.section_hash_schema_version, 'structure_config_sha256': structure.structure_config_sha256, 'sections_content_sha256': structure.sections_content_sha256, 'zone_map…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_canonical_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_factual_structure_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _factual_structure_sha256(
+    structure: PlanningRegulationStructureResult,
+) -> str:
+    return _canonical_sha256(
+        {
+            "domain": "landscout.bess_zoning.factual_structure_input",
+            "structure_result_content_sha256": structure.structure_result_content_sha256,
+            "section_hash_schema_version": structure.section_hash_schema_version,
+            "structure_config_sha256": structure.structure_config_sha256,
+            "sections_content_sha256": structure.sections_content_sha256,
+            "zone_map_content_sha256": structure.zone_map_content_sha256,
+            "topic_evidence_content_sha256": structure.topic_evidence_content_sha256,
+        }
+    )
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_resolved_policy`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _resolved_policy(
@@ -1543,57 +3092,62 @@ def _resolved_policy(
 
 **Purpose**
 
-Implements resolved policy according to the exact implementation and guards in this file.
+Private `planning` helper for resolved policy; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `policy` (`BessZoningPolicyConfig | str | Path`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessZoningPolicyConfig`.
+- Every observed return expression is reproduced without truncation:
+```python
+load_bess_zoning_policy_config(policy)
 
-**Returns**
+BessZoningPolicyConfig.model_validate(policy.model_dump(mode='python'))
+```
 
-- Declared return type: `BessZoningPolicyConfig`. Observed return expression(s): `load_bess_zoning_policy_config(policy)`; `BessZoningPolicyConfig.model_validate(policy.model_dump(mode='python'))`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Checks `isinstance(policy, BessZoningPolicyConfig)`. When true: Runs guarded operation: Returns `BessZoningPolicyConfig.model_validate(policy.model_dump(mode='python'))`. Handles `Exception`.
-2. Returns `load_bess_zoning_policy_config(policy)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `isinstance(policy, BessZoningPolicyConfig)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `isinstance(policy, BessZoningPolicyConfig)`.
+- Explicit raise expressions: `BessZoningPrecheckError('BESS zoning policy is invalid')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `load_bess_zoning_policy_config`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPolicyConfig.model_validate`, `BessZoningPrecheckError`, `isinstance`, `load_bess_zoning_policy_config`, `policy.model_dump`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `_resolved_policy`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `_resolved_policy`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `interpret_bess_zoning`
-- `src/landscout/stages/interpret_bess_zoning.py` — `validate_bess_zoning_precheck`
+```python
+def _resolved_policy(
+    policy: BessZoningPolicyConfig | str | Path,
+) -> BessZoningPolicyConfig:
+    if isinstance(policy, BessZoningPolicyConfig):
+        try:
+            return BessZoningPolicyConfig.model_validate(
+                policy.model_dump(mode="python")
+            )
+        except Exception as error:
+            raise BessZoningPrecheckError("BESS zoning policy is invalid") from error
+    return load_bess_zoning_policy_config(policy)
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_policy_lock`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_policy_lock(
@@ -1605,59 +3159,68 @@ def _validate_policy_lock(
 
 **Purpose**
 
-Validates and rejects malformed policy lock according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent policy lock; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `index` (`PlanningRegulationIndex`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy` (`BessZoningPolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `lock` from `policy.source_lock`.
-2. Computes `comparisons` from `((lock.document_id, index.document_id, 'document ID'), (lock.archive_sha256, index.archive_sha256, 'archive SHA256'), (lock.pdf_sha256, index.pdf_sha256, 'PDF SHA256'), (lock.index_content_sha256, index.index_content_sha256, 'index SHA256'), (lock.structure_result_content_sha256, structure.structure_result_content_sha…`.
-3. Iterates `(actual, expected, label)` over `comparisons`. For each value: Checks `actual != expected`. When true: Raises `BessZoningPrecheckError(f'BESS zoning policy {label} differs from factual source')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `actual != expected` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `actual != expected`.
+- Explicit raise expressions: `BessZoningPrecheckError(f'BESS zoning policy {label} differs from factual source')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_policy_lock`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _validate_policy_lock(
+    index: PlanningRegulationIndex,
+    structure: PlanningRegulationStructureResult,
+    policy: BessZoningPolicyConfig,
+) -> None:
+    lock = policy.source_lock
+    comparisons = (
+        (lock.document_id, index.document_id, "document ID"),
+        (lock.archive_sha256, index.archive_sha256, "archive SHA256"),
+        (lock.pdf_sha256, index.pdf_sha256, "PDF SHA256"),
+        (lock.index_content_sha256, index.index_content_sha256, "index SHA256"),
+        (
+            lock.structure_result_content_sha256,
+            structure.structure_result_content_sha256,
+            "structure result SHA256",
+        ),
+        (lock.structure_profile, structure.structure_profile, "structure profile"),
+    )
+    for actual, expected, label in comparisons:
+        if actual != expected:
+            raise BessZoningPrecheckError(
+                f"BESS zoning policy {label} differs from factual source"
+            )
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_exact_id_series`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _exact_id_series(series: pd.Series, label: str, *, unique: bool) -> tuple[str, ...]:
@@ -1665,64 +3228,59 @@ def _exact_id_series(series: pd.Series, label: str, *, unique: bool) -> tuple[st
 
 **Purpose**
 
-Implements exact id series according to the exact implementation and guards in this file.
+Private `planning` helper for exact id series; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `series` (`pd.Series`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `unique` (`bool`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[str, ...]`.
+- Every observed return expression is reproduced without truncation:
+```python
+tuple(values)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[str, ...]`. Observed return expression(s): `tuple(values)`.
-
-**Algorithm**
-
-1. Defines `values` with annotation `list[str]` from `[]`.
-2. Iterates `value` over `series.tolist()`. For each value: Calls `values.append(_strict_string(value, label))` for its validation or side effect.
-3. Checks `unique and len(set(values)) != len(values)`. When true: Raises `BessZoningPrecheckError(f'{label} values must be unique')`.
-4. Returns `tuple(values)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `unique and len(set(values)) != len(values)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `unique and len(set(values)) != len(values)`.
+- Explicit raise expressions: `BessZoningPrecheckError(f'{label} values must be unique')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_strict_string`, `len`, `series.tolist`, `set`, `tuple`, `values.append`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_parcels` via `_exact_id_series`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_zones` via `_exact_id_series`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_relations` via `_exact_id_series`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `_exact_id_series`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_exact_id_series`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_compare_results`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validate_mapping`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validate_parcels`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validate_relations`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validate_zones`
+```python
+def _exact_id_series(series: pd.Series, label: str, *, unique: bool) -> tuple[str, ...]:
+    values: list[str] = []
+    for value in series.tolist():
+        values.append(_strict_string(value, label))
+    if unique and len(set(values)) != len(values):
+        raise BessZoningPrecheckError(f"{label} values must be unique")
+    return tuple(values)
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_parcels`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_parcels(
@@ -1733,81 +3291,135 @@ def _validate_parcels(
 
 **Purpose**
 
-Validates and rejects malformed parcels according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent parcels; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `index` (`PlanningRegulationIndex`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+parcels.copy(deep=True)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `parcels.copy(deep=True)`.
-
-**Algorithm**
-
-1. Checks `not isinstance(parcels, gpd.GeoDataFrame)`. When true: Raises `BessZoningPrecheckError('parcels must be a GeoDataFrame')`.
-2. Checks `parcels.columns.has_duplicates`. When true: Raises `BessZoningPrecheckError('Parcel columns must be unique')`.
-3. Computes `required` from `{'parcel_id', 'geometry', 'dominant_planning_zone_id', 'planning_surface_relation_count', 'prescription_surface_relation_count', 'information_surface_relation_count', 'planning_line_relation_count', 'planning_point_relation_count', 'planning_feature_document_id', 'planning_feature_archive_sha256', 'planning_document_i…`.
-4. Computes `missing` from `sorted(required.difference(parcels.columns))`.
-5. Checks `missing`. When true: Raises `BessZoningPrecheckError(f'Parcel input is missing columns: {missing}')`.
-6. Computes `collisions` from `sorted(set(PARCEL_PRECHECK_COLUMNS).intersection(parcels.columns))`.
-7. Checks `collisions`. When true: Raises `BessZoningPrecheckError(f'Parcel input already contains precheck columns: {collisions}')`.
-8. Checks `parcels.crs is None`. When true: Raises `BessZoningPrecheckError('Parcel CRS is required')`.
-9. Runs guarded operation: Calls `CRS.from_user_input(parcels.crs)` for its validation or side effect. Checks `parcels.geometry.name != 'geometry'`. When true: Raises `BessZoningPrecheckError('Parcel geometry must be active')`. Handles `BessZoningPrecheckError`, `Exception`.
-10. Calls `_exact_id_series(parcels['parcel_id'], 'parcel ID', unique=True)` for its validation or side effect.
-11. Computes `geometry` from `parcels.geometry`.
-12. Checks `geometry.isna().any() or geometry.is_empty.any() or (~geometry.is_valid).any()`. When true: Raises `BessZoningPrecheckError('Parcel geometry must be non-null, non-empty, and valid')`.
-13. Checks `not geometry.geom_type.isin({'Polygon', 'MultiPolygon'}).all()`. When true: Raises `BessZoningPrecheckError('Parcel geometry must be Polygon or MultiPolygon')`.
-14. Iterates `column` over `('planning_surface_relation_count', 'prescription_surface_relation_count', 'information_surface_relation_count', 'planning_line_relation_count', 'planning_point_relation_count')`. For each value: Iterates `value` over `parcels[column].tolist()`. For each value: Calls `_strict_nonnegative_integer(value, column)` for its validation or side effect.
-15. Iterates `document_column` over `('planning_document_id', 'planning_feature_document_id')`. For each value: Checks `not parcels[document_column].eq(index.document_id).all()`. When true: Raises `BessZoningPrecheckError(f'Parcel {document_column} lineage differs from the regulation')`.
-16. Iterates `archive_column` over `('planning_archive_sha256', 'planning_feature_archive_sha256')`. For each value: Checks `not parcels[archive_column].eq(index.archive_sha256).all()`. When true: Raises `BessZoningPrecheckError(f'Parcel {archive_column} lineage differs from the regulation')`.
-17. Returns `parcels.copy(deep=True)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(parcels, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `parcels.columns.has_duplicates` is true.
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `collisions` is true.
-- Rejects or diverts the path when `parcels.crs is None` is true.
-- Rejects or diverts the path when `geometry.isna().any() or geometry.is_empty.any() or (~geometry.is_valid).any()` is true.
-- Rejects or diverts the path when `not geometry.geom_type.isin({'Polygon', 'MultiPolygon'}).all()` is true.
-- Rejects or diverts the path when `parcels.geometry.name != 'geometry'` is true.
-- Rejects or diverts the path when `not parcels[document_column].eq(index.document_id).all()` is true.
-- Rejects or diverts the path when `not parcels[archive_column].eq(index.archive_sha256).all()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(parcels, gpd.GeoDataFrame)`.
+- Guard with a raise path: `parcels.columns.has_duplicates`.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `collisions`.
+- Guard with a raise path: `parcels.crs is None`.
+- Guard with a raise path: `geometry.isna().any() or geometry.is_empty.any() or (~geometry.is_valid).any()`.
+- Guard with a raise path: `not geometry.geom_type.isin({'Polygon', 'MultiPolygon'}).all()`.
+- Guard with a raise path: `parcels.geometry.name != 'geometry'`.
+- Guard with a raise path: `not parcels[document_column].eq(index.document_id).all()`.
+- Guard with a raise path: `not parcels[archive_column].eq(index.archive_sha256).all()`.
+- Explicit raise expressions: `BessZoningPrecheckError('Parcel CRS is required')`, `BessZoningPrecheckError('Parcel CRS or geometry is invalid')`, `BessZoningPrecheckError('Parcel columns must be unique')`, `BessZoningPrecheckError('Parcel geometry must be Polygon or MultiPolygon')`, `BessZoningPrecheckError('Parcel geometry must be active')`, `BessZoningPrecheckError('Parcel geometry must be non-null, non-empty, and valid')`, `BessZoningPrecheckError('parcels must be a GeoDataFrame')`, `BessZoningPrecheckError(f'Parcel input already contains precheck columns: {collisions}')`, `BessZoningPrecheckError(f'Parcel input is missing columns: {missing}')`, `BessZoningPrecheckError(f'Parcel {archive_column} lineage differs from the regulation')`, `BessZoningPrecheckError(f'Parcel {document_column} lineage differs from the regulation')`, `re-raise`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `parcels.copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `(~geometry.is_valid).any`, `geometry.geom_type.isin`, `geometry.geom_type.isin({'Polygon', 'MultiPolygon'}).all`, `geometry.is_empty.any`, `geometry.isna`, `geometry.isna().any`, `set(PARCEL_PRECHECK_COLUMNS).intersection`.
+- Hashing: `parcels[archive_column].eq(index.archive_sha256).all`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(~geometry.is_valid).any`, `BessZoningPrecheckError`, `CRS.from_user_input`, `_exact_id_series`, `_strict_nonnegative_integer`, `geometry.geom_type.isin`, `geometry.geom_type.isin({'Polygon', 'MultiPolygon'}).all`, `geometry.is_empty.any`, `geometry.isna`, `geometry.isna().any`, `isinstance`, `parcels.copy`, `parcels[archive_column].eq`, `parcels[archive_column].eq(index.archive_sha256).all`, `parcels[column].tolist`, `parcels[document_column].eq`, `parcels[document_column].eq(index.document_id).all`, `required.difference`, `set`, `set(PARCEL_PRECHECK_COLUMNS).intersection`, `sorted`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_parcels`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _validate_parcels(
+    index: PlanningRegulationIndex,
+    parcels: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    if not isinstance(parcels, gpd.GeoDataFrame):
+        raise BessZoningPrecheckError("parcels must be a GeoDataFrame")
+    if parcels.columns.has_duplicates:
+        raise BessZoningPrecheckError("Parcel columns must be unique")
+    required = {
+        "parcel_id",
+        "geometry",
+        "dominant_planning_zone_id",
+        "planning_surface_relation_count",
+        "prescription_surface_relation_count",
+        "information_surface_relation_count",
+        "planning_line_relation_count",
+        "planning_point_relation_count",
+        "planning_feature_document_id",
+        "planning_feature_archive_sha256",
+        "planning_document_id",
+        "planning_archive_sha256",
+    }
+    missing = sorted(required.difference(parcels.columns))
+    if missing:
+        raise BessZoningPrecheckError(f"Parcel input is missing columns: {missing}")
+    collisions = sorted(set(PARCEL_PRECHECK_COLUMNS).intersection(parcels.columns))
+    if collisions:
+        raise BessZoningPrecheckError(
+            f"Parcel input already contains precheck columns: {collisions}"
+        )
+    if parcels.crs is None:
+        raise BessZoningPrecheckError("Parcel CRS is required")
+    try:
+        CRS.from_user_input(parcels.crs)
+        if parcels.geometry.name != "geometry":
+            raise BessZoningPrecheckError("Parcel geometry must be active")
+    except BessZoningPrecheckError:
+        raise
+    except Exception as error:
+        raise BessZoningPrecheckError("Parcel CRS or geometry is invalid") from error
+    _exact_id_series(parcels["parcel_id"], "parcel ID", unique=True)
+    geometry = parcels.geometry
+    if geometry.isna().any() or geometry.is_empty.any() or (~geometry.is_valid).any():
+        raise BessZoningPrecheckError(
+            "Parcel geometry must be non-null, non-empty, and valid"
+        )
+    if not geometry.geom_type.isin({"Polygon", "MultiPolygon"}).all():
+        raise BessZoningPrecheckError("Parcel geometry must be Polygon or MultiPolygon")
+    for column in (
+        "planning_surface_relation_count",
+        "prescription_surface_relation_count",
+        "information_surface_relation_count",
+        "planning_line_relation_count",
+        "planning_point_relation_count",
+    ):
+        for value in parcels[column].tolist():
+            _strict_nonnegative_integer(value, column)
+    for document_column in ("planning_document_id", "planning_feature_document_id"):
+        if not parcels[document_column].eq(index.document_id).all():
+            raise BessZoningPrecheckError(
+                f"Parcel {document_column} lineage differs from the regulation"
+            )
+    for archive_column in (
+        "planning_archive_sha256",
+        "planning_feature_archive_sha256",
+    ):
+        if not parcels[archive_column].eq(index.archive_sha256).all():
+            raise BessZoningPrecheckError(
+                f"Parcel {archive_column} lineage differs from the regulation"
+            )
+    return parcels.copy(deep=True)
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_zones`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_zones(
@@ -1818,70 +3430,79 @@ def _validate_zones(
 
 **Purpose**
 
-Validates and rejects malformed zones according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent zones; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `index` (`PlanningRegulationIndex`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zones` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Checks `not isinstance(zones, pd.DataFrame) or zones.columns.has_duplicates`. When true: Raises `BessZoningPrecheckError('zones must be a DataFrame with unique columns')`.
-2. Computes `required` from `('planning_zone_id', 'source_zone_id', 'zone_label_raw', 'source_document_id', 'source_archive_sha256', 'source_layer')`.
-3. Computes `missing` from `[column for column in required if column not in zones.columns]`.
-4. Checks `missing`. When true: Raises `BessZoningPrecheckError(f'Zone catalog is missing columns: {missing}')`.
-5. Computes `result` from `zones.copy(deep=True)`.
-6. Calls `_exact_id_series(result['planning_zone_id'], 'planning zone ID', unique=True)` for its validation or side effect.
-7. Calls `_exact_id_series(result['source_zone_id'], 'source zone ID', unique=True)` for its validation or side effect.
-8. Calls `_exact_id_series(result['zone_label_raw'], 'raw zone label', unique=False)` for its validation or side effect.
-9. Checks `not result['source_document_id'].eq(index.document_id).all()`. When true: Raises `BessZoningPrecheckError('Zone catalog document lineage differs')`.
-10. Checks `not result['source_archive_sha256'].eq(index.archive_sha256).all()`. When true: Raises `BessZoningPrecheckError('Zone catalog archive lineage differs')`.
-11. Iterates `value` over `result['source_layer'].tolist()`. For each value: Calls `_strict_string(value, 'zone source layer')` for its validation or side effect.
-12. Returns `result`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(zones, pd.DataFrame) or zones.columns.has_duplicates` is true.
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `not result['source_document_id'].eq(index.document_id).all()` is true.
-- Rejects or diverts the path when `not result['source_archive_sha256'].eq(index.archive_sha256).all()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(zones, pd.DataFrame) or zones.columns.has_duplicates`.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `not result['source_document_id'].eq(index.document_id).all()`.
+- Guard with a raise path: `not result['source_archive_sha256'].eq(index.archive_sha256).all()`.
+- Explicit raise expressions: `BessZoningPrecheckError('Zone catalog archive lineage differs')`, `BessZoningPrecheckError('Zone catalog document lineage differs')`, `BessZoningPrecheckError('zones must be a DataFrame with unique columns')`, `BessZoningPrecheckError(f'Zone catalog is missing columns: {missing}')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `zones.copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `result['source_archive_sha256'].eq`, `result['source_archive_sha256'].eq(index.archive_sha256).all`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_exact_id_series`, `_strict_string`, `isinstance`, `result['source_archive_sha256'].eq`, `result['source_archive_sha256'].eq(index.archive_sha256).all`, `result['source_document_id'].eq`, `result['source_document_id'].eq(index.document_id).all`, `result['source_layer'].tolist`, `zones.copy`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_zones`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _validate_zones(
+    index: PlanningRegulationIndex,
+    zones: pd.DataFrame,
+) -> pd.DataFrame:
+    if not isinstance(zones, pd.DataFrame) or zones.columns.has_duplicates:
+        raise BessZoningPrecheckError("zones must be a DataFrame with unique columns")
+    required = (
+        "planning_zone_id",
+        "source_zone_id",
+        "zone_label_raw",
+        "source_document_id",
+        "source_archive_sha256",
+        "source_layer",
+    )
+    missing = [column for column in required if column not in zones.columns]
+    if missing:
+        raise BessZoningPrecheckError(f"Zone catalog is missing columns: {missing}")
+    result = zones.copy(deep=True)
+    _exact_id_series(result["planning_zone_id"], "planning zone ID", unique=True)
+    _exact_id_series(result["source_zone_id"], "source zone ID", unique=True)
+    _exact_id_series(result["zone_label_raw"], "raw zone label", unique=False)
+    if not result["source_document_id"].eq(index.document_id).all():
+        raise BessZoningPrecheckError("Zone catalog document lineage differs")
+    if not result["source_archive_sha256"].eq(index.archive_sha256).all():
+        raise BessZoningPrecheckError("Zone catalog archive lineage differs")
+    for value in result["source_layer"].tolist():
+        _strict_string(value, "zone source layer")
+    return result
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_relations`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_relations(
@@ -1894,83 +3515,157 @@ def _validate_relations(
 
 **Purpose**
 
-Validates and rejects malformed relations according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent relations; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `index` (`PlanningRegulationIndex`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zones` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `relations` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Checks `not isinstance(relations, pd.DataFrame) or relations.columns.has_duplicates`. When true: Raises `BessZoningPrecheckError('zoning_intersections must be a DataFrame with unique columns')`.
-2. Computes `required` from `('parcel_id', 'planning_zone_id', 'source_zone_id', 'zone_label_raw', 'relation_type', 'intersection_area_m2', 'parcel_metric_area_m2', 'zone_area_m2', 'parcel_share_pct', 'zone_share_pct', 'source_document_id', 'source_archive_sha256', 'source_layer')`.
-3. Computes `missing` from `[column for column in required if column not in relations.columns]`.
-4. Checks `missing`. When true: Raises `BessZoningPrecheckError(f'Zoning relations are missing columns: {missing}')`.
-5. Computes `result` from `relations.copy(deep=True)`.
-6. Checks `result.duplicated(['parcel_id', 'planning_zone_id']).any()`. When true: Raises `BessZoningPrecheckError('Parcel/zone relations must be unique')`.
-7. Computes `parcel_ids` from `set(_exact_id_series(parcels['parcel_id'], 'parcel ID', unique=True))`.
-8. Checks `not set(_exact_id_series(result['parcel_id'], 'relation parcel ID', unique=False)).issubset(parcel_ids)`. When true: Raises `BessZoningPrecheckError('Zoning relation references an unknown parcel')`.
-9. Computes `zone_records` from `zones.set_index('planning_zone_id')[['source_zone_id', 'zone_label_raw', 'source_layer']].to_dict('index')`.
-10. Iterates `row` over `result.to_dict('records')`. For each value: Computes `planning_id` from `_strict_string(row['planning_zone_id'], 'relation planning zone ID')`. Computes `source_id` from `_strict_string(row['source_zone_id'], 'relation source zone ID')`. Computes `label` from `_strict_string(row['zone_label_raw'], 'relation raw zone label')`. Executes 15 additional source-ordered statement(s).
-11. Returns `result`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(relations, pd.DataFrame) or relations.columns.has_duplicates` is true.
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `result.duplicated(['parcel_id', 'planning_zone_id']).any()` is true.
-- Rejects or diverts the path when `not set(_exact_id_series(result['parcel_id'], 'relation parcel ID', unique=False)).issubset(parcel_ids)` is true.
-- Rejects or diverts the path when `expected_zone is None` is true.
-- Rejects or diverts the path when `source_id != expected_zone['source_zone_id'] or label != expected_zone['zone_label_raw']` is true.
-- Rejects or diverts the path when `row['source_layer'] != expected_zone['source_layer']` is true.
-- Rejects or diverts the path when `relation_type == 'AREA_OVERLAP' and area <= 0` is true.
-- Rejects or diverts the path when `relation_type == 'TOUCH_ONLY' and area != 0` is true.
-- Rejects or diverts the path when `relation_type not in {'AREA_OVERLAP', 'TOUCH_ONLY'}` is true.
-- Rejects or diverts the path when `row['source_document_id'] != index.document_id` is true.
-- Rejects or diverts the path when `row['source_archive_sha256'] != index.archive_sha256` is true.
-- Rejects or diverts the path when `upper <= 0` is true.
-- Rejects or diverts the path when `area - upper > technical_overlay_tolerance(upper)` is true.
-- Rejects or diverts the path when `reference_area <= 0` is true.
-- Rejects or diverts the path when `abs(percentage_area - area) > technical_overlay_tolerance(reference_area)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(relations, pd.DataFrame) or relations.columns.has_duplicates`.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `result.duplicated(['parcel_id', 'planning_zone_id']).any()`.
+- Guard with a raise path: `not set(_exact_id_series(result['parcel_id'], 'relation parcel ID', unique=False)).issubset(parcel_ids)`.
+- Guard with a raise path: `expected_zone is None`.
+- Guard with a raise path: `source_id != expected_zone['source_zone_id'] or label != expected_zone['zone_label_raw']`.
+- Guard with a raise path: `row['source_layer'] != expected_zone['source_layer']`.
+- Guard with a raise path: `relation_type == 'AREA_OVERLAP' and area <= 0`.
+- Guard with a raise path: `relation_type == 'TOUCH_ONLY' and area != 0`.
+- Guard with a raise path: `relation_type not in {'AREA_OVERLAP', 'TOUCH_ONLY'}`.
+- Guard with a raise path: `row['source_document_id'] != index.document_id`.
+- Guard with a raise path: `row['source_archive_sha256'] != index.archive_sha256`.
+- Guard with a raise path: `upper <= 0`.
+- Guard with a raise path: `area - upper > technical_overlay_tolerance(upper)`.
+- Guard with a raise path: `reference_area <= 0`.
+- Guard with a raise path: `abs(percentage_area - area) > technical_overlay_tolerance(reference_area)`.
+- Explicit raise expressions: `BessZoningPrecheckError('AREA_OVERLAP requires positive area')`, `BessZoningPrecheckError('Parcel/zone relations must be unique')`, `BessZoningPrecheckError('TOUCH_ONLY requires zero area')`, `BessZoningPrecheckError('Zoning relation archive lineage differs')`, `BessZoningPrecheckError('Zoning relation document lineage differs')`, `BessZoningPrecheckError('Zoning relation references an unknown parcel')`, `BessZoningPrecheckError('Zoning relation references an unknown zone')`, `BessZoningPrecheckError('Zoning relation source layer is inconsistent')`, `BessZoningPrecheckError('Zoning relation type is invalid')`, `BessZoningPrecheckError('Zoning relation zone identity is inconsistent')`, `BessZoningPrecheckError('zoning_intersections must be a DataFrame with unique columns')`, `BessZoningPrecheckError(f'Intersection area exceeds {upper_column}')`, `BessZoningPrecheckError(f'Zoning relations are missing columns: {missing}')`, `BessZoningPrecheckError(f'{area_column} must be positive for a zoning relation')`, `BessZoningPrecheckError(f'{percentage_column} is inconsistent with factual areas')`, `BessZoningPrecheckError(f'{upper_column} must be positive for a zoning relation')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `relations.copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_exact_id_series`, `_strict_nonnegative_number`, `_strict_string`, `abs`, `isinstance`, `relations.copy`, `result.duplicated`, `result.duplicated(['parcel_id', 'planning_zone_id']).any`, `result.to_dict`, `set`, `set(_exact_id_series(result['parcel_id'], 'relation parcel ID', unique=False)).issubset`, `technical_overlay_tolerance`, `zone_records.get`, `zones.set_index`, `zones.set_index('planning_zone_id')[['source_zone_id', 'zone_label_raw', 'source_layer']].to_dict`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_relations`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _validate_relations(
+    index: PlanningRegulationIndex,
+    parcels: gpd.GeoDataFrame,
+    zones: pd.DataFrame,
+    relations: pd.DataFrame,
+) -> pd.DataFrame:
+    if not isinstance(relations, pd.DataFrame) or relations.columns.has_duplicates:
+        raise BessZoningPrecheckError(
+            "zoning_intersections must be a DataFrame with unique columns"
+        )
+    required = (
+        "parcel_id",
+        "planning_zone_id",
+        "source_zone_id",
+        "zone_label_raw",
+        "relation_type",
+        "intersection_area_m2",
+        "parcel_metric_area_m2",
+        "zone_area_m2",
+        "parcel_share_pct",
+        "zone_share_pct",
+        "source_document_id",
+        "source_archive_sha256",
+        "source_layer",
+    )
+    missing = [column for column in required if column not in relations.columns]
+    if missing:
+        raise BessZoningPrecheckError(f"Zoning relations are missing columns: {missing}")
+    result = relations.copy(deep=True)
+    if result.duplicated(["parcel_id", "planning_zone_id"]).any():
+        raise BessZoningPrecheckError("Parcel/zone relations must be unique")
+    parcel_ids = set(_exact_id_series(parcels["parcel_id"], "parcel ID", unique=True))
+    if not set(_exact_id_series(result["parcel_id"], "relation parcel ID", unique=False)).issubset(parcel_ids):
+        raise BessZoningPrecheckError("Zoning relation references an unknown parcel")
+    zone_records = zones.set_index("planning_zone_id")[
+        ["source_zone_id", "zone_label_raw", "source_layer"]
+    ].to_dict("index")
+    for row in result.to_dict("records"):
+        planning_id = _strict_string(row["planning_zone_id"], "relation planning zone ID")
+        source_id = _strict_string(row["source_zone_id"], "relation source zone ID")
+        label = _strict_string(row["zone_label_raw"], "relation raw zone label")
+        expected_zone = zone_records.get(planning_id)
+        if expected_zone is None:
+            raise BessZoningPrecheckError("Zoning relation references an unknown zone")
+        if source_id != expected_zone["source_zone_id"] or label != expected_zone["zone_label_raw"]:
+            raise BessZoningPrecheckError("Zoning relation zone identity is inconsistent")
+        if row["source_layer"] != expected_zone["source_layer"]:
+            raise BessZoningPrecheckError("Zoning relation source layer is inconsistent")
+        relation_type = _strict_string(row["relation_type"], "zoning relation type")
+        area = _strict_nonnegative_number(row["intersection_area_m2"], "intersection area")
+        if relation_type == "AREA_OVERLAP" and area <= 0:
+            raise BessZoningPrecheckError("AREA_OVERLAP requires positive area")
+        if relation_type == "TOUCH_ONLY" and area != 0:
+            raise BessZoningPrecheckError("TOUCH_ONLY requires zero area")
+        if relation_type not in {"AREA_OVERLAP", "TOUCH_ONLY"}:
+            raise BessZoningPrecheckError("Zoning relation type is invalid")
+        for upper_column in ("parcel_metric_area_m2", "zone_area_m2"):
+            upper = _strict_nonnegative_number(row[upper_column], upper_column)
+            if upper <= 0:
+                raise BessZoningPrecheckError(
+                    f"{upper_column} must be positive for a zoning relation"
+                )
+            if area - upper > technical_overlay_tolerance(upper):
+                raise BessZoningPrecheckError(
+                    f"Intersection area exceeds {upper_column}"
+                )
+        percentage_checks = (
+            ("parcel_metric_area_m2", "parcel_share_pct"),
+            ("zone_area_m2", "zone_share_pct"),
+        )
+        for area_column, percentage_column in percentage_checks:
+            reference_area = _strict_nonnegative_number(
+                row[area_column], area_column
+            )
+            observed_percentage = _strict_nonnegative_number(
+                row[percentage_column], percentage_column
+            )
+            if reference_area <= 0:
+                raise BessZoningPrecheckError(
+                    f"{area_column} must be positive for a zoning relation"
+                )
+            percentage_area = observed_percentage * reference_area / 100.0
+            if abs(percentage_area - area) > technical_overlay_tolerance(
+                reference_area
+            ):
+                raise BessZoningPrecheckError(
+                    f"{percentage_column} is inconsistent with factual areas"
+                )
+        if row["source_document_id"] != index.document_id:
+            raise BessZoningPrecheckError("Zoning relation document lineage differs")
+        if row["source_archive_sha256"] != index.archive_sha256:
+            raise BessZoningPrecheckError("Zoning relation archive lineage differs")
+        _strict_string(row["source_layer"], "zoning relation source layer")
+    return result
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_zone_mapping_input_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _zone_mapping_input_sha256(
@@ -1981,57 +3676,70 @@ def _zone_mapping_input_sha256(
 
 **Purpose**
 
-Implements zone mapping input sha256 according to the exact implementation and guards in this file.
+Private `planning` helper for zone mapping input sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `zones` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+_canonical_sha256({'domain': 'landscout.bess_zoning.zone_mapping_input', 'zones': _frame_payload(zones, zone_columns), 'mapping': _frame_payload(structure.zone_mapping, tuple((str(column) for column in structure.zone_mapping.columns)))})
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `_canonical_sha256({'domain': 'landscout.bess_zoning.zone_mapping_input', 'zones': _frame_payload(zones, zone_columns), 'mapping': _frame_payload(structure.zone_mapping, tuple((str(column) for column in structure.zone_mapping.columns)))})`.
-
-**Algorithm**
-
-1. Computes `zone_columns` from `('planning_zone_id', 'source_zone_id', 'zone_label_raw', 'source_document_id', 'source_archive_sha256', 'source_layer')`.
-2. Returns `_canonical_sha256({'domain': 'landscout.bess_zoning.zone_mapping_input', 'zones': _frame_payload(zones, zone_columns), 'mapping': _frame_payload(structure.zone_mapping, tuple((str(column) for column in structure.zone_mapping.columns)))})`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_canonical_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_sha256`, `_frame_payload`, `str`, `tuple`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_zone_mapping_input_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _zone_mapping_input_sha256(
+    zones: pd.DataFrame,
+    structure: PlanningRegulationStructureResult,
+) -> str:
+    zone_columns = (
+        "planning_zone_id",
+        "source_zone_id",
+        "zone_label_raw",
+        "source_document_id",
+        "source_archive_sha256",
+        "source_layer",
+    )
+    return _canonical_sha256(
+        {
+            "domain": "landscout.bess_zoning.zone_mapping_input",
+            "zones": _frame_payload(zones, zone_columns),
+            "mapping": _frame_payload(
+                structure.zone_mapping,
+                tuple(str(column) for column in structure.zone_mapping.columns),
+            ),
+        }
+    )
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_zone_chapter_rows`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _zone_chapter_rows(
@@ -2041,64 +3749,76 @@ def _zone_chapter_rows(
 
 **Purpose**
 
-Implements zone chapter rows according to the exact implementation and guards in this file.
+Private `planning` helper for zone chapter rows; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `list[dict[str, object]]`.
+- Every observed return expression is reproduced without truncation:
+```python
+rows
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `list[dict[str, object]]`. Observed return expression(s): `rows`.
-
-**Algorithm**
-
-1. Computes `rows` from `structure.sections.loc[structure.sections['section_type'].eq('ZONE_CHAPTER')].to_dict('records')`.
-2. Computes `labels` from `[_strict_string(row['zone_chapter_label'], 'zone chapter label') for row in rows]`.
-3. Computes `section_ids` from `[_strict_string(row['section_id'], 'zone chapter section ID') for row in rows]`.
-4. Checks `len(set(labels)) != len(labels)`. When true: Raises `BessZoningPrecheckError('Regulation zone chapter labels must be unique')`.
-5. Checks `len(set(section_ids)) != len(section_ids)`. When true: Raises `BessZoningPrecheckError('Regulation zone chapter section IDs must be unique')`.
-6. Returns `rows`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(set(labels)) != len(labels)` is true.
-- Rejects or diverts the path when `len(set(section_ids)) != len(section_ids)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(set(labels)) != len(labels)`.
+- Guard with a raise path: `len(set(section_ids)) != len(section_ids)`.
+- Explicit raise expressions: `BessZoningPrecheckError('Regulation zone chapter labels must be unique')`, `BessZoningPrecheckError('Regulation zone chapter section IDs must be unique')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_strict_string`, `len`, `set`, `structure.sections.loc[structure.sections['section_type'].eq('ZONE_CHAPTER')].to_dict`, `structure.sections['section_type'].eq`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_required_section_ids_by_chapter` via `_zone_chapter_rows`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_zone_chapter_rows`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_mapping` via `_zone_chapter_rows`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_zone_chapter_rows`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_regulation_zone_chapter_labels_and_ids_must_be_unique` via `interpret_module._zone_chapter_rows`.
+- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_regulation_zone_chapter_labels_and_ids_must_be_unique` via `interpret_module._zone_chapter_rows`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_chapter_policy`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_required_section_ids_by_chapter`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validate_mapping`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validate_policy_evidence`
+```python
+def _zone_chapter_rows(
+    structure: PlanningRegulationStructureResult,
+) -> list[dict[str, object]]:
+    rows = structure.sections.loc[
+        structure.sections["section_type"].eq("ZONE_CHAPTER")
+    ].to_dict("records")
+    labels = [
+        _strict_string(row["zone_chapter_label"], "zone chapter label")
+        for row in rows
+    ]
+    section_ids = [
+        _strict_string(row["section_id"], "zone chapter section ID") for row in rows
+    ]
+    if len(set(labels)) != len(labels):
+        raise BessZoningPrecheckError(
+            "Regulation zone chapter labels must be unique"
+        )
+    if len(set(section_ids)) != len(section_ids):
+        raise BessZoningPrecheckError(
+            "Regulation zone chapter section IDs must be unique"
+        )
+    return rows
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_required_section_ids_by_chapter`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _required_section_ids_by_chapter(
@@ -2109,62 +3829,69 @@ def _required_section_ids_by_chapter(
 
 **Purpose**
 
-Implements required section ids by chapter according to the exact implementation and guards in this file.
+Private `planning` helper for required section ids by chapter; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy` (`BessZoningPolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[str, tuple[str, ...]]`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[str, tuple[str, ...]]`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Computes `required_numbers` from `set(policy.required_zone_article_numbers)`.
-2. Computes `chapter_ids` from `{row['zone_chapter_label']: row['section_id'] for row in _zone_chapter_rows(structure)}`.
-3. Defines `result` with annotation `dict[str, tuple[str, ...]]` from `{}`.
-4. Computes `section_rows` from `structure.sections.to_dict('records')`.
-5. Iterates `(label, chapter_id)` over `chapter_ids.items()`. For each value: Computes `result[str(label)]` from `tuple((str(row['section_id']) for row in section_rows if row['section_type'] == 'ARTICLE' and row['parent_section_id'] == chapter_id and (row['article_number_raw'] in required_numbers)))`.
-6. Returns `result`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `result[str(label)]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_zone_chapter_rows`, `chapter_ids.items`, `set`, `str`, `structure.sections.to_dict`, `tuple`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_required_section_ids_by_chapter`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_required_section_ids_by_chapter`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_chapter_policy`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validate_policy_evidence`
+```python
+def _required_section_ids_by_chapter(
+    structure: PlanningRegulationStructureResult,
+    policy: BessZoningPolicyConfig,
+) -> dict[str, tuple[str, ...]]:
+    required_numbers = set(policy.required_zone_article_numbers)
+    chapter_ids = {
+        row["zone_chapter_label"]: row["section_id"]
+        for row in _zone_chapter_rows(structure)
+    }
+    result: dict[str, tuple[str, ...]] = {}
+    section_rows = structure.sections.to_dict("records")
+    for label, chapter_id in chapter_ids.items():
+        result[str(label)] = tuple(
+            str(row["section_id"])
+            for row in section_rows
+            if row["section_type"] == "ARTICLE"
+            and row["parent_section_id"] == chapter_id
+            and row["article_number_raw"] in required_numbers
+        )
+    return result
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_evidence_occurrence_uniqueness`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_evidence_occurrence_uniqueness(catalog: pd.DataFrame) -> None:
@@ -2172,59 +3899,57 @@ def _validate_evidence_occurrence_uniqueness(catalog: pd.DataFrame) -> None:
 
 **Purpose**
 
-Validates and rejects malformed evidence occurrence uniqueness according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent evidence occurrence uniqueness; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `catalog` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `missing` from `set(_EVIDENCE_OCCURRENCE_COLUMNS).difference(catalog.columns)`.
-2. Checks `missing`. When true: Raises `BessZoningPrecheckError(f'Evidence catalog lacks occurrence fields: {sorted(missing)}')`.
-3. Checks `catalog.duplicated(list(_EVIDENCE_OCCURRENCE_COLUMNS)).any()`. When true: Raises `BessZoningPrecheckError('Evidence catalog contains a duplicate chapter-scoped evidence occurrence')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `catalog.duplicated(list(_EVIDENCE_OCCURRENCE_COLUMNS)).any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `catalog.duplicated(list(_EVIDENCE_OCCURRENCE_COLUMNS)).any()`.
+- Explicit raise expressions: `BessZoningPrecheckError('Evidence catalog contains a duplicate chapter-scoped evidence occurrence')`, `BessZoningPrecheckError(f'Evidence catalog lacks occurrence fields: {sorted(missing)}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `catalog.duplicated`, `catalog.duplicated(list(_EVIDENCE_OCCURRENCE_COLUMNS)).any`, `list`, `set`, `set(_EVIDENCE_OCCURRENCE_COLUMNS).difference`, `sorted`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_validate_policy_evidence` via `_validate_evidence_occurrence_uniqueness`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_validate_evidence_occurrence_uniqueness`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_compare_results`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_validate_policy_evidence`
+```python
+def _validate_evidence_occurrence_uniqueness(catalog: pd.DataFrame) -> None:
+    missing = set(_EVIDENCE_OCCURRENCE_COLUMNS).difference(catalog.columns)
+    if missing:
+        raise BessZoningPrecheckError(
+            f"Evidence catalog lacks occurrence fields: {sorted(missing)}"
+        )
+    if catalog.duplicated(list(_EVIDENCE_OCCURRENCE_COLUMNS)).any():
+        raise BessZoningPrecheckError(
+            "Evidence catalog contains a duplicate chapter-scoped evidence occurrence"
+        )
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_policy_evidence`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_policy_evidence(
@@ -2239,93 +3964,264 @@ def _validate_policy_evidence(
 
 **Purpose**
 
-Validates and rejects malformed policy evidence according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent policy evidence; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `index` (`PlanningRegulationIndex`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy` (`BessZoningPolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `fragments` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_hash` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `evidence_route_links` (`pd.DataFrame`; required) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[dict[str, dict[str, object]], pd.DataFrame]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(chapters, catalog)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[dict[str, dict[str, object]], pd.DataFrame]`. Observed return expression(s): `(chapters, catalog)`.
-
-**Algorithm**
-
-1. Computes `sections` from `{_strict_string(row['section_id'], 'section ID'): row for row in structure.sections.to_dict('records')}`.
-2. Computes `fragment_records` from `{(_strict_string(row['section_id'], 'fragment section ID'), _strict_positive_integer(row['page_number'], 'fragment page number')): row for row in fragments.to_dict('records')}`.
-3. Computes `chapters` from `{_strict_string(row['zone_chapter_label'], 'zone chapter label'): row for row in _zone_chapter_rows(structure)}`.
-4. Computes `policy_labels` from `{chapter.resolved_zone_chapter_label for chapter in policy.chapters}`.
-5. Checks `policy_labels != set(chapters)`. When true: Computes `missing` from `sorted(set(chapters).difference(policy_labels))`. Computes `extra` from `sorted(policy_labels.difference(chapters))`. Raises `BessZoningPrecheckError(f'Chapter policy completeness differs; missing={missing}, extra={extra}')`.
-6. Defines `catalog_rows` with annotation `list[dict[str, object]]` from `[]`.
-7. Defines `links_by_evidence` with annotation `dict[str, list[tuple[str, str]]]` from `{}`.
-8. Iterates `link` over `evidence_route_links.to_dict('records')`. For each value: Computes `evidence_id` from `_strict_string(link['evidence_id'], 'linked evidence ID')`. Calls `links_by_evidence.setdefault(evidence_id, []).append((_strict_string(link['route_id'], 'linked route ID'), _strict_string(link['route_role'], 'route role')))` for its validation or side effect.
-9. Computes `required_by_chapter` from `_required_section_ids_by_chapter(structure, policy)`.
-10. Iterates `chapter` over `policy.chapters`. For each value: Computes `chapter_row` from `chapters[chapter.resolved_zone_chapter_label]`. Computes `chapter_id` from `chapter_row['section_id']`. Computes `reviewed_ids` from `set(chapter.reviewed_section_ids)`. Executes 5 additional source-ordered statement(s).
-11. Computes `catalog` from `pd.DataFrame(catalog_rows, columns=EVIDENCE_CATALOG_COLUMNS)`.
-12. Iterates `column` over `('page_number', 'excerpt_start', 'excerpt_end', 'source_rule_start', 'source_rule_end')`. For each value: Computes `catalog[column]` from `catalog[column].astype('int64')`.
-13. Computes `catalog['decision_linked']` from `catalog['decision_linked'].astype('bool')`.
-14. Checks `catalog['evidence_id'].duplicated().any()`. When true: Raises `BessZoningPrecheckError('Evidence catalog IDs must be unique')`.
-15. Calls `_validate_evidence_occurrence_uniqueness(catalog)` for its validation or side effect.
-16. Returns `(chapters, catalog)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `policy_labels != set(chapters)` is true.
-- Rejects or diverts the path when `catalog['evidence_id'].duplicated().any()` is true.
-- Rejects or diverts the path when `chapter.review_completeness == 'COMPLETE_FOR_CONFIGURED_USE_CONTROL_ARTICLES' and missing_required` is true.
-- Rejects or diverts the path when `reviewed is None` is true.
-- Rejects or diverts the path when `reviewed['section_type'] not in {'ZONE_CHAPTER', 'ARTICLE'}` is true.
-- Rejects or diverts the path when `reviewed['zone_chapter_label'] != chapter.resolved_zone_chapter_label` is true.
-- Rejects or diverts the path when `reviewed['section_type'] == 'ARTICLE' and reviewed['parent_section_id'] != chapter_id` is true.
-- Rejects or diverts the path when `section is None` is true.
-- Rejects or diverts the path when `section_type == 'ARTICLE' and section['parent_section_id'] != chapter_id` is true.
-- Rejects or diverts the path when `evidence.section_id not in reviewed_ids` is true.
-- Rejects or diverts the path when `fragment is None` is true.
-- Rejects or diverts the path when `not isinstance(raw_fragment, str)` is true.
-- Rejects or diverts the path when `fragment['section_page_fragment_sha256'] != evidence.section_page_fragment_sha256` is true.
-- Rejects or diverts the path when `evidence.excerpt_end > len(raw_fragment) or raw_fragment[evidence.excerpt_start:evidence.excerpt_end] != excerpt` is true.
-- Rejects or diverts the path when `sha256(excerpt.encode('utf-8')).hexdigest() != evidence.excerpt_sha256` is true.
-- Rejects or diverts the path when `evidence.source_rule_end > len(raw_fragment) or raw_fragment[evidence.source_rule_start:evidence.source_rule_end] != rule` is true.
-- Rejects or diverts the path when `sha256(rule.encode('utf-8')).hexdigest() != evidence.source_rule_sha256` is true.
-- Rejects or diverts the path when `rule[relative_start:relative_end] != excerpt` is true.
-- Rejects or diverts the path when `section['zone_chapter_label'] != chapter.resolved_zone_chapter_label` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `policy_labels != set(chapters)`.
+- Guard with a raise path: `catalog['evidence_id'].duplicated().any()`.
+- Guard with a raise path: `chapter.review_completeness == 'COMPLETE_FOR_CONFIGURED_USE_CONTROL_ARTICLES' and missing_required`.
+- Guard with a raise path: `reviewed is None`.
+- Guard with a raise path: `reviewed['section_type'] not in {'ZONE_CHAPTER', 'ARTICLE'}`.
+- Guard with a raise path: `reviewed['zone_chapter_label'] != chapter.resolved_zone_chapter_label`.
+- Guard with a raise path: `reviewed['section_type'] == 'ARTICLE' and reviewed['parent_section_id'] != chapter_id`.
+- Guard with a raise path: `section is None`.
+- Guard with a raise path: `section_type == 'ARTICLE' and section['parent_section_id'] != chapter_id`.
+- Guard with a raise path: `evidence.section_id not in reviewed_ids`.
+- Guard with a raise path: `fragment is None`.
+- Guard with a raise path: `not isinstance(raw_fragment, str)`.
+- Guard with a raise path: `fragment['section_page_fragment_sha256'] != evidence.section_page_fragment_sha256`.
+- Guard with a raise path: `evidence.excerpt_end > len(raw_fragment) or raw_fragment[evidence.excerpt_start:evidence.excerpt_end] != excerpt`.
+- Guard with a raise path: `sha256(excerpt.encode('utf-8')).hexdigest() != evidence.excerpt_sha256`.
+- Guard with a raise path: `evidence.source_rule_end > len(raw_fragment) or raw_fragment[evidence.source_rule_start:evidence.source_rule_end] != rule`.
+- Guard with a raise path: `sha256(rule.encode('utf-8')).hexdigest() != evidence.source_rule_sha256`.
+- Guard with a raise path: `rule[relative_start:relative_end] != excerpt`.
+- Guard with a raise path: `section['zone_chapter_label'] != chapter.resolved_zone_chapter_label`.
+- Explicit raise expressions: `BessZoningPrecheckError('Evidence catalog IDs must be unique')`, `BessZoningPrecheckError(f'Chapter policy completeness differs; missing={missing}, extra={extra}')`, `BessZoningPrecheckError(f'Chapter {chapter.resolved_zone_chapter_label} omits required reviewed articles: {missing_required}')`, `BessZoningPrecheckError(f'Evidence {evidence.evidence_id} belongs to another zone chapter')`, `BessZoningPrecheckError(f'Evidence {evidence.evidence_id} excerpt SHA256 differs')`, `BessZoningPrecheckError(f'Evidence {evidence.evidence_id} fragment SHA256 differs')`, `BessZoningPrecheckError(f'Evidence {evidence.evidence_id} fragment text is invalid')`, `BessZoningPrecheckError(f'Evidence {evidence.evidence_id} has no factual section/page fragment')`, `BessZoningPrecheckError(f'Evidence {evidence.evidence_id} has the wrong chapter parent')`, `BessZoningPrecheckError(f'Evidence {evidence.evidence_id} is outside its source rule')`, `BessZoningPrecheckError(f'Evidence {evidence.evidence_id} is outside reviewed sections')`, `BessZoningPrecheckError(f'Evidence {evidence.evidence_id} offsets do not identify its exact excerpt')`, `BessZoningPrecheckError(f'Evidence {evidence.evidence_id} references an unknown section')`, `BessZoningPrecheckError(f'Evidence {evidence.evidence_id} source-rule SHA256 differs')`, `BessZoningPrecheckError(f'Evidence {evidence.evidence_id} source-rule offsets differ')`, `BessZoningPrecheckError(f'Reviewed section {reviewed_id!r} belongs to another chapter')`, `BessZoningPrecheckError(f'Reviewed section {reviewed_id!r} has another chapter parent')`, `BessZoningPrecheckError(f'Reviewed section {reviewed_id!r} is not a zone/general section')`, `BessZoningPrecheckError(f'Reviewed section {reviewed_id!r} is unknown')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `sha256`, `sha256(excerpt.encode('utf-8')).hexdigest`, `sha256(rule.encode('utf-8')).hexdigest`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `catalog['decision_linked']`, `catalog[column]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_required_section_ids_by_chapter`, `_strict_positive_integer`, `_strict_string`, `_validate_evidence_occurrence_uniqueness`, `_zone_chapter_rows`, `bool`, `catalog['decision_linked'].astype`, `catalog['evidence_id'].duplicated`, `catalog['evidence_id'].duplicated().any`, `catalog[column].astype`, `catalog_rows.append`, `evidence_route_links.to_dict`, `excerpt.encode`, `fragment_records.get`, `fragments.to_dict`, `isinstance`, `len`, `links_by_evidence.get`, `links_by_evidence.setdefault`, `links_by_evidence.setdefault(evidence_id, []).append`, `pd.DataFrame`, `policy_labels.difference`, `required_ids.difference`, `rule.encode`, `sections.get`, `set`, `set(chapters).difference`, `sha256`, `sha256(excerpt.encode('utf-8')).hexdigest`, `sha256(rule.encode('utf-8')).hexdigest`, `sorted`, `structure.sections.to_dict`, `tuple`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_policy_evidence`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _validate_policy_evidence(
+    index: PlanningRegulationIndex,
+    structure: PlanningRegulationStructureResult,
+    policy: BessZoningPolicyConfig,
+    fragments: pd.DataFrame,
+    policy_hash: str,
+    evidence_route_links: pd.DataFrame,
+) -> tuple[dict[str, dict[str, object]], pd.DataFrame]:
+    sections = {
+        _strict_string(row["section_id"], "section ID"): row
+        for row in structure.sections.to_dict("records")
+    }
+    fragment_records = {
+        (
+            _strict_string(row["section_id"], "fragment section ID"),
+            _strict_positive_integer(row["page_number"], "fragment page number"),
+        ): row
+        for row in fragments.to_dict("records")
+    }
+    chapters = {
+        _strict_string(row["zone_chapter_label"], "zone chapter label"): row
+        for row in _zone_chapter_rows(structure)
+    }
+    policy_labels = {chapter.resolved_zone_chapter_label for chapter in policy.chapters}
+    if policy_labels != set(chapters):
+        missing = sorted(set(chapters).difference(policy_labels))
+        extra = sorted(policy_labels.difference(chapters))
+        raise BessZoningPrecheckError(
+            f"Chapter policy completeness differs; missing={missing}, extra={extra}"
+        )
+    catalog_rows: list[dict[str, object]] = []
+    links_by_evidence: dict[str, list[tuple[str, str]]] = {}
+    for link in evidence_route_links.to_dict("records"):
+        evidence_id = _strict_string(link["evidence_id"], "linked evidence ID")
+        links_by_evidence.setdefault(evidence_id, []).append(
+            (
+                _strict_string(link["route_id"], "linked route ID"),
+                _strict_string(link["route_role"], "route role"),
+            )
+        )
+    required_by_chapter = _required_section_ids_by_chapter(structure, policy)
+    for chapter in policy.chapters:
+        chapter_row = chapters[chapter.resolved_zone_chapter_label]
+        chapter_id = chapter_row["section_id"]
+        reviewed_ids = set(chapter.reviewed_section_ids)
+        for reviewed_id in chapter.reviewed_section_ids:
+            reviewed = sections.get(reviewed_id)
+            if reviewed is None:
+                raise BessZoningPrecheckError(
+                    f"Reviewed section {reviewed_id!r} is unknown"
+                )
+            if reviewed["section_type"] == "GENERAL":
+                continue
+            if reviewed["section_type"] not in {"ZONE_CHAPTER", "ARTICLE"}:
+                raise BessZoningPrecheckError(
+                    f"Reviewed section {reviewed_id!r} is not a zone/general section"
+                )
+            if reviewed["zone_chapter_label"] != chapter.resolved_zone_chapter_label:
+                raise BessZoningPrecheckError(
+                    f"Reviewed section {reviewed_id!r} belongs to another chapter"
+                )
+            if (
+                reviewed["section_type"] == "ARTICLE"
+                and reviewed["parent_section_id"] != chapter_id
+            ):
+                raise BessZoningPrecheckError(
+                    f"Reviewed section {reviewed_id!r} has another chapter parent"
+                )
+        required_ids = set(required_by_chapter[chapter.resolved_zone_chapter_label])
+        missing_required = sorted(required_ids.difference(reviewed_ids))
+        if (
+            chapter.review_completeness
+            == "COMPLETE_FOR_CONFIGURED_USE_CONTROL_ARTICLES"
+            and missing_required
+        ):
+            raise BessZoningPrecheckError(
+                f"Chapter {chapter.resolved_zone_chapter_label} omits required reviewed articles: {missing_required}"
+            )
+        for evidence in chapter.evidence:
+            reverse_links = tuple(
+                sorted(links_by_evidence.get(evidence.evidence_id, []))
+            )
+            section = sections.get(evidence.section_id)
+            if section is None:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} references an unknown section"
+                )
+            section_type = section["section_type"]
+            if section_type == "GENERAL":
+                pass
+            elif section["zone_chapter_label"] != chapter.resolved_zone_chapter_label:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} belongs to another zone chapter"
+                )
+            if section_type == "ARTICLE" and section["parent_section_id"] != chapter_id:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} has the wrong chapter parent"
+                )
+            if evidence.section_id not in reviewed_ids:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} is outside reviewed sections"
+                )
+            fragment = fragment_records.get((evidence.section_id, evidence.page_number))
+            if fragment is None:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} has no factual section/page fragment"
+                )
+            excerpt = evidence.exact_raw_excerpt
+            raw_fragment = fragment["raw_text"]
+            if not isinstance(raw_fragment, str):
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} fragment text is invalid"
+                )
+            if fragment["section_page_fragment_sha256"] != evidence.section_page_fragment_sha256:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} fragment SHA256 differs"
+                )
+            if evidence.excerpt_end > len(raw_fragment) or raw_fragment[
+                evidence.excerpt_start : evidence.excerpt_end
+            ] != excerpt:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} offsets do not identify its exact excerpt"
+                )
+            if sha256(excerpt.encode("utf-8")).hexdigest() != evidence.excerpt_sha256:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} excerpt SHA256 differs"
+                )
+            rule = evidence.source_rule_excerpt
+            if evidence.source_rule_end > len(raw_fragment) or raw_fragment[
+                evidence.source_rule_start : evidence.source_rule_end
+            ] != rule:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} source-rule offsets differ"
+                )
+            if sha256(rule.encode("utf-8")).hexdigest() != evidence.source_rule_sha256:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} source-rule SHA256 differs"
+                )
+            relative_start = evidence.excerpt_start - evidence.source_rule_start
+            relative_end = evidence.excerpt_end - evidence.source_rule_start
+            if rule[relative_start:relative_end] != excerpt:
+                raise BessZoningPrecheckError(
+                    f"Evidence {evidence.evidence_id} is outside its source rule"
+                )
+            catalog_rows.append(
+                {
+                    "evidence_id": evidence.evidence_id,
+                    "resolved_zone_chapter_label": (
+                        chapter.resolved_zone_chapter_label
+                    ),
+                    "section_id": evidence.section_id,
+                    "page_number": evidence.page_number,
+                    "evidence_kind": evidence.evidence_kind,
+                    "evidence_direction": evidence.evidence_direction,
+                    "linked_route_ids": tuple(item[0] for item in reverse_links),
+                    "linked_route_roles": tuple(item[1] for item in reverse_links),
+                    "decision_linked": bool(reverse_links),
+                    "exact_raw_excerpt": excerpt,
+                    "excerpt_sha256": evidence.excerpt_sha256,
+                    "section_page_fragment_sha256": (
+                        evidence.section_page_fragment_sha256
+                    ),
+                    "excerpt_start": evidence.excerpt_start,
+                    "excerpt_end": evidence.excerpt_end,
+                    "source_rule_id": evidence.source_rule_id,
+                    "source_rule_excerpt": rule,
+                    "source_rule_sha256": evidence.source_rule_sha256,
+                    "source_rule_start": evidence.source_rule_start,
+                    "source_rule_end": evidence.source_rule_end,
+                    "interpretation_note": evidence.interpretation_note,
+                    "review_completeness": chapter.review_completeness,
+                    "review_scope": policy.review_scope,
+                    "policy_profile": policy.policy_profile,
+                    "policy_sha256": policy_hash,
+                    "document_id": index.document_id,
+                    "archive_sha256": index.archive_sha256,
+                    "pdf_sha256": index.pdf_sha256,
+                    "index_content_sha256": index.index_content_sha256,
+                    "structure_result_content_sha256": (
+                        structure.structure_result_content_sha256
+                    ),
+                    "structure_profile": structure.structure_profile,
+                }
+            )
+    catalog = pd.DataFrame(catalog_rows, columns=EVIDENCE_CATALOG_COLUMNS)
+    for column in (
+        "page_number",
+        "excerpt_start",
+        "excerpt_end",
+        "source_rule_start",
+        "source_rule_end",
+    ):
+        catalog[column] = catalog[column].astype("int64")
+    catalog["decision_linked"] = catalog["decision_linked"].astype("bool")
+    if catalog["evidence_id"].duplicated().any():
+        raise BessZoningPrecheckError("Evidence catalog IDs must be unique")
+    _validate_evidence_occurrence_uniqueness(catalog)
+    return chapters, catalog
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_mapping`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_mapping(
@@ -2336,64 +4232,84 @@ def _validate_mapping(
 
 **Purpose**
 
-Validates and rejects malformed mapping according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent mapping; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zones` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+mapping
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `mapping`.
-
-**Algorithm**
-
-1. Computes `mapping` from `structure.zone_mapping.copy(deep=True)`.
-2. Computes `source_labels` from `set(_exact_id_series(zones['zone_label_raw'], 'raw zone label', unique=False))`.
-3. Computes `mapped_labels` from `set(_exact_id_series(mapping['source_zone_label_raw'], 'mapped source zone label', unique=True))`.
-4. Checks `mapped_labels != source_labels`. When true: Raises `BessZoningPrecheckError('Factual zone mapping is incomplete or has extras')`.
-5. Computes `chapters` from `{row['zone_chapter_label']: row['section_id'] for row in _zone_chapter_rows(structure)}`.
-6. Iterates `row` over `mapping.to_dict('records')`. For each value: Calls `_strict_string(row['source_zone_label_raw'], 'mapped source zone label')` for its validation or side effect. Computes `status` from `_strict_string(row['mapping_status'], 'mapping status')`. Checks `status not in _RESOLVED_MAPPING_STATUSES`. When true: Raises `BessZoningPrecheckError(f"Source zone {row['source_zone_label_raw']!r} is not resolved")`. Executes 2 additional source-ordered statement(s).
-7. Returns `mapping`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `mapped_labels != source_labels` is true.
-- Rejects or diverts the path when `status not in _RESOLVED_MAPPING_STATUSES` is true.
-- Rejects or diverts the path when `chapters.get(resolved) != row['matched_section_id']` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `mapped_labels != source_labels`.
+- Guard with a raise path: `status not in _RESOLVED_MAPPING_STATUSES`.
+- Guard with a raise path: `chapters.get(resolved) != row['matched_section_id']`.
+- Explicit raise expressions: `BessZoningPrecheckError('Factual zone mapping is incomplete or has extras')`, `BessZoningPrecheckError('Zone mapping chapter identity is inconsistent')`, `BessZoningPrecheckError(f"Source zone {row['source_zone_label_raw']!r} is not resolved")`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `structure.zone_mapping.copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_exact_id_series`, `_strict_string`, `_zone_chapter_rows`, `chapters.get`, `mapping.to_dict`, `set`, `structure.zone_mapping.copy`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_mapping`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _validate_mapping(
+    structure: PlanningRegulationStructureResult,
+    zones: pd.DataFrame,
+) -> pd.DataFrame:
+    mapping = structure.zone_mapping.copy(deep=True)
+    source_labels = set(
+        _exact_id_series(zones["zone_label_raw"], "raw zone label", unique=False)
+    )
+    mapped_labels = set(
+        _exact_id_series(
+            mapping["source_zone_label_raw"],
+            "mapped source zone label",
+            unique=True,
+        )
+    )
+    if mapped_labels != source_labels:
+        raise BessZoningPrecheckError("Factual zone mapping is incomplete or has extras")
+    chapters = {
+        row["zone_chapter_label"]: row["section_id"]
+        for row in _zone_chapter_rows(structure)
+    }
+    for row in mapping.to_dict("records"):
+        _strict_string(row["source_zone_label_raw"], "mapped source zone label")
+        status = _strict_string(row["mapping_status"], "mapping status")
+        if status not in _RESOLVED_MAPPING_STATUSES:
+            raise BessZoningPrecheckError(
+                f"Source zone {row['source_zone_label_raw']!r} is not resolved"
+            )
+        resolved = _strict_string(
+            row["resolved_zone_chapter_label"], "resolved zone chapter"
+        )
+        if chapters.get(resolved) != row["matched_section_id"]:
+            raise BessZoningPrecheckError("Zone mapping chapter identity is inconsistent")
+    return mapping
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_lineage`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _lineage(
@@ -2406,62 +4322,70 @@ def _lineage(
 
 **Purpose**
 
-Implements lineage according to the exact implementation and guards in this file.
+Private `planning` helper for lineage; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `index` (`PlanningRegulationIndex`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy` (`BessZoningPolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_hash` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[str, object]`.
+- Every observed return expression is reproduced without truncation:
+```python
+{'planning_precheck_scope': PLANNING_PRECHECK_SCOPE, 'review_scope': REVIEW_SCOPE, 'policy_profile': policy.policy_profile, 'policy_sha256': policy_hash, 'document_id': index.document_id, 'archive_sha256': index.archive_sha256, 'pdf_sha256': index.pdf_sha256, 'index_content_sha256': index.index_content_sha256, 'structure_result_content_sha256': structure.structure_result_content_sha256, 'structure_profile': structure.structure_profile}
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[str, object]`. Observed return expression(s): `{'planning_precheck_scope': PLANNING_PRECHECK_SCOPE, 'review_scope': REVIEW_SCOPE, 'policy_profile': policy.policy_profile, 'policy_sha256': policy_hash, 'document_id': index.document_id, 'archive_sha256': index.archive_sha256, 'pdf_sha256': index.pdf_sha256, 'index_content_sha256': index.index_content_sha256, 'structure_result_content_sha256': structure.structure_result_content_sha256, 'structur…`.
-
-**Algorithm**
-
-1. Returns `{'planning_precheck_scope': PLANNING_PRECHECK_SCOPE, 'review_scope': REVIEW_SCOPE, 'policy_profile': policy.policy_profile, 'policy_sha256': policy_hash, 'document_id': index.document_id, 'archive_sha256': index.archive_sha256, 'pdf_sha256': index.pdf_sha256, 'index_content_sha256': index.index_content_sha256, 'structure_result_content_sha256': structure.st…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- No function calls.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_chapter_policy` via `_lineage`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_route_assessments` via `_lineage`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_evidence_route_links` via `_lineage`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_source_zone_policy` via `_lineage`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_zone_interpretations` via `_lineage`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_chapter_policy`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_evidence_route_links`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_parcel_zone_interpretations`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_route_assessments`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_source_zone_policy`
+```python
+def _lineage(
+    index: PlanningRegulationIndex,
+    structure: PlanningRegulationStructureResult,
+    policy: BessZoningPolicyConfig,
+    policy_hash: str,
+) -> dict[str, object]:
+    return {
+        "planning_precheck_scope": PLANNING_PRECHECK_SCOPE,
+        "review_scope": REVIEW_SCOPE,
+        "policy_profile": policy.policy_profile,
+        "policy_sha256": policy_hash,
+        "document_id": index.document_id,
+        "archive_sha256": index.archive_sha256,
+        "pdf_sha256": index.pdf_sha256,
+        "index_content_sha256": index.index_content_sha256,
+        "structure_result_content_sha256": structure.structure_result_content_sha256,
+        "structure_profile": structure.structure_profile,
+    }
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_build_chapter_policy`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _build_chapter_policy(
@@ -2474,66 +4398,105 @@ def _build_chapter_policy(
 
 **Purpose**
 
-Builds chapter policy according to the exact implementation and guards in this file.
+Constructs chapter policy; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `index` (`PlanningRegulationIndex`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy` (`BessZoningPolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_hash` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+frame
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `frame`.
-
-**Algorithm**
-
-1. Computes `by_label` from `{chapter.resolved_zone_chapter_label: chapter for chapter in policy.chapters}`.
-2. Defines `rows` with annotation `list[dict[str, object]]` from `[]`.
-3. Computes `lineage` from `_lineage(index, structure, policy, policy_hash)`.
-4. Computes `chapters` from `_zone_chapter_rows(structure)`.
-5. Computes `required_by_chapter` from `_required_section_ids_by_chapter(structure, policy)`.
-6. Iterates `source` over `chapters`. For each value: Computes `label` from `_strict_string(source['zone_chapter_label'], 'zone chapter label')`. Computes `chapter_section_id` from `_strict_string(source['section_id'], 'zone chapter section ID')`. Computes `chapter` from `by_label[label]`. Executes 4 additional source-ordered statement(s).
-7. Computes `frame` from `pd.DataFrame(rows, columns=CHAPTER_POLICY_COLUMNS)`.
-8. Computes `frame['evidence_count']` from `frame['evidence_count'].astype('int64')`.
-9. Returns `frame`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `frame['evidence_count']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_lineage`, `_required_section_ids_by_chapter`, `_strict_string`, `_zone_chapter_rows`, `frame['evidence_count'].astype`, `len`, `pd.DataFrame`, `rows.append`, `set`, `tuple`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_chapter_policy`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _build_chapter_policy(
+    index: PlanningRegulationIndex,
+    structure: PlanningRegulationStructureResult,
+    policy: BessZoningPolicyConfig,
+    policy_hash: str,
+) -> pd.DataFrame:
+    by_label = {
+        chapter.resolved_zone_chapter_label: chapter for chapter in policy.chapters
+    }
+    rows: list[dict[str, object]] = []
+    lineage = _lineage(index, structure, policy, policy_hash)
+    chapters = _zone_chapter_rows(structure)
+    required_by_chapter = _required_section_ids_by_chapter(structure, policy)
+    for source in chapters:
+        label = _strict_string(source["zone_chapter_label"], "zone chapter label")
+        chapter_section_id = _strict_string(
+            source["section_id"], "zone chapter section ID"
+        )
+        chapter = by_label[label]
+        evidence_ids = tuple(item.evidence_id for item in chapter.evidence)
+        decision_evidence_ids = tuple(
+            item.evidence_id
+            for item in chapter.evidence
+            if item.evidence_direction != "CONTEXT_ONLY"
+        )
+        context_evidence_ids = tuple(
+            item.evidence_id
+            for item in chapter.evidence
+            if item.evidence_direction == "CONTEXT_ONLY"
+        )
+        rows.append(
+            {
+                "resolved_zone_chapter_label": label,
+                "chapter_section_id": chapter_section_id,
+                "review_completeness": chapter.review_completeness,
+                "review_scope": policy.review_scope,
+                "reviewed_section_ids": tuple(chapter.reviewed_section_ids),
+                "missing_required_section_ids": tuple(
+                    section_id
+                    for section_id in required_by_chapter[label]
+                    if section_id not in set(chapter.reviewed_section_ids)
+                ),
+                "review_note": chapter.review_note,
+                "zoning_precheck_status": chapter.zoning_precheck_status,
+                "zoning_precheck_confidence": chapter.zoning_precheck_confidence,
+                "evidence_count": len(evidence_ids),
+                "evidence_ids": evidence_ids,
+                "decision_evidence_ids": decision_evidence_ids,
+                "context_evidence_ids": context_evidence_ids,
+                "rationale": chapter.rationale,
+                "missing_information": chapter.missing_information,
+                **lineage,
+            }
+        )
+    frame = pd.DataFrame(rows, columns=CHAPTER_POLICY_COLUMNS)
+    frame["evidence_count"] = frame["evidence_count"].astype("int64")
+    return frame
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_route_status`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _route_status(route_kind: RouteKind) -> ChapterStatus:
@@ -2541,56 +4504,56 @@ def _route_status(route_kind: RouteKind) -> ChapterStatus:
 
 **Purpose**
 
-Implements route status according to the exact implementation and guards in this file.
+Maps each configured written-zoning RouteKind to its deterministic ChapterStatus; this is planning-policy interpretation, not legal authorization.
 
-**Inputs**
+**Return contract**
 
-- `route_kind` (`RouteKind`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `ChapterStatus`.
+- Every observed return expression is reproduced without truncation:
+```python
+statuses[route_kind]
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `ChapterStatus`. Observed return expression(s): `statuses[route_kind]`.
-
-**Algorithm**
-
-1. Defines `statuses` with annotation `dict[RouteKind, ChapterStatus]` from `{'DIRECT_ROUTE': 'POTENTIALLY_COMPATIBLE', 'CONDITIONAL_ROUTE': 'CONDITIONAL_REVIEW', 'RESTRICTION_EXCEPTION_ROUTE': 'CONDITIONAL_REVIEW', 'DIFFICULTY_ONLY': 'LIKELY_DIFFICULT'}`.
-2. Returns `statuses[route_kind]`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- No function calls.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_route_assessments` via `_route_status`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_route_assessments`
+```python
+def _route_status(route_kind: RouteKind) -> ChapterStatus:
+    statuses: dict[RouteKind, ChapterStatus] = {
+        "DIRECT_ROUTE": "POTENTIALLY_COMPATIBLE",
+        "CONDITIONAL_ROUTE": "CONDITIONAL_REVIEW",
+        "RESTRICTION_EXCEPTION_ROUTE": "CONDITIONAL_REVIEW",
+        "DIFFICULTY_ONLY": "LIKELY_DIFFICULT",
+    }
+    return statuses[route_kind]
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_build_route_assessments`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _build_route_assessments(
@@ -2603,62 +4566,76 @@ def _build_route_assessments(
 
 **Purpose**
 
-Builds route assessments according to the exact implementation and guards in this file.
+Constructs route assessments; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `index` (`PlanningRegulationIndex`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy` (`BessZoningPolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_hash` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+frame
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `frame`.
-
-**Algorithm**
-
-1. Computes `lineage` from `_lineage(index, structure, policy, policy_hash)`.
-2. Computes `rows` from `[{'route_id': route.route_id, 'resolved_zone_chapter_label': chapter.resolved_zone_chapter_label, 'route_kind': route.route_kind, 'derived_route_status': _route_status(route.route_kind), 'positive_evidence_ids': tuple(route.positive_evidence_ids), 'condition_evidence_ids': tuple(route.condition_evidence_ids), 'difficu…`.
-3. Computes `frame` from `pd.DataFrame(rows, columns=ROUTE_ASSESSMENT_COLUMNS)`.
-4. Checks `frame['route_id'].duplicated().any()`. When true: Raises `BessZoningPrecheckError('Normalized route IDs must be unique')`.
-5. Returns `frame`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `frame['route_id'].duplicated().any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `frame['route_id'].duplicated().any()`.
+- Explicit raise expressions: `BessZoningPrecheckError('Normalized route IDs must be unique')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_lineage`, `_route_status`, `frame['route_id'].duplicated`, `frame['route_id'].duplicated().any`, `pd.DataFrame`, `tuple`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_route_assessments`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _build_route_assessments(
+    index: PlanningRegulationIndex,
+    structure: PlanningRegulationStructureResult,
+    policy: BessZoningPolicyConfig,
+    policy_hash: str,
+) -> pd.DataFrame:
+    lineage = _lineage(index, structure, policy, policy_hash)
+    rows = [
+        {
+            "route_id": route.route_id,
+            "resolved_zone_chapter_label": chapter.resolved_zone_chapter_label,
+            "route_kind": route.route_kind,
+            "derived_route_status": _route_status(route.route_kind),
+            "positive_evidence_ids": tuple(route.positive_evidence_ids),
+            "condition_evidence_ids": tuple(route.condition_evidence_ids),
+            "difficulty_evidence_ids": tuple(route.difficulty_evidence_ids),
+            "applicability_note": route.applicability_note,
+            "review_completeness": chapter.review_completeness,
+            "review_scope": policy.review_scope,
+            **lineage,
+        }
+        for chapter in policy.chapters
+        for route in chapter.route_assessments
+    ]
+    frame = pd.DataFrame(rows, columns=ROUTE_ASSESSMENT_COLUMNS)
+    if frame["route_id"].duplicated().any():
+        raise BessZoningPrecheckError("Normalized route IDs must be unique")
+    return frame
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_build_evidence_route_links`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _build_evidence_route_links(
@@ -2671,65 +4648,90 @@ def _build_evidence_route_links(
 
 **Purpose**
 
-Builds evidence route links according to the exact implementation and guards in this file.
+Constructs evidence route links; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `index` (`PlanningRegulationIndex`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy` (`BessZoningPolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_hash` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+frame
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `frame`.
-
-**Algorithm**
-
-1. Computes `lineage` from `_lineage(index, structure, policy, policy_hash)`.
-2. Defines `rows` with annotation `list[dict[str, object]]` from `[]`.
-3. Computes `role_fields` from `(('positive_evidence_ids', 'POSITIVE', 'SUPPORTS_POTENTIAL_COMPATIBILITY'), ('condition_evidence_ids', 'CONDITION', 'CONDITION'), ('difficulty_evidence_ids', 'DIFFICULTY', 'SUPPORTS_DIFFICULTY'))`.
-4. Iterates `chapter` over `policy.chapters`. For each value: Iterates `route` over `chapter.route_assessments`. For each value: Iterates `(field, role, direction)` over `role_fields`. For each value: Iterates `evidence_id` over `getattr(route, field)`. For each value: Calls `rows.append({'route_id': route.route_id, 'resolved_zone_chapter_label': chapter.resolved_zone_chapter_label, 'route_kind': route.route_kind, 'evidence_id': evidence_id, 'route_role': role, 'evidence_direction': direction, 'review_completeness': chapter.review_completeness, 'review_scope': policy.review_scope, **lineage})` for its validation or side effect.
-5. Computes `frame` from `pd.DataFrame(rows, columns=EVIDENCE_ROUTE_LINK_COLUMNS)`.
-6. Checks `not frame.empty`. When true: Computes `frame` from `frame.sort_values(['route_id', 'evidence_id'], kind='mergesort').reset_index(drop=True)`.
-7. Checks `frame.duplicated(['route_id', 'evidence_id']).any()`. When true: Raises `BessZoningPrecheckError('Evidence-route links must be unique by route and evidence')`.
-8. Returns `frame`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `frame.duplicated(['route_id', 'evidence_id']).any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `frame.duplicated(['route_id', 'evidence_id']).any()`.
+- Explicit raise expressions: `BessZoningPrecheckError('Evidence-route links must be unique by route and evidence')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_lineage`, `frame.duplicated`, `frame.duplicated(['route_id', 'evidence_id']).any`, `frame.sort_values`, `frame.sort_values(['route_id', 'evidence_id'], kind='mergesort').reset_index`, `getattr`, `pd.DataFrame`, `rows.append`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_evidence_route_links`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _build_evidence_route_links(
+    index: PlanningRegulationIndex,
+    structure: PlanningRegulationStructureResult,
+    policy: BessZoningPolicyConfig,
+    policy_hash: str,
+) -> pd.DataFrame:
+    lineage = _lineage(index, structure, policy, policy_hash)
+    rows: list[dict[str, object]] = []
+    role_fields = (
+        ("positive_evidence_ids", "POSITIVE", "SUPPORTS_POTENTIAL_COMPATIBILITY"),
+        ("condition_evidence_ids", "CONDITION", "CONDITION"),
+        ("difficulty_evidence_ids", "DIFFICULTY", "SUPPORTS_DIFFICULTY"),
+    )
+    for chapter in policy.chapters:
+        for route in chapter.route_assessments:
+            for field, role, direction in role_fields:
+                for evidence_id in getattr(route, field):
+                    rows.append(
+                        {
+                            "route_id": route.route_id,
+                            "resolved_zone_chapter_label": (
+                                chapter.resolved_zone_chapter_label
+                            ),
+                            "route_kind": route.route_kind,
+                            "evidence_id": evidence_id,
+                            "route_role": role,
+                            "evidence_direction": direction,
+                            "review_completeness": chapter.review_completeness,
+                            "review_scope": policy.review_scope,
+                            **lineage,
+                        }
+                    )
+    frame = pd.DataFrame(rows, columns=EVIDENCE_ROUTE_LINK_COLUMNS)
+    if not frame.empty:
+        frame = frame.sort_values(
+            ["route_id", "evidence_id"], kind="mergesort"
+        ).reset_index(drop=True)
+    if frame.duplicated(["route_id", "evidence_id"]).any():
+        raise BessZoningPrecheckError(
+            "Evidence-route links must be unique by route and evidence"
+        )
+    return frame
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_build_source_zone_policy`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _build_source_zone_policy(
@@ -2745,67 +4747,90 @@ def _build_source_zone_policy(
 
 **Purpose**
 
-Builds source zone policy according to the exact implementation and guards in this file.
+Constructs source zone policy; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `index` (`PlanningRegulationIndex`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy` (`BessZoningPolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_hash` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zones` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `mapping` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `chapter_policy` (`pd.DataFrame`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+pd.DataFrame(rows, columns=SOURCE_ZONE_POLICY_COLUMNS)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `pd.DataFrame(rows, columns=SOURCE_ZONE_POLICY_COLUMNS)`.
-
-**Algorithm**
-
-1. Computes `policies` from `chapter_policy.set_index('resolved_zone_chapter_label').to_dict('index')`.
-2. Computes `lineage` from `_lineage(index, structure, policy, policy_hash)`.
-3. Defines `layers_by_label` with annotation `dict[str, str]` from `{}`.
-4. Iterates `(label, group)` over `zones.groupby('zone_label_raw', sort=False)`. For each value: Computes `layers` from `tuple(dict.fromkeys(group['source_layer'].tolist()))`. Checks `len(layers) != 1`. When true: Raises `BessZoningPrecheckError(f'Source zone label {label!r} has ambiguous source-layer lineage')`. Computes `layers_by_label[str(label)]` from `_strict_string(layers[0], 'zone source layer')`.
-5. Defines `rows` with annotation `list[dict[str, object]]` from `[]`.
-6. Iterates `source` over `mapping.to_dict('records')`. For each value: Computes `chapter` from `policies[source['resolved_zone_chapter_label']]`. Calls `rows.append({'source_zone_label_raw': source['source_zone_label_raw'], 'resolved_zone_chapter_label': source['resolved_zone_chapter_label'], 'mapping_status': source['mapping_status'], 'matched_section_id': source['matched_section_id'], 'source_layer': layers_by_label[source['source_zone_label_raw']], 'zoning_precheck_status': chapter['zoning_precheck_statu…` for its validation or side effect.
-7. Returns `pd.DataFrame(rows, columns=SOURCE_ZONE_POLICY_COLUMNS)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(layers) != 1` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(layers) != 1`.
+- Explicit raise expressions: `BessZoningPrecheckError(f'Source zone label {label!r} has ambiguous source-layer lineage')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `layers_by_label[str(label)]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_lineage`, `_strict_string`, `chapter_policy.set_index`, `chapter_policy.set_index('resolved_zone_chapter_label').to_dict`, `dict.fromkeys`, `group['source_layer'].tolist`, `len`, `mapping.to_dict`, `pd.DataFrame`, `rows.append`, `str`, `tuple`, `zones.groupby`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_source_zone_policy`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _build_source_zone_policy(
+    index: PlanningRegulationIndex,
+    structure: PlanningRegulationStructureResult,
+    policy: BessZoningPolicyConfig,
+    policy_hash: str,
+    zones: pd.DataFrame,
+    mapping: pd.DataFrame,
+    chapter_policy: pd.DataFrame,
+) -> pd.DataFrame:
+    policies = chapter_policy.set_index("resolved_zone_chapter_label").to_dict("index")
+    lineage = _lineage(index, structure, policy, policy_hash)
+    layers_by_label: dict[str, str] = {}
+    for label, group in zones.groupby("zone_label_raw", sort=False):
+        layers = tuple(dict.fromkeys(group["source_layer"].tolist()))
+        if len(layers) != 1:
+            raise BessZoningPrecheckError(
+                f"Source zone label {label!r} has ambiguous source-layer lineage"
+            )
+        layers_by_label[str(label)] = _strict_string(layers[0], "zone source layer")
+    rows: list[dict[str, object]] = []
+    for source in mapping.to_dict("records"):
+        chapter = policies[source["resolved_zone_chapter_label"]]
+        rows.append(
+            {
+                "source_zone_label_raw": source["source_zone_label_raw"],
+                "resolved_zone_chapter_label": source[
+                    "resolved_zone_chapter_label"
+                ],
+                "mapping_status": source["mapping_status"],
+                "matched_section_id": source["matched_section_id"],
+                "source_layer": layers_by_label[source["source_zone_label_raw"]],
+                "zoning_precheck_status": chapter["zoning_precheck_status"],
+                "zoning_precheck_confidence": chapter[
+                    "zoning_precheck_confidence"
+                ],
+                "evidence_ids": tuple(chapter["evidence_ids"]),
+                "decision_evidence_ids": tuple(chapter["decision_evidence_ids"]),
+                "context_evidence_ids": tuple(chapter["context_evidence_ids"]),
+                **lineage,
+            }
+        )
+    return pd.DataFrame(rows, columns=SOURCE_ZONE_POLICY_COLUMNS)
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_build_parcel_zone_interpretations`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _build_parcel_zone_interpretations(
@@ -2820,67 +4845,99 @@ def _build_parcel_zone_interpretations(
 
 **Purpose**
 
-Builds parcel zone interpretations according to the exact implementation and guards in this file.
+Constructs parcel zone interpretations; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `index` (`PlanningRegulationIndex`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy` (`BessZoningPolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_hash` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `relations` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_policy` (`pd.DataFrame`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+frame
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `frame`.
-
-**Algorithm**
-
-1. Computes `policies` from `source_policy.set_index('source_zone_label_raw').to_dict('index')`.
-2. Computes `lineage` from `_lineage(index, structure, policy, policy_hash)`.
-3. Defines `rows` with annotation `list[dict[str, object]]` from `[]`.
-4. Computes `positive` from `relations.loc[relations['relation_type'].eq('AREA_OVERLAP')]`.
-5. Iterates `source` over `positive.to_dict('records')`. For each value: Computes `item` from `policies[source['zone_label_raw']]`. Calls `rows.append({'parcel_id': source['parcel_id'], 'planning_zone_id': source['planning_zone_id'], 'source_zone_id': source['source_zone_id'], 'source_zone_label_raw': source['zone_label_raw'], 'resolved_zone_chapter_label': item['resolved_zone_chapter_label'], 'intersection_area_m2': float(source['intersection_area_m2']), 'parcel_share_pct': float(source['parc…` for its validation or side effect.
-6. Computes `frame` from `pd.DataFrame(rows, columns=PARCEL_ZONE_POLICY_COLUMNS)`.
-7. Checks `frame.empty`. When true: Computes `frame` from `pd.DataFrame({column: pd.Series(dtype='float64' if column in {'intersection_area_m2', 'parcel_share_pct'} else 'object') for column in PARCEL_ZONE_POLICY_COLUMNS})`.
-8. Returns `frame`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_lineage`, `float`, `pd.DataFrame`, `pd.Series`, `positive.to_dict`, `relations['relation_type'].eq`, `rows.append`, `source_policy.set_index`, `source_policy.set_index('source_zone_label_raw').to_dict`, `tuple`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_parcel_zone_interpretations`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _build_parcel_zone_interpretations(
+    index: PlanningRegulationIndex,
+    structure: PlanningRegulationStructureResult,
+    policy: BessZoningPolicyConfig,
+    policy_hash: str,
+    relations: pd.DataFrame,
+    source_policy: pd.DataFrame,
+) -> pd.DataFrame:
+    policies = source_policy.set_index("source_zone_label_raw").to_dict("index")
+    lineage = _lineage(index, structure, policy, policy_hash)
+    rows: list[dict[str, object]] = []
+    positive = relations.loc[relations["relation_type"].eq("AREA_OVERLAP")]
+    for source in positive.to_dict("records"):
+        item = policies[source["zone_label_raw"]]
+        rows.append(
+            {
+                "parcel_id": source["parcel_id"],
+                "planning_zone_id": source["planning_zone_id"],
+                "source_zone_id": source["source_zone_id"],
+                "source_zone_label_raw": source["zone_label_raw"],
+                "resolved_zone_chapter_label": item[
+                    "resolved_zone_chapter_label"
+                ],
+                "intersection_area_m2": float(source["intersection_area_m2"]),
+                "parcel_share_pct": float(source["parcel_share_pct"]),
+                "zoning_precheck_status": item["zoning_precheck_status"],
+                "zoning_precheck_confidence": item[
+                    "zoning_precheck_confidence"
+                ],
+                "evidence_ids": tuple(item["evidence_ids"]),
+                "decision_evidence_ids": tuple(item["decision_evidence_ids"]),
+                "context_evidence_ids": tuple(item["context_evidence_ids"]),
+                **lineage,
+                "source_layer": source["source_layer"],
+            }
+        )
+    frame = pd.DataFrame(rows, columns=PARCEL_ZONE_POLICY_COLUMNS)
+    if frame.empty:
+        frame = pd.DataFrame(
+            {
+                column: pd.Series(
+                    dtype=(
+                        "float64"
+                        if column in {"intersection_area_m2", "parcel_share_pct"}
+                        else "object"
+                    )
+                )
+                for column in PARCEL_ZONE_POLICY_COLUMNS
+            }
+        )
+    return frame
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_is_null`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _is_null(value: object) -> bool:
@@ -2888,57 +4945,60 @@ def _is_null(value: object) -> bool:
 
 **Purpose**
 
-Returns whether `null` satisfies the exact predicates and branches listed below.
+Tests whether null; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `bool`.
+- Every observed return expression is reproduced without truncation:
+```python
+isinstance(null, (bool, np.bool_)) and bool(null)
 
-**Returns**
+True
 
-- Declared return type: `bool`. Observed return expression(s): `isinstance(null, (bool, np.bool_)) and bool(null)`; `True`; `False`.
+False
+```
 
-**Algorithm**
+**Validation and exceptions**
 
-1. Checks `value is None or value is pd.NA`. When true: Returns `True`.
-2. Runs guarded operation: Computes `null` from `pd.isna(value)`. Handles `(TypeError, ValueError)`.
-3. Returns `isinstance(null, (bool, np.bool_)) and bool(null)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `bool`, `isinstance`, `pd.isna`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_parcel_output` via `_is_null`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_parcel_output`
+```python
+def _is_null(value: object) -> bool:
+    if value is None or value is pd.NA:
+        return True
+    try:
+        null = pd.isna(value)
+    except (TypeError, ValueError):
+        return False
+    return isinstance(null, (bool, np.bool_)) and bool(null)
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_build_parcel_output`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _build_parcel_output(
@@ -2952,69 +5012,172 @@ def _build_parcel_output(
 
 **Purpose**
 
-Builds parcel output according to the exact implementation and guards in this file.
+Constructs parcel output; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `relations` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `interpretations` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy` (`BessZoningPolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy_hash` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+output
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `output`.
-
-**Algorithm**
-
-1. Computes `output` from `parcels.copy(deep=True)`.
-2. Computes `positive_by_parcel` from `{parcel_id: group.copy() for parcel_id, group in interpretations.groupby('parcel_id', sort=False)}`.
-3. Computes `touch_counts` from `relations.loc[relations['relation_type'].eq('TOUCH_ONLY')].groupby('parcel_id', sort=False).size().to_dict()`.
-4. Defines `summary` with annotation `dict[str, list[object]]` from `{column: [] for column in PARCEL_PRECHECK_COLUMNS}`.
-5. Iterates `parcel` over `parcels.to_dict('records')`. For each value: Computes `parcel_id` from `parcel['parcel_id']`. Computes `group` from `positive_by_parcel.get(parcel_id)`. Computes `dominant_id` from `parcel['dominant_planning_zone_id']`. Executes 16 additional source-ordered statement(s).
-6. Iterates `column` over `PARCEL_PRECHECK_COLUMNS`. For each value: Computes `values` from `np.empty(len(summary[column]), dtype=object)`. Computes `values[:]` from `summary[column]`. Computes `output[column]` from `values`.
-7. Iterates `column` over `('positive_area_zone_count', 'distinct_zone_status_count', 'non_dominant_different_status_count', 'touch_only_zone_count')`. For each value: Computes `output[column]` from `output[column].astype('int64')`.
-8. Iterates `column` over `('zoning_precheck_requires_formal_review', 'non_zoning_planning_features_interpreted')`. For each value: Computes `output[column]` from `output[column].astype('bool')`.
-9. Returns `output`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `group is None or group.empty` is true.
-- Rejects or diverts the path when `not _is_null(dominant_id)` is true.
-- Rejects or diverts the path when `dominant_id != expected_dominant` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `group is None or group.empty`.
+- Guard with a raise path: `not _is_null(dominant_id)`.
+- Guard with a raise path: `dominant_id != expected_dominant`.
+- Explicit raise expressions: `BessZoningPrecheckError('Parcel dominant zone differs from factual positive-area relations')`, `BessZoningPrecheckError('Parcel dominant zone exists without a positive-area relation')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `group.copy`, `parcels.copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `summary['positive_area_zone_count'].append`.
+- Hashing: `summary['zoning_precheck_policy_sha256'].append`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `output[column]`, `values[:]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(group.loc[~group['planning_zone_id'].eq(expected_dominant), 'zoning_precheck_status'] != dominant_status).sum`, `BessZoningPrecheckError`, `_is_null`, `_strict_string`, `group.copy`, `group.sort_values`, `group['context_evidence_ids'].tolist`, `group['decision_evidence_ids'].tolist`, `group['planning_zone_id'].eq`, `group['zoning_precheck_status'].tolist`, `int`, `interpretations.groupby`, `len`, `np.empty`, `output[column].astype`, `parcels.copy`, `parcels.to_dict`, `positive_by_parcel.get`, `relations.loc[relations['relation_type'].eq('TOUCH_ONLY')].groupby`, `relations.loc[relations['relation_type'].eq('TOUCH_ONLY')].groupby('parcel_id', sort=False).size`, `relations.loc[relations['relation_type'].eq('TOUCH_ONLY')].groupby('parcel_id', sort=False).size().to_dict`, `relations['relation_type'].eq`, `set`, `sorted`, `summary['distinct_zone_status_count'].append`, `summary['dominant_zone_precheck_confidence'].append`, `summary['dominant_zone_precheck_status'].append`, `summary['non_dominant_different_status_count'].append`, `summary['non_zoning_planning_features_interpreted'].append`, `summary['planning_precheck_scope'].append`, `summary['positive_area_zone_count'].append`, `summary['review_scope'].append`, `summary['touch_only_zone_count'].append`, `summary['zoning_precheck_context_evidence_ids'].append`, `summary['zoning_precheck_evidence_ids'].append`, `summary['zoning_precheck_policy_profile'].append`, `summary['zoning_precheck_policy_sha256'].append`, `summary['zoning_precheck_requires_formal_review'].append`, `summary['zoning_precheck_status'].append`, `touch_counts.get`, `tuple`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_build_parcel_output`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
+```python
+def _build_parcel_output(
+    parcels: gpd.GeoDataFrame,
+    relations: pd.DataFrame,
+    interpretations: pd.DataFrame,
+    policy: BessZoningPolicyConfig,
+    policy_hash: str,
+) -> gpd.GeoDataFrame:
+    output = parcels.copy(deep=True)
+    positive_by_parcel = {
+        parcel_id: group.copy()
+        for parcel_id, group in interpretations.groupby("parcel_id", sort=False)
+    }
+    touch_counts = (
+        relations.loc[relations["relation_type"].eq("TOUCH_ONLY")]
+        .groupby("parcel_id", sort=False)
+        .size()
+        .to_dict()
+    )
+    summary: dict[str, list[object]] = {column: [] for column in PARCEL_PRECHECK_COLUMNS}
+    for parcel in parcels.to_dict("records"):
+        parcel_id = parcel["parcel_id"]
+        group = positive_by_parcel.get(parcel_id)
+        dominant_id = parcel["dominant_planning_zone_id"]
+        if group is None or group.empty:
+            if not _is_null(dominant_id):
+                raise BessZoningPrecheckError(
+                    "Parcel dominant zone exists without a positive-area relation"
+                )
+            overall_status = "UNKNOWN"
+            dominant_status: object = None
+            dominant_confidence: object = None
+            positive_count = 0
+            distinct_count = 0
+            non_dominant_different = 0
+            evidence_ids: tuple[str, ...] = ()
+            context_evidence_ids: tuple[str, ...] = ()
+        else:
+            ordered = group.sort_values(
+                ["intersection_area_m2", "planning_zone_id"],
+                ascending=[False, True],
+                kind="mergesort",
+            )
+            expected_dominant = ordered.iloc[0]["planning_zone_id"]
+            if dominant_id != expected_dominant:
+                raise BessZoningPrecheckError(
+                    "Parcel dominant zone differs from factual positive-area relations"
+                )
+            dominant = ordered.iloc[0]
+            dominant_status = dominant["zoning_precheck_status"]
+            dominant_confidence = dominant["zoning_precheck_confidence"]
+            statuses = tuple(group["zoning_precheck_status"].tolist())
+            distinct_statuses = set(statuses)
+            overall_status = (
+                statuses[0]
+                if len(distinct_statuses) == 1
+                else "MIXED_REVIEW_REQUIRED"
+            )
+            positive_count = len(group)
+            distinct_count = len(distinct_statuses)
+            non_dominant_different = int(
+                (
+                    group.loc[
+                        ~group["planning_zone_id"].eq(expected_dominant),
+                        "zoning_precheck_status",
+                    ]
+                    != dominant_status
+                ).sum()
+            )
+            evidence_ids = tuple(
+                sorted(
+                    {
+                        _strict_string(evidence_id, "parcel evidence ID")
+                        for values in group["decision_evidence_ids"].tolist()
+                        for evidence_id in values
+                    }
+                )
+            )
+            context_evidence_ids = tuple(
+                sorted(
+                    {
+                        _strict_string(evidence_id, "parcel context evidence ID")
+                        for values in group["context_evidence_ids"].tolist()
+                        for evidence_id in values
+                    }
+                )
+            )
+        summary["zoning_precheck_status"].append(overall_status)
+        summary["dominant_zone_precheck_status"].append(dominant_status)
+        summary["dominant_zone_precheck_confidence"].append(dominant_confidence)
+        summary["positive_area_zone_count"].append(positive_count)
+        summary["distinct_zone_status_count"].append(distinct_count)
+        summary["non_dominant_different_status_count"].append(
+            non_dominant_different
+        )
+        summary["touch_only_zone_count"].append(int(touch_counts.get(parcel_id, 0)))
+        summary["zoning_precheck_evidence_ids"].append(evidence_ids)
+        summary["zoning_precheck_context_evidence_ids"].append(
+            context_evidence_ids
+        )
+        summary["zoning_precheck_requires_formal_review"].append(True)
+        summary["planning_precheck_scope"].append(PLANNING_PRECHECK_SCOPE)
+        summary["review_scope"].append(REVIEW_SCOPE)
+        summary["non_zoning_planning_features_interpreted"].append(False)
+        summary["zoning_precheck_policy_profile"].append(policy.policy_profile)
+        summary["zoning_precheck_policy_sha256"].append(policy_hash)
+    for column in PARCEL_PRECHECK_COLUMNS:
+        values = np.empty(len(summary[column]), dtype=object)
+        values[:] = summary[column]
+        output[column] = values
+    for column in (
+        "positive_area_zone_count",
+        "distinct_zone_status_count",
+        "non_dominant_different_status_count",
+        "touch_only_zone_count",
+    ):
+        output[column] = output[column].astype("int64")
+    for column in (
+        "zoning_precheck_requires_formal_review",
+        "non_zoning_planning_features_interpreted",
+    ):
+        output[column] = output[column].astype("bool")
+    return output
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_result_component_metadata`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _result_component_metadata(result: BessZoningPrecheckResult) -> dict[str, object]:
@@ -3022,56 +5185,69 @@ def _result_component_metadata(result: BessZoningPrecheckResult) -> dict[str, ob
 
 **Purpose**
 
-Implements result component metadata according to the exact implementation and guards in this file.
+Private `planning` helper for result component metadata; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `result` (`BessZoningPrecheckResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[str, object]`.
+- Every observed return expression is reproduced without truncation:
+```python
+{'result_hash_schema_version': result.result_hash_schema_version, 'policy_schema_version': result.policy_schema_version, 'policy_profile': result.policy_profile, 'planning_precheck_scope': result.planning_precheck_scope, 'review_scope': result.review_scope, 'document_id': result.document_id, 'archive_sha256': result.archive_sha256, 'pdf_sha256': result.pdf_sha256, 'index_content_sha256': result.index_content_sha256, 'structure_result_content_sha256': result.structure_result_content_sha256, 'structure_profile': result.structure_profile, 'policy_config_sha256': result.policy_config_sha256, 'factual_structure_content_sha256': result.factual_structure_content_sha256, 'zone_mapping_input_sha256': result.zone_mapping_input_sha256, 'zoning_relation_hash_columns': list(result.zoning_relation_hash_columns), 'zoning_relations_input_sha256': result.zoning_relations_input_sha256, 'touch_only_relation_count': result.touch_only_relation_count}
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[str, object]`. Observed return expression(s): `{'result_hash_schema_version': result.result_hash_schema_version, 'policy_schema_version': result.policy_schema_version, 'policy_profile': result.policy_profile, 'planning_precheck_scope': result.planning_precheck_scope, 'review_scope': result.review_scope, 'document_id': result.document_id, 'archive_sha256': result.archive_sha256, 'pdf_sha256': result.pdf_sha256, 'index_content_sha256': result.i…`.
-
-**Algorithm**
-
-1. Returns `{'result_hash_schema_version': result.result_hash_schema_version, 'policy_schema_version': result.policy_schema_version, 'policy_profile': result.policy_profile, 'planning_precheck_scope': result.planning_precheck_scope, 'review_scope': result.review_scope, 'document_id': result.document_id, 'archive_sha256': result.archive_sha256, 'pdf_sha256': result.pdf_…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `list`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_result_frame_sha256` via `_result_component_metadata`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_complete_result_sha256` via `_result_component_metadata`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_complete_result_sha256`
-- `src/landscout/stages/interpret_bess_zoning.py` — `_result_frame_sha256`
+```python
+def _result_component_metadata(result: BessZoningPrecheckResult) -> dict[str, object]:
+    return {
+        "result_hash_schema_version": result.result_hash_schema_version,
+        "policy_schema_version": result.policy_schema_version,
+        "policy_profile": result.policy_profile,
+        "planning_precheck_scope": result.planning_precheck_scope,
+        "review_scope": result.review_scope,
+        "document_id": result.document_id,
+        "archive_sha256": result.archive_sha256,
+        "pdf_sha256": result.pdf_sha256,
+        "index_content_sha256": result.index_content_sha256,
+        "structure_result_content_sha256": result.structure_result_content_sha256,
+        "structure_profile": result.structure_profile,
+        "policy_config_sha256": result.policy_config_sha256,
+        "factual_structure_content_sha256": result.factual_structure_content_sha256,
+        "zone_mapping_input_sha256": result.zone_mapping_input_sha256,
+        "zoning_relation_hash_columns": list(result.zoning_relation_hash_columns),
+        "zoning_relations_input_sha256": result.zoning_relations_input_sha256,
+        "touch_only_relation_count": result.touch_only_relation_count,
+    }
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_result_frame_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _result_frame_sha256(
@@ -3084,58 +5260,61 @@ def _result_frame_sha256(
 
 **Purpose**
 
-Implements result frame sha256 according to the exact implementation and guards in this file.
+Private `planning` helper for result frame sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `domain` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `result` (`BessZoningPrecheckResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `frame` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `columns` (`Sequence[str]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+_canonical_sha256({'domain': domain, **_result_component_metadata(result), 'frame': _frame_payload(frame, columns)})
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `_canonical_sha256({'domain': domain, **_result_component_metadata(result), 'frame': _frame_payload(frame, columns)})`.
-
-**Algorithm**
-
-1. Returns `_canonical_sha256({'domain': domain, **_result_component_metadata(result), 'frame': _frame_payload(frame, columns)})`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_canonical_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_sha256`, `_frame_payload`, `_result_component_metadata`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` via `_result_frame_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_result_with_hashes`
+```python
+def _result_frame_sha256(
+    domain: str,
+    result: BessZoningPrecheckResult,
+    frame: pd.DataFrame,
+    columns: Sequence[str],
+) -> str:
+    return _canonical_sha256(
+        {
+            "domain": domain,
+            **_result_component_metadata(result),
+            "frame": _frame_payload(frame, columns),
+        }
+    )
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_complete_result_sha256`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _complete_result_sha256(result: BessZoningPrecheckResult) -> str:
@@ -3143,55 +5322,74 @@ def _complete_result_sha256(result: BessZoningPrecheckResult) -> str:
 
 **Purpose**
 
-Implements complete result sha256 according to the exact implementation and guards in this file.
+Private `planning` helper for complete result sha256; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `result` (`BessZoningPrecheckResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+_canonical_sha256({'domain': 'landscout.bess_zoning.precheck_result', **_result_component_metadata(result), 'evidence_catalog_content_sha256': result.evidence_catalog_content_sha256, 'evidence_route_links_content_sha256': result.evidence_route_links_content_sha256, 'route_assessments_content_sha256': result.route_assessments_content_sha256, 'chapter_policy_content_sha256': result.chapter_policy_content_sha256, 'source_zone_policy_content_sha256': result.source_zone_policy_content_sha256, 'parcel_zone_policy_content_sha256': result.parcel_zone_policy_content_sha256, 'parcel_output_content_sha256': result.parcel_output_content_sha256})
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `_canonical_sha256({'domain': 'landscout.bess_zoning.precheck_result', **_result_component_metadata(result), 'evidence_catalog_content_sha256': result.evidence_catalog_content_sha256, 'evidence_route_links_content_sha256': result.evidence_route_links_content_sha256, 'route_assessments_content_sha256': result.route_assessments_content_sha256, 'chapter_policy_content_sha256': result.chapter_policy_c…`.
-
-**Algorithm**
-
-1. Returns `_canonical_sha256({'domain': 'landscout.bess_zoning.precheck_result', **_result_component_metadata(result), 'evidence_catalog_content_sha256': result.evidence_catalog_content_sha256, 'evidence_route_links_content_sha256': result.evidence_route_links_content_sha256, 'route_assessments_content_sha256': result.route_assessments_content_sha256, 'chapter_policy_…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_canonical_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_canonical_sha256`, `_result_component_metadata`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_result_with_hashes` via `_complete_result_sha256`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_result_with_hashes` via `_complete_result_sha256`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_result_with_hashes` via `_complete_result_sha256`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_result_with_hashes`
+```python
+def _complete_result_sha256(result: BessZoningPrecheckResult) -> str:
+    return _canonical_sha256(
+        {
+            "domain": "landscout.bess_zoning.precheck_result",
+            **_result_component_metadata(result),
+            "evidence_catalog_content_sha256": (
+                result.evidence_catalog_content_sha256
+            ),
+            "evidence_route_links_content_sha256": (
+                result.evidence_route_links_content_sha256
+            ),
+            "route_assessments_content_sha256": (
+                result.route_assessments_content_sha256
+            ),
+            "chapter_policy_content_sha256": result.chapter_policy_content_sha256,
+            "source_zone_policy_content_sha256": (
+                result.source_zone_policy_content_sha256
+            ),
+            "parcel_zone_policy_content_sha256": (
+                result.parcel_zone_policy_content_sha256
+            ),
+            "parcel_output_content_sha256": result.parcel_output_content_sha256,
+        }
+    )
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_result_with_hashes`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _result_with_hashes(
@@ -3201,69 +5399,199 @@ def _result_with_hashes(
 
 **Purpose**
 
-Implements result with hashes according to the exact implementation and guards in this file.
+Private `planning` helper for result with hashes; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `result` (`BessZoningPrecheckResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessZoningPrecheckResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+replace(component, complete_result_content_sha256=_complete_result_sha256(component))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessZoningPrecheckResult`. Observed return expression(s): `replace(component, complete_result_content_sha256=_complete_result_sha256(component))`.
-
-**Algorithm**
-
-1. Computes `component` from `replace(result, evidence_catalog_content_sha256=_result_frame_sha256('landscout.bess_zoning.evidence_catalog', result, result.evidence_catalog, EVIDENCE_CATALOG_COLUMNS), evidence_route_links_content_sha256=_result_frame_sha256('landscout.bess_zoning.evidence_route_links', result, result.evidence_route_links, EVIDENCE…`.
-2. Returns `replace(component, complete_result_content_sha256=_complete_result_sha256(component))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `replace`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_complete_result_sha256`, `_result_frame_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_complete_result_sha256`, `_result_frame_sha256`, `replace`, `tuple`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_build_result` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_build_result` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_build_result` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_result_envelope` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_build_result` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_result_envelope` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_build_structure_result` via `_result_with_hashes`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_validate_result_self` via `_result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `importlib.import_module('landscout.stages.apply_bess_planning_feature_policy')._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `importlib.import_module('landscout.stages.apply_bess_planning_feature_policy')._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_rehash_coordinated_result` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_local_corruption_fast_fails_before_heavy_validation` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_coordinated_local_cross_table_corruption_is_rejected` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_invalid_output_dtype_and_non_2d_parcel_fail_locally` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_selected_relation_role_requires_selected_status_and_priority` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_only_application_result_schema_two_is_accepted` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_only_application_result_schema_two_is_accepted` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_authorized_status_artifact_fails_local_verified_byte_loading` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_no_relation_parcel_rejects_textual_null_identity` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_decision_status_domain_rejects_forbidden_vocabulary` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_parcel_decision_status_domain_rejects_forbidden_vocabulary` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_persisted_feature_id_json_must_be_portable_and_canonical` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_persisted_feature_id_json_must_be_portable_and_canonical` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_representative_intrinsic_failures_all_precede_heavy_validation` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_changed_parcel_geometry_upstreams` via `application_module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_changed_parcel_geometry_upstreams` via `application_module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_policy_mutation` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_policy_mutation` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_feature_id_mutation` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_feature_id_mutation` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_surface_touch_with_positive_area` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_surface_touch_with_positive_area` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_schema_v1_dimension_blind_hash_representation_is_rejected_locally` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_schema_v1_dimension_blind_hash_representation_is_rejected_locally` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_complete_relation_facts_must_match_referenced_feature` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_complete_relation_facts_must_match_referenced_feature` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_feature_or_relation_policy_mutation_is_rejected` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_feature_or_relation_policy_mutation_is_rejected` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_application_relation_pair_is_rejected_locally` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_application_relation_pair_is_rejected_locally` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_parcel_id_is_exact` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_relation_parcel_id_is_exact` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_application_relation_type_is_rejected_locally` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unknown_application_relation_type_is_rejected_locally` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_official_and_application_statuses_cannot_contradict` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_official_and_application_statuses_cannot_contradict` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_coordinated_application_source_lock_mutation_fast_fails` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_pair_artifact_fails_local_loading` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_pair_artifact_fails_local_loading` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_wrong_2d_feature_geometry_fails_local_artifact_loading` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_wrong_2d_feature_geometry_fails_local_artifact_loading` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_geometry_role_is_intrinsic` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_geometry_role_is_intrinsic` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_metric_must_match_geometry` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_metric_must_match_geometry` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_catalog_identity_fields_are_intrinsic` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_catalog_identity_fields_are_intrinsic` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_requires_canonical_crs_and_global_identity` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_catalog_requires_canonical_crs_and_global_identity` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_identity_is_validated_locally` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_identity_is_validated_locally` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_participates_in_global_policy_mapping` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_unreferenced_feature_participates_in_global_policy_mapping` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_policy_result_schema_exactly` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_policy_result_schema_exactly` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_cnig_result_schema_exactly` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_locks_cnig_result_schema_exactly` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_duplicate_relation_identity_fast_fails_before_policy_source_validation` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_replace_application_frame` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_replace_application_frame` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_referenced_lineage_mutation` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_referenced_lineage_mutation` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_row_lineage_must_match_application_envelope` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_feature_row_lineage_must_match_application_envelope` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_swap_referenced_feature_values` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::_swap_referenced_feature_values` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_factual_prefix_lineage_change` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_factual_prefix_lineage_change` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `coding_module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `coding_module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `policy_module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `policy_module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_unreferenced_feature_and_row_reordering` via `module._result_with_hashes`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_unreferenced_feature_and_row_reordering` via `module._result_with_hashes`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::_compatible_policy_mutation` via `module._result_with_hashes`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_build_result`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_coordinated_catalog_occurrence_duplicate_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_coordinated_evidence_catalog_mutation_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_coordinated_evidence_route_link_mutation_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_coordinated_result_mutation_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_coordinated_reverse_link_mutation_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_coordinated_route_table_mutation_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_repeated_excerpt_occurrence_is_bound_to_policy`
+```python
+def _result_with_hashes(
+    result: BessZoningPrecheckResult,
+) -> BessZoningPrecheckResult:
+    component = replace(
+        result,
+        evidence_catalog_content_sha256=_result_frame_sha256(
+            "landscout.bess_zoning.evidence_catalog",
+            result,
+            result.evidence_catalog,
+            EVIDENCE_CATALOG_COLUMNS,
+        ),
+        evidence_route_links_content_sha256=_result_frame_sha256(
+            "landscout.bess_zoning.evidence_route_links",
+            result,
+            result.evidence_route_links,
+            EVIDENCE_ROUTE_LINK_COLUMNS,
+        ),
+        route_assessments_content_sha256=_result_frame_sha256(
+            "landscout.bess_zoning.route_assessments",
+            result,
+            result.route_assessments,
+            ROUTE_ASSESSMENT_COLUMNS,
+        ),
+        chapter_policy_content_sha256=_result_frame_sha256(
+            "landscout.bess_zoning.chapter_policy",
+            result,
+            result.chapter_policy,
+            CHAPTER_POLICY_COLUMNS,
+        ),
+        source_zone_policy_content_sha256=_result_frame_sha256(
+            "landscout.bess_zoning.source_zone_policy",
+            result,
+            result.source_zone_policy,
+            SOURCE_ZONE_POLICY_COLUMNS,
+        ),
+        parcel_zone_policy_content_sha256=_result_frame_sha256(
+            "landscout.bess_zoning.parcel_zone_policy",
+            result,
+            result.parcel_zone_interpretations,
+            PARCEL_ZONE_POLICY_COLUMNS,
+        ),
+        parcel_output_content_sha256=_result_frame_sha256(
+            "landscout.bess_zoning.parcel_output",
+            result,
+            result.parcels,
+            tuple(result.parcels.columns),
+        ),
+    )
+    return replace(
+        component,
+        complete_result_content_sha256=_complete_result_sha256(component),
+    )
+```
 
-**Tests**
+**Business boundary**
 
-- `tests/unit/test_interpret_bess_zoning.py::test_coordinated_catalog_occurrence_duplicate_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_catalog_mutation_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py::test_coordinated_evidence_route_link_mutation_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py::test_coordinated_result_mutation_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py::test_coordinated_reverse_link_mutation_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py::test_coordinated_route_table_mutation_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py::test_repeated_excerpt_occurrence_is_bound_to_policy`
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_build_result`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _build_result(
@@ -3279,79 +5607,183 @@ def _build_result(
 
 **Purpose**
 
-Builds result according to the exact implementation and guards in this file.
+Constructs result; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `index` (`PlanningRegulationIndex`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `structure_config` (`PlanningRegulationStructureConfig | str | Path`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zones` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zoning_intersections` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy` (`BessZoningPolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessZoningPrecheckResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+_result_with_hashes(result)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessZoningPrecheckResult`. Observed return expression(s): `_result_with_hashes(result)`.
-
-**Algorithm**
-
-1. Calls `validate_planning_regulation_index(index)` for its validation or side effect.
-2. Computes `fragments` from `validate_planning_regulation_structure_with_fragments(index, zones, zoning_intersections, structure_config, structure)`.
-3. Calls `_validate_policy_lock(index, structure, policy)` for its validation or side effect.
-4. Computes `parcel_copy` from `_validate_parcels(index, parcels)`.
-5. Computes `zone_copy` from `_validate_zones(index, zones)`.
-6. Computes `relation_copy` from `_validate_relations(index, parcel_copy, zone_copy, zoning_intersections)`.
-7. Computes `mapping` from `_validate_mapping(structure, zone_copy)`.
-8. Computes `policy_hash` from `_policy_sha256(policy)`.
-9. Computes `route_assessments` from `_build_route_assessments(index, structure, policy, policy_hash)`.
-10. Computes `evidence_route_links` from `_build_evidence_route_links(index, structure, policy, policy_hash)`.
-11. Computes `(_, evidence_catalog)` from `_validate_policy_evidence(index, structure, policy, fragments, policy_hash, evidence_route_links)`.
-12. Computes `chapter_policy` from `_build_chapter_policy(index, structure, policy, policy_hash)`.
-13. Computes `source_policy` from `_build_source_zone_policy(index, structure, policy, policy_hash, zone_copy, mapping, chapter_policy)`.
-14. Computes `interpretations` from `_build_parcel_zone_interpretations(index, structure, policy, policy_hash, relation_copy, source_policy)`.
-15. Computes `parcel_output` from `_build_parcel_output(parcel_copy, relation_copy, interpretations, policy, policy_hash)`.
-16. Computes `relation_columns` from `tuple((str(column) for column in relation_copy.columns))`.
-17. Computes `result` from `BessZoningPrecheckResult(result_hash_schema_version=RESULT_HASH_SCHEMA_VERSION, policy_schema_version=policy.schema_version, policy_profile=policy.policy_profile, planning_precheck_scope=PLANNING_PRECHECK_SCOPE, review_scope=REVIEW_SCOPE, document_id=index.document_id, archive_sha256=index.archive_sha256, pdf_sha256=i…`.
-18. Returns `_result_with_hashes(result)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `relation_copy['relation_type'].eq`, `relation_copy['relation_type'].eq('TOUCH_ONLY').sum`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `_factual_structure_sha256`, `_frame_sha256`, `_policy_sha256`, `_result_with_hashes`, `_zone_mapping_input_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckResult`, `_build_chapter_policy`, `_build_evidence_route_links`, `_build_parcel_output`, `_build_parcel_zone_interpretations`, `_build_route_assessments`, `_build_source_zone_policy`, `_factual_structure_sha256`, `_frame_sha256`, `_policy_sha256`, `_result_with_hashes`, `_validate_mapping`, `_validate_parcels`, `_validate_policy_evidence`, `_validate_policy_lock`, `_validate_relations`, `_validate_zones`, `_zone_mapping_input_sha256`, `int`, `relation_copy['relation_type'].eq`, `relation_copy['relation_type'].eq('TOUCH_ONLY').sum`, `str`, `tuple`, `validate_planning_regulation_index`, `validate_planning_regulation_structure_with_fragments`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::aggregate_bess_planning_feature_policy_to_parcels` via `_build_result`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::validate_bess_planning_feature_parcel_aggregation_result` via `_build_result`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::load_bess_planning_feature_parcel_aggregation_artifacts` via `_build_result`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::apply_bess_planning_feature_policy` via `_build_result`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::validate_bess_planning_feature_application_result` via `_build_result`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::load_bess_planning_feature_application_artifacts` via `_build_result`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::compile_bess_planning_feature_policy` via `_build_result`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::validate_bess_planning_feature_policy_result` via `_build_result`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `_build_result`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `_build_result`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::validate_planning_feature_code_result` via `_build_result`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::resolve_planning_feature_codes` via `_build_result`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `module._build_result`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_build_from_relations` via `module._build_result`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_surface_touch_semantic_corruption_result` via `module._build_result`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_surface_touch_semantic_corruption_result` via `module._build_result`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_validate_parcel_geometries` via `module._build_result`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::_validate_parcel_geometries` via `module._build_result`.
+- direct call or construction: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `module._build_result`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rejects_coordinated_upstream_changes` via `module._build_result`.
+- property/attribute access: `tests/unit/test_aggregate_bess_planning_feature_policy.py::test_source_bound_aggregation_loader_rebuilds_once_without_mutating_upstreams` via `module._build_result`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._build_result`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `module._build_result`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_validates_upstreams_and_rebuilds_once_lightweight` via `module._build_result`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `policy_module._build_result`.
+- property/attribute access: `tests/unit/test_bess_planning_feature_policy.py::_checked_in_policy_result` via `policy_module._build_result`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `interpret_module._build_result`.
+- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_one_build_result_performs_one_factual_structure_rebuild` via `interpret_module._build_result`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `interpret_bess_zoning`
-- `src/landscout/stages/interpret_bess_zoning.py` — `validate_bess_zoning_precheck`
+```python
+def _build_result(
+    index: PlanningRegulationIndex,
+    structure: PlanningRegulationStructureResult,
+    structure_config: PlanningRegulationStructureConfig | str | Path,
+    zones: pd.DataFrame,
+    zoning_intersections: pd.DataFrame,
+    parcels: gpd.GeoDataFrame,
+    policy: BessZoningPolicyConfig,
+) -> BessZoningPrecheckResult:
+    validate_planning_regulation_index(index)
+    fragments = validate_planning_regulation_structure_with_fragments(
+        index,
+        zones,
+        zoning_intersections,
+        structure_config,
+        structure,
+    )
+    _validate_policy_lock(index, structure, policy)
+    parcel_copy = _validate_parcels(index, parcels)
+    zone_copy = _validate_zones(index, zones)
+    relation_copy = _validate_relations(
+        index, parcel_copy, zone_copy, zoning_intersections
+    )
+    mapping = _validate_mapping(structure, zone_copy)
+    policy_hash = _policy_sha256(policy)
+    route_assessments = _build_route_assessments(
+        index, structure, policy, policy_hash
+    )
+    evidence_route_links = _build_evidence_route_links(
+        index, structure, policy, policy_hash
+    )
+    _, evidence_catalog = _validate_policy_evidence(
+        index,
+        structure,
+        policy,
+        fragments,
+        policy_hash,
+        evidence_route_links,
+    )
+    chapter_policy = _build_chapter_policy(
+        index, structure, policy, policy_hash
+    )
+    source_policy = _build_source_zone_policy(
+        index,
+        structure,
+        policy,
+        policy_hash,
+        zone_copy,
+        mapping,
+        chapter_policy,
+    )
+    interpretations = _build_parcel_zone_interpretations(
+        index,
+        structure,
+        policy,
+        policy_hash,
+        relation_copy,
+        source_policy,
+    )
+    parcel_output = _build_parcel_output(
+        parcel_copy,
+        relation_copy,
+        interpretations,
+        policy,
+        policy_hash,
+    )
+    relation_columns = tuple(str(column) for column in relation_copy.columns)
+    result = BessZoningPrecheckResult(
+        result_hash_schema_version=RESULT_HASH_SCHEMA_VERSION,
+        policy_schema_version=policy.schema_version,
+        policy_profile=policy.policy_profile,
+        planning_precheck_scope=PLANNING_PRECHECK_SCOPE,
+        review_scope=REVIEW_SCOPE,
+        document_id=index.document_id,
+        archive_sha256=index.archive_sha256,
+        pdf_sha256=index.pdf_sha256,
+        index_content_sha256=index.index_content_sha256,
+        structure_result_content_sha256=structure.structure_result_content_sha256,
+        structure_profile=structure.structure_profile,
+        policy_config_sha256=policy_hash,
+        factual_structure_content_sha256=_factual_structure_sha256(structure),
+        zone_mapping_input_sha256=_zone_mapping_input_sha256(zone_copy, structure),
+        zoning_relation_hash_columns=relation_columns,
+        zoning_relations_input_sha256=_frame_sha256(
+            "landscout.bess_zoning.zoning_relations_input",
+            relation_copy,
+            relation_columns,
+        ),
+        evidence_catalog_content_sha256="",
+        evidence_route_links_content_sha256="",
+        route_assessments_content_sha256="",
+        chapter_policy_content_sha256="",
+        source_zone_policy_content_sha256="",
+        parcel_zone_policy_content_sha256="",
+        parcel_output_content_sha256="",
+        complete_result_content_sha256="",
+        touch_only_relation_count=int(
+            relation_copy["relation_type"].eq("TOUCH_ONLY").sum()
+        ),
+        evidence_catalog=evidence_catalog,
+        evidence_route_links=evidence_route_links,
+        route_assessments=route_assessments,
+        chapter_policy=chapter_policy,
+        source_zone_policy=source_policy,
+        parcel_zone_interpretations=interpretations,
+        parcels=parcel_output,
+    )
+    return _result_with_hashes(result)
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_compare_frames`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _compare_frames(
@@ -3364,60 +5796,58 @@ def _compare_frames(
 
 **Purpose**
 
-Compares frames according to the exact implementation and guards in this file.
+Private `planning` helper for compare frames; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `actual` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `expected` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `columns` (`Sequence[str]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `tuple(actual.columns) != tuple(expected.columns) or tuple(actual.columns) != tuple(columns)`. When true: Raises `BessZoningPrecheckError(f'{label} schema differs from rebuilt result')`.
-2. Checks `_canonical_value(_frame_payload(actual, columns)) != _canonical_value(_frame_payload(expected, columns))`. When true: Raises `BessZoningPrecheckError(f'{label} differs from rebuilt source evidence')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `tuple(actual.columns) != tuple(expected.columns) or tuple(actual.columns) != tuple(columns)` is true.
-- Rejects or diverts the path when `_canonical_value(_frame_payload(actual, columns)) != _canonical_value(_frame_payload(expected, columns))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `tuple(actual.columns) != tuple(expected.columns) or tuple(actual.columns) != tuple(columns)`.
+- Guard with a raise path: `_canonical_value(_frame_payload(actual, columns)) != _canonical_value(_frame_payload(expected, columns))`.
+- Explicit raise expressions: `BessZoningPrecheckError(f'{label} differs from rebuilt source evidence')`, `BessZoningPrecheckError(f'{label} schema differs from rebuilt result')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_canonical_value`, `_frame_payload`, `tuple`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `_compare_frames`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `_compare_results`
+```python
+def _compare_frames(
+    actual: pd.DataFrame,
+    expected: pd.DataFrame,
+    columns: Sequence[str],
+    label: str,
+) -> None:
+    if tuple(actual.columns) != tuple(expected.columns) or tuple(actual.columns) != tuple(columns):
+        raise BessZoningPrecheckError(f"{label} schema differs from rebuilt result")
+    if _canonical_value(_frame_payload(actual, columns)) != _canonical_value(
+        _frame_payload(expected, columns)
+    ):
+        raise BessZoningPrecheckError(f"{label} differs from rebuilt source evidence")
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_compare_results`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _compare_results(
@@ -3429,126 +5859,321 @@ def _compare_results(
 
 **Purpose**
 
-Compares results according to the exact implementation and guards in this file.
+Private `planning` helper for compare results; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `result` (`BessZoningPrecheckResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `expected` (`BessZoningPrecheckResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `original_parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `not isinstance(result, BessZoningPrecheckResult)`. When true: Raises `BessZoningPrecheckError('result must be a BessZoningPrecheckResult')`.
-2. Calls `_validate_evidence_occurrence_uniqueness(result.evidence_catalog)` for its validation or side effect.
-3. Computes `scalar_fields` from `('result_hash_schema_version', 'policy_schema_version', 'policy_profile', 'planning_precheck_scope', 'review_scope', 'document_id', 'archive_sha256', 'pdf_sha256', 'index_content_sha256', 'structure_result_content_sha256', 'structure_profile', 'policy_config_sha256', 'factual_structure_content_sha256', 'zone_mapping_i…`.
-4. Iterates `field` over `scalar_fields`. For each value: Checks `getattr(result, field) != getattr(expected, field)`. When true: Raises `BessZoningPrecheckError(f'BESS zoning result {field} differs from rebuilt source evidence')`.
-5. Checks `_strict_positive_integer(result.result_hash_schema_version, 'precheck result hash schema version') != RESULT_HASH_SCHEMA_VERSION`. When true: Raises `BessZoningPrecheckError('Unsupported precheck result hash schema')`.
-6. Checks `_strict_positive_integer(result.policy_schema_version, 'precheck policy schema version') != POLICY_SCHEMA_VERSION`. When true: Raises `BessZoningPrecheckError('Unsupported precheck policy schema')`.
-7. Calls `_strict_nonnegative_integer(result.touch_only_relation_count, 'touch-only relation count')` for its validation or side effect.
-8. Checks `type(result.zoning_relation_hash_columns) is not tuple or not all((isinstance(column, str) and column and (column == column.strip()) for column in result.zoning_relation_hash_columns))`. When true: Raises `BessZoningPrecheckError('Zoning relation hash columns must be an exact string tuple')`.
-9. Iterates `field` over `('archive_sha256', 'pdf_sha256', 'index_content_sha256', 'structure_result_content_sha256', 'policy_config_sha256', 'factual_structure_content_sha256', 'zone_mapping_input_sha256', 'zoning_relations_input_sha256', 'evidence_catalog_content_sha256', 'evidence_route_links_content_sha256', 'route_assessments_content_sha2…`. For each value: Calls `_validated_sha256(getattr(result, field), field)` for its validation or side effect.
-10. Calls `_compare_frames(result.evidence_catalog, expected.evidence_catalog, EVIDENCE_CATALOG_COLUMNS, 'evidence catalog')` for its validation or side effect.
-11. Calls `_compare_frames(result.evidence_route_links, expected.evidence_route_links, EVIDENCE_ROUTE_LINK_COLUMNS, 'evidence-route links')` for its validation or side effect.
-12. Calls `_compare_frames(result.route_assessments, expected.route_assessments, ROUTE_ASSESSMENT_COLUMNS, 'route assessments')` for its validation or side effect.
-13. Calls `_compare_frames(result.chapter_policy, expected.chapter_policy, CHAPTER_POLICY_COLUMNS, 'chapter policy')` for its validation or side effect.
-14. Calls `_compare_frames(result.source_zone_policy, expected.source_zone_policy, SOURCE_ZONE_POLICY_COLUMNS, 'source-zone policy')` for its validation or side effect.
-15. Calls `_compare_frames(result.parcel_zone_interpretations, expected.parcel_zone_interpretations, PARCEL_ZONE_POLICY_COLUMNS, 'parcel/zone policy')` for its validation or side effect.
-16. Calls `_compare_frames(result.parcels, expected.parcels, tuple(expected.parcels.columns), 'parcel precheck')` for its validation or side effect.
-17. Computes `original_columns` from `tuple(original_parcels.columns)`.
-18. Checks `tuple(result.parcels.columns[:len(original_columns)]) != original_columns`. When true: Raises `BessZoningPrecheckError('Existing parcel columns are not preserved')`.
-19. Checks `_canonical_value(_frame_payload(result.parcels, original_columns)) != _canonical_value(_frame_payload(original_parcels, original_columns))`. When true: Raises `BessZoningPrecheckError('Parcel count, IDs, order, index, geometry, CRS, or prior fields changed')`.
-20. Computes `statuses` from `set(result.chapter_policy['zoning_precheck_status'].tolist())`.
-21. Computes `parcel_statuses` from `set(result.parcels['zoning_precheck_status'].tolist())`.
-22. Computes `confidences` from `set(result.chapter_policy['zoning_precheck_confidence'].tolist())`.
-23. Checks `not statuses.issubset(_CHAPTER_STATUSES)`. When true: Raises `BessZoningPrecheckError('Chapter policy status is invalid')`.
-24. Checks `not parcel_statuses.issubset(_PARCEL_STATUSES)`. When true: Raises `BessZoningPrecheckError('Parcel precheck status is invalid')`.
-25. Checks `not confidences.issubset(_CONFIDENCES)`. When true: Raises `BessZoningPrecheckError('Chapter policy confidence is invalid')`.
-26. Computes `evidence_ids` from `set(_exact_id_series(result.evidence_catalog['evidence_id'], 'catalog evidence ID', unique=True))`.
-27. Computes `catalog_by_id` from `result.evidence_catalog.set_index('evidence_id').to_dict('index')`.
-28. Defines `expected_links` with annotation `set[tuple[str, str, str, str]]` from `set()`.
-29. Computes `role_fields` from `(('positive_evidence_ids', 'POSITIVE', 'SUPPORTS_POTENTIAL_COMPATIBILITY'), ('condition_evidence_ids', 'CONDITION', 'CONDITION'), ('difficulty_evidence_ids', 'DIFFICULTY', 'SUPPORTS_DIFFICULTY'))`.
-30. Iterates `route` over `result.route_assessments.to_dict('records')`. For each value: Iterates `(field, role, direction)` over `role_fields`. For each value: Computes `values` from `route[field]`. Checks `not isinstance(values, (tuple, list, np.ndarray))`. When true: Raises `BessZoningPrecheckError('Route evidence IDs must be arrays')`. Iterates `evidence_id` over `values`. For each value: Calls `expected_links.add((route['route_id'], evidence_id, role, direction))` for its validation or side effect.
-31. Computes `actual_links` from `{(row['route_id'], row['evidence_id'], row['route_role'], row['evidence_direction']) for row in result.evidence_route_links.to_dict('records')}`.
-32. Checks `len(actual_links) != len(result.evidence_route_links) or actual_links != expected_links`. When true: Raises `BessZoningPrecheckError('Evidence-route links do not exactly reproduce route evidence arrays')`.
-33. Defines `reverse_links` with annotation `dict[str, list[tuple[str, str]]]` from `{}`.
-34. Iterates `(route_id, evidence_id, role, _)` over `actual_links`. For each value: Checks `evidence_id not in catalog_by_id`. When true: Raises `BessZoningPrecheckError('Evidence-route link references unknown evidence')`. Calls `reverse_links.setdefault(evidence_id, []).append((route_id, role))` for its validation or side effect.
-35. Defines `decision_ids` with annotation `set[str]` from `set()`.
-36. Defines `context_ids` with annotation `set[str]` from `set()`.
-37. Iterates `(evidence_id, row)` over `catalog_by_id.items()`. For each value: Computes `links` from `tuple(sorted(reverse_links.get(evidence_id, [])))`. Checks `tuple(row['linked_route_ids']) != tuple((item[0] for item in links))`. When true: Raises `BessZoningPrecheckError('Evidence reverse route IDs are inconsistent')`. Checks `tuple(row['linked_route_roles']) != tuple((item[1] for item in links))`. When true: Raises `BessZoningPrecheckError('Evidence reverse route roles are inconsistent')`. Executes 2 additional source-ordered statement(s).
-38. Iterates `(frame, column)` over `((result.chapter_policy, 'evidence_ids'), (result.source_zone_policy, 'evidence_ids'), (result.parcel_zone_interpretations, 'evidence_ids'), (result.parcels, 'zoning_precheck_evidence_ids'))`. For each value: Iterates `values` over `frame[column].tolist()`. For each value: Checks `not isinstance(values, (tuple, list, np.ndarray))`. When true: Raises `BessZoningPrecheckError('Evidence references must be arrays')`. Checks `not set(values).issubset(evidence_ids)`. When true: Raises `BessZoningPrecheckError('An output evidence ID is absent from the evidence catalog')`.
-39. Iterates `frame` over `(result.chapter_policy, result.source_zone_policy, result.parcel_zone_interpretations)`. For each value: Iterates `row` over `frame.to_dict('records')`. For each value: Computes `retained` from `set(row['evidence_ids'])`. Checks `set(row['decision_evidence_ids']) != retained.intersection(decision_ids)`. When true: Raises `BessZoningPrecheckError('Decision evidence output is inconsistent')`. Checks `set(row['context_evidence_ids']) != retained.intersection(context_ids)`. When true: Raises `BessZoningPrecheckError('Context evidence output is inconsistent')`.
-40. Iterates `row` over `result.parcels.to_dict('records')`. For each value: Checks `not set(row['zoning_precheck_evidence_ids']).issubset(decision_ids)`. When true: Raises `BessZoningPrecheckError('Parcel decision evidence includes context')`. Checks `not set(row['zoning_precheck_context_evidence_ids']).issubset(context_ids)`. When true: Raises `BessZoningPrecheckError('Parcel context evidence includes a decision')`.
-41. Checks `not result.parcels['zoning_precheck_requires_formal_review'].eq(True).all()`. When true: Raises `BessZoningPrecheckError('Every parcel must require formal review')`.
-42. Checks `not result.parcels['non_zoning_planning_features_interpreted'].eq(False).all()`. When true: Raises `BessZoningPrecheckError('Non-zoning planning features must remain uninterpreted')`.
-43. Checks `not result.parcels['review_scope'].eq(REVIEW_SCOPE).all()`. When true: Raises `BessZoningPrecheckError('Parcel review scope is invalid')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(result, BessZoningPrecheckResult)` is true.
-- Rejects or diverts the path when `_strict_positive_integer(result.result_hash_schema_version, 'precheck result hash schema version') != RESULT_HASH_SCHEMA_VERSION` is true.
-- Rejects or diverts the path when `_strict_positive_integer(result.policy_schema_version, 'precheck policy schema version') != POLICY_SCHEMA_VERSION` is true.
-- Rejects or diverts the path when `type(result.zoning_relation_hash_columns) is not tuple or not all((isinstance(column, str) and column and (column == column.strip()) for column in result.zoning_relation_hash_columns))` is true.
-- Rejects or diverts the path when `tuple(result.parcels.columns[:len(original_columns)]) != original_columns` is true.
-- Rejects or diverts the path when `_canonical_value(_frame_payload(result.parcels, original_columns)) != _canonical_value(_frame_payload(original_parcels, original_columns))` is true.
-- Rejects or diverts the path when `not statuses.issubset(_CHAPTER_STATUSES)` is true.
-- Rejects or diverts the path when `not parcel_statuses.issubset(_PARCEL_STATUSES)` is true.
-- Rejects or diverts the path when `not confidences.issubset(_CONFIDENCES)` is true.
-- Rejects or diverts the path when `len(actual_links) != len(result.evidence_route_links) or actual_links != expected_links` is true.
-- Rejects or diverts the path when `not result.parcels['zoning_precheck_requires_formal_review'].eq(True).all()` is true.
-- Rejects or diverts the path when `not result.parcels['non_zoning_planning_features_interpreted'].eq(False).all()` is true.
-- Rejects or diverts the path when `not result.parcels['review_scope'].eq(REVIEW_SCOPE).all()` is true.
-- Rejects or diverts the path when `getattr(result, field) != getattr(expected, field)` is true.
-- Rejects or diverts the path when `evidence_id not in catalog_by_id` is true.
-- Rejects or diverts the path when `tuple(row['linked_route_ids']) != tuple((item[0] for item in links))` is true.
-- Rejects or diverts the path when `tuple(row['linked_route_roles']) != tuple((item[1] for item in links))` is true.
-- Rejects or diverts the path when `bool(row['decision_linked']) != bool(links)` is true.
-- Rejects or diverts the path when `row['evidence_direction'] == 'CONTEXT_ONLY'` is true.
-- Rejects or diverts the path when `not set(row['zoning_precheck_evidence_ids']).issubset(decision_ids)` is true.
-- Rejects or diverts the path when `not set(row['zoning_precheck_context_evidence_ids']).issubset(context_ids)` is true.
-- Rejects or diverts the path when `not isinstance(values, (tuple, list, np.ndarray))` is true.
-- Rejects or diverts the path when `links` is true.
-- Rejects or diverts the path when `not links` is true.
-- Rejects or diverts the path when `not set(values).issubset(evidence_ids)` is true.
-- Rejects or diverts the path when `set(row['decision_evidence_ids']) != retained.intersection(decision_ids)` is true.
-- Rejects or diverts the path when `set(row['context_evidence_ids']) != retained.intersection(context_ids)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(result, BessZoningPrecheckResult)`.
+- Guard with a raise path: `_strict_positive_integer(result.result_hash_schema_version, 'precheck result hash schema version') != RESULT_HASH_SCHEMA_VERSION`.
+- Guard with a raise path: `_strict_positive_integer(result.policy_schema_version, 'precheck policy schema version') != POLICY_SCHEMA_VERSION`.
+- Guard with a raise path: `type(result.zoning_relation_hash_columns) is not tuple or not all((isinstance(column, str) and column and (column == column.strip()) for column in result.zoning_relation_hash_columns))`.
+- Guard with a raise path: `tuple(result.parcels.columns[:len(original_columns)]) != original_columns`.
+- Guard with a raise path: `_canonical_value(_frame_payload(result.parcels, original_columns)) != _canonical_value(_frame_payload(original_parcels, original_columns))`.
+- Guard with a raise path: `not statuses.issubset(_CHAPTER_STATUSES)`.
+- Guard with a raise path: `not parcel_statuses.issubset(_PARCEL_STATUSES)`.
+- Guard with a raise path: `not confidences.issubset(_CONFIDENCES)`.
+- Guard with a raise path: `len(actual_links) != len(result.evidence_route_links) or actual_links != expected_links`.
+- Guard with a raise path: `not result.parcels['zoning_precheck_requires_formal_review'].eq(True).all()`.
+- Guard with a raise path: `not result.parcels['non_zoning_planning_features_interpreted'].eq(False).all()`.
+- Guard with a raise path: `not result.parcels['review_scope'].eq(REVIEW_SCOPE).all()`.
+- Guard with a raise path: `getattr(result, field) != getattr(expected, field)`.
+- Guard with a raise path: `evidence_id not in catalog_by_id`.
+- Guard with a raise path: `tuple(row['linked_route_ids']) != tuple((item[0] for item in links))`.
+- Guard with a raise path: `tuple(row['linked_route_roles']) != tuple((item[1] for item in links))`.
+- Guard with a raise path: `bool(row['decision_linked']) != bool(links)`.
+- Guard with a raise path: `row['evidence_direction'] == 'CONTEXT_ONLY'`.
+- Guard with a raise path: `not set(row['zoning_precheck_evidence_ids']).issubset(decision_ids)`.
+- Guard with a raise path: `not set(row['zoning_precheck_context_evidence_ids']).issubset(context_ids)`.
+- Guard with a raise path: `not isinstance(values, (tuple, list, np.ndarray))`.
+- Guard with a raise path: `links`.
+- Guard with a raise path: `not links`.
+- Guard with a raise path: `not isinstance(values, (tuple, list, np.ndarray))`.
+- Guard with a raise path: `not set(values).issubset(evidence_ids)`.
+- Guard with a raise path: `set(row['decision_evidence_ids']) != retained.intersection(decision_ids)`.
+- Guard with a raise path: `set(row['context_evidence_ids']) != retained.intersection(context_ids)`.
+- Explicit raise expressions: `BessZoningPrecheckError('An output evidence ID is absent from the evidence catalog')`, `BessZoningPrecheckError('CONTEXT_ONLY evidence must not influence a route')`, `BessZoningPrecheckError('Chapter policy confidence is invalid')`, `BessZoningPrecheckError('Chapter policy status is invalid')`, `BessZoningPrecheckError('Context evidence output is inconsistent')`, `BessZoningPrecheckError('Decision evidence must be linked to a route')`, `BessZoningPrecheckError('Decision evidence output is inconsistent')`, `BessZoningPrecheckError('Every parcel must require formal review')`, `BessZoningPrecheckError('Evidence references must be arrays')`, `BessZoningPrecheckError('Evidence reverse decision link is inconsistent')`, `BessZoningPrecheckError('Evidence reverse route IDs are inconsistent')`, `BessZoningPrecheckError('Evidence reverse route roles are inconsistent')`, `BessZoningPrecheckError('Evidence-route link references unknown evidence')`, `BessZoningPrecheckError('Evidence-route links do not exactly reproduce route evidence arrays')`, `BessZoningPrecheckError('Existing parcel columns are not preserved')`, `BessZoningPrecheckError('Non-zoning planning features must remain uninterpreted')`, `BessZoningPrecheckError('Parcel context evidence includes a decision')`, `BessZoningPrecheckError('Parcel count, IDs, order, index, geometry, CRS, or prior fields changed')`, `BessZoningPrecheckError('Parcel decision evidence includes context')`, `BessZoningPrecheckError('Parcel precheck status is invalid')`, `BessZoningPrecheckError('Parcel review scope is invalid')`, `BessZoningPrecheckError('Route evidence IDs must be arrays')`, `BessZoningPrecheckError('Unsupported precheck policy schema')`, `BessZoningPrecheckError('Unsupported precheck result hash schema')`, `BessZoningPrecheckError('Zoning relation hash columns must be an exact string tuple')`, `BessZoningPrecheckError('result must be a BessZoningPrecheckResult')`, `BessZoningPrecheckError(f'BESS zoning result {field} differs from rebuilt source evidence')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `retained.intersection`.
+- Hashing: `_validated_sha256`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_canonical_value`, `_compare_frames`, `_exact_id_series`, `_frame_payload`, `_strict_nonnegative_integer`, `_strict_positive_integer`, `_validate_evidence_occurrence_uniqueness`, `_validated_sha256`, `all`, `bool`, `catalog_by_id.items`, `column.strip`, `confidences.issubset`, `context_ids.add`, `decision_ids.add`, `expected_links.add`, `frame.to_dict`, `frame[column].tolist`, `getattr`, `isinstance`, `len`, `parcel_statuses.issubset`, `result.chapter_policy['zoning_precheck_confidence'].tolist`, `result.chapter_policy['zoning_precheck_status'].tolist`, `result.evidence_catalog.set_index`, `result.evidence_catalog.set_index('evidence_id').to_dict`, `result.evidence_route_links.to_dict`, `result.parcels.to_dict`, `result.parcels['non_zoning_planning_features_interpreted'].eq`, `result.parcels['non_zoning_planning_features_interpreted'].eq(False).all`, `result.parcels['review_scope'].eq`, `result.parcels['review_scope'].eq(REVIEW_SCOPE).all`, `result.parcels['zoning_precheck_requires_formal_review'].eq`, `result.parcels['zoning_precheck_requires_formal_review'].eq(True).all`, `result.parcels['zoning_precheck_status'].tolist`, `result.route_assessments.to_dict`, `retained.intersection`, `reverse_links.get`, `reverse_links.setdefault`, `reverse_links.setdefault(evidence_id, []).append`, `set`, `set(row['zoning_precheck_context_evidence_ids']).issubset`, `set(row['zoning_precheck_evidence_ids']).issubset`, `set(values).issubset`, `sorted`, `statuses.issubset`, `tuple`, `type`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `_compare_results`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `_compare_results`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `interpret_bess_zoning`
-- `src/landscout/stages/interpret_bess_zoning.py` — `validate_bess_zoning_precheck`
+```python
+def _compare_results(
+    result: BessZoningPrecheckResult,
+    expected: BessZoningPrecheckResult,
+    original_parcels: gpd.GeoDataFrame,
+) -> None:
+    if not isinstance(result, BessZoningPrecheckResult):
+        raise BessZoningPrecheckError("result must be a BessZoningPrecheckResult")
+    _validate_evidence_occurrence_uniqueness(result.evidence_catalog)
+    scalar_fields = (
+        "result_hash_schema_version",
+        "policy_schema_version",
+        "policy_profile",
+        "planning_precheck_scope",
+        "review_scope",
+        "document_id",
+        "archive_sha256",
+        "pdf_sha256",
+        "index_content_sha256",
+        "structure_result_content_sha256",
+        "structure_profile",
+        "policy_config_sha256",
+        "factual_structure_content_sha256",
+        "zone_mapping_input_sha256",
+        "zoning_relation_hash_columns",
+        "zoning_relations_input_sha256",
+        "evidence_catalog_content_sha256",
+        "evidence_route_links_content_sha256",
+        "route_assessments_content_sha256",
+        "chapter_policy_content_sha256",
+        "source_zone_policy_content_sha256",
+        "parcel_zone_policy_content_sha256",
+        "parcel_output_content_sha256",
+        "complete_result_content_sha256",
+        "touch_only_relation_count",
+    )
+    for field in scalar_fields:
+        if getattr(result, field) != getattr(expected, field):
+            raise BessZoningPrecheckError(
+                f"BESS zoning result {field} differs from rebuilt source evidence"
+            )
+    if (
+        _strict_positive_integer(
+            result.result_hash_schema_version,
+            "precheck result hash schema version",
+        )
+        != RESULT_HASH_SCHEMA_VERSION
+    ):
+        raise BessZoningPrecheckError("Unsupported precheck result hash schema")
+    if (
+        _strict_positive_integer(
+            result.policy_schema_version,
+            "precheck policy schema version",
+        )
+        != POLICY_SCHEMA_VERSION
+    ):
+        raise BessZoningPrecheckError("Unsupported precheck policy schema")
+    _strict_nonnegative_integer(
+        result.touch_only_relation_count,
+        "touch-only relation count",
+    )
+    if type(result.zoning_relation_hash_columns) is not tuple or not all(
+        isinstance(column, str) and column and column == column.strip()
+        for column in result.zoning_relation_hash_columns
+    ):
+        raise BessZoningPrecheckError(
+            "Zoning relation hash columns must be an exact string tuple"
+        )
+    for field in (
+        "archive_sha256",
+        "pdf_sha256",
+        "index_content_sha256",
+        "structure_result_content_sha256",
+        "policy_config_sha256",
+        "factual_structure_content_sha256",
+        "zone_mapping_input_sha256",
+        "zoning_relations_input_sha256",
+        "evidence_catalog_content_sha256",
+        "evidence_route_links_content_sha256",
+        "route_assessments_content_sha256",
+        "chapter_policy_content_sha256",
+        "source_zone_policy_content_sha256",
+        "parcel_zone_policy_content_sha256",
+        "parcel_output_content_sha256",
+        "complete_result_content_sha256",
+    ):
+        _validated_sha256(getattr(result, field), field)
+    _compare_frames(
+        result.evidence_catalog,
+        expected.evidence_catalog,
+        EVIDENCE_CATALOG_COLUMNS,
+        "evidence catalog",
+    )
+    _compare_frames(
+        result.evidence_route_links,
+        expected.evidence_route_links,
+        EVIDENCE_ROUTE_LINK_COLUMNS,
+        "evidence-route links",
+    )
+    _compare_frames(
+        result.route_assessments,
+        expected.route_assessments,
+        ROUTE_ASSESSMENT_COLUMNS,
+        "route assessments",
+    )
+    _compare_frames(
+        result.chapter_policy,
+        expected.chapter_policy,
+        CHAPTER_POLICY_COLUMNS,
+        "chapter policy",
+    )
+    _compare_frames(
+        result.source_zone_policy,
+        expected.source_zone_policy,
+        SOURCE_ZONE_POLICY_COLUMNS,
+        "source-zone policy",
+    )
+    _compare_frames(
+        result.parcel_zone_interpretations,
+        expected.parcel_zone_interpretations,
+        PARCEL_ZONE_POLICY_COLUMNS,
+        "parcel/zone policy",
+    )
+    _compare_frames(
+        result.parcels,
+        expected.parcels,
+        tuple(expected.parcels.columns),
+        "parcel precheck",
+    )
+    original_columns = tuple(original_parcels.columns)
+    if tuple(result.parcels.columns[: len(original_columns)]) != original_columns:
+        raise BessZoningPrecheckError("Existing parcel columns are not preserved")
+    if _canonical_value(_frame_payload(result.parcels, original_columns)) != _canonical_value(
+        _frame_payload(original_parcels, original_columns)
+    ):
+        raise BessZoningPrecheckError(
+            "Parcel count, IDs, order, index, geometry, CRS, or prior fields changed"
+        )
+    statuses = set(result.chapter_policy["zoning_precheck_status"].tolist())
+    parcel_statuses = set(result.parcels["zoning_precheck_status"].tolist())
+    confidences = set(
+        result.chapter_policy["zoning_precheck_confidence"].tolist()
+    )
+    if not statuses.issubset(_CHAPTER_STATUSES):
+        raise BessZoningPrecheckError("Chapter policy status is invalid")
+    if not parcel_statuses.issubset(_PARCEL_STATUSES):
+        raise BessZoningPrecheckError("Parcel precheck status is invalid")
+    if not confidences.issubset(_CONFIDENCES):
+        raise BessZoningPrecheckError("Chapter policy confidence is invalid")
+    evidence_ids = set(
+        _exact_id_series(
+            result.evidence_catalog["evidence_id"],
+            "catalog evidence ID",
+            unique=True,
+        )
+    )
+    catalog_by_id = result.evidence_catalog.set_index("evidence_id").to_dict("index")
+    expected_links: set[tuple[str, str, str, str]] = set()
+    role_fields = (
+        ("positive_evidence_ids", "POSITIVE", "SUPPORTS_POTENTIAL_COMPATIBILITY"),
+        ("condition_evidence_ids", "CONDITION", "CONDITION"),
+        ("difficulty_evidence_ids", "DIFFICULTY", "SUPPORTS_DIFFICULTY"),
+    )
+    for route in result.route_assessments.to_dict("records"):
+        for field, role, direction in role_fields:
+            values = route[field]
+            if not isinstance(values, (tuple, list, np.ndarray)):
+                raise BessZoningPrecheckError("Route evidence IDs must be arrays")
+            for evidence_id in values:
+                expected_links.add((route["route_id"], evidence_id, role, direction))
+    actual_links = {
+        (
+            row["route_id"],
+            row["evidence_id"],
+            row["route_role"],
+            row["evidence_direction"],
+        )
+        for row in result.evidence_route_links.to_dict("records")
+    }
+    if len(actual_links) != len(result.evidence_route_links) or actual_links != expected_links:
+        raise BessZoningPrecheckError(
+            "Evidence-route links do not exactly reproduce route evidence arrays"
+        )
+    reverse_links: dict[str, list[tuple[str, str]]] = {}
+    for route_id, evidence_id, role, _ in actual_links:
+        if evidence_id not in catalog_by_id:
+            raise BessZoningPrecheckError(
+                "Evidence-route link references unknown evidence"
+            )
+        reverse_links.setdefault(evidence_id, []).append((route_id, role))
+    decision_ids: set[str] = set()
+    context_ids: set[str] = set()
+    for evidence_id, row in catalog_by_id.items():
+        links = tuple(sorted(reverse_links.get(evidence_id, [])))
+        if tuple(row["linked_route_ids"]) != tuple(item[0] for item in links):
+            raise BessZoningPrecheckError("Evidence reverse route IDs are inconsistent")
+        if tuple(row["linked_route_roles"]) != tuple(item[1] for item in links):
+            raise BessZoningPrecheckError("Evidence reverse route roles are inconsistent")
+        if bool(row["decision_linked"]) != bool(links):
+            raise BessZoningPrecheckError("Evidence reverse decision link is inconsistent")
+        if row["evidence_direction"] == "CONTEXT_ONLY":
+            context_ids.add(evidence_id)
+            if links:
+                raise BessZoningPrecheckError(
+                    "CONTEXT_ONLY evidence must not influence a route"
+                )
+        else:
+            decision_ids.add(evidence_id)
+            if not links:
+                raise BessZoningPrecheckError(
+                    "Decision evidence must be linked to a route"
+                )
+    for frame, column in (
+        (result.chapter_policy, "evidence_ids"),
+        (result.source_zone_policy, "evidence_ids"),
+        (result.parcel_zone_interpretations, "evidence_ids"),
+        (result.parcels, "zoning_precheck_evidence_ids"),
+    ):
+        for values in frame[column].tolist():
+            if not isinstance(values, (tuple, list, np.ndarray)):
+                raise BessZoningPrecheckError("Evidence references must be arrays")
+            if not set(values).issubset(evidence_ids):
+                raise BessZoningPrecheckError(
+                    "An output evidence ID is absent from the evidence catalog"
+                )
+    for frame in (
+        result.chapter_policy,
+        result.source_zone_policy,
+        result.parcel_zone_interpretations,
+    ):
+        for row in frame.to_dict("records"):
+            retained = set(row["evidence_ids"])
+            if set(row["decision_evidence_ids"]) != retained.intersection(decision_ids):
+                raise BessZoningPrecheckError("Decision evidence output is inconsistent")
+            if set(row["context_evidence_ids"]) != retained.intersection(context_ids):
+                raise BessZoningPrecheckError("Context evidence output is inconsistent")
+    for row in result.parcels.to_dict("records"):
+        if not set(row["zoning_precheck_evidence_ids"]).issubset(decision_ids):
+            raise BessZoningPrecheckError("Parcel decision evidence includes context")
+        if not set(row["zoning_precheck_context_evidence_ids"]).issubset(context_ids):
+            raise BessZoningPrecheckError("Parcel context evidence includes a decision")
+    if not result.parcels["zoning_precheck_requires_formal_review"].eq(True).all():
+        raise BessZoningPrecheckError("Every parcel must require formal review")
+    if not result.parcels["non_zoning_planning_features_interpreted"].eq(False).all():
+        raise BessZoningPrecheckError(
+            "Non-zoning planning features must remain uninterpreted"
+        )
+    if not result.parcels["review_scope"].eq(REVIEW_SCOPE).all():
+        raise BessZoningPrecheckError("Parcel review scope is invalid")
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `validate_bess_zoning_precheck`
 
-**Signature**
+**Exact signature**
 
 ```python
 def validate_bess_zoning_precheck(
@@ -3568,70 +6193,115 @@ def validate_bess_zoning_precheck(
 
 Rebuild and validate the precheck from every factual and policy input.
 
-**Inputs**
+**Return contract**
 
-- `index` (`PlanningRegulationIndex`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `structure_config` (`PlanningRegulationStructureConfig | str | Path`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zones` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zoning_intersections` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `planning_document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy` (`BessZoningPolicyConfig | str | Path`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `result` (`BessZoningPrecheckResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Runs guarded operation: Calls `validate_normalized_planning_zoning_inputs(planning_document, parcels, zones, zoning_intersections)` for its validation or side effect. Computes `resolved_policy` from `_resolved_policy(policy)`. Computes `expected` from `_build_result(index, structure, structure_config, zones, zoning_intersections, parcels, resolved_policy)`. Calls `_compare_results(result, expected, parcels)` for its validation or side effect. Handles `BessZoningPrecheckError`, `PlanningRegulationStructureError`, `PlanningZoningError`, `Exception`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `BessZoningPrecheckError('BESS zoning precheck validation failed safely')`, `BessZoningPrecheckError(f'Factual GPU zoning validation failed: {error}')`, `BessZoningPrecheckError(f'Factual regulation structure validation failed: {error}')`, `re-raise`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_build_result`, `_compare_results`, `_resolved_policy`, `validate_normalized_planning_zoning_inputs`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+    BessZoningPolicyConfig,
+    BessZoningPrecheckError,
+    BessZoningPrecheckResult,
+    interpret_bess_zoning,
+    load_bess_zoning_policy_config,
+    validate_bess_zoning_precheck,
+)`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::_validate` via `validate_bess_zoning_precheck`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_source_complete_validator_rejects_later_duplicate_chapter` via `validate_bess_zoning_precheck`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_policy_change_after_result_creation_is_rejected` via `validate_bess_zoning_precheck`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_evidence_change_after_result_creation_is_rejected` via `validate_bess_zoning_precheck`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_zoning_relation_and_zone_mapping_changes_are_rejected` via `validate_bess_zoning_precheck`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_factual_zone_mapping_counts_are_recomputed` via `validate_bess_zoning_precheck`.
+- import/re-export: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+    CHAPTER_POLICY_COLUMNS,
+    EVIDENCE_CATALOG_COLUMNS,
+    EVIDENCE_ROUTE_LINK_COLUMNS,
+    PARCEL_ZONE_POLICY_COLUMNS,
+    ROUTE_ASSESSMENT_COLUMNS,
+    SOURCE_ZONE_POLICY_COLUMNS,
+    BessZoningPolicyConfig,
+    BessZoningPrecheckError,
+    _result_with_hashes,
+    interpret_bess_zoning,
+    load_bess_zoning_policy_config,
+    validate_bess_zoning_precheck,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_interpret_bess_zoning.py` — `_validate`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_evidence_change_after_result_creation_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_factual_zone_mapping_counts_are_recomputed`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_policy_change_after_result_creation_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_source_complete_validator_rejects_later_duplicate_chapter`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_zoning_relation_and_zone_mapping_changes_are_rejected`
+```python
+def validate_bess_zoning_precheck(
+    index: PlanningRegulationIndex,
+    structure: PlanningRegulationStructureResult,
+    structure_config: PlanningRegulationStructureConfig | str | Path,
+    zones: pd.DataFrame,
+    zoning_intersections: pd.DataFrame,
+    parcels: gpd.GeoDataFrame,
+    planning_document: GpuPlanningDocument,
+    policy: BessZoningPolicyConfig | str | Path,
+    result: BessZoningPrecheckResult,
+) -> None:
+    """Rebuild and validate the precheck from every factual and policy input."""
 
-**Tests**
+    try:
+        validate_normalized_planning_zoning_inputs(
+            planning_document,
+            parcels,
+            zones,  # type: ignore[arg-type]
+            zoning_intersections,
+        )
+        resolved_policy = _resolved_policy(policy)
+        expected = _build_result(
+            index,
+            structure,
+            structure_config,
+            zones,
+            zoning_intersections,
+            parcels,
+            resolved_policy,
+        )
+        _compare_results(result, expected, parcels)
+    except BessZoningPrecheckError:
+        raise
+    except PlanningRegulationStructureError as error:
+        raise BessZoningPrecheckError(
+            f"Factual regulation structure validation failed: {error}"
+        ) from error
+    except PlanningZoningError as error:
+        raise BessZoningPrecheckError(
+            f"Factual GPU zoning validation failed: {error}"
+        ) from error
+    except Exception as error:
+        raise BessZoningPrecheckError(
+            "BESS zoning precheck validation failed safely"
+        ) from error
+```
 
-- `tests/unit/test_interpret_bess_zoning.py::test_evidence_change_after_result_creation_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py::test_factual_zone_mapping_counts_are_recomputed`
-- `tests/unit/test_interpret_bess_zoning.py::test_policy_change_after_result_creation_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py::test_source_complete_validator_rejects_later_duplicate_chapter`
-- `tests/unit/test_interpret_bess_zoning.py::test_zoning_relation_and_zone_mapping_changes_are_rejected`
+**Business boundary**
 
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `interpret_bess_zoning`
 
-**Signature**
+**Exact signature**
 
 ```python
 def interpret_bess_zoning(
@@ -3650,260 +6320,575 @@ def interpret_bess_zoning(
 
 Build a conservative written-zoning precheck without rejecting parcels.
 
-**Inputs**
+**Return contract**
 
-- `index` (`PlanningRegulationIndex`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `structure` (`PlanningRegulationStructureResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `structure_config` (`PlanningRegulationStructureConfig | str | Path`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zones` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zoning_intersections` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `planning_document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `policy` (`BessZoningPolicyConfig | str | Path`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `BessZoningPrecheckResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `BessZoningPrecheckResult`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Runs guarded operation: Calls `validate_normalized_planning_zoning_inputs(planning_document, parcels, zones, zoning_intersections)` for its validation or side effect. Computes `resolved_policy` from `_resolved_policy(policy)`. Computes `result` from `_build_result(index, structure, structure_config, zones, zoning_intersections, parcels, resolved_policy)`. Calls `_compare_results(result, result, parcels)` for its validation or side effect. Executes 1 additional source-ordered statement(s). Handles `BessZoningPrecheckError`, `PlanningRegulationStructureError`, `PlanningZoningError`, `Exception`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `BessZoningPrecheckError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `BessZoningPrecheckError('BESS zoning precheck could not be built safely')`, `BessZoningPrecheckError(f'Factual GPU zoning validation failed: {error}')`, `BessZoningPrecheckError(f'Factual regulation structure validation failed: {error}')`, `re-raise`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessZoningPrecheckError`, `_build_result`, `_compare_results`, `_resolved_policy`, `validate_normalized_planning_zoning_inputs`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+    BessZoningPolicyConfig,
+    BessZoningPrecheckError,
+    BessZoningPrecheckResult,
+    interpret_bess_zoning,
+    load_bess_zoning_policy_config,
+    validate_bess_zoning_precheck,
+)`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::valid_result` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_source_lock_mismatch_is_rejected` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_missing_and_extra_chapter_are_rejected` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_source_rule_identity_and_containment_are_strict` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_absent_excerpt_and_section_page_mismatch_are_rejected` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_one_evidence_may_link_to_multiple_compatible_routes` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_incomplete_review_persists_exact_missing_required_sections` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_unknown_is_accepted_when_evidence_is_insufficient` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_reviewed_sections_cover_required_articles` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_evidence_must_be_inside_reviewed_sections` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_review_cannot_claim_another_chapter_section` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_general_section_review_is_explicit_and_valid` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_same_general_occurrence_may_be_scoped_to_different_chapters` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_wrong_occurrence_identity_is_rejected` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_unmapped_dominant_zone_is_rejected` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_context_evidence_is_separate_from_decision_outputs` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_inputs_are_not_mutated` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_structure_config_and_hierarchy_changes_are_rejected` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_invalid_physical_zoning_fails_before_policy_interpretation` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_relation_area_denominators_are_required` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_relation_percentages_must_match_denominators` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_factual_zone_mapping_counts_are_recomputed` via `interpret_bess_zoning`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_relation_identity_change_is_rejected` via `interpret_bess_zoning`.
+- import/re-export: `tests/unit/test_interpret_bess_zoning.py::<module>` via `from landscout.stages.interpret_bess_zoning import (
+    CHAPTER_POLICY_COLUMNS,
+    EVIDENCE_CATALOG_COLUMNS,
+    EVIDENCE_ROUTE_LINK_COLUMNS,
+    PARCEL_ZONE_POLICY_COLUMNS,
+    ROUTE_ASSESSMENT_COLUMNS,
+    SOURCE_ZONE_POLICY_COLUMNS,
+    BessZoningPolicyConfig,
+    BessZoningPrecheckError,
+    _result_with_hashes,
+    interpret_bess_zoning,
+    load_bess_zoning_policy_config,
+    validate_bess_zoning_precheck,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_interpret_bess_zoning.py` — `test_absent_excerpt_and_section_page_mismatch_are_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_context_evidence_is_separate_from_decision_outputs`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_evidence_must_be_inside_reviewed_sections`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_factual_zone_mapping_counts_are_recomputed`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_general_section_review_is_explicit_and_valid`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_incomplete_review_persists_exact_missing_required_sections`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_inputs_are_not_mutated`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_invalid_physical_zoning_fails_before_policy_interpretation`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_missing_and_extra_chapter_are_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_one_evidence_may_link_to_multiple_compatible_routes`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_one_precheck_build_performs_one_zoning_source_complete_validation`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_public_source_complete_validator_is_invoked`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_relation_area_denominators_are_required`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_relation_identity_change_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_relation_percentages_must_match_denominators`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_review_cannot_claim_another_chapter_section`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_reviewed_sections_cover_required_articles`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_same_general_occurrence_may_be_scoped_to_different_chapters`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_source_lock_mismatch_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_source_rule_identity_and_containment_are_strict`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_structure_config_and_hierarchy_changes_are_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_unknown_is_accepted_when_evidence_is_insufficient`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_unmapped_dominant_zone_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `test_wrong_occurrence_identity_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py` — `valid_result`
+```python
+def interpret_bess_zoning(
+    index: PlanningRegulationIndex,
+    structure: PlanningRegulationStructureResult,
+    structure_config: PlanningRegulationStructureConfig | str | Path,
+    zones: pd.DataFrame,
+    zoning_intersections: pd.DataFrame,
+    parcels: gpd.GeoDataFrame,
+    planning_document: GpuPlanningDocument,
+    policy: BessZoningPolicyConfig | str | Path,
+) -> BessZoningPrecheckResult:
+    """Build a conservative written-zoning precheck without rejecting parcels."""
 
-**Tests**
+    try:
+        validate_normalized_planning_zoning_inputs(
+            planning_document,
+            parcels,
+            zones,  # type: ignore[arg-type]
+            zoning_intersections,
+        )
+        resolved_policy = _resolved_policy(policy)
+        result = _build_result(
+            index,
+            structure,
+            structure_config,
+            zones,
+            zoning_intersections,
+            parcels,
+            resolved_policy,
+        )
+        _compare_results(result, result, parcels)
+        return result
+    except BessZoningPrecheckError:
+        raise
+    except PlanningRegulationStructureError as error:
+        raise BessZoningPrecheckError(
+            f"Factual regulation structure validation failed: {error}"
+        ) from error
+    except PlanningZoningError as error:
+        raise BessZoningPrecheckError(
+            f"Factual GPU zoning validation failed: {error}"
+        ) from error
+    except Exception as error:
+        raise BessZoningPrecheckError(
+            "BESS zoning precheck could not be built safely"
+        ) from error
+```
 
-- `tests/unit/test_interpret_bess_zoning.py::test_absent_excerpt_and_section_page_mismatch_are_rejected`
-- `tests/unit/test_interpret_bess_zoning.py::test_context_evidence_is_separate_from_decision_outputs`
-- `tests/unit/test_interpret_bess_zoning.py::test_evidence_must_be_inside_reviewed_sections`
-- `tests/unit/test_interpret_bess_zoning.py::test_factual_zone_mapping_counts_are_recomputed`
-- `tests/unit/test_interpret_bess_zoning.py::test_general_section_review_is_explicit_and_valid`
-- `tests/unit/test_interpret_bess_zoning.py::test_incomplete_review_persists_exact_missing_required_sections`
-- `tests/unit/test_interpret_bess_zoning.py::test_inputs_are_not_mutated`
-- `tests/unit/test_interpret_bess_zoning.py::test_invalid_physical_zoning_fails_before_policy_interpretation`
-- `tests/unit/test_interpret_bess_zoning.py::test_missing_and_extra_chapter_are_rejected`
-- `tests/unit/test_interpret_bess_zoning.py::test_one_evidence_may_link_to_multiple_compatible_routes`
-- `tests/unit/test_interpret_bess_zoning.py::test_one_precheck_build_performs_one_zoning_source_complete_validation`
-- `tests/unit/test_interpret_bess_zoning.py::test_public_source_complete_validator_is_invoked`
-- `tests/unit/test_interpret_bess_zoning.py::test_relation_area_denominators_are_required`
-- `tests/unit/test_interpret_bess_zoning.py::test_relation_identity_change_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py::test_relation_percentages_must_match_denominators`
-- `tests/unit/test_interpret_bess_zoning.py::test_review_cannot_claim_another_chapter_section`
-- `tests/unit/test_interpret_bess_zoning.py::test_reviewed_sections_cover_required_articles`
-- `tests/unit/test_interpret_bess_zoning.py::test_same_general_occurrence_may_be_scoped_to_different_chapters`
-- `tests/unit/test_interpret_bess_zoning.py::test_source_lock_mismatch_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py::test_source_rule_identity_and_containment_are_strict`
-- `tests/unit/test_interpret_bess_zoning.py::test_structure_config_and_hierarchy_changes_are_rejected`
-- `tests/unit/test_interpret_bess_zoning.py::test_unknown_is_accepted_when_evidence_is_insufficient`
-- `tests/unit/test_interpret_bess_zoning.py::test_unmapped_dominant_zone_is_rejected`
-- `tests/unit/test_interpret_bess_zoning.py::test_wrong_occurrence_identity_is_rejected`
+**Business boundary**
 
-**Business interpretation**
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
 
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+### Frame-preservation and semantic notes
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `ACCESS_OR_NETWORK_CONDITION` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `COMPLETE_FOR_CONFIGURED_USE_CONTROL_ARTICLES` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `CONDITION` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `CONDITIONAL_REVIEW` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `CONDITIONAL_ROUTE` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `CONFIGURED_USE_CONTROL_ARTICLES_ONLY` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `CONTEXT_ONLY` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `DIFFICULTY_ONLY` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `DIRECT_ROUTE` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `HIGH` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `ICPE_RULE` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `INCOMPLETE` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `LIKELY_DIFFICULT` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `LOW` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `MEDIUM` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `OTHER_RELEVANT_RULE` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `POTENTIALLY_COMPATIBLE` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `PUBLIC_INTEREST_EXCEPTION` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `RESTRICTION_EXCEPTION_ROUTE` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `RISK_OR_NUISANCE_CONDITION` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `SUPPORTS_DIFFICULTY` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `SUPPORTS_POTENTIAL_COMPATIBILITY` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `TECHNICAL_EQUIPMENT_RULE` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `UNKNOWN` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `USE_PERMISSION` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `USE_RESTRICTION` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `WRITTEN_ZONING_REGULATION_ONLY` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `applicability_note` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `archive_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `article_number_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `ascending` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `chapter_section_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `condition_evidence_ids` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `context_evidence_ids` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `crs` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `decision_evidence_ids` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `decision_linked` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `derived_route_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `difficulty_evidence_ids` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `distinct_zone_status_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `document_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `dominant_planning_zone_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `dominant_zone_precheck_confidence` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `dominant_zone_precheck_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `evidence_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `evidence_direction` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `evidence_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `evidence_ids` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `evidence_kind` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `exact_raw_excerpt` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `excerpt_end` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `excerpt_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `excerpt_start` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry_column` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `index_content_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `interpretation_note` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `intersection_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `kind` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `linked_route_ids` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `linked_route_roles` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `mapping_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `matched_section_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `missing_information` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `missing_required_section_ids` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `non_dominant_different_status_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `non_zoning_planning_features_interpreted` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `page_number` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_share_pct` | Logical dtype: float64. Nullability: determined by the owning schema/dtype map and explicit null guards. | percentage derived from the exact numerator/denominator named by its stage. Consumers and exact calculations are the functions that reference this column above. |
-| `parent_section_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `pdf_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_precheck_scope` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_zone_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `policy_profile` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `policy_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `positive_area_zone_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `positive_evidence_ids` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `rationale` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `raw_text` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `relation_type` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `resolved_zone_chapter_label` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `review_completeness` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `review_note` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `review_scope` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `reviewed_section_ids` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `route_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `route_kind` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `route_role` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `section_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `section_page_fragment_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `section_type` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `source_archive_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `source_document_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `source_layer` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_rule_end` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_rule_excerpt` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_rule_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `source_rule_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `source_rule_start` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_zone_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `source_zone_label_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `structure_profile` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `structure_result_content_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `touch_only_zone_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `zone_chapter_label` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `zone_label_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `zoning_precheck_confidence` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `zoning_precheck_context_evidence_ids` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `zoning_precheck_evidence_ids` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `zoning_precheck_policy_profile` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `zoning_precheck_policy_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `zoning_precheck_requires_formal_review` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `zoning_precheck_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
+- `_route_status` is deterministic written-zoning policy logic: RouteKind values map to ChapterStatus values. It is a planning precheck interpretation and explicitly is not authorization, prohibition, or proof that unresolved BESS/ICPE conditions are satisfied.
+- `crs` and `geometry_column` appearing in hash/signature payload mappings are mapping keys, not result-frame columns.
+
+### `CHAPTER_POLICY_COLUMNS` — canonical or derived frame-column schema
+
+```python
+CHAPTER_POLICY_COLUMNS = (
+    "resolved_zone_chapter_label",
+    "chapter_section_id",
+    "review_completeness",
+    "review_scope",
+    "reviewed_section_ids",
+    "missing_required_section_ids",
+    "review_note",
+    "zoning_precheck_status",
+    "zoning_precheck_confidence",
+    "evidence_count",
+    "evidence_ids",
+    "decision_evidence_ids",
+    "context_evidence_ids",
+    "rationale",
+    "missing_information",
+    "planning_precheck_scope",
+    "policy_profile",
+    "policy_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_result_content_sha256",
+    "structure_profile",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `chapter_section_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 3 | `review_completeness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `reviewed_section_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `missing_required_section_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `review_note` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `zoning_precheck_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 9 | `zoning_precheck_confidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `evidence_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 11 | `evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 12 | `decision_evidence_ids` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 13 | `context_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 14 | `rationale` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 15 | `missing_information` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 16 | `planning_precheck_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 17 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 18 | `policy_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 19 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 20 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 21 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 22 | `index_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 23 | `structure_result_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 24 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+
+### `EVIDENCE_CATALOG_COLUMNS` — canonical or derived frame-column schema
+
+```python
+EVIDENCE_CATALOG_COLUMNS = (
+    "evidence_id",
+    "resolved_zone_chapter_label",
+    "section_id",
+    "page_number",
+    "evidence_kind",
+    "evidence_direction",
+    "linked_route_ids",
+    "linked_route_roles",
+    "decision_linked",
+    "exact_raw_excerpt",
+    "excerpt_sha256",
+    "section_page_fragment_sha256",
+    "excerpt_start",
+    "excerpt_end",
+    "source_rule_id",
+    "source_rule_excerpt",
+    "source_rule_sha256",
+    "source_rule_start",
+    "source_rule_end",
+    "interpretation_note",
+    "review_completeness",
+    "review_scope",
+    "policy_profile",
+    "policy_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_result_content_sha256",
+    "structure_profile",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `evidence_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 2 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `section_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 4 | `page_number` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `evidence_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `evidence_direction` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `linked_route_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `linked_route_roles` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `decision_linked` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 10 | `exact_raw_excerpt` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `excerpt_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 12 | `section_page_fragment_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 13 | `excerpt_start` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 14 | `excerpt_end` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 15 | `source_rule_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 16 | `source_rule_excerpt` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 17 | `source_rule_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 18 | `source_rule_start` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 19 | `source_rule_end` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 20 | `interpretation_note` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 21 | `review_completeness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 22 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 23 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 24 | `policy_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 25 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 26 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 27 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 28 | `index_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 29 | `structure_result_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 30 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+
+### `_EVIDENCE_OCCURRENCE_COLUMNS` — canonical or derived frame-column schema
+
+```python
+_EVIDENCE_OCCURRENCE_COLUMNS = (
+    "resolved_zone_chapter_label",
+    "section_id",
+    "page_number",
+    "section_page_fragment_sha256",
+    "excerpt_start",
+    "excerpt_end",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `section_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 3 | `page_number` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `section_page_fragment_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 5 | `excerpt_start` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `excerpt_end` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+
+### `ROUTE_ASSESSMENT_COLUMNS` — canonical or derived frame-column schema
+
+```python
+ROUTE_ASSESSMENT_COLUMNS = (
+    "route_id",
+    "resolved_zone_chapter_label",
+    "route_kind",
+    "derived_route_status",
+    "positive_evidence_ids",
+    "condition_evidence_ids",
+    "difficulty_evidence_ids",
+    "applicability_note",
+    "review_completeness",
+    "review_scope",
+    "policy_profile",
+    "policy_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_result_content_sha256",
+    "structure_profile",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `route_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 2 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `route_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `derived_route_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 5 | `positive_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `condition_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `difficulty_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `applicability_note` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `review_completeness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 12 | `policy_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 13 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 14 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 15 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 16 | `index_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 17 | `structure_result_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 18 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+
+### `EVIDENCE_ROUTE_LINK_COLUMNS` — canonical or derived frame-column schema
+
+```python
+EVIDENCE_ROUTE_LINK_COLUMNS = (
+    "route_id",
+    "resolved_zone_chapter_label",
+    "route_kind",
+    "evidence_id",
+    "route_role",
+    "evidence_direction",
+    "review_completeness",
+    "review_scope",
+    "policy_profile",
+    "policy_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_result_content_sha256",
+    "structure_profile",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `route_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 2 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `route_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `evidence_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 5 | `route_role` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `evidence_direction` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `review_completeness` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `policy_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 11 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 12 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 13 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 14 | `index_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 15 | `structure_result_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 16 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+
+### `SOURCE_ZONE_POLICY_COLUMNS` — canonical or derived frame-column schema
+
+```python
+SOURCE_ZONE_POLICY_COLUMNS = (
+    "source_zone_label_raw",
+    "resolved_zone_chapter_label",
+    "mapping_status",
+    "matched_section_id",
+    "source_layer",
+    "zoning_precheck_status",
+    "zoning_precheck_confidence",
+    "evidence_ids",
+    "decision_evidence_ids",
+    "context_evidence_ids",
+    "review_scope",
+    "planning_precheck_scope",
+    "policy_profile",
+    "policy_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_result_content_sha256",
+    "structure_profile",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `source_zone_label_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 2 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `mapping_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 4 | `matched_section_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 5 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 6 | `zoning_precheck_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 7 | `zoning_precheck_confidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `decision_evidence_ids` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 10 | `context_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 12 | `planning_precheck_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 14 | `policy_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 15 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 16 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 17 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 18 | `index_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 19 | `structure_result_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 20 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+
+### `PARCEL_ZONE_POLICY_COLUMNS` — canonical or derived frame-column schema
+
+```python
+PARCEL_ZONE_POLICY_COLUMNS = (
+    "parcel_id",
+    "planning_zone_id",
+    "source_zone_id",
+    "source_zone_label_raw",
+    "resolved_zone_chapter_label",
+    "intersection_area_m2",
+    "parcel_share_pct",
+    "zoning_precheck_status",
+    "zoning_precheck_confidence",
+    "evidence_ids",
+    "decision_evidence_ids",
+    "context_evidence_ids",
+    "review_scope",
+    "planning_precheck_scope",
+    "policy_profile",
+    "policy_sha256",
+    "document_id",
+    "archive_sha256",
+    "pdf_sha256",
+    "index_content_sha256",
+    "structure_result_content_sha256",
+    "structure_profile",
+    "source_layer",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `parcel_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 2 | `planning_zone_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 3 | `source_zone_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 4 | `source_zone_label_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 5 | `resolved_zone_chapter_label` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `intersection_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 7 | `parcel_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 8 | `zoning_precheck_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 9 | `zoning_precheck_confidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `decision_evidence_ids` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 12 | `context_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 14 | `planning_precheck_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 15 | `policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 16 | `policy_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 17 | `document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 18 | `archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 19 | `pdf_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 20 | `index_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 21 | `structure_result_content_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 22 | `structure_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 23 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+
+### `PARCEL_PRECHECK_COLUMNS` — canonical or derived frame-column schema
+
+```python
+PARCEL_PRECHECK_COLUMNS = (
+    "zoning_precheck_status",
+    "dominant_zone_precheck_status",
+    "dominant_zone_precheck_confidence",
+    "positive_area_zone_count",
+    "distinct_zone_status_count",
+    "non_dominant_different_status_count",
+    "touch_only_zone_count",
+    "zoning_precheck_evidence_ids",
+    "zoning_precheck_context_evidence_ids",
+    "zoning_precheck_requires_formal_review",
+    "planning_precheck_scope",
+    "review_scope",
+    "non_zoning_planning_features_interpreted",
+    "zoning_precheck_policy_profile",
+    "zoning_precheck_policy_sha256",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `zoning_precheck_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 2 | `dominant_zone_precheck_status` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 3 | `dominant_zone_precheck_confidence` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `positive_area_zone_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 5 | `distinct_zone_status_count` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 6 | `non_dominant_different_status_count` | builder/source string dtype shown by the implementation | non-null where each row must receive a classification | diagnostic or policy-derived result | Stores one value from its separately documented closed domain; domain values are not columns. |
+| 7 | `touch_only_zone_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 8 | `zoning_precheck_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `zoning_precheck_context_evidence_ids` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `zoning_precheck_requires_formal_review` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 11 | `planning_precheck_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 12 | `review_scope` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `non_zoning_planning_features_interpreted` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 14 | `zoning_precheck_policy_profile` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 15 | `zoning_precheck_policy_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+
+
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module defines an exact `__all__` contract:
+
+| Export | Kind | Origin | Included in `__all__` |
+|---|---|---|---|
+| `BessZoningPolicyConfig` | re-exported/defined Python symbol | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
+| `BessZoningPrecheckError` | re-exported/defined Python symbol | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
+| `BessZoningPrecheckResult` | re-exported/defined Python symbol | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
+| `interpret_bess_zoning` | re-exported/defined Python symbol | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
+| `load_bess_zoning_policy_config` | re-exported/defined Python symbol | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
+| `validate_bess_zoning_precheck` | re-exported/defined Python symbol | `defined in `src/landscout/stages/interpret_bess_zoning.py`` | yes |
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `project` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the planning flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
-- This project file does not implement a business algorithm.
+- Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

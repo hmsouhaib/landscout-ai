@@ -4,9 +4,9 @@
 
 - Repository path: `src/landscout/config.py`
 - File type: Python source
-- Primary responsibility: Loads and strictly validates scan, profile, parcel, CRS, shape-screening, AOI, and output configuration.
-- Layer / domain: `package/configuration` / `project`
-- Public or internal role: Module symbols without a package re-export are internal unless imported directly by repository code.
+- Layer: package/configuration
+- Domain: project
+- Responsibility: Loads and strictly validates scan, profile, parcel, CRS, shape-screening, AOI, and output configuration.
 - Source SHA256: `f9c9bc778b59669f54c095444efc87b18518572f920be4bc3f79ce37c487a044`
 
 ## 1. Purpose
@@ -15,277 +15,618 @@ Loads and strictly validates scan, profile, parcel, CRS, shape-screening, AOI, a
 
 ## 2. Position in LandScout architecture
 
-This file is a `package/configuration` artifact in the `project` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **package/configuration** layer and the **project** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from math import isfinite` — required by the implementation paths and symbols documented below.
-- `from numbers import Real` — required by the implementation paths and symbols documented below.
-- `from pathlib import Path` — required by the implementation paths and symbols documented below.
-- `from typing import Annotated, Any` — required by the implementation paths and symbols documented below.
+- `from math import isfinite`
+- `from numbers import Real`
+- `from pathlib import Path`
+- `from typing import Annotated, Any`
 
-### Third-party
+### Third-party packages
 
-- `import yaml` — required by the implementation paths and symbols documented below.
-- `from pydantic import ( BaseModel, BeforeValidator, ConfigDict, Field, StrictBool, StringConstraints, model_validator, )` — required by the implementation paths and symbols documented below.
-- `from pydantic_core import PydanticCustomError` — required by the implementation paths and symbols documented below.
-- `from pyproj import CRS` — required by the implementation paths and symbols documented below.
+- `import yaml`
+- `from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    Field,
+    StrictBool,
+    StringConstraints,
+    model_validator,
+)`
+- `from pydantic_core import PydanticCustomError`
+- `from pyproj import CRS`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- None.
+- `None.`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-No module-level meaningful constant is defined. Literal domains enforced inside functions are documented with those functions.
+### A. Python constants
+
+No meaningful module constant is declared.
+
+### B. Type aliases and closed domains
+
+#### `NonEmptyString`
+
+```python
+NonEmptyString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+```
+
+String constrained non-empty after the exact StringConstraints behavior in the declaration. It is consumed by annotations or Pydantic validation in this module.
+
+#### `CommuneCode`
+
+```python
+CommuneCode = Annotated[
+    str,
+    StringConstraints(strict=True, pattern=r"^(?:\d{5}|2[AB]\d{3})$"),
+]
+```
+
+Canonical French commune identity constrained by the exact regex in the declaration. It is consumed by annotations or Pydantic validation in this module.
+
+#### `StrictFiniteFloat`
+
+```python
+StrictFiniteFloat = Annotated[float, BeforeValidator(_strict_finite_number)]
+```
+
+Non-Boolean real converted to float only after the named finite-number validator accepts it. It is consumed by annotations or Pydantic validation in this module.
+
+#### `StrictPositiveFloat`
+
+```python
+StrictPositiveFloat = Annotated[
+    float,
+    BeforeValidator(_strict_finite_number),
+    Field(gt=0, allow_inf_nan=False),
+]
+```
+
+StrictFiniteFloat plus a greater-than-zero Pydantic bound. It is consumed by annotations or Pydantic validation in this module.
+
+#### `StrictPositiveInt`
+
+```python
+StrictPositiveInt = Annotated[int, Field(strict=True, gt=0)]
+```
+
+Strict integer greater than zero; Boolean and numeric coercions are rejected by Pydantic Field(strict=True, gt=0). It is consumed by annotations or Pydantic validation in this module.
+
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
 ### `_ConfigModel`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the project contract carried by its explicit validators and inherited fields.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `BaseModel`.
 
-**Model form and mutability:** Pydantic model; `model_config` and validators below define strictness, mutation, and extra-field behavior. Decorators: `none`.
+**Exact decorators:** none.
 
-**Validation configuration:** `model_config = ConfigDict(extra="forbid")`.
+**Fields:** none declared directly on this class.
 
-**Fields:**
+**Interface consumers**
 
-- No annotated instance fields are declared directly on this class.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
 
-**Validators and methods:**
+**Exact class source**
 
-- None.
+```python
+class _ConfigModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+```
 
 ### `ParcelConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Configured lower and upper parcel-area screening thresholds in square metres; these are policy inputs, not measured geometry.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_ConfigModel`.
 
-**Model form and mutability:** class inheriting from `_ConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `min_area_m2` | `StrictPositiveFloat` | `required` | Metric area in square metres, derived only on an EPSG:2154 calculation geometry where applicable. |
-| `max_area_m2` | `StrictPositiveFloat` | `required` | Metric area in square metres, derived only on an EPSG:2154 calculation geometry where applicable. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `min_area_m2` | `min_area_m2: StrictPositiveFloat` | Configured inclusive lower parcel-area screening threshold in square metres; not a measured parcel area. |
+| `max_area_m2` | `max_area_m2: StrictPositiveFloat` | Configured inclusive upper parcel-area screening threshold in square metres; must exceed min_area_m2. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `validate_area_range` — `def validate_area_range(self) -> "ParcelConfig":`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`validate_area_range`:
+
+```python
+def validate_area_range(self) -> "ParcelConfig":
+        if self.max_area_m2 <= self.min_area_m2:
+            raise ValueError("max_area_m2 must be greater than min_area_m2")
+        return self
+```
+
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/filter_parcels.py::<module>` via `from landscout.config import ParcelConfig, ShapeScreeningConfig`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::area_config` via `ParcelConfig`.
+- direct call or construction: `tests/unit/test_filter_parcels.py::test_thresholds_come_from_config` via `ParcelConfig`.
+- import/re-export: `tests/unit/test_filter_parcels.py::<module>` via `from landscout.config import ParcelConfig`.
+
+**Exact class source**
+
+```python
+class ParcelConfig(_ConfigModel):
+    min_area_m2: StrictPositiveFloat
+    max_area_m2: StrictPositiveFloat
+
+    @model_validator(mode="after")
+    def validate_area_range(self) -> "ParcelConfig":
+        if self.max_area_m2 <= self.min_area_m2:
+            raise ValueError("max_area_m2 must be greater than min_area_m2")
+        return self
+```
 
 ### `ShapeCalibrationConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validated provenance and retention statistics for the configured shape-screening calibration snapshot.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_ConfigModel`.
 
-**Model form and mutability:** class inheriting from `_ConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `policy_version` | `NonEmptyString` | `required` | `NonEmptyString` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `method` | `NonEmptyString` | `required` | `NonEmptyString` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `calibration_scope` | `NonEmptyString` | `required` | `NonEmptyString` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `sample_size` | `StrictPositiveInt` | `required` | `StrictPositiveInt` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `calibrated_at` | `NonEmptyString` | `required` | `NonEmptyString` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `target_retention_pct` | `Annotated[StrictFiniteFloat, Field(gt=0, le=100, allow_inf_nan=False)]` | `required` | Percentage quantity with the domain and denominator validated by its stage. |
-| `observed_retention_pct` | `Annotated[StrictFiniteFloat, Field(ge=0, le=100, allow_inf_nan=False)]` | `required` | Percentage quantity with the domain and denominator validated by its stage. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `policy_version` | `policy_version: NonEmptyString` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
+| `method` | `method: NonEmptyString` | Closed or validated `method` classification on `ShapeCalibrationConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `calibration_scope` | `calibration_scope: NonEmptyString` | Closed or validated `calibration scope` classification on `ShapeCalibrationConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `sample_size` | `sample_size: StrictPositiveInt` | Strict positive integer number of rows in the diagnostic/profile sample. |
+| `calibrated_at` | `calibrated_at: NonEmptyString` | Source, download, or processing time in the exact representation enforced by the owning validator; it is lineage, not physical proof by itself. |
+| `target_retention_pct` | `target_retention_pct: Annotated[
+        StrictFiniteFloat, Field(gt=0, le=100, allow_inf_nan=False)
+    ]` | Configured target retention percentage in (0, 100]. |
+| `observed_retention_pct` | `observed_retention_pct: Annotated[
+        StrictFiniteFloat, Field(ge=0, le=100, allow_inf_nan=False)
+    ]` | Recorded observed retention percentage in [0, 100]. |
 
-**Validators and methods:**
+**Interface consumers**
 
-- None.
+- direct call or construction: `tests/unit/test_filter_shape.py::_shape_config` via `ShapeCalibrationConfig`.
+- import/re-export: `tests/unit/test_filter_shape.py::<module>` via `from landscout.config import ShapeCalibrationConfig, ShapeScreeningConfig`.
+
+**Exact class source**
+
+```python
+class ShapeCalibrationConfig(_ConfigModel):
+    policy_version: NonEmptyString
+    method: NonEmptyString
+    calibration_scope: NonEmptyString
+    sample_size: StrictPositiveInt
+    calibrated_at: NonEmptyString
+    target_retention_pct: Annotated[
+        StrictFiniteFloat, Field(gt=0, le=100, allow_inf_nan=False)
+    ]
+    observed_retention_pct: Annotated[
+        StrictFiniteFloat, Field(ge=0, le=100, allow_inf_nan=False)
+    ]
+```
 
 ### `ShapeScreeningConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Optional shape-screening policy thresholds and observed-retention evidence used by the parcel shape filter.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_ConfigModel`.
 
-**Model form and mutability:** class inheriting from `_ConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `enabled` | `StrictBool` | `required` | `StrictBool` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `min_width_m` | `StrictPositiveFloat | None` | `None` | Metric distance or length in metres; the full field name identifies the measurement. |
-| `max_length_width_ratio` | `StrictFiniteFloat | None` | `Field(default=None, ge=1, allow_inf_nan=False)` | `StrictFiniteFloat | None` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `calibration` | `ShapeCalibrationConfig | None` | `None` | `ShapeCalibrationConfig | None` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `enabled` | `enabled: StrictBool` | Strict Boolean switch; when true the width, ratio, and calibration fields are all mandatory. |
+| `min_width_m` | `min_width_m: StrictPositiveFloat \| None = None` | Configured minimum parcel-width policy threshold in metres; not an observed width. |
+| `max_length_width_ratio` | `max_length_width_ratio: StrictFiniteFloat \| None = Field(
+        default=None, ge=1, allow_inf_nan=False
+    )` | Configured maximum shape-policy length/width ratio; dimensionless and at least 1. |
+| `calibration` | `calibration: ShapeCalibrationConfig \| None = None` | Optional calibration evidence; required when shape screening is enabled and absent permitted when disabled. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `validate_enabled_policy` — `def validate_enabled_policy(self) -> "ShapeScreeningConfig":`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`validate_enabled_policy`:
+
+```python
+def validate_enabled_policy(self) -> "ShapeScreeningConfig":
+        if not self.enabled:
+            return self
+
+        required_values = {
+            "min_width_m": self.min_width_m,
+            "max_length_width_ratio": self.max_length_width_ratio,
+            "calibration": self.calibration,
+        }
+        missing = [name for name, value in required_values.items() if value is None]
+        if missing:
+            formatted = ", ".join(missing)
+            raise ValueError(f"enabled shape screening requires: {formatted}")
+        return self
+```
+
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/filter_parcels.py::<module>` via `from landscout.config import ParcelConfig, ShapeScreeningConfig`.
+- direct call or construction: `tests/unit/test_filter_shape.py::_shape_config` via `ShapeScreeningConfig`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_disabled_policy_is_an_exact_passthrough` via `ShapeScreeningConfig`.
+- direct call or construction: `tests/unit/test_filter_shape.py::test_valid_shape_requires_complete_metrics_even_when_screening_disabled` via `ShapeScreeningConfig`.
+- import/re-export: `tests/unit/test_filter_shape.py::<module>` via `from landscout.config import ShapeCalibrationConfig, ShapeScreeningConfig`.
+
+**Exact class source**
+
+```python
+class ShapeScreeningConfig(_ConfigModel):
+    enabled: StrictBool
+    min_width_m: StrictPositiveFloat | None = None
+    max_length_width_ratio: StrictFiniteFloat | None = Field(
+        default=None, ge=1, allow_inf_nan=False
+    )
+    calibration: ShapeCalibrationConfig | None = None
+
+    @model_validator(mode="after")
+    def validate_enabled_policy(self) -> "ShapeScreeningConfig":
+        if not self.enabled:
+            return self
+
+        required_values = {
+            "min_width_m": self.min_width_m,
+            "max_length_width_ratio": self.max_length_width_ratio,
+            "calibration": self.calibration,
+        }
+        missing = [name for name, value in required_values.items() if value is None]
+        if missing:
+            formatted = ", ".join(missing)
+            raise ValueError(f"enabled shape screening requires: {formatted}")
+        return self
+```
 
 ### `CrsConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Canonical storage and calculation CRS identities required by the configured profile.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_ConfigModel`.
 
-**Model form and mutability:** class inheriting from `_ConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `storage` | `NonEmptyString` | `required` | `NonEmptyString` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `calculation` | `NonEmptyString` | `required` | `NonEmptyString` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `storage` | `storage: NonEmptyString` | Configured storage CRS, required to be exactly EPSG:4326. |
+| `calculation` | `calculation: NonEmptyString` | Configured metric calculation CRS, required to be exactly EPSG:2154. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `validate_crs_contract` — `def validate_crs_contract(self) -> "CrsConfig":`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`validate_crs_contract`:
+
+```python
+def validate_crs_contract(self) -> "CrsConfig":
+        for field, value, expected in (
+            ("storage", self.storage, 4326),
+            ("calculation", self.calculation, 2154),
+        ):
+            try:
+                observed = CRS.from_user_input(value)
+            except Exception as error:
+                raise ValueError(f"{field} CRS is unreadable") from error
+            if not observed.equals(CRS.from_epsg(expected)):
+                raise ValueError(f"{field} CRS must be EPSG:{expected}")
+        return self
+```
+
+**Interface consumers**
+
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class CrsConfig(_ConfigModel):
+    storage: NonEmptyString
+    calculation: NonEmptyString
+
+    @model_validator(mode="after")
+    def validate_crs_contract(self) -> "CrsConfig":
+        for field, value, expected in (
+            ("storage", self.storage, 4326),
+            ("calculation", self.calculation, 2154),
+        ):
+            try:
+                observed = CRS.from_user_input(value)
+            except Exception as error:
+                raise ValueError(f"{field} CRS is unreadable") from error
+            if not observed.equals(CRS.from_epsg(expected)):
+                raise ValueError(f"{field} CRS must be EPSG:{expected}")
+        return self
+```
 
 ### `BessProfile`
 
-**Purpose:** Carries deterministic diagnostic/profile statistics without changing the underlying evidence rows.
+**Purpose:** Validated French BESS profile combining parcel screening thresholds, CRS identities, provenance, and limitations.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_ConfigModel`.
 
-**Model form and mutability:** class inheriting from `_ConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `country` | `NonEmptyString` | `required` | `NonEmptyString` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `technology` | `NonEmptyString` | `required` | `NonEmptyString` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `parcel` | `ParcelConfig` | `required` | `ParcelConfig` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `shape_screening` | `ShapeScreeningConfig` | `required` | `ShapeScreeningConfig` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `crs` | `CrsConfig` | `required` | `CrsConfig` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `country` | `country: NonEmptyString` | Profile country identity; LoadedScanConfig requires it to equal ScanMetadata.country. |
+| `technology` | `technology: NonEmptyString` | Profile technology identity; LoadedScanConfig requires it to equal ScanMetadata.technology. |
+| `parcel` | `parcel: ParcelConfig` | Nested parcel-area screening policy containing the configured square-metre lower and upper bounds. |
+| `shape_screening` | `shape_screening: ShapeScreeningConfig` | Nested optional shape-screening policy and its calibration evidence. |
+| `crs` | `crs: CrsConfig` | Nested storage/calculation CRS contract fixed to EPSG:4326 and EPSG:2154 respectively. |
 
-**Validators and methods:**
+**Interface consumers**
 
-- None.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class BessProfile(_ConfigModel):
+    country: NonEmptyString
+    technology: NonEmptyString
+    parcel: ParcelConfig
+    shape_screening: ShapeScreeningConfig
+    crs: CrsConfig
+```
 
 ### `ScanMetadata`
 
-**Purpose:** Represents strict metadata used to reconstruct or validate a byte-bound cache/source object.
+**Purpose:** Validated identity and provenance metadata for one configured LandScout scan.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_ConfigModel`.
 
-**Model form and mutability:** class inheriting from `_ConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `name` | `NonEmptyString` | `required` | `NonEmptyString` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `country` | `NonEmptyString` | `required` | `NonEmptyString` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `technology` | `NonEmptyString` | `required` | `NonEmptyString` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `name` | `name: NonEmptyString` | Non-empty human-readable identity of the configured scan. |
+| `country` | `country: NonEmptyString` | Scan country identity that must equal the loaded BESS profile country. |
+| `technology` | `technology: NonEmptyString` | Scan technology identity that must equal the loaded BESS profile technology. |
 
-**Validators and methods:**
+**Interface consumers**
 
-- None.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class ScanMetadata(_ConfigModel):
+    name: NonEmptyString
+    country: NonEmptyString
+    technology: NonEmptyString
+```
 
 ### `AoiConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validated non-empty unique list of canonical French commune codes defining the scan area of interest.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_ConfigModel`.
 
-**Model form and mutability:** class inheriting from `_ConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `commune_codes` | `list[CommuneCode]` | `Field(min_length=1)` | `list[CommuneCode]` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `commune_codes` | `commune_codes: list[CommuneCode] = Field(min_length=1)` | Non-empty ordered list of unique canonical French INSEE commune codes defining the scan area of interest. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `validate_unique_communes` — `def validate_unique_communes(self) -> "AoiConfig":`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`validate_unique_communes`:
+
+```python
+def validate_unique_communes(self) -> "AoiConfig":
+        if len(set(self.commune_codes)) != len(self.commune_codes):
+            raise ValueError("commune_codes must not contain duplicates")
+        return self
+```
+
+**Interface consumers**
+
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class AoiConfig(_ConfigModel):
+    commune_codes: list[CommuneCode] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_unique_communes(self) -> "AoiConfig":
+        if len(set(self.commune_codes)) != len(self.commune_codes):
+            raise ValueError("commune_codes must not contain duplicates")
+        return self
+```
 
 ### `ProfileReference`
 
-**Purpose:** Carries deterministic diagnostic/profile statistics without changing the underlying evidence rows.
+**Purpose:** Repository-relative reference to the separately validated BESS profile YAML.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_ConfigModel`.
 
-**Model form and mutability:** class inheriting from `_ConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `path` | `Path` | `required` | `Path` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `path` | `path: Path` | Repository-relative or absolute path resolved by load_scan_config to the separately parsed BESS profile YAML. |
 
-**Validators and methods:**
+**Interface consumers**
 
-- None.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class ProfileReference(_ConfigModel):
+    path: Path
+```
 
 ### `OutputConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Configured output directory path for the scan; it does not itself create or write that directory.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_ConfigModel`.
 
-**Model form and mutability:** class inheriting from `_ConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `directory` | `Path` | `required` | `Path` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `directory` | `directory: Path` | Configured output directory path retained by scan configuration; this model does not create the directory. |
 
-**Validators and methods:**
+**Interface consumers**
 
-- None.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class OutputConfig(_ConfigModel):
+    directory: Path
+```
 
 ### `ScanConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validated scan metadata, area of interest, profile reference, and output path from the scan YAML.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_ConfigModel`.
 
-**Model form and mutability:** class inheriting from `_ConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `scan` | `ScanMetadata` | `required` | `ScanMetadata` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `aoi` | `AoiConfig` | `required` | `AoiConfig` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `profile` | `ProfileReference` | `required` | `ProfileReference` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `output` | `OutputConfig` | `required` | `OutputConfig` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `scan` | `scan: ScanMetadata` | Nested scan identity metadata. |
+| `aoi` | `aoi: AoiConfig` | Nested area-of-interest commune-code configuration. |
+| `profile` | `profile: ProfileReference` | Nested path reference used to resolve and load the BESS profile YAML. |
+| `output` | `output: OutputConfig` | Nested output-directory configuration. |
 
-**Validators and methods:**
+**Interface consumers**
 
-- None.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class ScanConfig(_ConfigModel):
+    scan: ScanMetadata
+    aoi: AoiConfig
+    profile: ProfileReference
+    output: OutputConfig
+```
 
 ### `LoadedScanConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validated combination of ScanConfig, the resolved BessProfile, and its physical profile path with matching country/technology identities.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_ConfigModel`.
 
-**Model form and mutability:** class inheriting from `_ConfigModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `scan_config` | `ScanConfig` | `required` | Validated configuration object or field controlling exact source/stage behavior. |
-| `profile` | `BessProfile` | `required` | `BessProfile` state used by `src/landscout/config.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `profile_path` | `Path` | `required` | Filesystem path used for source, cache, artifact, or configuration access under the owning function's containment and link rules. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `scan_config` | `scan_config: ScanConfig` | Validated scan YAML model retained with the loaded result. |
+| `profile` | `profile: BessProfile` | Separately validated BESS profile whose country/technology must match the scan metadata. |
+| `profile_path` | `profile_path: Path` | Resolved physical path of the profile YAML that produced profile. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `validate_scan_profile_identity` — `def validate_scan_profile_identity(self) -> "LoadedScanConfig":`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`validate_scan_profile_identity`:
+
+```python
+def validate_scan_profile_identity(self) -> "LoadedScanConfig":
+        if self.scan_config.scan.country != self.profile.country:
+            raise ValueError("scan country must equal profile country")
+        if self.scan_config.scan.technology != self.profile.technology:
+            raise ValueError("scan technology must equal profile technology")
+        return self
+```
+
+**Interface consumers**
+
+- direct call or construction: `src/landscout/config.py::load_scan_config` via `LoadedScanConfig`.
+
+**Exact class source**
+
+```python
+class LoadedScanConfig(_ConfigModel):
+    scan_config: ScanConfig
+    profile: BessProfile
+    profile_path: Path
+
+    @model_validator(mode="after")
+    def validate_scan_profile_identity(self) -> "LoadedScanConfig":
+        if self.scan_config.scan.country != self.profile.country:
+            raise ValueError("scan country must equal profile country")
+        if self.scan_config.scan.technology != self.profile.technology:
+            raise ValueError("scan technology must equal profile technology")
+        return self
+```
+
 
 ## 6. Functions and methods
 
 ### `_strict_finite_number`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _strict_finite_number(value: object) -> object:
@@ -293,58 +634,58 @@ def _strict_finite_number(value: object) -> object:
 
 **Purpose**
 
-Implements strict finite number according to the exact implementation and guards in this file.
+Private `project` helper for strict finite number; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `object`.
+- Every observed return expression is reproduced without truncation:
+```python
+value
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `object`. Observed return expression(s): `value`.
-
-**Algorithm**
-
-1. Checks `isinstance(value, bool) or not isinstance(value, Real)`. When true: Raises `PydanticCustomError('strict_number', 'value must be a strict YAML number')`.
-2. Checks `not isfinite(float(value))`. When true: Raises `ValueError('value must be finite')`.
-3. Returns `value`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `isinstance(value, bool) or not isinstance(value, Real)` is true.
-- Rejects or diverts the path when `not isfinite(float(value))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PydanticCustomError`, `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `isinstance(value, bool) or not isinstance(value, Real)`.
+- Guard with a raise path: `not isfinite(float(value))`.
+- Explicit raise expressions: `PydanticCustomError('strict_number', 'value must be a strict YAML number')`, `ValueError('value must be finite')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PydanticCustomError`, `ValueError`, `float`, `isfinite`, `isinstance`.
+- callback/function object: `src/landscout/config.py::<module>` via `BeforeValidator(_strict_finite_number)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _strict_finite_number(value: object) -> object:
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise PydanticCustomError(
+            "strict_number",
+            "value must be a strict YAML number",
+        )
+    if not isfinite(float(value)):
+        raise ValueError("value must be finite")
+    return value
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Project/configuration metadata does not itself measure parcels, acquire source bytes, apply policy, rank land, or produce a legal conclusion.
 
 ### `ParcelConfig.validate_area_range`
 
-**Signature**
+**Exact signature**
 
 ```python
 def validate_area_range(self) -> "ParcelConfig":
@@ -352,56 +693,52 @@ def validate_area_range(self) -> "ParcelConfig":
 
 **Purpose**
 
-Validates and rejects malformed area range according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent area range; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `'ParcelConfig'`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `'ParcelConfig'`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Checks `self.max_area_m2 <= self.min_area_m2`. When true: Raises `ValueError('max_area_m2 must be greater than min_area_m2')`.
-2. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `self.max_area_m2 <= self.min_area_m2` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `self.max_area_m2 <= self.min_area_m2`.
+- Explicit raise expressions: `ValueError('max_area_m2 must be greater than min_area_m2')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `model_validator`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def validate_area_range(self) -> "ParcelConfig":
+        if self.max_area_m2 <= self.min_area_m2:
+            raise ValueError("max_area_m2 must be greater than min_area_m2")
+        return self
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Project/configuration metadata does not itself measure parcels, acquire source bytes, apply policy, rank land, or produce a legal conclusion.
 
 ### `ShapeScreeningConfig.validate_enabled_policy`
 
-**Signature**
+**Exact signature**
 
 ```python
 def validate_enabled_policy(self) -> "ShapeScreeningConfig":
@@ -409,59 +746,64 @@ def validate_enabled_policy(self) -> "ShapeScreeningConfig":
 
 **Purpose**
 
-Validates and rejects malformed enabled policy according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent enabled policy; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `'ShapeScreeningConfig'`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
 
-**Returns**
+self
+```
 
-- Declared return type: `'ShapeScreeningConfig'`. Observed return expression(s): `self`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Checks `not self.enabled`. When true: Returns `self`.
-2. Computes `required_values` from `{'min_width_m': self.min_width_m, 'max_length_width_ratio': self.max_length_width_ratio, 'calibration': self.calibration}`.
-3. Computes `missing` from `[name for name, value in required_values.items() if value is None]`.
-4. Checks `missing`. When true: Computes `formatted` from `', '.join(missing)`. Raises `ValueError(f'enabled shape screening requires: {formatted}')`.
-5. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `missing` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `missing`.
+- Explicit raise expressions: `ValueError(f'enabled shape screening requires: {formatted}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `ValueError`, `model_validator`, `required_values.items`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def validate_enabled_policy(self) -> "ShapeScreeningConfig":
+        if not self.enabled:
+            return self
 
-**Tests**
+        required_values = {
+            "min_width_m": self.min_width_m,
+            "max_length_width_ratio": self.max_length_width_ratio,
+            "calibration": self.calibration,
+        }
+        missing = [name for name, value in required_values.items() if value is None]
+        if missing:
+            formatted = ", ".join(missing)
+            raise ValueError(f"enabled shape screening requires: {formatted}")
+        return self
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+**Business boundary**
 
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Project/configuration metadata does not itself measure parcels, acquire source bytes, apply policy, rank land, or produce a legal conclusion.
 
 ### `CrsConfig.validate_crs_contract`
 
-**Signature**
+**Exact signature**
 
 ```python
 def validate_crs_contract(self) -> "CrsConfig":
@@ -469,56 +811,60 @@ def validate_crs_contract(self) -> "CrsConfig":
 
 **Purpose**
 
-Validates and rejects malformed crs contract according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent crs contract; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `'CrsConfig'`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `'CrsConfig'`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Iterates `(field, value, expected)` over `(('storage', self.storage, 4326), ('calculation', self.calculation, 2154))`. For each value: Runs guarded operation: Computes `observed` from `CRS.from_user_input(value)`. Handles `Exception`. Checks `not observed.equals(CRS.from_epsg(expected))`. When true: Raises `ValueError(f'{field} CRS must be EPSG:{expected}')`.
-2. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not observed.equals(CRS.from_epsg(expected))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not observed.equals(CRS.from_epsg(expected))`.
+- Explicit raise expressions: `ValueError(f'{field} CRS is unreadable')`, `ValueError(f'{field} CRS must be EPSG:{expected}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `CRS.from_epsg`, `CRS.from_user_input`, `ValueError`, `model_validator`, `observed.equals`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def validate_crs_contract(self) -> "CrsConfig":
+        for field, value, expected in (
+            ("storage", self.storage, 4326),
+            ("calculation", self.calculation, 2154),
+        ):
+            try:
+                observed = CRS.from_user_input(value)
+            except Exception as error:
+                raise ValueError(f"{field} CRS is unreadable") from error
+            if not observed.equals(CRS.from_epsg(expected)):
+                raise ValueError(f"{field} CRS must be EPSG:{expected}")
+        return self
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Project/configuration metadata does not itself measure parcels, acquire source bytes, apply policy, rank land, or produce a legal conclusion.
 
 ### `AoiConfig.validate_unique_communes`
 
-**Signature**
+**Exact signature**
 
 ```python
 def validate_unique_communes(self) -> "AoiConfig":
@@ -526,56 +872,52 @@ def validate_unique_communes(self) -> "AoiConfig":
 
 **Purpose**
 
-Validates and rejects malformed unique communes according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent unique communes; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `'AoiConfig'`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `'AoiConfig'`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Checks `len(set(self.commune_codes)) != len(self.commune_codes)`. When true: Raises `ValueError('commune_codes must not contain duplicates')`.
-2. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(set(self.commune_codes)) != len(self.commune_codes)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(set(self.commune_codes)) != len(self.commune_codes)`.
+- Explicit raise expressions: `ValueError('commune_codes must not contain duplicates')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `len`, `model_validator`, `set`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def validate_unique_communes(self) -> "AoiConfig":
+        if len(set(self.commune_codes)) != len(self.commune_codes):
+            raise ValueError("commune_codes must not contain duplicates")
+        return self
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Project/configuration metadata does not itself measure parcels, acquire source bytes, apply policy, rank land, or produce a legal conclusion.
 
 ### `LoadedScanConfig.validate_scan_profile_identity`
 
-**Signature**
+**Exact signature**
 
 ```python
 def validate_scan_profile_identity(self) -> "LoadedScanConfig":
@@ -583,58 +925,55 @@ def validate_scan_profile_identity(self) -> "LoadedScanConfig":
 
 **Purpose**
 
-Validates and rejects malformed scan profile identity according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent scan profile identity; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `'LoadedScanConfig'`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `'LoadedScanConfig'`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Checks `self.scan_config.scan.country != self.profile.country`. When true: Raises `ValueError('scan country must equal profile country')`.
-2. Checks `self.scan_config.scan.technology != self.profile.technology`. When true: Raises `ValueError('scan technology must equal profile technology')`.
-3. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `self.scan_config.scan.country != self.profile.country` is true.
-- Rejects or diverts the path when `self.scan_config.scan.technology != self.profile.technology` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `self.scan_config.scan.country != self.profile.country`.
+- Guard with a raise path: `self.scan_config.scan.technology != self.profile.technology`.
+- Explicit raise expressions: `ValueError('scan country must equal profile country')`, `ValueError('scan technology must equal profile technology')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `model_validator`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def validate_scan_profile_identity(self) -> "LoadedScanConfig":
+        if self.scan_config.scan.country != self.profile.country:
+            raise ValueError("scan country must equal profile country")
+        if self.scan_config.scan.technology != self.profile.technology:
+            raise ValueError("scan technology must equal profile technology")
+        return self
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Project/configuration metadata does not itself measure parcels, acquire source bytes, apply policy, rank land, or produce a legal conclusion.
 
 ### `_load_yaml`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -642,57 +981,54 @@ def _load_yaml(path: Path) -> dict[str, Any]:
 
 **Purpose**
 
-Loads yaml according to the exact implementation and guards in this file.
+Reads and validates yaml; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[str, Any]`.
+- Every observed return expression is reproduced without truncation:
+```python
+content
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[str, Any]`. Observed return expression(s): `content`.
-
-**Algorithm**
-
-1. Enters managed context(s) `path.open(encoding='utf-8')` and executes: Computes `content` from `yaml.safe_load(stream)`.
-2. Checks `not isinstance(content, dict)`. When true: Raises `TypeError(f'Expected a YAML mapping in {path}')`.
-3. Returns `content`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(content, dict)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `TypeError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(content, dict)`.
+- Explicit raise expressions: `TypeError(f'Expected a YAML mapping in {path}')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `path.open`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `TypeError`, `isinstance`, `path.open`, `yaml.safe_load`.
+- direct call or construction: `src/landscout/config.py::load_scan_config` via `_load_yaml`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/config.py` — `load_scan_config`
+```python
+def _load_yaml(path: Path) -> dict[str, Any]:
+    with path.open(encoding="utf-8") as stream:
+        content = yaml.safe_load(stream)
+    if not isinstance(content, dict):
+        raise TypeError(f"Expected a YAML mapping in {path}")
+    return content
+```
 
-**Tests**
+**Business boundary**
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Project/configuration metadata does not itself measure parcels, acquire source bytes, apply policy, rank land, or produce a legal conclusion.
 
 ### `_resolve_profile_path`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _resolve_profile_path(scan_path: Path, profile_path: Path) -> Path:
@@ -700,59 +1036,57 @@ def _resolve_profile_path(scan_path: Path, profile_path: Path) -> Path:
 
 **Purpose**
 
-Resolves profile path according to the exact implementation and guards in this file.
+Resolves profile path; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `scan_path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `profile_path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `Path`.
+- Every observed return expression is reproduced without truncation:
+```python
+project_root / profile_path
 
-**Returns**
+profile_path
+```
 
-- Declared return type: `Path`. Observed return expression(s): `project_root / profile_path`; `profile_path`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Checks `profile_path.is_absolute()`. When true: Returns `profile_path`.
-2. Computes `resolved_scan_path` from `scan_path.resolve()`.
-3. Computes `project_root` from `resolved_scan_path.parents[2]`.
-4. Returns `project_root / profile_path`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `profile_path.is_absolute`, `scan_path.resolve`.
+- direct call or construction: `src/landscout/config.py::load_scan_config` via `_resolve_profile_path`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/config.py` — `load_scan_config`
+```python
+def _resolve_profile_path(scan_path: Path, profile_path: Path) -> Path:
+    if profile_path.is_absolute():
+        return profile_path
 
-**Tests**
+    resolved_scan_path = scan_path.resolve()
+    project_root = resolved_scan_path.parents[2]
+    return project_root / profile_path
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+**Business boundary**
 
-**Business interpretation**
-
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
+- Project/configuration metadata does not itself measure parcels, acquire source bytes, apply policy, rank land, or produce a legal conclusion.
 
 ### `load_scan_config`
 
-**Signature**
+**Exact signature**
 
 ```python
 def load_scan_config(path: Path) -> LoadedScanConfig:
@@ -760,114 +1094,112 @@ def load_scan_config(path: Path) -> LoadedScanConfig:
 
 **Purpose**
 
-Loads scan config according to the exact implementation and guards in this file.
+Reads and validates scan config; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `LoadedScanConfig`.
+- Every observed return expression is reproduced without truncation:
+```python
+LoadedScanConfig(scan_config=scan_config, profile=profile, profile_path=profile_path)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `LoadedScanConfig`. Observed return expression(s): `LoadedScanConfig(scan_config=scan_config, profile=profile, profile_path=profile_path)`.
-
-**Algorithm**
-
-1. Computes `scan_path` from `path.resolve()`.
-2. Computes `scan_config` from `ScanConfig.model_validate(_load_yaml(scan_path))`.
-3. Computes `profile_path` from `_resolve_profile_path(scan_path, scan_config.profile.path)`.
-4. Checks `not profile_path.is_file()`. When true: Raises `FileNotFoundError(f'Profile file does not exist: {profile_path}')`.
-5. Computes `profile` from `BessProfile.model_validate(_load_yaml(profile_path))`.
-6. Returns `LoadedScanConfig(scan_config=scan_config, profile=profile, profile_path=profile_path)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not profile_path.is_file()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `FileNotFoundError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not profile_path.is_file()`.
+- Explicit raise expressions: `FileNotFoundError(f'Profile file does not exist: {profile_path}')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `_load_yaml`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `BessProfile.model_validate`, `FileNotFoundError`, `LoadedScanConfig`, `ScanConfig.model_validate`, `_load_yaml`, `_resolve_profile_path`, `path.resolve`, `profile_path.is_file`.
+- direct call or construction: `tests/unit/test_config.py::_load_temporary_profile` via `load_scan_config`.
+- direct call or construction: `tests/unit/test_config.py::test_valid_config_loads` via `load_scan_config`.
+- direct call or construction: `tests/unit/test_config.py::test_invalid_commune_code_fails` via `load_scan_config`.
+- direct call or construction: `tests/unit/test_config.py::test_negative_minimum_area_fails` via `load_scan_config`.
+- direct call or construction: `tests/unit/test_config.py::test_maximum_area_smaller_than_minimum_fails` via `load_scan_config`.
+- direct call or construction: `tests/unit/test_config.py::test_missing_profile_fails` via `load_scan_config`.
+- direct call or construction: `tests/unit/test_config.py::test_unknown_scan_fields_are_rejected` via `load_scan_config`.
+- direct call or construction: `tests/unit/test_config.py::test_canonical_france_commune_codes_are_accepted` via `load_scan_config`.
+- direct call or construction: `tests/unit/test_config.py::test_noncanonical_france_commune_codes_are_rejected` via `load_scan_config`.
+- direct call or construction: `tests/unit/test_config.py::test_aoi_requires_nonempty_unique_commune_codes` via `load_scan_config`.
+- import/re-export: `tests/unit/test_config.py::<module>` via `from landscout.config import load_scan_config`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_config.py` — `_load_temporary_profile`
-- `tests/unit/test_config.py` — `test_aoi_requires_nonempty_unique_commune_codes`
-- `tests/unit/test_config.py` — `test_canonical_france_commune_codes_are_accepted`
-- `tests/unit/test_config.py` — `test_invalid_commune_code_fails`
-- `tests/unit/test_config.py` — `test_maximum_area_smaller_than_minimum_fails`
-- `tests/unit/test_config.py` — `test_missing_profile_fails`
-- `tests/unit/test_config.py` — `test_negative_minimum_area_fails`
-- `tests/unit/test_config.py` — `test_noncanonical_france_commune_codes_are_rejected`
-- `tests/unit/test_config.py` — `test_unknown_scan_fields_are_rejected`
-- `tests/unit/test_config.py` — `test_valid_config_loads`
+```python
+def load_scan_config(path: Path) -> LoadedScanConfig:
+    scan_path = path.resolve()
+    scan_config = ScanConfig.model_validate(_load_yaml(scan_path))
+    profile_path = _resolve_profile_path(scan_path, scan_config.profile.path)
+    if not profile_path.is_file():
+        raise FileNotFoundError(f"Profile file does not exist: {profile_path}")
 
-**Tests**
+    profile = BessProfile.model_validate(_load_yaml(profile_path))
+    return LoadedScanConfig(
+        scan_config=scan_config,
+        profile=profile,
+        profile_path=profile_path,
+    )
+```
 
-- `tests/unit/test_config.py::test_aoi_requires_nonempty_unique_commune_codes`
-- `tests/unit/test_config.py::test_canonical_france_commune_codes_are_accepted`
-- `tests/unit/test_config.py::test_invalid_commune_code_fails`
-- `tests/unit/test_config.py::test_maximum_area_smaller_than_minimum_fails`
-- `tests/unit/test_config.py::test_missing_profile_fails`
-- `tests/unit/test_config.py::test_negative_minimum_area_fails`
-- `tests/unit/test_config.py::test_noncanonical_france_commune_codes_are_rejected`
-- `tests/unit/test_config.py::test_unknown_scan_fields_are_rejected`
-- `tests/unit/test_config.py::test_valid_config_loads`
+**Business boundary**
 
-**Business interpretation**
+- Project/configuration metadata does not itself measure parcels, acquire source bytes, apply policy, rank land, or produce a legal conclusion.
 
-This symbol contributes to the `project` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- This project file does not implement a business algorithm.
 
 ## 7. Data contracts
 
-No DataFrame/GeoDataFrame column is referenced directly. Object and scalar contracts are documented through classes, parameters, returns, constants, and validators.
+No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
+
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `project` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the project flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
-- This project file does not implement a business algorithm.
+- Project/configuration metadata does not itself measure parcels, acquire source bytes, apply policy, rank land, or produce a legal conclusion.
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

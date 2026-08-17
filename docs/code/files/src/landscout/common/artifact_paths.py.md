@@ -4,9 +4,9 @@
 
 - Repository path: `src/landscout/common/artifact_paths.py`
 - File type: Python source
-- Primary responsibility: Validates portable local Parquet artifact basenames across POSIX and Windows rules.
-- Layer / domain: `internal common contract/utility` / `common`
-- Public or internal role: Module symbols without a package re-export are internal unless imported directly by repository code.
+- Layer: internal common contract
+- Domain: common contract
+- Responsibility: Validates portable local Parquet artifact basenames across POSIX and Windows rules.
 - Source SHA256: `729fb042286323d6417e14690c70094d293c9a3905b2ca640b640c7e64397975`
 
 ## 1. Purpose
@@ -15,39 +15,72 @@ Validates portable local Parquet artifact basenames across POSIX and Windows rul
 
 ## 2. Position in LandScout architecture
 
-This file is a `internal common contract/utility` artifact in the `common` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **internal common contract** layer and the **common contract** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from __future__ import annotations` — required by the implementation paths and symbols documented below.
-- `from pathlib import PurePosixPath, PureWindowsPath` — required by the implementation paths and symbols documented below.
+- `from __future__ import annotations`
+- `from pathlib import PurePosixPath, PureWindowsPath`
 
-### Third-party
+### Third-party packages
 
-- None.
+- `None.`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- None.
+- `None.`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `_WINDOWS_FORBIDDEN_CHARACTERS` | `frozenset('<>:"/\\&#124;?*')` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_WINDOWS_RESERVED_BASENAMES` | `frozenset( {"con", "prn", "aux", "nul", "clock$"} &#124; {f"com{number}" for number in range(1, 10)} &#124; {f"lpt{number}" for number in range(1, 10)} &#124; {f"com{number}" for number in "¹²³"} &#124; {f"lpt{number}" for number in "¹²³"} )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `_WINDOWS_FORBIDDEN_CHARACTERS`
+
+```python
+_WINDOWS_FORBIDDEN_CHARACTERS = frozenset('<>:"/\\|?*')
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `_WINDOWS_RESERVED_BASENAMES`
+
+```python
+_WINDOWS_RESERVED_BASENAMES = frozenset(
+    {"con", "prn", "aux", "nul", "clock$"}
+    | {f"com{number}" for number in range(1, 10)}
+    | {f"lpt{number}" for number in range(1, 10)}
+    | {f"com{number}" for number in "¹²³"}
+    | {f"lpt{number}" for number in "¹²³"}
+)
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
-No class, model, or dataclass is declared in this file.
+No class/model/dataclass is declared.
 
 ## 6. Functions and methods
 
 ### `validate_portable_parquet_filename`
 
-**Signature**
+**Exact signature**
 
 ```python
 def validate_portable_parquet_filename(value: object, label: str) -> str:
@@ -57,99 +90,116 @@ def validate_portable_parquet_filename(value: object, label: str) -> str:
 
 Return one portable local Parquet basename or raise ``ValueError``.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+value
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `value`.
-
-**Algorithm**
-
-1. Checks `not isinstance(value, str) or not value or value != value.strip()`. When true: Raises `ValueError(f'{label} must be an exact non-empty string')`.
-2. Checks `any((ord(character) <= 31 or ord(character) == 127 for character in value))`. When true: Raises `ValueError(f'{label} contains a control character')`.
-3. Checks `any((character in _WINDOWS_FORBIDDEN_CHARACTERS for character in value))`. When true: Raises `ValueError(f'{label} contains a Windows-forbidden character')`.
-4. Checks `value.endswith(('.', ' '))`. When true: Raises `ValueError(f'{label} must not end in a dot or space')`.
-5. Computes `posix` from `PurePosixPath(value)`.
-6. Computes `windows` from `PureWindowsPath(value)`.
-7. Checks `posix.is_absolute() or windows.is_absolute() or posix.name != value or (windows.name != value) or (posix.suffix.lower() != '.parquet') or (windows.suffix.lower() != '.parquet')`. When true: Raises `ValueError(f'{label} must be one portable local Parquet basename')`.
-8. Computes `reserved_stem` from `value.split('.', 1)[0].casefold()`.
-9. Checks `reserved_stem in _WINDOWS_RESERVED_BASENAMES`. When true: Raises `ValueError(f'{label} uses a Windows-reserved basename')`.
-10. Returns `value`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(value, str) or not value or value != value.strip()` is true.
-- Rejects or diverts the path when `any((ord(character) <= 31 or ord(character) == 127 for character in value))` is true.
-- Rejects or diverts the path when `any((character in _WINDOWS_FORBIDDEN_CHARACTERS for character in value))` is true.
-- Rejects or diverts the path when `value.endswith(('.', ' '))` is true.
-- Rejects or diverts the path when `posix.is_absolute() or windows.is_absolute() or posix.name != value or (windows.name != value) or (posix.suffix.lower() != '.parquet') or (windows.suffix.lower() != '.parquet')` is true.
-- Rejects or diverts the path when `reserved_stem in _WINDOWS_RESERVED_BASENAMES` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(value, str) or not value or value != value.strip()`.
+- Guard with a raise path: `any((ord(character) <= 31 or ord(character) == 127 for character in value))`.
+- Guard with a raise path: `any((character in _WINDOWS_FORBIDDEN_CHARACTERS for character in value))`.
+- Guard with a raise path: `value.endswith(('.', ' '))`.
+- Guard with a raise path: `posix.is_absolute() or windows.is_absolute() or posix.name != value or (windows.name != value) or (posix.suffix.lower() != '.parquet') or (windows.suffix.lower() != '.parquet')`.
+- Guard with a raise path: `reserved_stem in _WINDOWS_RESERVED_BASENAMES`.
+- Explicit raise expressions: `ValueError(f'{label} contains a Windows-forbidden character')`, `ValueError(f'{label} contains a control character')`, `ValueError(f'{label} must be an exact non-empty string')`, `ValueError(f'{label} must be one portable local Parquet basename')`, `ValueError(f'{label} must not end in a dot or space')`, `ValueError(f'{label} uses a Windows-reserved basename')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PurePosixPath`, `PureWindowsPath`, `ValueError`, `any`, `isinstance`, `ord`, `posix.is_absolute`, `posix.suffix.lower`, `value.endswith`, `value.split`, `value.split('.', 1)[0].casefold`, `value.strip`, `windows.is_absolute`, `windows.suffix.lower`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::BessPlanningFeatureParcelAggregationArtifactRecord._validate_record` via `validate_portable_parquet_filename`.
+- import/re-export: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::<module>` via `from landscout.common.artifact_paths import validate_portable_parquet_filename`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::BessPlanningFeatureApplicationArtifactRecord._validate_record` via `validate_portable_parquet_filename`.
+- import/re-export: `src/landscout/stages/apply_bess_planning_feature_policy.py::<module>` via `from landscout.common.artifact_paths import validate_portable_parquet_filename`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyArtifactManifest._validate_manifest` via `validate_portable_parquet_filename`.
+- import/re-export: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `from landscout.common.artifact_paths import validate_portable_parquet_filename`.
+- direct call or construction: `tests/unit/test_bess_planning_feature_policy.py::test_shared_filename_contract_rejects_superscript_windows_devices` via `validate_portable_parquet_filename`.
+- import/re-export: `tests/unit/test_bess_planning_feature_policy.py::<module>` via `from landscout.common.artifact_paths import validate_portable_parquet_filename`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/aggregate_bess_planning_feature_policy.py` — `BessPlanningFeatureParcelAggregationArtifactRecord._validate_record`
-- `src/landscout/stages/apply_bess_planning_feature_policy.py` — `BessPlanningFeatureApplicationArtifactRecord._validate_record`
-- `src/landscout/stages/bess_planning_feature_policy.py` — `BessPlanningFeaturePolicyArtifactManifest._validate_manifest`
-- `tests/unit/test_bess_planning_feature_policy.py` — `test_shared_filename_contract_rejects_superscript_windows_devices`
+```python
+def validate_portable_parquet_filename(value: object, label: str) -> str:
+    """Return one portable local Parquet basename or raise ``ValueError``."""
 
-**Tests**
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise ValueError(f"{label} must be an exact non-empty string")
+    if any(ord(character) <= 0x1F or ord(character) == 0x7F for character in value):
+        raise ValueError(f"{label} contains a control character")
+    if any(character in _WINDOWS_FORBIDDEN_CHARACTERS for character in value):
+        raise ValueError(f"{label} contains a Windows-forbidden character")
+    if value.endswith((".", " ")):
+        raise ValueError(f"{label} must not end in a dot or space")
+    posix = PurePosixPath(value)
+    windows = PureWindowsPath(value)
+    if (
+        posix.is_absolute()
+        or windows.is_absolute()
+        or posix.name != value
+        or windows.name != value
+        or posix.suffix.lower() != ".parquet"
+        or windows.suffix.lower() != ".parquet"
+    ):
+        raise ValueError(f"{label} must be one portable local Parquet basename")
+    reserved_stem = value.split(".", 1)[0].casefold()
+    if reserved_stem in _WINDOWS_RESERVED_BASENAMES:
+        raise ValueError(f"{label} uses a Windows-reserved basename")
+    return value
+```
 
-- `tests/unit/test_bess_planning_feature_policy.py::test_shared_filename_contract_rejects_superscript_windows_devices`
-
-**Business interpretation**
-
-This symbol contributes to the `common` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - This internal contract or utility does not make a parcel decision or independently establish source authority beyond its explicit checks.
 
+
 ## 7. Data contracts
 
-No DataFrame/GeoDataFrame column is referenced directly. Object and scalar contracts are documented through classes, parameters, returns, constants, and validators.
+No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
+
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `common` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the common contract flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -157,8 +207,8 @@ This file contributes to LandScout's `common` evidence flow as described by its 
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

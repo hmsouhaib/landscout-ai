@@ -4,9 +4,9 @@
 
 - Repository path: `src/landscout/stages/enrich_planning_zoning.py`
 - File type: Python source
-- Primary responsibility: Intersects parcels with source-completely verified GPU zoning polygons and retains factual overlap evidence.
-- Layer / domain: `stage` / `planning`
-- Public or internal role: Contains an explicit module/package export surface; helpers prefixed with `_` remain internal unless re-exported elsewhere.
+- Layer: processing/policy stage
+- Domain: planning
+- Responsibility: Intersects parcels with source-completely verified GPU zoning polygons and retains factual overlap evidence.
 - Source SHA256: `1838ea77ee7872ce8b663ecb19ffb82455abc7f4c947a847f041828808f22bf9`
 
 ## 1. Purpose
@@ -15,46 +15,201 @@ Intersects parcels with source-completely verified GPU zoning polygons and retai
 
 ## 2. Position in LandScout architecture
 
-This file is a `stage` artifact in the `planning` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **processing/policy stage** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from __future__ import annotations` — required by the implementation paths and symbols documented below.
-- `from dataclasses import dataclass, replace` — required by the implementation paths and symbols documented below.
-- `from math import isfinite` — required by the implementation paths and symbols documented below.
-- `from numbers import Real` — required by the implementation paths and symbols documented below.
+- `from __future__ import annotations`
+- `from dataclasses import dataclass, replace`
+- `from math import isfinite`
+- `from numbers import Real`
 
-### Third-party
+### Third-party packages
 
-- `import geopandas as gpd` — required by the implementation paths and symbols documented below.
-- `import numpy as np` — required by the implementation paths and symbols documented below.
-- `import pandas as pd` — required by the implementation paths and symbols documented below.
-- `from pyproj import CRS` — required by the implementation paths and symbols documented below.
-- `from shapely import ( # type: ignore[import-untyped] area as shapely_area, )` — required by the implementation paths and symbols documented below.
-- `from shapely import ( force_2d, union_all, )` — required by the implementation paths and symbols documented below.
-- `from shapely import ( intersection as shapely_intersection, )` — required by the implementation paths and symbols documented below.
+- `import geopandas as gpd`
+- `import numpy as np`
+- `import pandas as pd`
+- `from pyproj import CRS`
+- `from shapely import (  # type: ignore[import-untyped]
+    area as shapely_area,
+)`
+- `from shapely import (
+    force_2d,
+    union_all,
+)`
+- `from shapely import (
+    intersection as shapely_intersection,
+)`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout.common.frame_integrity import deterministic_frame_schema_signature` — required by the implementation paths and symbols documented below.
-- `from landscout.sources.gpu_fr import ( GpuPlanningDocument, GpuSpatialInspectionError, revalidate_gpu_spatial_layer_sources, )` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.planning_overlay import technical_overlay_tolerance` — required by the implementation paths and symbols documented below.
+- `from landscout.common.frame_integrity import deterministic_frame_schema_signature`
+- `from landscout.sources.gpu_fr import (
+    GpuPlanningDocument,
+    GpuSpatialInspectionError,
+    revalidate_gpu_spatial_layer_sources,
+)`
+- `from landscout.stages.planning_overlay import technical_overlay_tolerance`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `CALCULATION_CRS` | `"EPSG:2154"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `GPU_ZONING_SOURCE_FIELDS` | `{ "source_zone_id": "LIB_IDZONE", "zone_label_raw": "LIBELLE", "zone_long_label_raw": "LIBELONG", "zone_type_raw": "TYPEZONE", "regulation_filename_raw": "NOMFIC", "regulation_url_raw": "URLFIC", "source_document_reference_raw": "IDURBA", "source_validity_date_raw": "DATVALID", }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `GPU_ZONING_REQUIRED_COLUMNS` | `frozenset( {*GPU_ZONING_SOURCE_FIELDS.values(), "geometry"} )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `PARCEL_REQUIRED_COLUMNS` | `frozenset({"parcel_id", "geometry"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `POLYGON_GEOMETRY_TYPES` | `frozenset({"Polygon", "MultiPolygon"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `RELATION_TYPES` | `frozenset({"AREA_OVERLAP", "TOUCH_ONLY"})` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `PARCEL_ZONING_OUTPUT_COLUMNS` | `frozenset( { "zoning_area_match_count", "zoning_touch_only_count", "zoning_intersection_area_sum_m2", "zoning_covered_union_area_m2", "zoning_coverage_pct", "zoning_gap_area_m2", "zoning_overlap_excess_area_m2", "dominant_planning_zone_id", "dominant_source_zone_id", "dominant_zone_type_raw", "dominant_zone_label_raw", "dominant_zone_long_label_raw", "dominant_zone_intersection_area_m2", "dominant_zone_share_pct", "dominant_zone_tie_count", "planning_document_id", "planning_document_type", "planning_archive_name", "planning_archive_sha256", "planning_source_layer", "planning_standard_model", } )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `INTERSECTION_COLUMNS` | `( "parcel_id", "planning_zone_id", "source_zone_id", "zone_type_raw", "zone_label_raw", "zone_long_label_raw", "relation_type", "parcel_metric_area_m2", "zone_area_m2", "intersection_area_m2", "parcel_share_pct", "zone_share_pct", "source_document_id", "source_archive_sha256", "source_layer", "source_validity_date_raw", "regulation_filename_raw", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_INTERSECTION_FLOAT_COLUMNS` | `frozenset( { "parcel_metric_area_m2", "zone_area_m2", "intersection_area_m2", "parcel_share_pct", "zone_share_pct", } )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `CALCULATION_CRS`
+
+```python
+CALCULATION_CRS = "EPSG:2154"
+```
+
+Coordinate-reference-system identity used for an explicit storage, validation, or calculation boundary. Consumers include `src/landscout/stages/assess_grid_coverage.py::_assess_grid_coverage_from_proximity` (value argument/reference), `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_normalize_layer` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_empty_catalog` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_combine_catalogs` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_metric_parcels` (value argument/reference), `src/landscout/stages/enrich_planning_features.py::_relation_base` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_project_geometries` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_metric_parcels` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` (value argument/reference), `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` (value argument/reference).
+
+#### `GPU_ZONING_SOURCE_FIELDS`
+
+```python
+GPU_ZONING_SOURCE_FIELDS = {
+    "source_zone_id": "LIB_IDZONE",
+    "zone_label_raw": "LIBELLE",
+    "zone_long_label_raw": "LIBELONG",
+    "zone_type_raw": "TYPEZONE",
+    "regulation_filename_raw": "NOMFIC",
+    "regulation_url_raw": "URLFIC",
+    "source_document_reference_raw": "IDURBA",
+    "source_validity_date_raw": "DATVALID",
+}
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+
+#### `GPU_ZONING_REQUIRED_COLUMNS`
+
+```python
+GPU_ZONING_REQUIRED_COLUMNS = frozenset(
+    {*GPU_ZONING_SOURCE_FIELDS.values(), "geometry"}
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+
+#### `PARCEL_REQUIRED_COLUMNS`
+
+```python
+PARCEL_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry"})
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+
+#### `POLYGON_GEOMETRY_TYPES`
+
+```python
+POLYGON_GEOMETRY_TYPES = frozenset({"Polygon", "MultiPolygon"})
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+
+#### `RELATION_TYPES`
+
+```python
+RELATION_TYPES = frozenset({"AREA_OVERLAP", "TOUCH_ONLY"})
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema. Consumers include `src/landscout/stages/enrich_planning_zoning.py::_validate_result` (value argument/reference).
+
+#### `PARCEL_ZONING_OUTPUT_COLUMNS`
+
+```python
+PARCEL_ZONING_OUTPUT_COLUMNS = frozenset(
+    {
+        "zoning_area_match_count",
+        "zoning_touch_only_count",
+        "zoning_intersection_area_sum_m2",
+        "zoning_covered_union_area_m2",
+        "zoning_coverage_pct",
+        "zoning_gap_area_m2",
+        "zoning_overlap_excess_area_m2",
+        "dominant_planning_zone_id",
+        "dominant_source_zone_id",
+        "dominant_zone_type_raw",
+        "dominant_zone_label_raw",
+        "dominant_zone_long_label_raw",
+        "dominant_zone_intersection_area_m2",
+        "dominant_zone_share_pct",
+        "dominant_zone_tie_count",
+        "planning_document_id",
+        "planning_document_type",
+        "planning_archive_name",
+        "planning_archive_sha256",
+        "planning_source_layer",
+        "planning_standard_model",
+    }
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+
+#### `INTERSECTION_COLUMNS`
+
+```python
+INTERSECTION_COLUMNS = (
+    "parcel_id",
+    "planning_zone_id",
+    "source_zone_id",
+    "zone_type_raw",
+    "zone_label_raw",
+    "zone_long_label_raw",
+    "relation_type",
+    "parcel_metric_area_m2",
+    "zone_area_m2",
+    "intersection_area_m2",
+    "parcel_share_pct",
+    "zone_share_pct",
+    "source_document_id",
+    "source_archive_sha256",
+    "source_layer",
+    "source_validity_date_raw",
+    "regulation_filename_raw",
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_zoning.py::_validate_result` (value argument/reference).
+
+#### `_INTERSECTION_FLOAT_COLUMNS`
+
+```python
+_INTERSECTION_FLOAT_COLUMNS = frozenset(
+    {
+        "parcel_metric_area_m2",
+        "zone_area_m2",
+        "intersection_area_m2",
+        "parcel_share_pct",
+        "zone_share_pct",
+    }
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_zoning.py::_validate_result` (value argument/reference).
+
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+- `__all__` — explicit public export allow-list.
+```python
+__all__ = [
+    "intersect_parcels_with_gpu_zoning",
+    "validate_normalized_planning_zoning_inputs",
+]
+```
+
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
@@ -62,70 +217,164 @@ This file is a `stage` artifact in the `planning` domain. Its actual upstream in
 
 **Purpose:** Raised when factual zoning normalization cannot be completed safely.
 
+**Kind:** controlled exception.
+
 **Inheritance:** `ValueError`.
 
-**Model form and mutability:** class inheriting from `ValueError`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields:** none declared directly on this class.
 
-- No annotated instance fields are declared directly on this class.
+**Interface consumers**
 
-**Validators and methods:**
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_strict_nonempty_string` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_exact_string_ids` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_readable_crs` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_active_geometry` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_polygon_geometries` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_standard_model` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_project_geometries` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_metric_parcels` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_candidate_intersections` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_stabilize_area_relationships` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_parcel_summary` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_numeric_columns` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_result` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_compare_exact_frame` via `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::validate_normalized_planning_zoning_inputs` via `PlanningZoningError`.
+- import/re-export: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+    PlanningZoningError,
+    validate_normalized_planning_zoning_inputs,
+)`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_shared_overlay_tolerance_preserves_zoning_numerical_behavior` via `pytest.raises(PlanningZoningError, match='materially exceeds')`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_missing_or_unusable_crs_is_rejected` via `pytest.raises(PlanningZoningError, match=message)`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_parcel_geometry_is_rejected` via `pytest.raises(PlanningZoningError, match='geometry|Polygon')`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_invalid_or_non_polygonal_zone_geometry_is_rejected` via `pytest.raises(PlanningZoningError, match='geometry|Polygon')`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_invalid_parcel_id_is_rejected` via `pytest.raises(PlanningZoningError, match='parcel_id')`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_parcel_id_is_rejected` via `pytest.raises(PlanningZoningError, match='parcel_id.*unique|duplicate')`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_missing_parcel_id_is_rejected` via `pytest.raises(PlanningZoningError, match='parcel_id')`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_geometry_must_be_the_active_parcel_geometry_column` via `pytest.raises(PlanningZoningError, match='active')`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_invalid_source_zone_id_is_rejected` via `pytest.raises(PlanningZoningError, match='LIB_IDZONE|zone')`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_duplicate_source_zone_id_is_rejected` via `pytest.raises(PlanningZoningError, match='LIB_IDZONE.*unique|duplicate')`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_zoning_document_reference_must_match_loaded_archive` via `pytest.raises(PlanningZoningError, match='IDURBA|document')`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_zoning_summary_lineage_and_count_must_match_bundle` via `pytest.raises(PlanningZoningError, match=message)`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_existing_parcel_output_field_collision_is_rejected` via `pytest.raises(PlanningZoningError, match='column|output|reserved|collision')`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_every_source_zoning_field_is_required` via `pytest.raises(PlanningZoningError, match=field)`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_coordinated_mutations` via `pytest.raises(PlanningZoningError, match='source|reconstruction|differs')`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_physical_tamper` via `pytest.raises(PlanningZoningError, match='Physical|source')`.
+- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+    ParcelZoningResult,
+    PlanningZoningError,
+    _stabilize_area_relationships,
+    intersect_parcels_with_gpu_zoning,
+    validate_normalized_planning_zoning_inputs,
+)`.
+- direct call or construction: `tests/unit/test_interpret_bess_zoning.py::test_invalid_physical_zoning_fails_before_policy_interpretation.invalid_source` via `interpret_module.PlanningZoningError`.
+- property/attribute access: `tests/unit/test_interpret_bess_zoning.py::test_invalid_physical_zoning_fails_before_policy_interpretation.invalid_source` via `interpret_module.PlanningZoningError`.
 
-- None.
+**Exact class source**
+
+```python
+class PlanningZoningError(ValueError):
+    """Raised when factual zoning normalization cannot be completed safely."""
+```
 
 ### `ParcelZoningResult`
 
 **Purpose:** Normalized zones, parcel facts, and long-form parcel/zone relations.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `parcels` | `gpd.GeoDataFrame` | `required` | Tabular/spatial evidence carried with the schema, dtype, index, geometry, and preservation contract documented in this module. |
-| `zones` | `gpd.GeoDataFrame` | `required` | Tabular/spatial evidence carried with the schema, dtype, index, geometry, and preservation contract documented in this module. |
-| `intersections` | `pd.DataFrame` | `required` | `pd.DataFrame` state used by `src/landscout/stages/enrich_planning_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `parcels` | `parcels: gpd.GeoDataFrame` | Pandas/GeoPandas result frame named by this field; its exact ordered schema, dtype, CRS/index, and preservation contract is documented by the owning result validator and schema declarations. |
+| `zones` | `zones: gpd.GeoDataFrame` | Stores `ParcelZoningResult`'s `zones` value under exact annotation `gpd.GeoDataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `intersections` | `intersections: pd.DataFrame` | Stores `ParcelZoningResult`'s `intersections` value under exact annotation `pd.DataFrame`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-- None.
+**Interface consumers**
+
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `ParcelZoningResult`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::test_one_parcel_fully_inside_one_zone` via `isinstance(result, ParcelZoningResult)`.
+- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+    ParcelZoningResult,
+    PlanningZoningError,
+    _stabilize_area_relationships,
+    intersect_parcels_with_gpu_zoning,
+    validate_normalized_planning_zoning_inputs,
+)`.
+
+**Exact class source**
+
+```python
+class ParcelZoningResult:
+    """Normalized zones, parcel facts, and long-form parcel/zone relations."""
+
+    parcels: gpd.GeoDataFrame
+    zones: gpd.GeoDataFrame
+    intersections: pd.DataFrame
+```
 
 ### `_PlanningContext`
 
-**Purpose:** Groups the `PlanningContext` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Immutable result/value envelope carrying `provider`, `portal`, `commune_code`, `document_id`, `document_type`, `archive_name`, `archive_sha256`, `source_layer`, `standard_model`, `source_crs`.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `provider` | `str` | `required` | `str` state used by `src/landscout/stages/enrich_planning_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `portal` | `str` | `required` | `str` state used by `src/landscout/stages/enrich_planning_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `commune_code` | `str` | `required` | Exact configured or source code whose vocabulary/format is enforced by the owning validator. |
-| `document_id` | `str` | `required` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `document_type` | `str` | `required` | Categorical source, feature, or relation type constrained by the owning model or validator. |
-| `archive_name` | `str` | `required` | `str` state used by `src/landscout/stages/enrich_planning_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `archive_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
-| `source_layer` | `str` | `required` | Source lineage or source-bound object whose exact identity is checked before downstream use. |
-| `standard_model` | `str | None` | `required` | `str | None` state used by `src/landscout/stages/enrich_planning_zoning.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `source_crs` | `str` | `required` | Source lineage or source-bound object whose exact identity is checked before downstream use. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `provider` | `provider: str` | Stores `_PlanningContext`'s `provider` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `portal` | `portal: str` | Stores `_PlanningContext`'s `portal` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `commune_code` | `commune_code: str` | Stores `_PlanningContext`'s `commune code` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `document_id` | `document_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
+| `document_type` | `document_type: str` | Closed or validated `document type` classification on `_PlanningContext`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `archive_name` | `archive_name: str` | Stores `_PlanningContext`'s `archive name` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `archive_sha256` | `archive_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
+| `source_layer` | `source_layer: str` | Exact source-lineage scalar named by the field; it is compared with configuration/result/row lineage but is not physical proof without source-byte revalidation. |
+| `standard_model` | `standard_model: str \| None` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
+| `source_crs` | `source_crs: str` | Coordinate reference system identity; exact accepted/storage/calculation behavior is enforced by the owning CRS validator. |
 
-- None.
+**Interface consumers**
+
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_PlanningContext`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_PlanningContext`.
+
+**Exact class source**
+
+```python
+class _PlanningContext:
+    provider: str
+    portal: str
+    commune_code: str
+    document_id: str
+    document_type: str
+    archive_name: str
+    archive_sha256: str
+    source_layer: str
+    standard_model: str | None
+    source_crs: str
+```
+
 
 ## 6. Functions and methods
 
 ### `_strict_nonempty_string`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _strict_nonempty_string(value: object, label: str) -> str:
@@ -133,59 +382,54 @@ def _strict_nonempty_string(value: object, label: str) -> str:
 
 **Purpose**
 
-Implements strict nonempty string according to the exact implementation and guards in this file.
+Private `planning` helper for strict nonempty string; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+value
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `value`.
-
-**Algorithm**
-
-1. Checks `not isinstance(value, str) or not value or value != value.strip()`. When true: Raises `PlanningZoningError(f'{label} must be a non-empty exact string')`.
-2. Returns `value`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(value, str) or not value or value != value.strip()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(value, str) or not value or value != value.strip()`.
+- Explicit raise expressions: `PlanningZoningError(f'{label} must be a non-empty exact string')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningZoningError`, `isinstance`, `value.strip`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_exact_string_ids` via `_strict_nonempty_string`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_standard_model` via `_strict_nonempty_string`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_strict_nonempty_string`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `_standard_model`
-- `src/landscout/stages/enrich_planning_zoning.py` — `_validate_exact_string_ids`
-- `src/landscout/stages/enrich_planning_zoning.py` — `_validate_planning_document`
+```python
+def _strict_nonempty_string(value: object, label: str) -> str:
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise PlanningZoningError(f"{label} must be a non-empty exact string")
+    return value
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_exact_string_ids`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_exact_string_ids(
@@ -198,62 +442,60 @@ def _validate_exact_string_ids(
 
 **Purpose**
 
-Validates and rejects malformed exact string ids according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent exact string ids; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `values` (`pd.Series`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `require_unique` (`bool`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `values.isna().any()`. When true: Raises `PlanningZoningError(f'{label} values must not be null')`.
-2. Iterates `value` over `values.tolist()`. For each value: Calls `_strict_nonempty_string(value, label)` for its validation or side effect.
-3. Checks `require_unique and values.duplicated().any()`. When true: Raises `PlanningZoningError(f'{label} values must be unique')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `values.isna().any()` is true.
-- Rejects or diverts the path when `require_unique and values.duplicated().any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `values.isna().any()`.
+- Guard with a raise path: `require_unique and values.duplicated().any()`.
+- Explicit raise expressions: `PlanningZoningError(f'{label} values must be unique')`, `PlanningZoningError(f'{label} values must not be null')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningZoningError`, `_strict_nonempty_string`, `values.duplicated`, `values.duplicated().any`, `values.isna`, `values.isna().any`, `values.tolist`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `_validate_exact_string_ids`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_validate_exact_string_ids`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_result` via `_validate_exact_string_ids`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `_validate_parcels`
-- `src/landscout/stages/enrich_planning_zoning.py` — `_validate_planning_document`
-- `src/landscout/stages/enrich_planning_zoning.py` — `_validate_result`
+```python
+def _validate_exact_string_ids(
+    values: pd.Series,
+    label: str,
+    *,
+    require_unique: bool,
+) -> None:
+    if values.isna().any():
+        raise PlanningZoningError(f"{label} values must not be null")
+    for value in values.tolist():
+        _strict_nonempty_string(value, label)
+    if require_unique and values.duplicated().any():
+        raise PlanningZoningError(f"{label} values must be unique")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_readable_crs`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _readable_crs(value: object, label: str) -> CRS:
@@ -261,59 +503,57 @@ def _readable_crs(value: object, label: str) -> CRS:
 
 **Purpose**
 
-Implements readable crs according to the exact implementation and guards in this file.
+Private `planning` helper for readable crs; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `CRS`.
+- Every observed return expression is reproduced without truncation:
+```python
+CRS.from_user_input(value)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `CRS`. Observed return expression(s): `CRS.from_user_input(value)`.
-
-**Algorithm**
-
-1. Checks `value is None`. When true: Raises `PlanningZoningError(f'{label} CRS is required')`.
-2. Runs guarded operation: Returns `CRS.from_user_input(value)`. Handles `Exception`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `value is None` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `value is None`.
+- Explicit raise expressions: `PlanningZoningError(f'{label} CRS is required')`, `PlanningZoningError(f'{label} CRS is unreadable')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `CRS.from_user_input`, `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `_readable_crs`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_readable_crs`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_project_geometries` via `_readable_crs`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `_project_geometries`
-- `src/landscout/stages/enrich_planning_zoning.py` — `_validate_parcels`
-- `src/landscout/stages/enrich_planning_zoning.py` — `_validate_planning_document`
+```python
+def _readable_crs(value: object, label: str) -> CRS:
+    if value is None:
+        raise PlanningZoningError(f"{label} CRS is required")
+    try:
+        return CRS.from_user_input(value)
+    except Exception as error:
+        raise PlanningZoningError(f"{label} CRS is unreadable") from error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_active_geometry`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
@@ -321,60 +561,59 @@ def _active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
 
 **Purpose**
 
-Implements active geometry according to the exact implementation and guards in this file.
+Private `planning` helper for active geometry; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `'geometry' not in frame.columns`. When true: Raises `PlanningZoningError(f'{label} geometry column is required')`.
-2. Runs guarded operation: Computes `active_name` from `frame.active_geometry_name`. Handles `AttributeError`.
-3. Checks `active_name != 'geometry'`. When true: Raises `PlanningZoningError(f'{label} geometry column must be active')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `'geometry' not in frame.columns` is true.
-- Rejects or diverts the path when `active_name != 'geometry'` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `'geometry' not in frame.columns`.
+- Guard with a raise path: `active_name != 'geometry'`.
+- Explicit raise expressions: `PlanningZoningError(f'{label} geometry column is required')`, `PlanningZoningError(f'{label} geometry column must be active')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningZoningError`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcels` via `_active_geometry`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `_active_geometry`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_catalog_contract` via `_active_geometry`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `_active_geometry`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_active_geometry`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `_validate_parcels`
-- `src/landscout/stages/enrich_planning_zoning.py` — `_validate_planning_document`
+```python
+def _active_geometry(frame: gpd.GeoDataFrame, label: str) -> None:
+    if "geometry" not in frame.columns:
+        raise PlanningZoningError(f"{label} geometry column is required")
+    try:
+        active_name = frame.active_geometry_name
+    except AttributeError as error:
+        raise PlanningZoningError(f"{label} geometry column must be active") from error
+    if active_name != "geometry":
+        raise PlanningZoningError(f"{label} geometry column must be active")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_polygon_geometries`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_polygon_geometries(frame: gpd.GeoDataFrame, label: str) -> None:
@@ -382,65 +621,63 @@ def _validate_polygon_geometries(frame: gpd.GeoDataFrame, label: str) -> None:
 
 **Purpose**
 
-Validates and rejects malformed polygon geometries according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent polygon geometries; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `geometry` from `frame.geometry`.
-2. Checks `geometry.isna().any()`. When true: Raises `PlanningZoningError(f'{label} geometry must not be null')`.
-3. Checks `geometry.is_empty.any()`. When true: Raises `PlanningZoningError(f'{label} geometry must not be empty')`.
-4. Checks `not geometry.is_valid.all()`. When true: Raises `PlanningZoningError(f'{label} geometry must be valid')`.
-5. Computes `unexpected` from `sorted(set(geometry.geom_type) - POLYGON_GEOMETRY_TYPES)`.
-6. Checks `unexpected`. When true: Raises `PlanningZoningError(f'{label} geometry must be Polygon or MultiPolygon; found: ' + ', '.join(unexpected))`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `geometry.isna().any()` is true.
-- Rejects or diverts the path when `geometry.is_empty.any()` is true.
-- Rejects or diverts the path when `not geometry.is_valid.all()` is true.
-- Rejects or diverts the path when `unexpected` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `geometry.isna().any()`.
+- Guard with a raise path: `geometry.is_empty.any()`.
+- Guard with a raise path: `not geometry.is_valid.all()`.
+- Guard with a raise path: `unexpected`.
+- Explicit raise expressions: `PlanningZoningError(f'{label} geometry must be Polygon or MultiPolygon; found: ' + ', '.join(unexpected))`, `PlanningZoningError(f'{label} geometry must be valid')`, `PlanningZoningError(f'{label} geometry must not be empty')`, `PlanningZoningError(f'{label} geometry must not be null')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `geometry.is_empty.any`, `geometry.is_valid.all`, `geometry.isna`, `geometry.isna().any`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `PlanningZoningError`, `geometry.is_empty.any`, `geometry.is_valid.all`, `geometry.isna`, `geometry.isna().any`, `set`, `sorted`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_parcels` via `_validate_polygon_geometries`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_validate_polygon_geometries`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `_validate_parcels`
-- `src/landscout/stages/enrich_planning_zoning.py` — `_validate_planning_document`
+```python
+def _validate_polygon_geometries(frame: gpd.GeoDataFrame, label: str) -> None:
+    geometry = frame.geometry
+    if geometry.isna().any():
+        raise PlanningZoningError(f"{label} geometry must not be null")
+    if geometry.is_empty.any():
+        raise PlanningZoningError(f"{label} geometry must not be empty")
+    if not geometry.is_valid.all():
+        raise PlanningZoningError(f"{label} geometry must be valid")
+    unexpected = sorted(set(geometry.geom_type) - POLYGON_GEOMETRY_TYPES)
+    if unexpected:
+        raise PlanningZoningError(
+            f"{label} geometry must be Polygon or MultiPolygon; found: "
+            + ", ".join(unexpected)
+        )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_parcels`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_parcels(parcels: gpd.GeoDataFrame) -> CRS:
@@ -448,66 +685,78 @@ def _validate_parcels(parcels: gpd.GeoDataFrame) -> CRS:
 
 **Purpose**
 
-Validates and rejects malformed parcels according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent parcels; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `CRS`.
+- Every observed return expression is reproduced without truncation:
+```python
+crs
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `CRS`. Observed return expression(s): `crs`.
-
-**Algorithm**
-
-1. Checks `not isinstance(parcels, gpd.GeoDataFrame)`. When true: Raises `PlanningZoningError('Parcels must be a GeoDataFrame')`.
-2. Computes `missing` from `sorted(PARCEL_REQUIRED_COLUMNS - set(parcels.columns))`.
-3. Checks `missing`. When true: Raises `PlanningZoningError('Parcels are missing required columns: ' + ', '.join(missing))`.
-4. Computes `collisions` from `sorted(PARCEL_ZONING_OUTPUT_COLUMNS & set(parcels.columns))`.
-5. Checks `collisions`. When true: Raises `PlanningZoningError('Parcels already contain zoning output columns: ' + ', '.join(collisions))`.
-6. Calls `_active_geometry(parcels, 'Parcel')` for its validation or side effect.
-7. Computes `crs` from `_readable_crs(parcels.crs, 'Parcel')`.
-8. Calls `_validate_exact_string_ids(parcels['parcel_id'], 'parcel_id', require_unique=True)` for its validation or side effect.
-9. Calls `_validate_polygon_geometries(parcels, 'Parcel')` for its validation or side effect.
-10. Returns `crs`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(parcels, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `collisions` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(parcels, gpd.GeoDataFrame)`.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `collisions`.
+- Explicit raise expressions: `PlanningZoningError('Parcels already contain zoning output columns: ' + ', '.join(collisions))`, `PlanningZoningError('Parcels are missing required columns: ' + ', '.join(missing))`, `PlanningZoningError('Parcels must be a GeoDataFrame')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `_active_geometry`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `PlanningZoningError`, `_active_geometry`, `_readable_crs`, `_validate_exact_string_ids`, `_validate_polygon_geometries`, `isinstance`, `set`, `sorted`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_enrich_parcel_grid_proximity_from_normalized` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::enrich_parcel_grid_proximity` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `_validate_parcels`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::_build_result` via `_validate_parcels`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `intersect_parcels_with_gpu_zoning`
+```python
+def _validate_parcels(parcels: gpd.GeoDataFrame) -> CRS:
+    if not isinstance(parcels, gpd.GeoDataFrame):
+        raise PlanningZoningError("Parcels must be a GeoDataFrame")
+    missing = sorted(PARCEL_REQUIRED_COLUMNS - set(parcels.columns))
+    if missing:
+        raise PlanningZoningError(
+            "Parcels are missing required columns: " + ", ".join(missing)
+        )
+    collisions = sorted(PARCEL_ZONING_OUTPUT_COLUMNS & set(parcels.columns))
+    if collisions:
+        raise PlanningZoningError(
+            "Parcels already contain zoning output columns: "
+            + ", ".join(collisions)
+        )
+    _active_geometry(parcels, "Parcel")
+    crs = _readable_crs(parcels.crs, "Parcel")
+    _validate_exact_string_ids(
+        parcels["parcel_id"], "parcel_id", require_unique=True
+    )
+    _validate_polygon_geometries(parcels, "Parcel")
+    return crs
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_standard_model`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _standard_model(planning_document: GpuPlanningDocument) -> str | None:
@@ -515,61 +764,65 @@ def _standard_model(planning_document: GpuPlanningDocument) -> str | None:
 
 **Purpose**
 
-Implements standard model according to the exact implementation and guards in this file.
+Private `planning` helper for standard model; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `planning_document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str | None`.
+- Every observed return expression is reproduced without truncation:
+```python
+values[0]
 
-**Returns**
+None
+```
 
-- Declared return type: `str | None`. Observed return expression(s): `values[0]`; `None`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Computes `document_value` from `planning_document.extraction.archive.document.standard_model`.
-2. Defines `values` with annotation `list[str]` from `[]`.
-3. Checks `document_value is not None`. When true: Calls `values.append(_strict_nonempty_string(document_value, 'GPU standard model'))` for its validation or side effect.
-4. Iterates `value` over `planning_document.extraction.standard_models`. For each value: Computes `validated` from `_strict_nonempty_string(value, 'GPU extracted standard model')`. Checks `validated not in values`. When true: Calls `values.append(validated)` for its validation or side effect.
-5. Checks `not values`. When true: Returns `None`.
-6. Checks `len(values) != 1`. When true: Raises `PlanningZoningError('GPU standard-model lineage is ambiguous')`.
-7. Returns `values[0]`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(values) != 1` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(values) != 1`.
+- Explicit raise expressions: `PlanningZoningError('GPU standard-model lineage is ambiguous')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningZoningError`, `_strict_nonempty_string`, `len`, `values.append`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_planning_context` via `_standard_model`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_planning_document` via `_standard_model`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `_validate_planning_document`
+```python
+def _standard_model(planning_document: GpuPlanningDocument) -> str | None:
+    document_value = planning_document.extraction.archive.document.standard_model
+    values: list[str] = []
+    if document_value is not None:
+        values.append(_strict_nonempty_string(document_value, "GPU standard model"))
+    for value in planning_document.extraction.standard_models:
+        validated = _strict_nonempty_string(value, "GPU extracted standard model")
+        if validated not in values:
+            values.append(validated)
+    if not values:
+        return None
+    if len(values) != 1:
+        raise PlanningZoningError("GPU standard-model lineage is ambiguous")
+    return values[0]
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_planning_document`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_planning_document(
@@ -579,99 +832,143 @@ def _validate_planning_document(
 
 **Purpose**
 
-Validates and rejects malformed planning document according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent planning document; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `planning_document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[_PlanningContext, gpd.GeoDataFrame]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(context, source)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[_PlanningContext, gpd.GeoDataFrame]`. Observed return expression(s): `(context, source)`.
-
-**Algorithm**
-
-1. Checks `not isinstance(planning_document, GpuPlanningDocument)`. When true: Raises `PlanningZoningError('planning_document must be a GpuPlanningDocument')`.
-2. Computes `archive` from `planning_document.extraction.archive`.
-3. Computes `document` from `archive.document`.
-4. Computes `provider` from `_strict_nonempty_string(document.provider, 'GPU provider')`.
-5. Computes `portal` from `_strict_nonempty_string(document.portal, 'GPU portal')`.
-6. Computes `commune_code` from `_strict_nonempty_string(document.commune_code, 'GPU commune code')`.
-7. Computes `document_id` from `_strict_nonempty_string(document.document_id, 'GPU document ID')`.
-8. Computes `document_type` from `_strict_nonempty_string(document.document_type, 'GPU document type')`.
-9. Computes `archive_name` from `_strict_nonempty_string(document.archive_name, 'GPU archive name')`.
-10. Computes `archive_sha256` from `_strict_nonempty_string(archive.sha256, 'GPU archive SHA256')`.
-11. Checks `len(archive_sha256) != 64 or any((character not in '0123456789abcdefABCDEF' for character in archive_sha256))`. When true: Raises `PlanningZoningError('GPU archive SHA256 must contain 64 hexadecimal chars')`.
-12. Computes `zoning` from `planning_document.zoning`.
-13. Checks `zoning.logical_name != 'zoning'`. When true: Raises `PlanningZoningError('GPU planning bundle must contain its zoning layer')`.
-14. Computes `source_layer` from `_strict_nonempty_string(zoning.reference.source_layer, 'GPU zoning source layer')`.
-15. Computes `source` from `zoning.data`.
-16. Checks `not isinstance(source, gpd.GeoDataFrame)`. When true: Raises `PlanningZoningError('GPU zoning data must be a GeoDataFrame')`.
-17. Computes `missing` from `sorted(GPU_ZONING_REQUIRED_COLUMNS - set(source.columns))`.
-18. Checks `missing`. When true: Raises `PlanningZoningError('GPU zoning is missing required source columns: ' + ', '.join(missing))`.
-19. Calls `_active_geometry(source, 'GPU zoning')` for its validation or side effect.
-20. Computes `source_crs` from `_readable_crs(source.crs, 'GPU zoning')`.
-21. Calls `_validate_polygon_geometries(source, 'GPU zoning')` for its validation or side effect.
-22. Checks `source.empty`. When true: Raises `PlanningZoningError('GPU zoning must contain at least one source zone')`.
-23. Computes `source_zone_column` from `GPU_ZONING_SOURCE_FIELDS['source_zone_id']`.
-24. Calls `_validate_exact_string_ids(source[source_zone_column], source_zone_column, require_unique=True)` for its validation or side effect.
-25. Computes `source_document_column` from `GPU_ZONING_SOURCE_FIELDS['source_document_reference_raw']`.
-26. Calls `_validate_exact_string_ids(source[source_document_column], source_document_column, require_unique=False)` for its validation or side effect.
-27. Computes `expected_document_reference` from `archive_name[:-4] if archive_name.casefold().endswith('.zip') else archive_name`.
-28. Checks `not source[source_document_column].eq(expected_document_reference).all()`. When true: Raises `PlanningZoningError('GPU zoning IDURBA does not match the loaded planning archive identity')`.
-29. Computes `summary` from `zoning.summary`.
-30. Checks `summary.source_document_id != document_id`. When true: Raises `PlanningZoningError('GPU zoning summary document lineage is inconsistent')`.
-31. Checks `summary.source_archive_sha256 != archive_sha256`. When true: Raises `PlanningZoningError('GPU zoning summary archive lineage is inconsistent')`.
-32. Checks `summary.source_layer != source_layer`. When true: Raises `PlanningZoningError('GPU zoning summary source layer is inconsistent')`.
-33. Checks `summary.feature_count != len(source)`. When true: Raises `PlanningZoningError('GPU zoning summary feature count is inconsistent')`.
-34. Computes `context` from `_PlanningContext(provider=provider, portal=portal, commune_code=commune_code, document_id=document_id, document_type=document_type, archive_name=archive_name, archive_sha256=archive_sha256, source_layer=source_layer, standard_model=_standard_model(planning_document), source_crs=source_crs.to_string())`.
-35. Returns `(context, source)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(planning_document, GpuPlanningDocument)` is true.
-- Rejects or diverts the path when `len(archive_sha256) != 64 or any((character not in '0123456789abcdefABCDEF' for character in archive_sha256))` is true.
-- Rejects or diverts the path when `zoning.logical_name != 'zoning'` is true.
-- Rejects or diverts the path when `not isinstance(source, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `source.empty` is true.
-- Rejects or diverts the path when `not source[source_document_column].eq(expected_document_reference).all()` is true.
-- Rejects or diverts the path when `summary.source_document_id != document_id` is true.
-- Rejects or diverts the path when `summary.source_archive_sha256 != archive_sha256` is true.
-- Rejects or diverts the path when `summary.source_layer != source_layer` is true.
-- Rejects or diverts the path when `summary.feature_count != len(source)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(planning_document, GpuPlanningDocument)`.
+- Guard with a raise path: `len(archive_sha256) != 64 or any((character not in '0123456789abcdefABCDEF' for character in archive_sha256))`.
+- Guard with a raise path: `zoning.logical_name != 'zoning'`.
+- Guard with a raise path: `not isinstance(source, gpd.GeoDataFrame)`.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `source.empty`.
+- Guard with a raise path: `not source[source_document_column].eq(expected_document_reference).all()`.
+- Guard with a raise path: `summary.source_document_id != document_id`.
+- Guard with a raise path: `summary.source_archive_sha256 != archive_sha256`.
+- Guard with a raise path: `summary.source_layer != source_layer`.
+- Guard with a raise path: `summary.feature_count != len(source)`.
+- Explicit raise expressions: `PlanningZoningError('GPU archive SHA256 must contain 64 hexadecimal chars')`, `PlanningZoningError('GPU planning bundle must contain its zoning layer')`, `PlanningZoningError('GPU zoning IDURBA does not match the loaded planning archive identity')`, `PlanningZoningError('GPU zoning data must be a GeoDataFrame')`, `PlanningZoningError('GPU zoning is missing required source columns: ' + ', '.join(missing))`, `PlanningZoningError('GPU zoning must contain at least one source zone')`, `PlanningZoningError('GPU zoning summary archive lineage is inconsistent')`, `PlanningZoningError('GPU zoning summary document lineage is inconsistent')`, `PlanningZoningError('GPU zoning summary feature count is inconsistent')`, `PlanningZoningError('GPU zoning summary source layer is inconsistent')`, `PlanningZoningError('planning_document must be a GpuPlanningDocument')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `_active_geometry`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `PlanningZoningError`, `_PlanningContext`, `_active_geometry`, `_readable_crs`, `_standard_model`, `_strict_nonempty_string`, `_validate_exact_string_ids`, `_validate_polygon_geometries`, `any`, `archive_name.casefold`, `archive_name.casefold().endswith`, `isinstance`, `len`, `set`, `sorted`, `source[source_document_column].eq`, `source[source_document_column].eq(expected_document_reference).all`, `source_crs.to_string`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_planning_document`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `intersect_parcels_with_gpu_zoning`
+```python
+def _validate_planning_document(
+    planning_document: GpuPlanningDocument,
+) -> tuple[_PlanningContext, gpd.GeoDataFrame]:
+    if not isinstance(planning_document, GpuPlanningDocument):
+        raise PlanningZoningError("planning_document must be a GpuPlanningDocument")
 
-**Tests**
+    archive = planning_document.extraction.archive
+    document = archive.document
+    provider = _strict_nonempty_string(document.provider, "GPU provider")
+    portal = _strict_nonempty_string(document.portal, "GPU portal")
+    commune_code = _strict_nonempty_string(
+        document.commune_code, "GPU commune code"
+    )
+    document_id = _strict_nonempty_string(document.document_id, "GPU document ID")
+    document_type = _strict_nonempty_string(
+        document.document_type, "GPU document type"
+    )
+    archive_name = _strict_nonempty_string(document.archive_name, "GPU archive name")
+    archive_sha256 = _strict_nonempty_string(archive.sha256, "GPU archive SHA256")
+    if len(archive_sha256) != 64 or any(
+        character not in "0123456789abcdefABCDEF" for character in archive_sha256
+    ):
+        raise PlanningZoningError("GPU archive SHA256 must contain 64 hexadecimal chars")
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    zoning = planning_document.zoning
+    if zoning.logical_name != "zoning":
+        raise PlanningZoningError("GPU planning bundle must contain its zoning layer")
+    source_layer = _strict_nonempty_string(
+        zoning.reference.source_layer, "GPU zoning source layer"
+    )
+    source = zoning.data
+    if not isinstance(source, gpd.GeoDataFrame):
+        raise PlanningZoningError("GPU zoning data must be a GeoDataFrame")
+    missing = sorted(GPU_ZONING_REQUIRED_COLUMNS - set(source.columns))
+    if missing:
+        raise PlanningZoningError(
+            "GPU zoning is missing required source columns: " + ", ".join(missing)
+        )
+    _active_geometry(source, "GPU zoning")
+    source_crs = _readable_crs(source.crs, "GPU zoning")
+    _validate_polygon_geometries(source, "GPU zoning")
+    if source.empty:
+        raise PlanningZoningError("GPU zoning must contain at least one source zone")
 
-**Business interpretation**
+    source_zone_column = GPU_ZONING_SOURCE_FIELDS["source_zone_id"]
+    _validate_exact_string_ids(
+        source[source_zone_column], source_zone_column, require_unique=True
+    )
+    source_document_column = GPU_ZONING_SOURCE_FIELDS[
+        "source_document_reference_raw"
+    ]
+    _validate_exact_string_ids(
+        source[source_document_column], source_document_column, require_unique=False
+    )
+    expected_document_reference = (
+        archive_name[:-4] if archive_name.casefold().endswith(".zip") else archive_name
+    )
+    if not source[source_document_column].eq(expected_document_reference).all():
+        raise PlanningZoningError(
+            "GPU zoning IDURBA does not match the loaded planning archive identity"
+        )
 
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
+    summary = zoning.summary
+    if summary.source_document_id != document_id:
+        raise PlanningZoningError("GPU zoning summary document lineage is inconsistent")
+    if summary.source_archive_sha256 != archive_sha256:
+        raise PlanningZoningError("GPU zoning summary archive lineage is inconsistent")
+    if summary.source_layer != source_layer:
+        raise PlanningZoningError("GPU zoning summary source layer is inconsistent")
+    if summary.feature_count != len(source):
+        raise PlanningZoningError("GPU zoning summary feature count is inconsistent")
 
-**Does NOT prove**
+    context = _PlanningContext(
+        provider=provider,
+        portal=portal,
+        commune_code=commune_code,
+        document_id=document_id,
+        document_type=document_type,
+        archive_name=archive_name,
+        archive_sha256=archive_sha256,
+        source_layer=source_layer,
+        standard_model=_standard_model(planning_document),
+        source_crs=source_crs.to_string(),
+    )
+    return context, source
+```
+
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_project_geometries`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _project_geometries(
@@ -682,60 +979,68 @@ def _project_geometries(
 
 **Purpose**
 
-Implements project geometries according to the exact implementation and guards in this file.
+Private `planning` helper for project geometries; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoSeries`.
+- Every observed return expression is reproduced without truncation:
+```python
+projected
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoSeries`. Observed return expression(s): `projected`.
-
-**Algorithm**
-
-1. Computes `source_crs` from `_readable_crs(frame.crs, label)`.
-2. Computes `target_crs` from `CRS.from_epsg(2154)`.
-3. Runs guarded operation: Checks `source_crs.equals(target_crs)`. When true: Computes `projected` from `frame.geometry.copy()`. Otherwise: Computes `projected` from `frame.geometry.to_crs(target_crs)`. Computes `projected` from `gpd.GeoSeries(force_2d(projected.array), index=frame.index, crs=CALCULATION_CRS)`. Handles `Exception`.
-4. Returns `projected`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `PlanningZoningError(f'{label} CRS cannot be transformed safely to {CALCULATION_CRS}')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `frame.geometry.copy`, `frame.geometry.to_crs`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `force_2d`, `frame.geometry.copy`, `frame.geometry.to_crs`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `CRS.from_epsg`, `PlanningZoningError`, `_readable_crs`, `force_2d`, `frame.geometry.copy`, `frame.geometry.to_crs`, `gpd.GeoSeries`, `source_crs.equals`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_normalize_zones` via `_project_geometries`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_metric_parcels` via `_project_geometries`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `_metric_parcels`
-- `src/landscout/stages/enrich_planning_zoning.py` — `_normalize_zones`
+```python
+def _project_geometries(
+    frame: gpd.GeoDataFrame,
+    label: str,
+) -> gpd.GeoSeries:
+    source_crs = _readable_crs(frame.crs, label)
+    target_crs = CRS.from_epsg(2154)
+    try:
+        if source_crs.equals(target_crs):
+            projected = frame.geometry.copy()
+        else:
+            projected = frame.geometry.to_crs(target_crs)
+        projected = gpd.GeoSeries(
+            force_2d(projected.array), index=frame.index, crs=CALCULATION_CRS
+        )
+    except Exception as error:
+        raise PlanningZoningError(
+            f"{label} CRS cannot be transformed safely to {CALCULATION_CRS}"
+        ) from error
+    return projected
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_normalize_zones`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _normalize_zones(
@@ -746,71 +1051,98 @@ def _normalize_zones(
 
 **Purpose**
 
-Normalizes zones according to the exact implementation and guards in this file.
+Projects validated source facts into zones; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `source` (`gpd.GeoDataFrame`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `context` (`_PlanningContext`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+zones
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `zones`.
-
-**Algorithm**
-
-1. Computes `projected_geometry` from `_project_geometries(source, 'GPU zoning')`.
-2. Computes `source_zone_ids` from `source[GPU_ZONING_SOURCE_FIELDS['source_zone_id']].copy()`.
-3. Computes `planning_zone_ids` from `source_zone_ids.map(lambda value: f'GPU:{context.document_id}:ZONE:{value}')`.
-4. Checks `planning_zone_ids.duplicated().any()`. When true: Raises `PlanningZoningError('Normalized planning_zone_id values must be unique')`.
-5. Defines `data` with annotation `dict[str, object]` from `{'planning_zone_id': planning_zone_ids.to_numpy(copy=True), 'source_zone_id': source_zone_ids.to_numpy(copy=True)}`.
-6. Iterates `(normalized_name, source_name)` over `GPU_ZONING_SOURCE_FIELDS.items()`. For each value: Checks `normalized_name == 'source_zone_id'`. When true: Executes `continue` control flow. Computes `data[normalized_name]` from `source[source_name].to_numpy(copy=True)`.
-7. Computes `count` from `len(source)`.
-8. Calls `data.update({'source_provider': np.repeat(context.provider, count), 'source_portal': np.repeat(context.portal, count), 'source_commune_code': np.repeat(context.commune_code, count), 'source_document_id': np.repeat(context.document_id, count), 'source_document_type': np.repeat(context.document_type, count), 'source_archive_name': np.repeat(context.archive_na…` for its validation or side effect.
-9. Computes `zones` from `gpd.GeoDataFrame(data, geometry=projected_geometry.to_numpy(copy=True), crs=CALCULATION_CRS)`.
-10. Computes `zone_areas` from `zones.geometry.area.to_numpy(dtype='float64', copy=True)`.
-11. Checks `not np.isfinite(zone_areas).all() or (zone_areas <= 0).any()`. When true: Raises `PlanningZoningError('GPU zone areas must be finite and positive')`.
-12. Computes `zones['zone_area_m2']` from `zone_areas`.
-13. Computes `zones` from `zones.reset_index(drop=True)`.
-14. Computes `zones` from `zones.set_crs(CALCULATION_CRS, allow_override=True)`.
-15. Returns `zones`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `planning_zone_ids.duplicated().any()` is true.
-- Rejects or diverts the path when `not np.isfinite(zone_areas).all() or (zone_areas <= 0).any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `planning_zone_ids.duplicated().any()`.
+- Guard with a raise path: `not np.isfinite(zone_areas).all() or (zone_areas <= 0).any()`.
+- Explicit raise expressions: `PlanningZoningError('GPU zone areas must be finite and positive')`, `PlanningZoningError('Normalized planning_zone_id values must be unique')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `source[GPU_ZONING_SOURCE_FIELDS['source_zone_id']].copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `(zone_areas <= 0).any`, `np.isfinite(zone_areas).all`, `projected_geometry.to_numpy`, `zones.geometry.area.to_numpy`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `data[normalized_name]`, `zones['zone_area_m2']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(zone_areas <= 0).any`, `GPU_ZONING_SOURCE_FIELDS.items`, `PlanningZoningError`, `_project_geometries`, `data.update`, `gpd.GeoDataFrame`, `len`, `np.full`, `np.isfinite`, `np.isfinite(zone_areas).all`, `np.repeat`, `planning_zone_ids.duplicated`, `planning_zone_ids.duplicated().any`, `planning_zone_ids.to_numpy`, `projected_geometry.to_numpy`, `source[GPU_ZONING_SOURCE_FIELDS['source_zone_id']].copy`, `source[source_name].to_numpy`, `source_zone_ids.map`, `source_zone_ids.to_numpy`, `zones.geometry.area.to_numpy`, `zones.reset_index`, `zones.set_crs`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_normalize_zones`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `intersect_parcels_with_gpu_zoning`
+```python
+def _normalize_zones(
+    source: gpd.GeoDataFrame,
+    context: _PlanningContext,
+) -> gpd.GeoDataFrame:
+    projected_geometry = _project_geometries(source, "GPU zoning")
+    source_zone_ids = source[GPU_ZONING_SOURCE_FIELDS["source_zone_id"]].copy()
+    planning_zone_ids = source_zone_ids.map(
+        lambda value: f"GPU:{context.document_id}:ZONE:{value}"
+    )
+    if planning_zone_ids.duplicated().any():
+        raise PlanningZoningError("Normalized planning_zone_id values must be unique")
 
-**Tests**
+    data: dict[str, object] = {
+        "planning_zone_id": planning_zone_ids.to_numpy(copy=True),
+        "source_zone_id": source_zone_ids.to_numpy(copy=True),
+    }
+    for normalized_name, source_name in GPU_ZONING_SOURCE_FIELDS.items():
+        if normalized_name == "source_zone_id":
+            continue
+        data[normalized_name] = source[source_name].to_numpy(copy=True)
+    count = len(source)
+    data.update(
+        {
+            "source_provider": np.repeat(context.provider, count),
+            "source_portal": np.repeat(context.portal, count),
+            "source_commune_code": np.repeat(context.commune_code, count),
+            "source_document_id": np.repeat(context.document_id, count),
+            "source_document_type": np.repeat(context.document_type, count),
+            "source_archive_name": np.repeat(context.archive_name, count),
+            "source_archive_sha256": np.repeat(context.archive_sha256, count),
+            "source_layer": np.repeat(context.source_layer, count),
+            "source_standard_model": np.full(
+                count, context.standard_model, dtype="object"
+            ),
+            "source_crs": np.repeat(context.source_crs, count),
+        }
+    )
+    zones = gpd.GeoDataFrame(
+        data,
+        geometry=projected_geometry.to_numpy(copy=True),
+        crs=CALCULATION_CRS,
+    )
+    zone_areas = zones.geometry.area.to_numpy(dtype="float64", copy=True)
+    if not np.isfinite(zone_areas).all() or (zone_areas <= 0).any():
+        raise PlanningZoningError("GPU zone areas must be finite and positive")
+    zones["zone_area_m2"] = zone_areas
+    zones = zones.reset_index(drop=True)
+    zones = zones.set_crs(CALCULATION_CRS, allow_override=True)
+    return zones
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_metric_parcels`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -818,60 +1150,69 @@ def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 **Purpose**
 
-Implements metric parcels according to the exact implementation and guards in this file.
+Private `planning` helper for metric parcels; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+metric
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `metric`.
-
-**Algorithm**
-
-1. Computes `geometry` from `_project_geometries(parcels, 'Parcel')`.
-2. Computes `metric` from `gpd.GeoDataFrame({'_parcel_position': np.arange(len(parcels), dtype='int64'), 'parcel_id': parcels['parcel_id'].to_numpy(copy=True)}, geometry=geometry.to_numpy(copy=True), crs=CALCULATION_CRS)`.
-3. Computes `areas` from `metric.geometry.area.to_numpy(dtype='float64', copy=True)`.
-4. Checks `not np.isfinite(areas).all() or (areas <= 0).any()`. When true: Raises `PlanningZoningError('Parcel metric areas must be finite and positive')`.
-5. Computes `metric['_parcel_area_m2']` from `areas`.
-6. Returns `metric`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not np.isfinite(areas).all() or (areas <= 0).any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not np.isfinite(areas).all() or (areas <= 0).any()`.
+- Explicit raise expressions: `PlanningZoningError('Parcel metric areas must be finite and positive')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `(areas <= 0).any`, `geometry.to_numpy`, `metric.geometry.area.to_numpy`, `np.isfinite(areas).all`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `metric['_parcel_area_m2']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(areas <= 0).any`, `PlanningZoningError`, `_project_geometries`, `geometry.to_numpy`, `gpd.GeoDataFrame`, `len`, `metric.geometry.area.to_numpy`, `np.arange`, `np.isfinite`, `np.isfinite(areas).all`, `parcels['parcel_id'].to_numpy`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_normalized_planning_feature_inputs` via `_metric_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_parcel_summaries` via `_metric_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_metric_parcels`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_metric_parcels`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_parcels` via `_metric_parcels`.
+- direct call or construction: `tests/unit/test_enrich_road_proximity.py::_parcels` via `_metric_parcels`.
+- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_missing_or_wrong_storage_crs_is_rejected` via `_metric_parcels`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `intersect_parcels_with_gpu_zoning`
+```python
+def _metric_parcels(parcels: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    geometry = _project_geometries(parcels, "Parcel")
+    metric = gpd.GeoDataFrame(
+        {
+            "_parcel_position": np.arange(len(parcels), dtype="int64"),
+            "parcel_id": parcels["parcel_id"].to_numpy(copy=True),
+        },
+        geometry=geometry.to_numpy(copy=True),
+        crs=CALCULATION_CRS,
+    )
+    areas = metric.geometry.area.to_numpy(dtype="float64", copy=True)
+    if not np.isfinite(areas).all() or (areas <= 0).any():
+        raise PlanningZoningError("Parcel metric areas must be finite and positive")
+    metric["_parcel_area_m2"] = areas
+    return metric
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_empty_intersections`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _empty_intersections() -> pd.DataFrame:
@@ -879,55 +1220,57 @@ def _empty_intersections() -> pd.DataFrame:
 
 **Purpose**
 
-Implements empty intersections according to the exact implementation and guards in this file.
+Private `planning` helper for empty intersections; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- No parameters.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+pd.DataFrame({column: pd.Series(dtype='float64' if column in _INTERSECTION_FLOAT_COLUMNS else 'object') for column in INTERSECTION_COLUMNS})
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `pd.DataFrame({column: pd.Series(dtype='float64' if column in _INTERSECTION_FLOAT_COLUMNS else 'object') for column in INTERSECTION_COLUMNS})`.
-
-**Algorithm**
-
-1. Returns `pd.DataFrame({column: pd.Series(dtype='float64' if column in _INTERSECTION_FLOAT_COLUMNS else 'object') for column in INTERSECTION_COLUMNS})`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `pd.DataFrame`, `pd.Series`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_empty_intersections`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `intersect_parcels_with_gpu_zoning`
+```python
+def _empty_intersections() -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            column: pd.Series(
+                dtype="float64" if column in _INTERSECTION_FLOAT_COLUMNS else "object"
+            )
+            for column in INTERSECTION_COLUMNS
+        }
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_candidate_intersections`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _candidate_intersections(
@@ -938,72 +1281,146 @@ def _candidate_intersections(
 
 **Purpose**
 
-Implements candidate intersections according to the exact implementation and guards in this file.
+Private `planning` helper for candidate intersections; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `metric_parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zones` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `pd.DataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+work
 
-**Returns**
+pd.DataFrame(columns=('_parcel_position', '_zone_position', '_intersection_geometry'))
+```
 
-- Declared return type: `pd.DataFrame`. Observed return expression(s): `work`; `pd.DataFrame(columns=('_parcel_position', '_zone_position', '_intersection_geometry'))`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Computes `parcel_candidates` from `gpd.GeoDataFrame(metric_parcels[['_parcel_position', 'parcel_id']].copy(), geometry=metric_parcels.geometry.to_numpy(copy=True), crs=CALCULATION_CRS)`.
-2. Computes `zone_candidates` from `gpd.GeoDataFrame({'_zone_position': np.arange(len(zones), dtype='int64')}, geometry=zones.geometry.to_numpy(copy=True), crs=CALCULATION_CRS)`.
-3. Runs guarded operation: Computes `candidates` from `gpd.sjoin(parcel_candidates, zone_candidates, how='inner', predicate='intersects')`. Handles `Exception`.
-4. Checks `candidates.empty`. When true: Returns `pd.DataFrame(columns=('_parcel_position', '_zone_position', '_intersection_geometry'))`.
-5. Computes `parcel_positions` from `candidates['_parcel_position'].to_numpy(dtype='int64', copy=True)`.
-6. Computes `zone_positions` from `candidates['_zone_position'].to_numpy(dtype='int64', copy=True)`.
-7. Runs guarded operation: Computes `intersection_geometry` from `shapely_intersection(metric_parcels.geometry.iloc[parcel_positions].array, zones.geometry.iloc[zone_positions].array)`. Computes `intersection_areas` from `np.asarray(shapely_area(intersection_geometry), dtype='float64')`. Handles `Exception`.
-8. Checks `not np.isfinite(intersection_areas).all() or (intersection_areas < 0).any()`. When true: Raises `PlanningZoningError('Intersection areas must be finite and non-negative')`.
-9. Computes `parcel_areas` from `metric_parcels['_parcel_area_m2'].to_numpy(dtype='float64')[parcel_positions]`.
-10. Computes `zone_areas` from `zones['zone_area_m2'].to_numpy(dtype='float64')[zone_positions]`.
-11. Computes `relation_types` from `np.where(intersection_areas > 0, 'AREA_OVERLAP', 'TOUCH_ONLY')`.
-12. Computes `selected_zones` from `zones.iloc[zone_positions]`.
-13. Computes `geometry_values` from `np.empty(len(intersection_geometry), dtype='object')`.
-14. Computes `geometry_values[:]` from `intersection_geometry`.
-15. Computes `work` from `pd.DataFrame({'_parcel_position': parcel_positions, '_zone_position': zone_positions, '_intersection_geometry': geometry_values, 'parcel_id': metric_parcels['parcel_id'].to_numpy(copy=False)[parcel_positions], 'planning_zone_id': selected_zones['planning_zone_id'].to_numpy(copy=True), 'source_zone_id': selected_zones[…`.
-16. Computes `work` from `work.sort_values(['_parcel_position', 'planning_zone_id'], kind='stable').reset_index(drop=True)`.
-17. Returns `work`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not np.isfinite(intersection_areas).all() or (intersection_areas < 0).any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not np.isfinite(intersection_areas).all() or (intersection_areas < 0).any()`.
+- Explicit raise expressions: `PlanningZoningError('GPU zoning geometry overlay failed')`, `PlanningZoningError('GPU zoning spatial-index query failed')`, `PlanningZoningError('Intersection areas must be finite and non-negative')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `metric_parcels[['_parcel_position', 'parcel_id']].copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `(intersection_areas < 0).any`, `metric_parcels.geometry.to_numpy`, `metric_parcels['_parcel_area_m2'].to_numpy`, `np.isfinite(intersection_areas).all`, `shapely_area`, `shapely_intersection`, `zones.geometry.to_numpy`, `zones['zone_area_m2'].to_numpy`.
+- Hashing: `selected_zones['source_archive_sha256'].to_numpy`, `shapely_area`, `shapely_intersection`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `geometry_values[:]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(intersection_areas < 0).any`, `PlanningZoningError`, `candidates['_parcel_position'].to_numpy`, `candidates['_zone_position'].to_numpy`, `gpd.GeoDataFrame`, `gpd.sjoin`, `len`, `metric_parcels.geometry.to_numpy`, `metric_parcels['_parcel_area_m2'].to_numpy`, `metric_parcels['parcel_id'].to_numpy`, `metric_parcels[['_parcel_position', 'parcel_id']].copy`, `np.arange`, `np.asarray`, `np.empty`, `np.isfinite`, `np.isfinite(intersection_areas).all`, `np.where`, `pd.DataFrame`, `selected_zones['planning_zone_id'].to_numpy`, `selected_zones['regulation_filename_raw'].to_numpy`, `selected_zones['source_archive_sha256'].to_numpy`, `selected_zones['source_document_id'].to_numpy`, `selected_zones['source_layer'].to_numpy`, `selected_zones['source_validity_date_raw'].to_numpy`, `selected_zones['source_zone_id'].to_numpy`, `selected_zones['zone_label_raw'].to_numpy`, `selected_zones['zone_long_label_raw'].to_numpy`, `selected_zones['zone_type_raw'].to_numpy`, `shapely_area`, `shapely_intersection`, `work.sort_values`, `work.sort_values(['_parcel_position', 'planning_zone_id'], kind='stable').reset_index`, `zones.geometry.to_numpy`, `zones['zone_area_m2'].to_numpy`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_candidate_intersections`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `intersect_parcels_with_gpu_zoning`
+```python
+def _candidate_intersections(
+    metric_parcels: gpd.GeoDataFrame,
+    zones: gpd.GeoDataFrame,
+) -> pd.DataFrame:
+    parcel_candidates = gpd.GeoDataFrame(
+        metric_parcels[["_parcel_position", "parcel_id"]].copy(),
+        geometry=metric_parcels.geometry.to_numpy(copy=True),
+        crs=CALCULATION_CRS,
+    )
+    zone_candidates = gpd.GeoDataFrame(
+        {"_zone_position": np.arange(len(zones), dtype="int64")},
+        geometry=zones.geometry.to_numpy(copy=True),
+        crs=CALCULATION_CRS,
+    )
+    try:
+        candidates = gpd.sjoin(
+            parcel_candidates,
+            zone_candidates,
+            how="inner",
+            predicate="intersects",
+        )
+    except Exception as error:
+        raise PlanningZoningError("GPU zoning spatial-index query failed") from error
+    if candidates.empty:
+        return pd.DataFrame(
+            columns=("_parcel_position", "_zone_position", "_intersection_geometry")
+        )
 
-**Tests**
+    parcel_positions = candidates["_parcel_position"].to_numpy(
+        dtype="int64", copy=True
+    )
+    zone_positions = candidates["_zone_position"].to_numpy(dtype="int64", copy=True)
+    try:
+        intersection_geometry = shapely_intersection(
+            metric_parcels.geometry.iloc[parcel_positions].array,
+            zones.geometry.iloc[zone_positions].array,
+        )
+        intersection_areas = np.asarray(
+            shapely_area(intersection_geometry), dtype="float64"
+        )
+    except Exception as error:
+        raise PlanningZoningError("GPU zoning geometry overlay failed") from error
+    if not np.isfinite(intersection_areas).all() or (intersection_areas < 0).any():
+        raise PlanningZoningError("Intersection areas must be finite and non-negative")
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    parcel_areas = metric_parcels["_parcel_area_m2"].to_numpy(dtype="float64")[
+        parcel_positions
+    ]
+    zone_areas = zones["zone_area_m2"].to_numpy(dtype="float64")[zone_positions]
+    relation_types = np.where(intersection_areas > 0, "AREA_OVERLAP", "TOUCH_ONLY")
+    selected_zones = zones.iloc[zone_positions]
+    geometry_values = np.empty(len(intersection_geometry), dtype="object")
+    geometry_values[:] = intersection_geometry
 
-**Business interpretation**
+    work = pd.DataFrame(
+        {
+            "_parcel_position": parcel_positions,
+            "_zone_position": zone_positions,
+            "_intersection_geometry": geometry_values,
+            "parcel_id": metric_parcels["parcel_id"].to_numpy(copy=False)[
+                parcel_positions
+            ],
+            "planning_zone_id": selected_zones["planning_zone_id"].to_numpy(
+                copy=True
+            ),
+            "source_zone_id": selected_zones["source_zone_id"].to_numpy(copy=True),
+            "zone_type_raw": selected_zones["zone_type_raw"].to_numpy(copy=True),
+            "zone_label_raw": selected_zones["zone_label_raw"].to_numpy(copy=True),
+            "zone_long_label_raw": selected_zones["zone_long_label_raw"].to_numpy(
+                copy=True
+            ),
+            "relation_type": relation_types,
+            "parcel_metric_area_m2": parcel_areas,
+            "zone_area_m2": zone_areas,
+            "intersection_area_m2": intersection_areas,
+            "parcel_share_pct": 100.0 * intersection_areas / parcel_areas,
+            "zone_share_pct": 100.0 * intersection_areas / zone_areas,
+            "source_document_id": selected_zones["source_document_id"].to_numpy(
+                copy=True
+            ),
+            "source_archive_sha256": selected_zones[
+                "source_archive_sha256"
+            ].to_numpy(copy=True),
+            "source_layer": selected_zones["source_layer"].to_numpy(copy=True),
+            "source_validity_date_raw": selected_zones[
+                "source_validity_date_raw"
+            ].to_numpy(copy=True),
+            "regulation_filename_raw": selected_zones[
+                "regulation_filename_raw"
+            ].to_numpy(copy=True),
+        }
+    )
+    work = work.sort_values(
+        ["_parcel_position", "planning_zone_id"], kind="stable"
+    ).reset_index(drop=True)
+    return work
+```
 
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_technical_area_tolerance`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _technical_area_tolerance(parcel_area_m2: float) -> float:
@@ -1011,55 +1428,50 @@ def _technical_area_tolerance(parcel_area_m2: float) -> float:
 
 **Purpose**
 
-Implements technical area tolerance according to the exact implementation and guards in this file.
+Private `planning` helper for technical area tolerance; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parcel_area_m2` (`float`; required) — area quantity, normally square metres where the name ends in `_m2`. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `float`.
+- Every observed return expression is reproduced without truncation:
+```python
+technical_overlay_tolerance(parcel_area_m2)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `float`. Observed return expression(s): `technical_overlay_tolerance(parcel_area_m2)`.
-
-**Algorithm**
-
-1. Returns `technical_overlay_tolerance(parcel_area_m2)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `technical_overlay_tolerance`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_stabilize_area_relationships` via `_technical_area_tolerance`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `_stabilize_area_relationships`
+```python
+def _technical_area_tolerance(parcel_area_m2: float) -> float:
+    return technical_overlay_tolerance(parcel_area_m2)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_stabilize_area_relationships`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _stabilize_area_relationships(
@@ -1071,68 +1483,83 @@ def _stabilize_area_relationships(
 
 **Purpose**
 
-Implements stabilize area relationships according to the exact implementation and guards in this file.
+Private `planning` helper for stabilize area relationships; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parcel_area` (`float`; required) — area quantity, normally square metres where the name ends in `_m2`. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `raw_sum` (`float`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `covered_union` (`float`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[float, float, float]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(covered_union, gap, overlap_excess)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[float, float, float]`. Observed return expression(s): `(covered_union, gap, overlap_excess)`.
-
-**Algorithm**
-
-1. Computes `tolerance` from `_technical_area_tolerance(parcel_area)`.
-2. Checks `covered_union > parcel_area`. When true: Checks `covered_union - parcel_area > tolerance`. When true: Raises `PlanningZoningError('Zoning covered-union area materially exceeds parcel area')`. Computes `covered_union` from `parcel_area`.
-3. Checks `covered_union > raw_sum`. When true: Checks `covered_union - raw_sum > tolerance`. When true: Raises `PlanningZoningError('Zoning covered-union area materially exceeds raw intersection sum')`. Computes `covered_union` from `raw_sum`.
-4. Computes `gap` from `parcel_area - covered_union`.
-5. Computes `overlap_excess` from `raw_sum - covered_union`.
-6. Checks `gap < 0 or overlap_excess < 0`. When true: Raises `PlanningZoningError('Zoning area differences must not be negative')`.
-7. Returns `(covered_union, gap, overlap_excess)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `covered_union > parcel_area` is true.
-- Rejects or diverts the path when `covered_union > raw_sum` is true.
-- Rejects or diverts the path when `gap < 0 or overlap_excess < 0` is true.
-- Rejects or diverts the path when `covered_union - parcel_area > tolerance` is true.
-- Rejects or diverts the path when `covered_union - raw_sum > tolerance` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `covered_union > parcel_area`.
+- Guard with a raise path: `covered_union > raw_sum`.
+- Guard with a raise path: `gap < 0 or overlap_excess < 0`.
+- Guard with a raise path: `covered_union - parcel_area > tolerance`.
+- Guard with a raise path: `covered_union - raw_sum > tolerance`.
+- Explicit raise expressions: `PlanningZoningError('Zoning area differences must not be negative')`, `PlanningZoningError('Zoning covered-union area materially exceeds parcel area')`, `PlanningZoningError('Zoning covered-union area materially exceeds raw intersection sum')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `_technical_area_tolerance`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningZoningError`, `_technical_area_tolerance`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_parcel_summary` via `_stabilize_area_relationships`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_shared_overlay_tolerance_preserves_zoning_numerical_behavior` via `_stabilize_area_relationships`.
+- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+    ParcelZoningResult,
+    PlanningZoningError,
+    _stabilize_area_relationships,
+    intersect_parcels_with_gpu_zoning,
+    validate_normalized_planning_zoning_inputs,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `_parcel_summary`
-- `tests/unit/test_enrich_planning_zoning.py` — `test_shared_overlay_tolerance_preserves_zoning_numerical_behavior`
+```python
+def _stabilize_area_relationships(
+    parcel_area: float,
+    raw_sum: float,
+    covered_union: float,
+) -> tuple[float, float, float]:
+    tolerance = _technical_area_tolerance(parcel_area)
+    if covered_union > parcel_area:
+        if covered_union - parcel_area > tolerance:
+            raise PlanningZoningError(
+                "Zoning covered-union area materially exceeds parcel area"
+            )
+        covered_union = parcel_area
+    if covered_union > raw_sum:
+        if covered_union - raw_sum > tolerance:
+            raise PlanningZoningError(
+                "Zoning covered-union area materially exceeds raw intersection sum"
+            )
+        covered_union = raw_sum
+    gap = parcel_area - covered_union
+    overlap_excess = raw_sum - covered_union
+    if gap < 0 or overlap_excess < 0:
+        raise PlanningZoningError("Zoning area differences must not be negative")
+    return covered_union, gap, overlap_excess
+```
 
-**Tests**
-
-- `tests/unit/test_enrich_planning_zoning.py::test_shared_overlay_tolerance_preserves_zoning_numerical_behavior`
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_parcel_summary`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _parcel_summary(
@@ -1146,99 +1573,149 @@ def _parcel_summary(
 
 **Purpose**
 
-Implements parcel summary according to the exact implementation and guards in this file.
+Private `planning` helper for parcel summary; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `metric_parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zones` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `work` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `context` (`_PlanningContext`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+output
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `output`.
-
-**Algorithm**
-
-1. Computes `count` from `len(parcels)`.
-2. Computes `parcel_areas` from `metric_parcels['_parcel_area_m2'].to_numpy(dtype='float64', copy=True)`.
-3. Computes `area_match_count` from `np.zeros(count, dtype='int64')`.
-4. Computes `touch_count` from `np.zeros(count, dtype='int64')`.
-5. Computes `raw_sum` from `np.zeros(count, dtype='float64')`.
-6. Computes `covered_union` from `np.zeros(count, dtype='float64')`.
-7. Computes `gap` from `parcel_areas.copy()`.
-8. Computes `overlap_excess` from `np.zeros(count, dtype='float64')`.
-9. Computes `dominant_planning` from `np.full(count, None, dtype='object')`.
-10. Computes `dominant_source` from `np.full(count, None, dtype='object')`.
-11. Computes `dominant_type` from `np.full(count, None, dtype='object')`.
-12. Computes `dominant_label` from `np.full(count, None, dtype='object')`.
-13. Computes `dominant_long_label` from `np.full(count, None, dtype='object')`.
-14. Computes `dominant_area` from `np.full(count, np.nan, dtype='float64')`.
-15. Computes `dominant_share` from `np.full(count, np.nan, dtype='float64')`.
-16. Computes `dominant_ties` from `pd.array([pd.NA] * count, dtype='Int64')`.
-17. Checks `not work.empty`. When true: Computes `touches` from `work.loc[work['relation_type'] == 'TOUCH_ONLY']`. Iterates `(position, group)` over `touches.groupby('_parcel_position', sort=False)`. For each value: Computes `touch_count[int(position)]` from `len(group)`. Computes `positive` from `work.loc[work['relation_type'] == 'AREA_OVERLAP']`. Executes 1 additional source-ordered statement(s).
-18. Computes `output` from `parcels.copy(deep=True)`.
-19. Computes `output['zoning_area_match_count']` from `area_match_count`.
-20. Computes `output['zoning_touch_only_count']` from `touch_count`.
-21. Computes `output['zoning_intersection_area_sum_m2']` from `raw_sum`.
-22. Computes `output['zoning_covered_union_area_m2']` from `covered_union`.
-23. Computes `output['zoning_coverage_pct']` from `np.where(gap == 0.0, 100.0, 100.0 * covered_union / parcel_areas)`.
-24. Computes `output['zoning_gap_area_m2']` from `gap`.
-25. Computes `output['zoning_overlap_excess_area_m2']` from `overlap_excess`.
-26. Computes `output['dominant_planning_zone_id']` from `dominant_planning`.
-27. Computes `output['dominant_source_zone_id']` from `dominant_source`.
-28. Computes `output['dominant_zone_type_raw']` from `dominant_type`.
-29. Computes `output['dominant_zone_label_raw']` from `dominant_label`.
-30. Computes `output['dominant_zone_long_label_raw']` from `dominant_long_label`.
-31. Computes `output['dominant_zone_intersection_area_m2']` from `dominant_area`.
-32. Computes `output['dominant_zone_share_pct']` from `dominant_share`.
-33. Computes `output['dominant_zone_tie_count']` from `dominant_ties`.
-34. Computes `output['planning_document_id']` from `context.document_id`.
-35. Computes `output['planning_document_type']` from `context.document_type`.
-36. Computes `output['planning_archive_name']` from `context.archive_name`.
-37. Computes `output['planning_archive_sha256']` from `context.archive_sha256`.
-38. Computes `output['planning_source_layer']` from `context.source_layer`.
-39. Computes `output['planning_standard_model']` from `context.standard_model`.
-40. Returns `output`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not work.empty` is true.
-- Rejects or diverts the path when `not isfinite(union_area) or union_area < 0` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not work.empty`.
+- Guard with a raise path: `not isfinite(union_area) or union_area < 0`.
+- Explicit raise expressions: `PlanningZoningError('GPU zoning covered-union area must be finite and non-negative')`, `PlanningZoningError('GPU zoning covered-union calculation failed')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `parcel_areas.copy`, `parcels.copy`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `_stabilize_area_relationships`, `areas.max`, `areas.sum`, `group['_intersection_geometry'].to_numpy`, `group['intersection_area_m2'].to_numpy`, `metric_parcels['_parcel_area_m2'].to_numpy`, `parcel_areas.copy`, `shapely_area`.
+- Hashing: `shapely_area`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `area_match_count[position]`, `covered_union[position]`, `dominant_area[position]`, `dominant_label[position]`, `dominant_long_label[position]`, `dominant_planning[position]`, `dominant_share[position]`, `dominant_source[position]`, `dominant_ties[position]`, `dominant_type[position]`, `gap[position]`, `output['dominant_planning_zone_id']`, `output['dominant_source_zone_id']`, `output['dominant_zone_intersection_area_m2']`, `output['dominant_zone_label_raw']`, `output['dominant_zone_long_label_raw']`, `output['dominant_zone_share_pct']`, `output['dominant_zone_tie_count']`, `output['dominant_zone_type_raw']`, `output['planning_archive_name']`, `output['planning_archive_sha256']`, `output['planning_document_id']`, `output['planning_document_type']`, `output['planning_source_layer']`, `output['planning_standard_model']`, `output['zoning_area_match_count']`, `output['zoning_coverage_pct']`, `output['zoning_covered_union_area_m2']`, `output['zoning_gap_area_m2']`, `output['zoning_intersection_area_sum_m2']`, `output['zoning_overlap_excess_area_m2']`, `output['zoning_touch_only_count']`, `overlap_excess[position]`, `raw_sum[position]`, `touch_count[int(position)]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningZoningError`, `_stabilize_area_relationships`, `areas.max`, `areas.sum`, `float`, `group['_intersection_geometry'].to_numpy`, `group['intersection_area_m2'].to_numpy`, `int`, `isfinite`, `len`, `metric_parcels['_parcel_area_m2'].to_numpy`, `np.full`, `np.where`, `np.zeros`, `parcel_areas.copy`, `parcels.copy`, `pd.array`, `positive.groupby`, `shapely_area`, `tied.sort_values`, `touches.groupby`, `union_all`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_aggregate_frames` via `_parcel_summary`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_parcel_summary`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `intersect_parcels_with_gpu_zoning`
+```python
+def _parcel_summary(
+    parcels: gpd.GeoDataFrame,
+    metric_parcels: gpd.GeoDataFrame,
+    zones: gpd.GeoDataFrame,
+    work: pd.DataFrame,
+    context: _PlanningContext,
+) -> gpd.GeoDataFrame:
+    count = len(parcels)
+    parcel_areas = metric_parcels["_parcel_area_m2"].to_numpy(
+        dtype="float64", copy=True
+    )
+    area_match_count = np.zeros(count, dtype="int64")
+    touch_count = np.zeros(count, dtype="int64")
+    raw_sum = np.zeros(count, dtype="float64")
+    covered_union = np.zeros(count, dtype="float64")
+    gap = parcel_areas.copy()
+    overlap_excess = np.zeros(count, dtype="float64")
 
-**Tests**
+    dominant_planning = np.full(count, None, dtype="object")
+    dominant_source = np.full(count, None, dtype="object")
+    dominant_type = np.full(count, None, dtype="object")
+    dominant_label = np.full(count, None, dtype="object")
+    dominant_long_label = np.full(count, None, dtype="object")
+    dominant_area = np.full(count, np.nan, dtype="float64")
+    dominant_share = np.full(count, np.nan, dtype="float64")
+    dominant_ties = pd.array([pd.NA] * count, dtype="Int64")
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    if not work.empty:
+        touches = work.loc[work["relation_type"] == "TOUCH_ONLY"]
+        for position, group in touches.groupby("_parcel_position", sort=False):
+            touch_count[int(position)] = len(group)
 
-**Business interpretation**
+        positive = work.loc[work["relation_type"] == "AREA_OVERLAP"]
+        for position_value, group in positive.groupby("_parcel_position", sort=False):
+            position = int(position_value)
+            areas = group["intersection_area_m2"].to_numpy(dtype="float64")
+            area_match_count[position] = len(group)
+            raw_area = float(areas.sum())
+            raw_sum[position] = raw_area
+            try:
+                union_area = float(
+                    shapely_area(
+                        union_all(group["_intersection_geometry"].to_numpy())
+                    )
+                )
+            except Exception as error:
+                raise PlanningZoningError(
+                    "GPU zoning covered-union calculation failed"
+                ) from error
+            if not isfinite(union_area) or union_area < 0:
+                raise PlanningZoningError(
+                    "GPU zoning covered-union area must be finite and non-negative"
+                )
+            union_area, parcel_gap, excess = _stabilize_area_relationships(
+                float(parcel_areas[position]), raw_area, union_area
+            )
+            covered_union[position] = union_area
+            gap[position] = parcel_gap
+            overlap_excess[position] = excess
 
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
+            maximum = float(areas.max())
+            tied = group.loc[group["intersection_area_m2"] == maximum]
+            selected = tied.sort_values("planning_zone_id", kind="stable").iloc[0]
+            dominant_planning[position] = selected["planning_zone_id"]
+            dominant_source[position] = selected["source_zone_id"]
+            dominant_type[position] = selected["zone_type_raw"]
+            dominant_label[position] = selected["zone_label_raw"]
+            dominant_long_label[position] = selected["zone_long_label_raw"]
+            dominant_area[position] = maximum
+            dominant_share[position] = 100.0 * maximum / parcel_areas[position]
+            dominant_ties[position] = len(tied)
 
-**Does NOT prove**
+    output = parcels.copy(deep=True)
+    output["zoning_area_match_count"] = area_match_count
+    output["zoning_touch_only_count"] = touch_count
+    output["zoning_intersection_area_sum_m2"] = raw_sum
+    output["zoning_covered_union_area_m2"] = covered_union
+    output["zoning_coverage_pct"] = np.where(
+        gap == 0.0,
+        100.0,
+        100.0 * covered_union / parcel_areas,
+    )
+    output["zoning_gap_area_m2"] = gap
+    output["zoning_overlap_excess_area_m2"] = overlap_excess
+    output["dominant_planning_zone_id"] = dominant_planning
+    output["dominant_source_zone_id"] = dominant_source
+    output["dominant_zone_type_raw"] = dominant_type
+    output["dominant_zone_label_raw"] = dominant_label
+    output["dominant_zone_long_label_raw"] = dominant_long_label
+    output["dominant_zone_intersection_area_m2"] = dominant_area
+    output["dominant_zone_share_pct"] = dominant_share
+    output["dominant_zone_tie_count"] = dominant_ties
+    output["planning_document_id"] = context.document_id
+    output["planning_document_type"] = context.document_type
+    output["planning_archive_name"] = context.archive_name
+    output["planning_archive_sha256"] = context.archive_sha256
+    output["planning_source_layer"] = context.source_layer
+    output["planning_standard_model"] = context.standard_model
+    return output
+```
+
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_numeric_columns`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_numeric_columns(
@@ -1252,61 +1729,75 @@ def _validate_numeric_columns(
 
 **Purpose**
 
-Validates and rejects malformed numeric columns according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent numeric columns; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `columns` (`tuple[str, ...] | frozenset[str]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `allow_null` (`bool`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Iterates `column` over `columns`. For each value: Checks `column not in frame.columns`. When true: Raises `PlanningZoningError(f'{label} is missing numeric column: {column}')`. Iterates `value` over `frame[column].tolist()`. For each value: Checks `pd.isna(value)`. When true: Checks `allow_null`. When true: Executes `continue` control flow. Raises `PlanningZoningError(f'{label} {column} must not be null')`. Checks `isinstance(value, bool) or not isinstance(value, Real)`. When true: Raises `PlanningZoningError(f'{label} {column} must be numeric')`. Runs guarded operation: Computes `numeric` from `float(value)`. Handles `(TypeError, ValueError, OverflowError)`. Executes 1 additional source-ordered statement(s).
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `column not in frame.columns` is true.
-- Rejects or diverts the path when `pd.isna(value)` is true.
-- Rejects or diverts the path when `isinstance(value, bool) or not isinstance(value, Real)` is true.
-- Rejects or diverts the path when `not isfinite(numeric) or numeric < 0` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `column not in frame.columns`.
+- Guard with a raise path: `pd.isna(value)`.
+- Guard with a raise path: `isinstance(value, bool) or not isinstance(value, Real)`.
+- Guard with a raise path: `not isfinite(numeric) or numeric < 0`.
+- Explicit raise expressions: `PlanningZoningError(f'{label} is missing numeric column: {column}')`, `PlanningZoningError(f'{label} {column} must be finite and non-negative')`, `PlanningZoningError(f'{label} {column} must be finite')`, `PlanningZoningError(f'{label} {column} must be numeric')`, `PlanningZoningError(f'{label} {column} must not be null')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningZoningError`, `float`, `frame[column].tolist`, `isfinite`, `isinstance`, `pd.isna`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::_validate_result` via `_validate_numeric_columns`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `_validate_result`
+```python
+def _validate_numeric_columns(
+    frame: pd.DataFrame,
+    columns: tuple[str, ...] | frozenset[str],
+    label: str,
+    *,
+    allow_null: bool,
+) -> None:
+    for column in columns:
+        if column not in frame.columns:
+            raise PlanningZoningError(f"{label} is missing numeric column: {column}")
+        for value in frame[column].tolist():
+            if pd.isna(value):
+                if allow_null:
+                    continue
+                raise PlanningZoningError(f"{label} {column} must not be null")
+            if isinstance(value, bool) or not isinstance(value, Real):
+                raise PlanningZoningError(f"{label} {column} must be numeric")
+            try:
+                numeric = float(value)
+            except (TypeError, ValueError, OverflowError) as error:
+                raise PlanningZoningError(
+                    f"{label} {column} must be finite"
+                ) from error
+            if not isfinite(numeric) or numeric < 0:
+                raise PlanningZoningError(
+                    f"{label} {column} must be finite and non-negative"
+                )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_validate_result`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _validate_result(
@@ -1317,87 +1808,139 @@ def _validate_result(
 
 **Purpose**
 
-Validates and rejects malformed result according to the exact implementation and guards in this file.
+Rejects malformed or inconsistent result; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `input_parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `result` (`ParcelZoningResult`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `output` from `result.parcels`.
-2. Checks `len(output) != len(input_parcels)`. When true: Raises `PlanningZoningError('Parcel zoning output count changed')`.
-3. Checks `output['parcel_id'].tolist() != input_parcels['parcel_id'].tolist()`. When true: Raises `PlanningZoningError('Parcel zoning output IDs or order changed')`.
-4. Checks `not output.index.equals(input_parcels.index)`. When true: Raises `PlanningZoningError('Parcel zoning output index changed')`.
-5. Checks `output.crs != input_parcels.crs`. When true: Raises `PlanningZoningError('Parcel zoning output CRS changed')`.
-6. Checks `not np.array_equal(output.geometry.to_wkb(), input_parcels.geometry.to_wkb())`. When true: Raises `PlanningZoningError('Parcel zoning output geometry changed')`.
-7. Checks `not CRS.from_user_input(result.zones.crs).equals(CRS.from_epsg(2154))`. When true: Raises `PlanningZoningError('Normalized zones must use EPSG:2154')`.
-8. Calls `_validate_exact_string_ids(result.zones['planning_zone_id'], 'planning_zone_id', require_unique=True)` for its validation or side effect.
-9. Calls `_validate_numeric_columns(result.zones, ('zone_area_m2',), 'Normalized zone', allow_null=False)` for its validation or side effect.
-10. Computes `intersections` from `result.intersections`.
-11. Computes `missing` from `sorted(set(INTERSECTION_COLUMNS) - set(intersections.columns))`.
-12. Checks `missing`. When true: Raises `PlanningZoningError('Intersection table is missing columns: ' + ', '.join(missing))`.
-13. Checks `intersections.duplicated(['parcel_id', 'planning_zone_id']).any()`. When true: Raises `PlanningZoningError('Parcel/zone intersection pairs must be unique')`.
-14. Checks `not set(intersections['parcel_id']).issubset(set(output['parcel_id']))`. When true: Raises `PlanningZoningError('Intersection table contains an unknown parcel ID')`.
-15. Checks `not set(intersections['planning_zone_id']).issubset(set(result.zones['planning_zone_id']))`. When true: Raises `PlanningZoningError('Intersection table contains an unknown zone ID')`.
-16. Checks `not set(intersections['relation_type']).issubset(RELATION_TYPES)`. When true: Raises `PlanningZoningError('Intersection table has an unknown relation type')`.
-17. Calls `_validate_numeric_columns(intersections, _INTERSECTION_FLOAT_COLUMNS, 'Intersection table', allow_null=False)` for its validation or side effect.
-18. Computes `required_summary` from `('zoning_area_match_count', 'zoning_touch_only_count', 'zoning_intersection_area_sum_m2', 'zoning_covered_union_area_m2', 'zoning_coverage_pct', 'zoning_gap_area_m2', 'zoning_overlap_excess_area_m2')`.
-19. Calls `_validate_numeric_columns(output, required_summary, 'Parcel zoning', allow_null=False)` for its validation or side effect.
-20. Computes `coverage` from `output['zoning_coverage_pct'].to_numpy(dtype='float64')`.
-21. Checks `(coverage > 100.0).any()`. When true: Raises `PlanningZoningError('Parcel zoning coverage must not exceed 100 percent')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(output) != len(input_parcels)` is true.
-- Rejects or diverts the path when `output['parcel_id'].tolist() != input_parcels['parcel_id'].tolist()` is true.
-- Rejects or diverts the path when `not output.index.equals(input_parcels.index)` is true.
-- Rejects or diverts the path when `output.crs != input_parcels.crs` is true.
-- Rejects or diverts the path when `not np.array_equal(output.geometry.to_wkb(), input_parcels.geometry.to_wkb())` is true.
-- Rejects or diverts the path when `not CRS.from_user_input(result.zones.crs).equals(CRS.from_epsg(2154))` is true.
-- Rejects or diverts the path when `missing` is true.
-- Rejects or diverts the path when `intersections.duplicated(['parcel_id', 'planning_zone_id']).any()` is true.
-- Rejects or diverts the path when `not set(intersections['parcel_id']).issubset(set(output['parcel_id']))` is true.
-- Rejects or diverts the path when `not set(intersections['planning_zone_id']).issubset(set(result.zones['planning_zone_id']))` is true.
-- Rejects or diverts the path when `not set(intersections['relation_type']).issubset(RELATION_TYPES)` is true.
-- Rejects or diverts the path when `(coverage > 100.0).any()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(output) != len(input_parcels)`.
+- Guard with a raise path: `output['parcel_id'].tolist() != input_parcels['parcel_id'].tolist()`.
+- Guard with a raise path: `not output.index.equals(input_parcels.index)`.
+- Guard with a raise path: `output.crs != input_parcels.crs`.
+- Guard with a raise path: `not np.array_equal(output.geometry.to_wkb(), input_parcels.geometry.to_wkb())`.
+- Guard with a raise path: `not CRS.from_user_input(result.zones.crs).equals(CRS.from_epsg(2154))`.
+- Guard with a raise path: `missing`.
+- Guard with a raise path: `intersections.duplicated(['parcel_id', 'planning_zone_id']).any()`.
+- Guard with a raise path: `not set(intersections['parcel_id']).issubset(set(output['parcel_id']))`.
+- Guard with a raise path: `not set(intersections['planning_zone_id']).issubset(set(result.zones['planning_zone_id']))`.
+- Guard with a raise path: `not set(intersections['relation_type']).issubset(RELATION_TYPES)`.
+- Guard with a raise path: `(coverage > 100.0).any()`.
+- Explicit raise expressions: `PlanningZoningError('Intersection table contains an unknown parcel ID')`, `PlanningZoningError('Intersection table contains an unknown zone ID')`, `PlanningZoningError('Intersection table has an unknown relation type')`, `PlanningZoningError('Intersection table is missing columns: ' + ', '.join(missing))`, `PlanningZoningError('Normalized zones must use EPSG:2154')`, `PlanningZoningError('Parcel zoning coverage must not exceed 100 percent')`, `PlanningZoningError('Parcel zoning output CRS changed')`, `PlanningZoningError('Parcel zoning output IDs or order changed')`, `PlanningZoningError('Parcel zoning output count changed')`, `PlanningZoningError('Parcel zoning output geometry changed')`, `PlanningZoningError('Parcel zoning output index changed')`, `PlanningZoningError('Parcel/zone intersection pairs must be unique')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `input_parcels.geometry.to_wkb`, `intersections.duplicated`, `intersections.duplicated(['parcel_id', 'planning_zone_id']).any`, `output.geometry.to_wkb`, `set(intersections['parcel_id']).issubset`, `set(intersections['planning_zone_id']).issubset`, `set(intersections['relation_type']).issubset`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `', '.join`, `(coverage > 100.0).any`, `CRS.from_epsg`, `CRS.from_user_input`, `CRS.from_user_input(result.zones.crs).equals`, `PlanningZoningError`, `_validate_exact_string_ids`, `_validate_numeric_columns`, `input_parcels.geometry.to_wkb`, `input_parcels['parcel_id'].tolist`, `intersections.duplicated`, `intersections.duplicated(['parcel_id', 'planning_zone_id']).any`, `len`, `np.array_equal`, `output.geometry.to_wkb`, `output.index.equals`, `output['parcel_id'].tolist`, `output['zoning_coverage_pct'].to_numpy`, `set`, `set(intersections['parcel_id']).issubset`, `set(intersections['planning_zone_id']).issubset`, `set(intersections['relation_type']).issubset`, `sorted`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::intersect_parcels_with_gpu_planning_features` via `_validate_result`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::intersect_parcels_with_gpu_zoning` via `_validate_result`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_strict_relation_integer_counts_are_enforced` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_strict_parcel_summary_integer_counts_are_enforced` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_corrupted_relation_semantics_are_rejected` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_point_member_relation_semantics_are_exact` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_relation_must_match_feature_catalog` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_feature_ids_are_globally_unique_across_catalogs` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_corrupted_parcel_summary_is_rejected` via `_validate_result`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_corrupted_surface_union_contract_is_rejected` via `_validate_result`.
+- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.stages.enrich_planning_features import (
+    ParcelPlanningFeaturesResult,
+    PlanningFeatureInputValidation,
+    PlanningFeaturesError,
+    _validate_result,
+    intersect_parcels_with_gpu_planning_features,
+    validate_normalized_planning_feature_inputs,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `intersect_parcels_with_gpu_zoning`
+```python
+def _validate_result(
+    input_parcels: gpd.GeoDataFrame,
+    result: ParcelZoningResult,
+) -> None:
+    output = result.parcels
+    if len(output) != len(input_parcels):
+        raise PlanningZoningError("Parcel zoning output count changed")
+    if output["parcel_id"].tolist() != input_parcels["parcel_id"].tolist():
+        raise PlanningZoningError("Parcel zoning output IDs or order changed")
+    if not output.index.equals(input_parcels.index):
+        raise PlanningZoningError("Parcel zoning output index changed")
+    if output.crs != input_parcels.crs:
+        raise PlanningZoningError("Parcel zoning output CRS changed")
+    if not np.array_equal(
+        output.geometry.to_wkb(), input_parcels.geometry.to_wkb()
+    ):
+        raise PlanningZoningError("Parcel zoning output geometry changed")
 
-**Tests**
+    if not CRS.from_user_input(result.zones.crs).equals(CRS.from_epsg(2154)):
+        raise PlanningZoningError("Normalized zones must use EPSG:2154")
+    _validate_exact_string_ids(
+        result.zones["planning_zone_id"],
+        "planning_zone_id",
+        require_unique=True,
+    )
+    _validate_numeric_columns(
+        result.zones, ("zone_area_m2",), "Normalized zone", allow_null=False
+    )
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+    intersections = result.intersections
+    missing = sorted(set(INTERSECTION_COLUMNS) - set(intersections.columns))
+    if missing:
+        raise PlanningZoningError(
+            "Intersection table is missing columns: " + ", ".join(missing)
+        )
+    if intersections.duplicated(["parcel_id", "planning_zone_id"]).any():
+        raise PlanningZoningError("Parcel/zone intersection pairs must be unique")
+    if not set(intersections["parcel_id"]).issubset(set(output["parcel_id"])):
+        raise PlanningZoningError("Intersection table contains an unknown parcel ID")
+    if not set(intersections["planning_zone_id"]).issubset(
+        set(result.zones["planning_zone_id"])
+    ):
+        raise PlanningZoningError("Intersection table contains an unknown zone ID")
+    if not set(intersections["relation_type"]).issubset(RELATION_TYPES):
+        raise PlanningZoningError("Intersection table has an unknown relation type")
+    _validate_numeric_columns(
+        intersections,
+        _INTERSECTION_FLOAT_COLUMNS,
+        "Intersection table",
+        allow_null=False,
+    )
 
-**Business interpretation**
+    required_summary = (
+        "zoning_area_match_count",
+        "zoning_touch_only_count",
+        "zoning_intersection_area_sum_m2",
+        "zoning_covered_union_area_m2",
+        "zoning_coverage_pct",
+        "zoning_gap_area_m2",
+        "zoning_overlap_excess_area_m2",
+    )
+    _validate_numeric_columns(output, required_summary, "Parcel zoning", allow_null=False)
+    coverage = output["zoning_coverage_pct"].to_numpy(dtype="float64")
+    if (coverage > 100.0).any():
+        raise PlanningZoningError("Parcel zoning coverage must not exceed 100 percent")
+```
 
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_compare_exact_frame`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _compare_exact_frame(
@@ -1409,62 +1952,85 @@ def _compare_exact_frame(
 
 **Purpose**
 
-Compares exact frame according to the exact implementation and guards in this file.
+Private `planning` helper for compare exact frame; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `supplied` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `expected` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Runs guarded operation: Checks `type(supplied) is not type(expected)`. When true: Raises `PlanningZoningError(f'{label} frame type differs from reconstruction')`. Checks `deterministic_frame_schema_signature(supplied) != deterministic_frame_schema_signature(expected)`. When true: Raises `PlanningZoningError(f'{label} schema differs from reconstruction')`. Checks `isinstance(expected, gpd.GeoDataFrame)`. When true: Computes `geometry_column` from `expected.geometry.name`. Computes `attributes` from `[column for column in expected.columns if column != geometry_column]`. Checks `not supplied[attributes].equals(expected[attributes])`. When true: Raises `PlanningZoningError(f'{label} values or row order differ from reconstruction')`. Executes 1 additional source-ordered statement(s). Otherwise: Checks `not supplied.equals(expected)`. When true: Raises `PlanningZoningError(f'{label} values or row order differ from reconstruction')`. Handles `PlanningZoningError`, `Exception`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `type(supplied) is not type(expected)` is true.
-- Rejects or diverts the path when `deterministic_frame_schema_signature(supplied) != deterministic_frame_schema_signature(expected)` is true.
-- Rejects or diverts the path when `isinstance(expected, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `not supplied[attributes].equals(expected[attributes])` is true.
-- Rejects or diverts the path when `supplied.geometry.to_wkb().tolist() != expected.geometry.to_wkb().tolist()` is true.
-- Rejects or diverts the path when `not supplied.equals(expected)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `type(supplied) is not type(expected)`.
+- Guard with a raise path: `deterministic_frame_schema_signature(supplied) != deterministic_frame_schema_signature(expected)`.
+- Guard with a raise path: `isinstance(expected, gpd.GeoDataFrame)`.
+- Guard with a raise path: `not supplied[attributes].equals(expected[attributes])`.
+- Guard with a raise path: `supplied.geometry.to_wkb().tolist() != expected.geometry.to_wkb().tolist()`.
+- Guard with a raise path: `not supplied.equals(expected)`.
+- Explicit raise expressions: `PlanningZoningError(f'{label} cannot be compared safely with its reconstruction')`, `PlanningZoningError(f'{label} frame type differs from reconstruction')`, `PlanningZoningError(f'{label} geometry or row order differs from reconstruction')`, `PlanningZoningError(f'{label} schema differs from reconstruction')`, `PlanningZoningError(f'{label} values or row order differ from reconstruction')`, `re-raise`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `expected.geometry.to_wkb`, `expected.geometry.to_wkb().tolist`, `supplied.geometry.to_wkb`, `supplied.geometry.to_wkb().tolist`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningZoningError`, `deterministic_frame_schema_signature`, `expected.geometry.to_wkb`, `expected.geometry.to_wkb().tolist`, `isinstance`, `supplied.equals`, `supplied.geometry.to_wkb`, `supplied.geometry.to_wkb().tolist`, `supplied[attributes].equals`, `type`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::validate_normalized_planning_zoning_inputs` via `_compare_exact_frame`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `validate_normalized_planning_zoning_inputs`
+```python
+def _compare_exact_frame(
+    supplied: pd.DataFrame,
+    expected: pd.DataFrame,
+    label: str,
+) -> None:
+    try:
+        if type(supplied) is not type(expected):
+            raise PlanningZoningError(f"{label} frame type differs from reconstruction")
+        if deterministic_frame_schema_signature(
+            supplied
+        ) != deterministic_frame_schema_signature(expected):
+            raise PlanningZoningError(f"{label} schema differs from reconstruction")
+        if isinstance(expected, gpd.GeoDataFrame):
+            geometry_column = expected.geometry.name
+            attributes = [
+                column for column in expected.columns if column != geometry_column
+            ]
+            if not supplied[attributes].equals(expected[attributes]):
+                raise PlanningZoningError(
+                    f"{label} values or row order differ from reconstruction"
+                )
+            if supplied.geometry.to_wkb().tolist() != expected.geometry.to_wkb().tolist():
+                raise PlanningZoningError(
+                    f"{label} geometry or row order differs from reconstruction"
+                )
+        elif not supplied.equals(expected):
+            raise PlanningZoningError(
+                f"{label} values or row order differ from reconstruction"
+            )
+    except PlanningZoningError:
+        raise
+    except Exception as error:
+        raise PlanningZoningError(
+            f"{label} cannot be compared safely with its reconstruction"
+        ) from error
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `validate_normalized_planning_zoning_inputs`
 
-**Signature**
+**Exact signature**
 
 ```python
 def validate_normalized_planning_zoning_inputs(
@@ -1479,70 +2045,142 @@ def validate_normalized_planning_zoning_inputs(
 
 Prove normalized zoning facts against a freshly read physical GPU layer.
 
-**Inputs**
+**Return contract**
 
-- `planning_document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zones` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zoning_intersections` (`pd.DataFrame`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Runs guarded operation: Checks `type(planning_document) is not GpuPlanningDocument`. When true: Raises `PlanningZoningError('planning_document must be exactly a GpuPlanningDocument')`. Checks `not isinstance(parcels, gpd.GeoDataFrame)`. When true: Raises `PlanningZoningError('Zoning parcels must be a GeoDataFrame')`. Checks `not isinstance(zones, gpd.GeoDataFrame)`. When true: Raises `PlanningZoningError('Normalized zones must be a GeoDataFrame')`. Checks `not isinstance(zoning_intersections, pd.DataFrame) or isinstance(zoning_intersections, gpd.GeoDataFrame)`. When true: Raises `PlanningZoningError('Zoning intersections must be a non-geospatial DataFrame')`. Executes 11 additional source-ordered statement(s). Handles `PlanningZoningError`, `GpuSpatialInspectionError`, `Exception`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `type(planning_document) is not GpuPlanningDocument` is true.
-- Rejects or diverts the path when `not isinstance(parcels, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `not isinstance(zones, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `not isinstance(zoning_intersections, pd.DataFrame) or isinstance(zoning_intersections, gpd.GeoDataFrame)` is true.
-- Rejects or diverts the path when `len(validated_sources) != 1 or validated_sources[0].logical_name != 'zoning'` is true.
-- Rejects or diverts the path when `not parcels.index.equals(expected.parcels.index)` is true.
-- Rejects or diverts the path when `str(supplied.dtype) != str(rebuilt.dtype) or not supplied.equals(rebuilt)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PlanningZoningError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `type(planning_document) is not GpuPlanningDocument`.
+- Guard with a raise path: `not isinstance(parcels, gpd.GeoDataFrame)`.
+- Guard with a raise path: `not isinstance(zones, gpd.GeoDataFrame)`.
+- Guard with a raise path: `not isinstance(zoning_intersections, pd.DataFrame) or isinstance(zoning_intersections, gpd.GeoDataFrame)`.
+- Guard with a raise path: `len(validated_sources) != 1 or validated_sources[0].logical_name != 'zoning'`.
+- Guard with a raise path: `not parcels.index.equals(expected.parcels.index)`.
+- Guard with a raise path: `str(supplied.dtype) != str(rebuilt.dtype) or not supplied.equals(rebuilt)`.
+- Explicit raise expressions: `PlanningZoningError('Normalized planning zoning inputs cannot be validated safely')`, `PlanningZoningError('Normalized zones must be a GeoDataFrame')`, `PlanningZoningError('Parcel zoning index differs from spatial reconstruction')`, `PlanningZoningError('Physical GPU zoning source failed revalidation')`, `PlanningZoningError('Physical GPU zoning validation returned an invalid layer')`, `PlanningZoningError('Zoning intersections must be a non-geospatial DataFrame')`, `PlanningZoningError('Zoning parcels must be a GeoDataFrame')`, `PlanningZoningError('planning_document must be exactly a GpuPlanningDocument')`, `PlanningZoningError(f'Parcel zoning summary differs from reconstruction: {column}')`, `re-raise`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `parcels.drop(columns=list(present_summary_columns)).copy`, `replace`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `PlanningZoningError`, `_compare_exact_frame`, `intersect_parcels_with_gpu_zoning`, `isinstance`, `len`, `list`, `parcels.drop`, `parcels.drop(columns=list(present_summary_columns)).copy`, `parcels.index.equals`, `replace`, `revalidate_gpu_spatial_layer_sources`, `str`, `supplied.equals`, `tuple`, `type`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+    intersect_parcels_with_gpu_zoning,
+    validate_normalized_planning_zoning_inputs,
+)`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::validate_bess_zoning_precheck` via `validate_normalized_planning_zoning_inputs`.
+- direct call or construction: `src/landscout/stages/interpret_bess_zoning.py::interpret_bess_zoning` via `validate_normalized_planning_zoning_inputs`.
+- import/re-export: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+    PlanningZoningError,
+    validate_normalized_planning_zoning_inputs,
+)`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_accepts_physical_fixture` via `validate_normalized_planning_zoning_inputs`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_coordinated_mutations` via `validate_normalized_planning_zoning_inputs`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_physical_tamper` via `validate_normalized_planning_zoning_inputs`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_revalidates_physical_source_once` via `validate_normalized_planning_zoning_inputs`.
+- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+    ParcelZoningResult,
+    PlanningZoningError,
+    _stabilize_area_relationships,
+    intersect_parcels_with_gpu_zoning,
+    validate_normalized_planning_zoning_inputs,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/interpret_bess_zoning.py` — `interpret_bess_zoning`
-- `src/landscout/stages/interpret_bess_zoning.py` — `validate_bess_zoning_precheck`
-- `tests/unit/test_enrich_planning_zoning.py` — `test_source_complete_zoning_validation_accepts_physical_fixture`
-- `tests/unit/test_enrich_planning_zoning.py` — `test_source_complete_zoning_validation_rejects_coordinated_mutations`
-- `tests/unit/test_enrich_planning_zoning.py` — `test_source_complete_zoning_validation_rejects_physical_tamper`
-- `tests/unit/test_enrich_planning_zoning.py` — `test_source_complete_zoning_validation_revalidates_physical_source_once`
+```python
+def validate_normalized_planning_zoning_inputs(
+    planning_document: GpuPlanningDocument,
+    parcels: gpd.GeoDataFrame,
+    zones: gpd.GeoDataFrame,
+    zoning_intersections: pd.DataFrame,
+) -> None:
+    """Prove normalized zoning facts against a freshly read physical GPU layer."""
 
-**Tests**
+    try:
+        if type(planning_document) is not GpuPlanningDocument:
+            raise PlanningZoningError(
+                "planning_document must be exactly a GpuPlanningDocument"
+            )
+        if not isinstance(parcels, gpd.GeoDataFrame):
+            raise PlanningZoningError("Zoning parcels must be a GeoDataFrame")
+        if not isinstance(zones, gpd.GeoDataFrame):
+            raise PlanningZoningError("Normalized zones must be a GeoDataFrame")
+        if not isinstance(zoning_intersections, pd.DataFrame) or isinstance(
+            zoning_intersections, gpd.GeoDataFrame
+        ):
+            raise PlanningZoningError(
+                "Zoning intersections must be a non-geospatial DataFrame"
+            )
+        validated_sources = revalidate_gpu_spatial_layer_sources(
+            planning_document,
+            (planning_document.zoning,),
+        )
+        if len(validated_sources) != 1 or (
+            validated_sources[0].logical_name != "zoning"
+        ):
+            raise PlanningZoningError(
+                "Physical GPU zoning validation returned an invalid layer"
+            )
+        fresh_zoning = replace(
+            planning_document.zoning,
+            data=validated_sources[0].data,
+        )
+        fresh_document = replace(planning_document, zoning=fresh_zoning)
+        present_summary_columns = tuple(
+            column for column in PARCEL_ZONING_OUTPUT_COLUMNS if column in parcels.columns
+        )
+        source_parcels = parcels.drop(columns=list(present_summary_columns)).copy()
+        expected = intersect_parcels_with_gpu_zoning(
+            source_parcels,
+            fresh_document,
+        )
+        _compare_exact_frame(zones, expected.zones, "Normalized zoning catalog")
+        _compare_exact_frame(
+            zoning_intersections,
+            expected.intersections,
+            "Parcel/zoning intersections",
+        )
+        if not parcels.index.equals(expected.parcels.index):
+            raise PlanningZoningError(
+                "Parcel zoning index differs from spatial reconstruction"
+            )
+        for column in present_summary_columns:
+            supplied = parcels[column]
+            rebuilt = expected.parcels[column]
+            if str(supplied.dtype) != str(rebuilt.dtype) or not supplied.equals(rebuilt):
+                raise PlanningZoningError(
+                    f"Parcel zoning summary differs from reconstruction: {column}"
+                )
+    except PlanningZoningError:
+        raise
+    except GpuSpatialInspectionError as error:
+        raise PlanningZoningError(
+            "Physical GPU zoning source failed revalidation"
+        ) from error
+    except Exception as error:
+        raise PlanningZoningError(
+            "Normalized planning zoning inputs cannot be validated safely"
+        ) from error
+```
 
-- `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_accepts_physical_fixture`
-- `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_coordinated_mutations`
-- `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_physical_tamper`
-- `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_revalidates_physical_source_once`
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `intersect_parcels_with_gpu_zoning`
 
-**Signature**
+**Exact signature**
 
 ```python
 def intersect_parcels_with_gpu_zoning(
@@ -1555,151 +2193,308 @@ def intersect_parcels_with_gpu_zoning(
 
 Return factual parcel/zoning intersections without policy interpretation. Parcel storage geometry and CRS are preserved. Zoning normalization, overlay, area, and union calculations use planar XY geometry in EPSG:2154.
 
-**Inputs**
+**Return contract**
 
-- `parcels` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `planning_document` (`GpuPlanningDocument`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `ParcelZoningResult`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `ParcelZoningResult`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Calls `_validate_parcels(parcels)` for its validation or side effect.
-2. Computes `(context, source_zones)` from `_validate_planning_document(planning_document)`.
-3. Computes `zones` from `_normalize_zones(source_zones, context)`.
-4. Computes `metric_parcels` from `_metric_parcels(parcels)`.
-5. Computes `work` from `_candidate_intersections(metric_parcels, zones)`.
-6. Computes `parcel_output` from `_parcel_summary(parcels, metric_parcels, zones, work, context)`.
-7. Computes `intersections` from `_empty_intersections() if work.empty else work.loc[:, INTERSECTION_COLUMNS].reset_index(drop=True)`.
-8. Computes `result` from `ParcelZoningResult(parcels=parcel_output, zones=zones, intersections=intersections)`.
-9. Calls `_validate_result(parcels, result)` for its validation or side effect.
-10. Returns `result`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `_candidate_intersections`, `_empty_intersections`, `work.loc[:, INTERSECTION_COLUMNS].reset_index`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ParcelZoningResult`, `_candidate_intersections`, `_empty_intersections`, `_metric_parcels`, `_normalize_zones`, `_parcel_summary`, `_validate_parcels`, `_validate_planning_document`, `_validate_result`, `work.loc[:, INTERSECTION_COLUMNS].reset_index`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+    intersect_parcels_with_gpu_zoning,
+    validate_normalized_planning_zoning_inputs,
+)`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::validate_normalized_planning_zoning_inputs` via `intersect_parcels_with_gpu_zoning`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::_run` via `intersect_parcels_with_gpu_zoning`.
+- property/attribute access: `tests/unit/test_enrich_planning_zoning.py::test_clean_high_level_api_is_exported` via `stages.intersect_parcels_with_gpu_zoning`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_zoning_summary_lineage_and_count_must_match_bundle` via `intersect_parcels_with_gpu_zoning`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_input_frames_are_not_mutated` via `intersect_parcels_with_gpu_zoning`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_accepts_physical_fixture` via `intersect_parcels_with_gpu_zoning`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_coordinated_mutations` via `intersect_parcels_with_gpu_zoning`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_physical_tamper` via `intersect_parcels_with_gpu_zoning`.
+- direct call or construction: `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_revalidates_physical_source_once` via `intersect_parcels_with_gpu_zoning`.
+- import/re-export: `tests/unit/test_enrich_planning_zoning.py::<module>` via `from landscout.stages.enrich_planning_zoning import (
+    ParcelZoningResult,
+    PlanningZoningError,
+    _stabilize_area_relationships,
+    intersect_parcels_with_gpu_zoning,
+    validate_normalized_planning_zoning_inputs,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/enrich_planning_zoning.py` — `validate_normalized_planning_zoning_inputs`
-- `tests/unit/test_enrich_planning_zoning.py` — `_run`
-- `tests/unit/test_enrich_planning_zoning.py` — `test_input_frames_are_not_mutated`
-- `tests/unit/test_enrich_planning_zoning.py` — `test_source_complete_zoning_validation_accepts_physical_fixture`
-- `tests/unit/test_enrich_planning_zoning.py` — `test_source_complete_zoning_validation_rejects_coordinated_mutations`
-- `tests/unit/test_enrich_planning_zoning.py` — `test_source_complete_zoning_validation_rejects_physical_tamper`
-- `tests/unit/test_enrich_planning_zoning.py` — `test_source_complete_zoning_validation_revalidates_physical_source_once`
-- `tests/unit/test_enrich_planning_zoning.py` — `test_zoning_summary_lineage_and_count_must_match_bundle`
+```python
+def intersect_parcels_with_gpu_zoning(
+    parcels: gpd.GeoDataFrame,
+    planning_document: GpuPlanningDocument,
+) -> ParcelZoningResult:
+    """Return factual parcel/zoning intersections without policy interpretation.
 
-**Tests**
+    Parcel storage geometry and CRS are preserved.  Zoning normalization,
+    overlay, area, and union calculations use planar XY geometry in EPSG:2154.
+    """
 
-- `tests/unit/test_enrich_planning_zoning.py::test_input_frames_are_not_mutated`
-- `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_accepts_physical_fixture`
-- `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_coordinated_mutations`
-- `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_rejects_physical_tamper`
-- `tests/unit/test_enrich_planning_zoning.py::test_source_complete_zoning_validation_revalidates_physical_source_once`
-- `tests/unit/test_enrich_planning_zoning.py::test_zoning_summary_lineage_and_count_must_match_bundle`
+    _validate_parcels(parcels)
+    context, source_zones = _validate_planning_document(planning_document)
+    zones = _normalize_zones(source_zones, context)
+    metric_parcels = _metric_parcels(parcels)
+    work = _candidate_intersections(metric_parcels, zones)
+    parcel_output = _parcel_summary(
+        parcels, metric_parcels, zones, work, context
+    )
+    intersections = (
+        _empty_intersections()
+        if work.empty
+        else work.loc[:, INTERSECTION_COLUMNS].reset_index(drop=True)
+    )
+    result = ParcelZoningResult(
+        parcels=parcel_output,
+        zones=zones,
+        intersections=intersections,
+    )
+    _validate_result(parcels, result)
+    return result
+```
 
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
+
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+### `GPU_ZONING_SOURCE_FIELDS` — required input frame fields (unordered when stored as a set)
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `_intersection_geometry` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `_parcel_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `_parcel_position` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `_zone_position` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `columns` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `dominant_planning_zone_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `dominant_source_zone_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `dominant_zone_intersection_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `dominant_zone_label_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `dominant_zone_long_label_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `dominant_zone_share_pct` | Logical dtype: float64. Nullability: determined by the owning schema/dtype map and explicit null guards. | percentage derived from the exact numerator/denominator named by its stage. Consumers and exact calculations are the functions that reference this column above. |
-| `dominant_zone_tie_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `dominant_zone_type_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `intersection_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `kind` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_metric_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_share_pct` | Logical dtype: float64. Nullability: determined by the owning schema/dtype map and explicit null guards. | percentage derived from the exact numerator/denominator named by its stage. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_archive_name` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_archive_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_document_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_document_type` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_source_layer` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_standard_model` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `planning_zone_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `regulation_filename_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `relation_type` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `source_archive_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `source_document_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `source_document_reference_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `source_layer` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_validity_date_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `source_zone_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `zone_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `zone_label_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `zone_long_label_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `zone_share_pct` | Logical dtype: float64. Nullability: determined by the owning schema/dtype map and explicit null guards. | percentage derived from the exact numerator/denominator named by its stage. Consumers and exact calculations are the functions that reference this column above. |
-| `zone_type_raw` | Logical dtype: source-preserving dtype. Nullability: source nulls preserved. | uninterpreted factual source value; normalization does not map it to suitability. Consumers and exact calculations are the functions that reference this column above. |
-| `zoning_area_match_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `zoning_coverage_pct` | Logical dtype: float64. Nullability: determined by the owning schema/dtype map and explicit null guards. | percentage derived from the exact numerator/denominator named by its stage. Consumers and exact calculations are the functions that reference this column above. |
-| `zoning_covered_union_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `zoning_gap_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `zoning_intersection_area_sum_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `zoning_overlap_excess_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `zoning_touch_only_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
+```python
+GPU_ZONING_SOURCE_FIELDS = {
+    "source_zone_id": "LIB_IDZONE",
+    "zone_label_raw": "LIBELLE",
+    "zone_long_label_raw": "LIBELONG",
+    "zone_type_raw": "TYPEZONE",
+    "regulation_filename_raw": "NOMFIC",
+    "regulation_url_raw": "URLFIC",
+    "source_document_reference_raw": "IDURBA",
+    "source_validity_date_raw": "DATVALID",
+}
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `source_zone_id` | LIB_IDZONE | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 2 | `zone_label_raw` | LIBELLE | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 3 | `zone_long_label_raw` | LIBELONG | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 4 | `zone_type_raw` | TYPEZONE | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 5 | `regulation_filename_raw` | NOMFIC | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 6 | `regulation_url_raw` | URLFIC | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 7 | `source_document_reference_raw` | IDURBA | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 8 | `source_validity_date_raw` | DATVALID | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+
+### `GPU_ZONING_REQUIRED_COLUMNS` — required input frame fields (unordered when stored as a set)
+
+```python
+GPU_ZONING_REQUIRED_COLUMNS = frozenset(
+    {*GPU_ZONING_SOURCE_FIELDS.values(), "geometry"}
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `DATVALID` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 2 | `IDURBA` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 3 | `LIBELLE` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `LIBELONG` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 5 | `LIB_IDZONE` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 6 | `NOMFIC` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 7 | `TYPEZONE` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `URLFIC` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 9 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
+
+### `PARCEL_REQUIRED_COLUMNS` — required input frame fields (unordered when stored as a set)
+
+```python
+PARCEL_REQUIRED_COLUMNS = frozenset({"parcel_id", "geometry"})
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `geometry` | GeoPandas geometry dtype | nullable only where the owning geometry-status contract permits it | source/geometry fact | Active geometry; never an authorization or suitability result. |
+| 2 | `parcel_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+
+### `PARCEL_ZONING_OUTPUT_COLUMNS` — canonical or derived frame-column schema
+
+```python
+PARCEL_ZONING_OUTPUT_COLUMNS = frozenset(
+    {
+        "zoning_area_match_count",
+        "zoning_touch_only_count",
+        "zoning_intersection_area_sum_m2",
+        "zoning_covered_union_area_m2",
+        "zoning_coverage_pct",
+        "zoning_gap_area_m2",
+        "zoning_overlap_excess_area_m2",
+        "dominant_planning_zone_id",
+        "dominant_source_zone_id",
+        "dominant_zone_type_raw",
+        "dominant_zone_label_raw",
+        "dominant_zone_long_label_raw",
+        "dominant_zone_intersection_area_m2",
+        "dominant_zone_share_pct",
+        "dominant_zone_tie_count",
+        "planning_document_id",
+        "planning_document_type",
+        "planning_archive_name",
+        "planning_archive_sha256",
+        "planning_source_layer",
+        "planning_standard_model",
+    }
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `dominant_planning_zone_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 2 | `dominant_source_zone_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 3 | `dominant_zone_intersection_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 4 | `dominant_zone_label_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 5 | `dominant_zone_long_label_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 6 | `dominant_zone_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 7 | `dominant_zone_tie_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 8 | `dominant_zone_type_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 9 | `planning_archive_name` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 10 | `planning_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 11 | `planning_document_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 12 | `planning_document_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 13 | `planning_source_layer` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 14 | `planning_standard_model` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 15 | `zoning_area_match_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 16 | `zoning_coverage_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 17 | `zoning_covered_union_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 18 | `zoning_gap_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 19 | `zoning_intersection_area_sum_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 20 | `zoning_overlap_excess_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 21 | `zoning_touch_only_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+
+### `INTERSECTION_COLUMNS` — canonical or derived frame-column schema
+
+```python
+INTERSECTION_COLUMNS = (
+    "parcel_id",
+    "planning_zone_id",
+    "source_zone_id",
+    "zone_type_raw",
+    "zone_label_raw",
+    "zone_long_label_raw",
+    "relation_type",
+    "parcel_metric_area_m2",
+    "zone_area_m2",
+    "intersection_area_m2",
+    "parcel_share_pct",
+    "zone_share_pct",
+    "source_document_id",
+    "source_archive_sha256",
+    "source_layer",
+    "source_validity_date_raw",
+    "regulation_filename_raw",
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `parcel_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 2 | `planning_zone_id` | source/build string dtype shown by the implementation | non-null for owning rows; nearest-match IDs may be null on no-match | identity | Identity for the named entity; portability/uniqueness are only those explicitly validated. |
+| 3 | `source_zone_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 4 | `zone_type_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 5 | `zone_label_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 6 | `zone_long_label_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 7 | `relation_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 8 | `parcel_metric_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 9 | `zone_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 10 | `intersection_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 11 | `parcel_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 12 | `zone_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 13 | `source_document_id` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 14 | `source_archive_sha256` | source/build string dtype (no cast is imposed by this declaration) | non-null where the owning lineage validator requires it | source lineage | Textual lineage; physical proof requires the corresponding byte/source revalidation boundary. |
+| 15 | `source_layer` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 16 | `source_validity_date_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+| 17 | `regulation_filename_raw` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+
+### `_INTERSECTION_FLOAT_COLUMNS` — canonical or derived frame-column schema
+
+```python
+_INTERSECTION_FLOAT_COLUMNS = frozenset(
+    {
+        "parcel_metric_area_m2",
+        "zone_area_m2",
+        "intersection_area_m2",
+        "parcel_share_pct",
+        "zone_share_pct",
+    }
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `intersection_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 2 | `parcel_metric_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 3 | `parcel_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 4 | `zone_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 5 | `zone_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+
+
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module defines an exact `__all__` contract:
+
+| Export | Kind | Origin | Included in `__all__` |
+|---|---|---|---|
+| `intersect_parcels_with_gpu_zoning` | re-exported/defined Python symbol | `defined in `src/landscout/stages/enrich_planning_zoning.py`` | yes |
+| `validate_normalized_planning_zoning_inputs` | re-exported/defined Python symbol | `defined in `src/landscout/stages/enrich_planning_zoning.py`` | yes |
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `planning` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the planning flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -1707,8 +2502,8 @@ This file contributes to LandScout's `planning` evidence flow as described by it
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

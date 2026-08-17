@@ -4,9 +4,7 @@
 
 - Repository path: `README.md`
 - File type: Markdown
-- Primary responsibility: Introduces LandScout's current evidence-first BESS scope and links to the detailed technical reference.
-- Layer / domain: `project metadata` / `project`
-- Public or internal role: Repository artifact; not a Python public API.
+- Responsibility: Introduces LandScout's current evidence-first BESS scope and links to the detailed technical reference.
 - Source SHA256: `356e0c4cc2a7c52bd798f4ce0d9b0d8230688d9a8298207eef3070e66a6d33bf`
 
 ## 1. Purpose
@@ -15,84 +13,92 @@ Introduces LandScout's current evidence-first BESS scope and links to the detail
 
 ## 2. Position in LandScout architecture
 
-This `project metadata` artifact supplies exact checked-in bytes to the current repository. Consumers found by exact path reference are: `docs/DEV_LOG.md`, `pyproject.toml`.
+This is human engineering documentation/history, consumed by engineers and repository documentation readers.
 
 ## 3. Imports and dependencies
 
-Not a Python module. Its consumers parse or interpret the bytes using the source/configuration functions identified by repository references and pipeline documentation.
+Not applicable: this is not Python source.
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-Exact non-blank content lines:
+Its exact content is reproduced below. No Python alias, frame column, model field, or runtime business semantic is inferred from passive text.
 
-- `# LandScout AI`
-- `LandScout AI is an evidence-first system for land origination and preliminary`
-- `site analysis. Development is currently BESS-first, with Muret serving as a`
-- `proving ground rather than the product's permanent geographic identity.`
-- `Implemented evidence foundations include cadastral parcels and shape screening,`
-- `IGN electricity-grid proxies, GPU/PLU zoning and CNIG planning features, IGN road`
-- `proxies and proximity, and official protected-area source acquisition. Source`
-- `snapshots, provenance, factual geometry, and unresolved evidence are preserved`
-- `so later decisions can be audited.`
-- `These outputs are preliminary evidence, not authorization. A mapped road does`
-- `not prove legal or heavy-vehicle access; mapped grid infrastructure does not`
-- `prove capacity or connection feasibility; planning prechecks are not permits;`
-- `and protected-area acquisition does not yet provide parcel-level environmental`
-- `semantics.`
-- `The project remains under active development. Final scoring, owner/contact`
-- `identification, delivery workflows, and autonomous production operation are not`
-- `yet complete.`
-- `## Technical documentation`
-- `See [the living file-by-file technical reference](docs/code/README.md).`
+````text
+# LandScout AI
+
+LandScout AI is an evidence-first system for land origination and preliminary
+site analysis. Development is currently BESS-first, with Muret serving as a
+proving ground rather than the product's permanent geographic identity.
+
+Implemented evidence foundations include cadastral parcels and shape screening,
+IGN electricity-grid proxies, GPU/PLU zoning and CNIG planning features, IGN road
+proxies and proximity, and official protected-area source acquisition. Source
+snapshots, provenance, factual geometry, and unresolved evidence are preserved
+so later decisions can be audited.
+
+These outputs are preliminary evidence, not authorization. A mapped road does
+not prove legal or heavy-vehicle access; mapped grid infrastructure does not
+prove capacity or connection feasibility; planning prechecks are not permits;
+and protected-area acquisition does not yet provide parcel-level environmental
+semantics.
+
+The project remains under active development. Final scoring, owner/contact
+identification, delivery workflows, and autonomous production operation are not
+yet complete.
+
+## Technical documentation
+
+See [the living file-by-file technical reference](docs/code/README.md).
+````
 
 ## 5. Classes / models / dataclasses
 
-Not applicable; this file declares no Python class.
+Not applicable.
 
 ## 6. Functions and methods
 
-Not applicable; this file declares no Python function or method.
+Not applicable.
 
 ## 7. Data contracts
 
-The exact byte-bound values or text lines above are the data contract for this file. Structured validators in consuming Python modules remain authoritative for types, nullability, allowed values, units, source provenance, calculations, and downstream semantics.
+Interpreted only as human engineering documentation/history by engineers and repository documentation readers; not a Pandas/GeoPandas schema.
 
 ## 8. Interfaces
 
-Direct literal-path consumers are listed above. Git, uv, Python, configuration loaders, documentation readers, or generated-data directory conventions consume project metadata according to the file type.
+Consumer: engineers and repository documentation readers.
 
 ## 9. Error handling
 
-This passive file raises no exception. Its consumers reject missing, malformed, unsupported, duplicate, semantically invalid, or stale content with their documented controlled errors.
+Not applicable to the passive file itself; its consumer reports malformed or unsupported content.
 
 ## 10. Side effects
 
-The file itself has no runtime side effect. A consumer may read it, resolve dependencies, configure tools, or use it as source/policy evidence; those effects belong to the consuming function.
+The passive file performs no operation. Reads/resolution belong to its named consumer.
 
 ## 11. Security / trust boundaries
 
-The SHA256 binds this documentation to exact bytes. Checked-in configuration identity is necessary but does not replace physical source/hash verification performed by source-complete adapters.
+The companion SHA binds exact bytes. No source authority is inferred unless a runtime adapter validates it.
 
 ## 12. GIS / CRS rules
 
-Only structured CRS fields listed above impose a GIS rule, and their consuming validators define it. Otherwise not applicable.
+Not applicable unless an exact configuration field in the reproduced content is consumed by a GIS validator.
 
 ## 13. Provenance rules
 
-Checked-in source locks, URLs, hashes, versions, profile IDs, and evidence references are textual provenance inputs. Their consuming code determines whether and how physical bytes are revalidated.
+The path and SHA identify this repository snapshot; passive prose/history is not implementation proof.
 
 ## 14. Business meaning
 
-This file supports the `project` domain only through its exact checked-in values and current consumers.
+No business decision is executed by this passive file.
 
 ## 15. Explicit non-goals
 
-- This project file does not implement a business algorithm.
+- Does not independently run a source adapter, GIS calculation, policy, score, ranking, or legal decision.
 
 ## 16. Tests
 
-Tests that load or mention this path are documented in their companion files. No test is inferred solely from the filename.
+Not applicable directly; repository/tool configuration may be exercised by the mandated validation commands.
 
 ## 17. Change impact
 
-Changing these bytes requires reviewing every consuming validator, source/policy/config hash, generated result or artifact lineage, affected tests, and this companion SHA256. Dependency-lock changes also require `uv lock --check` and `uv pip check`.
+Review engineers and repository documentation readers, repository workflows, and this companion SHA after any byte change.

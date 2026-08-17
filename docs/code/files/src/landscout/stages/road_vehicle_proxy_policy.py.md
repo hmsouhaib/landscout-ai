@@ -4,9 +4,9 @@
 
 - Repository path: `src/landscout/stages/road_vehicle_proxy_policy.py`
 - File type: Python source
-- Primary responsibility: Loads and compiles the checked-in general-car/light-vehicle IGN road evidence policy.
-- Layer / domain: `stage` / `road`
-- Public or internal role: Contains an explicit module/package export surface; helpers prefixed with `_` remain internal unless re-exported elsewhere.
+- Layer: processing/policy stage
+- Domain: road
+- Responsibility: Loads and compiles the checked-in general-car/light-vehicle IGN road evidence policy.
 - Source SHA256: `73b7315bf37c48510fbb8e63c28272349fa0407f1c0c5adea91142a74c481286`
 
 ## 1. Purpose
@@ -15,36 +15,135 @@ Loads and compiles the checked-in general-car/light-vehicle IGN road evidence po
 
 ## 2. Position in LandScout architecture
 
-This file is a `stage` artifact in the `road` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **processing/policy stage** layer and the **road** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from __future__ import annotations` — required by the implementation paths and symbols documented below.
-- `from collections.abc import Mapping` — required by the implementation paths and symbols documented below.
-- `from dataclasses import dataclass` — required by the implementation paths and symbols documented below.
-- `from hashlib import sha256` — required by the implementation paths and symbols documented below.
-- `from pathlib import Path` — required by the implementation paths and symbols documented below.
-- `from typing import Annotated, Literal, Self` — required by the implementation paths and symbols documented below.
+- `from __future__ import annotations`
+- `from collections.abc import Mapping`
+- `from dataclasses import dataclass`
+- `from hashlib import sha256`
+- `from pathlib import Path`
+- `from typing import Annotated, Literal, Self`
 
-### Third-party
+### Third-party packages
 
-- `import yaml` — required by the implementation paths and symbols documented below.
-- `from pydantic import ( AfterValidator, BaseModel, ConfigDict, Field, StrictFloat, StrictInt, StringConstraints, model_validator, )` — required by the implementation paths and symbols documented below.
+- `import yaml`
+- `from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictFloat,
+    StrictInt,
+    StringConstraints,
+    model_validator,
+)`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- None.
+- `None.`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `_DEFAULT_POLICY_PATH` | `Path(__file__).resolve().parents[3] / "configs" / "access" / "ign_bdtopo_vehicle_proxy_policy.yaml"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_POLICY_ID` | `"ign_bdtopo_general_vehicle_proxy_v2"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_POLICY_SCOPE` | `"OFFICIAL_IGN_CAR_ROUTING_EVIDENCE_ONLY"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_EXPECTED_PRECEDENCE` | `( "FICTITIOUS_GEOMETRY", "PROJECT_GEOMETRY_NOT_SIGNIFICANT", "NOT_IN_SERVICE", "PHYSICALLY_IMPOSSIBLE", "NON_GENERAL_VEHICLE_NATURE", "RIGHTS_RESTRICTED", "PRIVATE_ROAD", "TEMPORAL_CLOSURE", "KNOWN_RESTRICTION", "OTHER_RECORDED_RESTRICTION", "SPECIAL_NATURE", "LIMITED_NATURE", "IMPORTANCE_6", "NARROW_CARRIAGEWAY", "OPEN_OR_TOLL", "UNKNOWN", )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `_DEFAULT_POLICY_PATH`
+
+```python
+_DEFAULT_POLICY_PATH = (
+    Path(__file__).resolve().parents[3]
+    / "configs"
+    / "access"
+    / "ign_bdtopo_vehicle_proxy_policy.yaml"
+)
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `_POLICY_ID`
+
+```python
+_POLICY_ID = "ign_bdtopo_general_vehicle_proxy_v2"
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `_POLICY_SCOPE`
+
+```python
+_POLICY_SCOPE = "OFFICIAL_IGN_CAR_ROUTING_EVIDENCE_ONLY"
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+
+#### `_EXPECTED_PRECEDENCE`
+
+```python
+_EXPECTED_PRECEDENCE = (
+    "FICTITIOUS_GEOMETRY",
+    "PROJECT_GEOMETRY_NOT_SIGNIFICANT",
+    "NOT_IN_SERVICE",
+    "PHYSICALLY_IMPOSSIBLE",
+    "NON_GENERAL_VEHICLE_NATURE",
+    "RIGHTS_RESTRICTED",
+    "PRIVATE_ROAD",
+    "TEMPORAL_CLOSURE",
+    "KNOWN_RESTRICTION",
+    "OTHER_RECORDED_RESTRICTION",
+    "SPECIAL_NATURE",
+    "LIMITED_NATURE",
+    "IMPORTANCE_6",
+    "NARROW_CARRIAGEWAY",
+    "OPEN_OR_TOLL",
+    "UNKNOWN",
+)
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+
+
+### B. Type aliases and closed domains
+
+#### `_ExactString`
+
+```python
+_ExactString = Annotated[
+    str,
+    StringConstraints(strict=True, min_length=1),
+    AfterValidator(_exact_string),
+]
+```
+
+Annotated validation alias whose strictness, regex/bounds, and callbacks are exactly those shown above. It is consumed by annotations or Pydantic validation in this module.
+
+#### `_NonEmptyStrings`
+
+```python
+_NonEmptyStrings = Annotated[tuple[_ExactString, ...], Field(min_length=1)]
+```
+
+Annotated validation alias whose strictness, regex/bounds, and callbacks are exactly those shown above. It is consumed by annotations or Pydantic validation in this module.
+
+
+### C. Meaningful dunder contracts
+
+- `__all__` — explicit public export allow-list.
+```python
+__all__ = [
+    "IgnRoadVehicleProxyPolicy",
+    "IgnRoadVehicleProxyPolicyError",
+    "load_ign_road_vehicle_proxy_policy",
+]
+```
+
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
@@ -52,522 +151,1111 @@ This file is a `stage` artifact in the `road` domain. Its actual upstream inputs
 
 **Purpose:** Raised when the IGN road vehicle-proxy policy is unsafe or invalid.
 
+**Kind:** controlled exception.
+
 **Inheritance:** `ValueError`.
 
-**Model form and mutability:** class inheriting from `ValueError`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields:** none declared directly on this class.
 
-- No annotated instance fields are declared directly on this class.
+**Interface consumers**
 
-**Validators and methods:**
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.road_vehicle_proxy_policy import (
+    IgnRoadVehicleProxyPolicy,
+    IgnRoadVehicleProxyPolicyError,
+    load_ign_road_vehicle_proxy_policy,
+)`.
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_construct_unique_mapping` via `IgnRoadVehicleProxyPolicyError`.
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::load_ign_road_vehicle_proxy_policy` via `IgnRoadVehicleProxyPolicyError`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_invalid_config_structure_is_rejected` via `pytest.raises(IgnRoadVehicleProxyPolicyError, match=message)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_unsupported_schema_version_is_rejected` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_wrong_policy_identity_is_rejected` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_both_evidence_references_are_required` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_product_reference_document_id_is_exact` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_unknown_evidence_reference_is_rejected` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_asset_state_group_overlap_is_rejected` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_missing_known_asset_state_is_rejected` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_unknown_additional_asset_state_is_rejected` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_semantic_values_must_be_exact_non_empty_strings` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_duplicate_semantic_value_is_rejected` via `pytest.raises(IgnRoadVehicleProxyPolicyError, match='invalid')`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_semantic_groups_must_be_pairwise_disjoint` via `pytest.raises(IgnRoadVehicleProxyPolicyError, match='invalid')`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_duplicate_known_restriction_is_rejected` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_invalid_width_threshold_is_rejected` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_importance_domains_must_be_exact` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_decision_precedence_must_be_exact` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_output_class_vocabulary_must_be_exact` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_malformed_yaml_has_controlled_error` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_non_mapping_yaml_has_controlled_error` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- callback/function object: `tests/unit/test_road_vehicle_proxy_policy.py::test_missing_file_has_controlled_error` via `pytest.raises(IgnRoadVehicleProxyPolicyError)`.
+- import/re-export: `tests/unit/test_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.road_vehicle_proxy_policy import (
+    IgnRoadVehicleProxyPolicy,
+    IgnRoadVehicleProxyPolicyError,
+    load_ign_road_vehicle_proxy_policy,
+)`.
 
-- None.
+**Exact class source**
+
+```python
+class IgnRoadVehicleProxyPolicyError(ValueError):
+    """Raised when the IGN road vehicle-proxy policy is unsafe or invalid."""
+```
 
 ### `_StrictPolicyModel`
 
-**Purpose:** Represents a validated policy configuration or compiled policy evidence envelope.
+**Purpose:** Validates the road contract carried by its explicit validators and inherited fields.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `BaseModel`.
 
-**Model form and mutability:** Pydantic model; `model_config` and validators below define strictness, mutation, and extra-field behavior. Decorators: `none`.
+**Exact decorators:** none.
 
-**Validation configuration:** `model_config = ConfigDict(extra="forbid", frozen=True)`.
+**Fields:** none declared directly on this class.
 
-**Fields:**
+**Interface consumers**
 
-- No annotated instance fields are declared directly on this class.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
 
-**Validators and methods:**
+**Exact class source**
 
-- None.
+```python
+class _StrictPolicyModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+```
 
 ### `_NavigationReferenceConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the road contract carried by `publisher`, `title`, `revision`, `evidence_scope`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `publisher` | `Literal['IGN']` | `required` | `Literal['IGN']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `title` | `Literal['Calcul d’itinéraire']` | `required` | `Literal['Calcul d’itinéraire']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `revision` | `Literal['2026-05-27']` | `required` | `Literal['2026-05-27']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `evidence_scope` | `Literal['GENERAL_CAR_ROUTING_RULES']` | `required` | `Literal['GENERAL_CAR_ROUTING_RULES']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `publisher` | `publisher: Literal["IGN"]` | Stores `_NavigationReferenceConfig`'s `publisher` value under exact annotation `Literal['IGN']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `title` | `title: Literal["Calcul d’itinéraire"]` | `_NavigationReferenceConfig`'s `title` evidence/text field; it retains the exact configured or source meaning under annotation `Literal['Calcul d’itinéraire']` and is not promoted to a legal conclusion. |
+| `revision` | `revision: Literal["2026-05-27"]` | Stores `_NavigationReferenceConfig`'s `revision` value under exact annotation `Literal['2026-05-27']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `evidence_scope` | `evidence_scope: Literal["GENERAL_CAR_ROUTING_RULES"]` | Closed or validated `evidence scope` classification on `_NavigationReferenceConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
 
-**Validators and methods:**
+**Interface consumers**
 
-- None.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class _NavigationReferenceConfig(_StrictPolicyModel):
+    publisher: Literal["IGN"]
+    title: Literal["Calcul d’itinéraire"]
+    revision: Literal["2026-05-27"]
+    evidence_scope: Literal["GENERAL_CAR_ROUTING_RULES"]
+```
 
 ### `_BdTopoProductReferenceConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the road contract carried by `publisher`, `title`, `document_id`, `revision`, `evidence_scope`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `publisher` | `Literal['IGN']` | `required` | `Literal['IGN']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `title` | `Literal['BD TOPO® Version 3.5 - Descriptif de contenu']` | `required` | `Literal['BD TOPO® Version 3.5 - Descriptif de contenu']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `document_id` | `Literal['DC_BDTOPO_3-5']` | `required` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `revision` | `Literal['2025-11']` | `required` | `Literal['2025-11']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `evidence_scope` | `Literal['SOURCE_ATTRIBUTE_SEMANTICS']` | `required` | `Literal['SOURCE_ATTRIBUTE_SEMANTICS']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `publisher` | `publisher: Literal["IGN"]` | Stores `_BdTopoProductReferenceConfig`'s `publisher` value under exact annotation `Literal['IGN']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `title` | `title: Literal["BD TOPO® Version 3.5 - Descriptif de contenu"]` | `_BdTopoProductReferenceConfig`'s `title` evidence/text field; it retains the exact configured or source meaning under annotation `Literal['BD TOPO® Version 3.5 - Descriptif de contenu']` and is not promoted to a legal conclusion. |
+| `document_id` | `document_id: Literal["DC_BDTOPO_3-5"]` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
+| `revision` | `revision: Literal["2025-11"]` | Stores `_BdTopoProductReferenceConfig`'s `revision` value under exact annotation `Literal['2025-11']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `evidence_scope` | `evidence_scope: Literal["SOURCE_ATTRIBUTE_SEMANTICS"]` | Closed or validated `evidence scope` classification on `_BdTopoProductReferenceConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
 
-**Validators and methods:**
+**Interface consumers**
 
-- None.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class _BdTopoProductReferenceConfig(_StrictPolicyModel):
+    publisher: Literal["IGN"]
+    title: Literal["BD TOPO® Version 3.5 - Descriptif de contenu"]
+    document_id: Literal["DC_BDTOPO_3-5"]
+    revision: Literal["2025-11"]
+    evidence_scope: Literal["SOURCE_ATTRIBUTE_SEMANTICS"]
+```
 
 ### `_ReferencesConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the road contract carried by `navigation`, `bdtopo_product`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `navigation` | `_NavigationReferenceConfig` | `required` | `_NavigationReferenceConfig` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `bdtopo_product` | `_BdTopoProductReferenceConfig` | `required` | `_BdTopoProductReferenceConfig` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `navigation` | `navigation: _NavigationReferenceConfig` | Stores `_ReferencesConfig`'s `navigation` value under exact annotation `_NavigationReferenceConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `bdtopo_product` | `bdtopo_product: _BdTopoProductReferenceConfig` | Stores `_ReferencesConfig`'s `bdtopo product` value under exact annotation `_BdTopoProductReferenceConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-**Validators and methods:**
+**Interface consumers**
 
-- None.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class _ReferencesConfig(_StrictPolicyModel):
+    navigation: _NavigationReferenceConfig
+    bdtopo_product: _BdTopoProductReferenceConfig
+```
 
 ### `_ClassesConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the road contract carried by `general_vehicle_proxy`, `limited_vehicle_proxy`, `restricted_review`, `not_general_vehicle_proxy`, `not_distance_proxy`, `unknown_review`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `general_vehicle_proxy` | `Literal['GENERAL_VEHICLE_PROXY']` | `required` | `Literal['GENERAL_VEHICLE_PROXY']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `limited_vehicle_proxy` | `Literal['LIMITED_VEHICLE_PROXY']` | `required` | `Literal['LIMITED_VEHICLE_PROXY']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `restricted_review` | `Literal['RESTRICTED_REVIEW']` | `required` | `Literal['RESTRICTED_REVIEW']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `not_general_vehicle_proxy` | `Literal['NOT_GENERAL_VEHICLE_PROXY']` | `required` | `Literal['NOT_GENERAL_VEHICLE_PROXY']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `not_distance_proxy` | `Literal['NOT_DISTANCE_PROXY']` | `required` | `Literal['NOT_DISTANCE_PROXY']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `unknown_review` | `Literal['UNKNOWN_REVIEW']` | `required` | `Literal['UNKNOWN_REVIEW']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `general_vehicle_proxy` | `general_vehicle_proxy: Literal["GENERAL_VEHICLE_PROXY"]` | Stores `_ClassesConfig`'s `general vehicle proxy` value under exact annotation `Literal['GENERAL_VEHICLE_PROXY']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `limited_vehicle_proxy` | `limited_vehicle_proxy: Literal["LIMITED_VEHICLE_PROXY"]` | Stores `_ClassesConfig`'s `limited vehicle proxy` value under exact annotation `Literal['LIMITED_VEHICLE_PROXY']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `restricted_review` | `restricted_review: Literal["RESTRICTED_REVIEW"]` | Stores `_ClassesConfig`'s `restricted review` value under exact annotation `Literal['RESTRICTED_REVIEW']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `not_general_vehicle_proxy` | `not_general_vehicle_proxy: Literal["NOT_GENERAL_VEHICLE_PROXY"]` | Stores `_ClassesConfig`'s `not general vehicle proxy` value under exact annotation `Literal['NOT_GENERAL_VEHICLE_PROXY']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `not_distance_proxy` | `not_distance_proxy: Literal["NOT_DISTANCE_PROXY"]` | Stores `_ClassesConfig`'s `not distance proxy` value under exact annotation `Literal['NOT_DISTANCE_PROXY']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `unknown_review` | `unknown_review: Literal["UNKNOWN_REVIEW"]` | Stores `_ClassesConfig`'s `unknown review` value under exact annotation `Literal['UNKNOWN_REVIEW']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-**Validators and methods:**
+**Interface consumers**
 
-- None.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class _ClassesConfig(_StrictPolicyModel):
+    general_vehicle_proxy: Literal["GENERAL_VEHICLE_PROXY"]
+    limited_vehicle_proxy: Literal["LIMITED_VEHICLE_PROXY"]
+    restricted_review: Literal["RESTRICTED_REVIEW"]
+    not_general_vehicle_proxy: Literal["NOT_GENERAL_VEHICLE_PROXY"]
+    not_distance_proxy: Literal["NOT_DISTANCE_PROXY"]
+    unknown_review: Literal["UNKNOWN_REVIEW"]
+```
 
 ### `_AssetStateConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the road contract carried by `in_service`, `project_geometry_not_significant`, `under_construction`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `in_service` | `_NonEmptyStrings` | `required` | `_NonEmptyStrings` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `project_geometry_not_significant` | `_NonEmptyStrings` | `required` | `_NonEmptyStrings` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `under_construction` | `_NonEmptyStrings` | `required` | `_NonEmptyStrings` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `in_service` | `in_service: _NonEmptyStrings` | Stores `_AssetStateConfig`'s `in service` value under exact annotation `_NonEmptyStrings`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `project_geometry_not_significant` | `project_geometry_not_significant: _NonEmptyStrings` | Stores `_AssetStateConfig`'s `project geometry not significant` value under exact annotation `_NonEmptyStrings`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `under_construction` | `under_construction: _NonEmptyStrings` | Stores `_AssetStateConfig`'s `under construction` value under exact annotation `_NonEmptyStrings`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `_valid_groups` — `def _valid_groups(self) -> Self:`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`_valid_groups`:
+
+```python
+def _valid_groups(self) -> Self:
+        groups = (
+            self.in_service,
+            self.project_geometry_not_significant,
+            self.under_construction,
+        )
+        for name, values in zip(
+            (
+                "in_service",
+                "project_geometry_not_significant",
+                "under_construction",
+            ),
+            groups,
+            strict=True,
+        ):
+            _require_unique(values, name)
+        _require_disjoint(groups, "asset_state")
+        if groups != (("En service",), ("En projet",), ("En construction",)):
+            raise ValueError("asset_state groups must cover the exact source domain")
+        return self
+```
+
+**Interface consumers**
+
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class _AssetStateConfig(_StrictPolicyModel):
+    in_service: _NonEmptyStrings
+    project_geometry_not_significant: _NonEmptyStrings
+    under_construction: _NonEmptyStrings
+
+    @model_validator(mode="after")
+    def _valid_groups(self) -> Self:
+        groups = (
+            self.in_service,
+            self.project_geometry_not_significant,
+            self.under_construction,
+        )
+        for name, values in zip(
+            (
+                "in_service",
+                "project_geometry_not_significant",
+                "under_construction",
+            ),
+            groups,
+            strict=True,
+        ):
+            _require_unique(values, name)
+        _require_disjoint(groups, "asset_state")
+        if groups != (("En service",), ("En projet",), ("En construction",)):
+            raise ValueError("asset_state groups must cover the exact source domain")
+        return self
+```
 
 ### `_LightVehicleAccessConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the road contract carried by `open`, `toll`, `rights_restricted`, `physically_impossible`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `open` | `_NonEmptyStrings` | `required` | `_NonEmptyStrings` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `toll` | `_NonEmptyStrings` | `required` | `_NonEmptyStrings` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `rights_restricted` | `_NonEmptyStrings` | `required` | `_NonEmptyStrings` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `physically_impossible` | `_NonEmptyStrings` | `required` | `_NonEmptyStrings` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `open` | `open: _NonEmptyStrings` | Stores `_LightVehicleAccessConfig`'s `open` value under exact annotation `_NonEmptyStrings`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `toll` | `toll: _NonEmptyStrings` | Stores `_LightVehicleAccessConfig`'s `toll` value under exact annotation `_NonEmptyStrings`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `rights_restricted` | `rights_restricted: _NonEmptyStrings` | Stores `_LightVehicleAccessConfig`'s `rights restricted` value under exact annotation `_NonEmptyStrings`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `physically_impossible` | `physically_impossible: _NonEmptyStrings` | Stores `_LightVehicleAccessConfig`'s `physically impossible` value under exact annotation `_NonEmptyStrings`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `_valid_groups` — `def _valid_groups(self) -> Self:`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`_valid_groups`:
+
+```python
+def _valid_groups(self) -> Self:
+        groups = (
+            self.open,
+            self.toll,
+            self.rights_restricted,
+            self.physically_impossible,
+        )
+        for name, values in zip(
+            ("open", "toll", "rights_restricted", "physically_impossible"),
+            groups,
+            strict=True,
+        ):
+            _require_unique(values, name)
+        _require_disjoint(groups, "light_vehicle_access")
+        return self
+```
+
+**Interface consumers**
+
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class _LightVehicleAccessConfig(_StrictPolicyModel):
+    open: _NonEmptyStrings
+    toll: _NonEmptyStrings
+    rights_restricted: _NonEmptyStrings
+    physically_impossible: _NonEmptyStrings
+
+    @model_validator(mode="after")
+    def _valid_groups(self) -> Self:
+        groups = (
+            self.open,
+            self.toll,
+            self.rights_restricted,
+            self.physically_impossible,
+        )
+        for name, values in zip(
+            ("open", "toll", "rights_restricted", "physically_impossible"),
+            groups,
+            strict=True,
+        ):
+            _require_unique(values, name)
+        _require_disjoint(groups, "light_vehicle_access")
+        return self
+```
 
 ### `_RoadNatureConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the road contract carried by `general_motor_road`, `limited_motor_proxy`, `non_general_vehicle`, `special_review`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `general_motor_road` | `_NonEmptyStrings` | `required` | `_NonEmptyStrings` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `limited_motor_proxy` | `_NonEmptyStrings` | `required` | `_NonEmptyStrings` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `non_general_vehicle` | `_NonEmptyStrings` | `required` | `_NonEmptyStrings` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `special_review` | `_NonEmptyStrings` | `required` | `_NonEmptyStrings` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `general_motor_road` | `general_motor_road: _NonEmptyStrings` | Stores `_RoadNatureConfig`'s `general motor road` value under exact annotation `_NonEmptyStrings`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `limited_motor_proxy` | `limited_motor_proxy: _NonEmptyStrings` | Stores `_RoadNatureConfig`'s `limited motor proxy` value under exact annotation `_NonEmptyStrings`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `non_general_vehicle` | `non_general_vehicle: _NonEmptyStrings` | Stores `_RoadNatureConfig`'s `non general vehicle` value under exact annotation `_NonEmptyStrings`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `special_review` | `special_review: _NonEmptyStrings` | Stores `_RoadNatureConfig`'s `special review` value under exact annotation `_NonEmptyStrings`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `_valid_groups` — `def _valid_groups(self) -> Self:`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`_valid_groups`:
+
+```python
+def _valid_groups(self) -> Self:
+        groups = (
+            self.general_motor_road,
+            self.limited_motor_proxy,
+            self.non_general_vehicle,
+            self.special_review,
+        )
+        for name, values in zip(
+            (
+                "general_motor_road",
+                "limited_motor_proxy",
+                "non_general_vehicle",
+                "special_review",
+            ),
+            groups,
+            strict=True,
+        ):
+            _require_unique(values, name)
+        _require_disjoint(groups, "nature")
+        return self
+```
+
+**Interface consumers**
+
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class _RoadNatureConfig(_StrictPolicyModel):
+    general_motor_road: _NonEmptyStrings
+    limited_motor_proxy: _NonEmptyStrings
+    non_general_vehicle: _NonEmptyStrings
+    special_review: _NonEmptyStrings
+
+    @model_validator(mode="after")
+    def _valid_groups(self) -> Self:
+        groups = (
+            self.general_motor_road,
+            self.limited_motor_proxy,
+            self.non_general_vehicle,
+            self.special_review,
+        )
+        for name, values in zip(
+            (
+                "general_motor_road",
+                "limited_motor_proxy",
+                "non_general_vehicle",
+                "special_review",
+            ),
+            groups,
+            strict=True,
+        ):
+            _require_unique(values, name)
+        _require_disjoint(groups, "nature")
+        return self
+```
 
 ### `_ImportanceConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the road contract carried by `known`, `limited`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `known` | `_NonEmptyStrings` | `required` | `_NonEmptyStrings` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `limited` | `_NonEmptyStrings` | `required` | `_NonEmptyStrings` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `known` | `known: _NonEmptyStrings` | Stores `_ImportanceConfig`'s `known` value under exact annotation `_NonEmptyStrings`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `limited` | `limited: _NonEmptyStrings` | Stores `_ImportanceConfig`'s `limited` value under exact annotation `_NonEmptyStrings`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `_valid_domain` — `def _valid_domain(self) -> Self:`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`_valid_domain`:
+
+```python
+def _valid_domain(self) -> Self:
+        _require_unique(self.known, "importance.known")
+        _require_unique(self.limited, "importance.limited")
+        if self.known != ("1", "2", "3", "4", "5", "6"):
+            raise ValueError("importance.known must cover exactly source values 1-6")
+        if self.limited != ("6",):
+            raise ValueError("importance.limited must contain exactly source value '6'")
+        if not set(self.limited).issubset(self.known):
+            raise ValueError("importance.limited must be a subset of importance.known")
+        return self
+```
+
+**Interface consumers**
+
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class _ImportanceConfig(_StrictPolicyModel):
+    known: _NonEmptyStrings
+    limited: _NonEmptyStrings
+
+    @model_validator(mode="after")
+    def _valid_domain(self) -> Self:
+        _require_unique(self.known, "importance.known")
+        _require_unique(self.limited, "importance.limited")
+        if self.known != ("1", "2", "3", "4", "5", "6"):
+            raise ValueError("importance.known must cover exactly source values 1-6")
+        if self.limited != ("6",):
+            raise ValueError("importance.limited must contain exactly source value '6'")
+        if not set(self.limited).issubset(self.known):
+            raise ValueError("importance.limited must be a subset of importance.known")
+        return self
+```
 
 ### `_SourceValuesConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the road contract carried by `asset_state`, `light_vehicle_access`, `nature`, `known_restriction_review`, `importance`, `width_below_m`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `asset_state` | `_AssetStateConfig` | `required` | `_AssetStateConfig` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `light_vehicle_access` | `_LightVehicleAccessConfig` | `required` | `_LightVehicleAccessConfig` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `nature` | `_RoadNatureConfig` | `required` | `_RoadNatureConfig` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `known_restriction_review` | `_NonEmptyStrings` | `required` | `_NonEmptyStrings` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `importance` | `_ImportanceConfig` | `required` | `_ImportanceConfig` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `width_below_m` | `Annotated[StrictFloat, Field(gt=0, allow_inf_nan=False)]` | `required` | Metric distance or length in metres; the full field name identifies the measurement. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `asset_state` | `asset_state: _AssetStateConfig` | Closed or validated `asset state` classification on `_SourceValuesConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `light_vehicle_access` | `light_vehicle_access: _LightVehicleAccessConfig` | Stores `_SourceValuesConfig`'s `light vehicle access` value under exact annotation `_LightVehicleAccessConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `nature` | `nature: _RoadNatureConfig` | Stores `_SourceValuesConfig`'s `nature` value under exact annotation `_RoadNatureConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `known_restriction_review` | `known_restriction_review: _NonEmptyStrings` | Stores `_SourceValuesConfig`'s `known restriction review` value under exact annotation `_NonEmptyStrings`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `importance` | `importance: _ImportanceConfig` | Stores `_SourceValuesConfig`'s `importance` value under exact annotation `_ImportanceConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `width_below_m` | `width_below_m: Annotated[StrictFloat, Field(gt=0, allow_inf_nan=False)]` | Metre value; whether measured geometry or configured policy is determined by the owning model/function, not the suffix alone. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `_valid_values` — `def _valid_values(self) -> Self:`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`_valid_values`:
+
+```python
+def _valid_values(self) -> Self:
+        _require_unique(
+            self.known_restriction_review, "known_restriction_review"
+        )
+        return self
+```
+
+**Interface consumers**
+
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class _SourceValuesConfig(_StrictPolicyModel):
+    asset_state: _AssetStateConfig
+    light_vehicle_access: _LightVehicleAccessConfig
+    nature: _RoadNatureConfig
+    known_restriction_review: _NonEmptyStrings
+    importance: _ImportanceConfig
+    width_below_m: Annotated[StrictFloat, Field(gt=0, allow_inf_nan=False)]
+
+    @model_validator(mode="after")
+    def _valid_values(self) -> Self:
+        _require_unique(
+            self.known_restriction_review, "known_restriction_review"
+        )
+        return self
+```
 
 ### `_DecisionOutcomesConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the road contract carried by `fictitious_geometry`, `project_geometry_not_significant`, `not_in_service`, `physically_impossible`, `non_general_vehicle_nature`, `rights_restricted`, `private_road`, `temporal_closure`, `known_restriction`, `other_recorded_restriction`, `special_nature`, `limited_nature`, `importance_6`, `narrow_carriageway`, `open_or_toll`, `unknown`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `fictitious_geometry` | `Literal['NOT_DISTANCE_PROXY']` | `required` | `Literal['NOT_DISTANCE_PROXY']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `project_geometry_not_significant` | `Literal['NOT_DISTANCE_PROXY']` | `required` | `Literal['NOT_DISTANCE_PROXY']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `not_in_service` | `Literal['NOT_GENERAL_VEHICLE_PROXY']` | `required` | `Literal['NOT_GENERAL_VEHICLE_PROXY']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `physically_impossible` | `Literal['NOT_GENERAL_VEHICLE_PROXY']` | `required` | `Literal['NOT_GENERAL_VEHICLE_PROXY']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `non_general_vehicle_nature` | `Literal['NOT_GENERAL_VEHICLE_PROXY']` | `required` | `Literal['NOT_GENERAL_VEHICLE_PROXY']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `rights_restricted` | `Literal['RESTRICTED_REVIEW']` | `required` | `Literal['RESTRICTED_REVIEW']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `private_road` | `Literal['RESTRICTED_REVIEW']` | `required` | `Literal['RESTRICTED_REVIEW']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `temporal_closure` | `Literal['RESTRICTED_REVIEW']` | `required` | `Literal['RESTRICTED_REVIEW']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `known_restriction` | `Literal['RESTRICTED_REVIEW']` | `required` | `Literal['RESTRICTED_REVIEW']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `other_recorded_restriction` | `Literal['RESTRICTED_REVIEW']` | `required` | `Literal['RESTRICTED_REVIEW']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `special_nature` | `Literal['RESTRICTED_REVIEW']` | `required` | `Literal['RESTRICTED_REVIEW']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `limited_nature` | `Literal['LIMITED_VEHICLE_PROXY']` | `required` | `Literal['LIMITED_VEHICLE_PROXY']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `importance_6` | `Literal['LIMITED_VEHICLE_PROXY']` | `required` | `Literal['LIMITED_VEHICLE_PROXY']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `narrow_carriageway` | `Literal['LIMITED_VEHICLE_PROXY']` | `required` | `Literal['LIMITED_VEHICLE_PROXY']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `open_or_toll` | `Literal['GENERAL_VEHICLE_PROXY']` | `required` | `Literal['GENERAL_VEHICLE_PROXY']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `unknown` | `Literal['UNKNOWN_REVIEW']` | `required` | `Literal['UNKNOWN_REVIEW']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `fictitious_geometry` | `fictitious_geometry: Literal["NOT_DISTANCE_PROXY"]` | Stores `_DecisionOutcomesConfig`'s `fictitious geometry` value under exact annotation `Literal['NOT_DISTANCE_PROXY']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `project_geometry_not_significant` | `project_geometry_not_significant: Literal["NOT_DISTANCE_PROXY"]` | Stores `_DecisionOutcomesConfig`'s `project geometry not significant` value under exact annotation `Literal['NOT_DISTANCE_PROXY']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `not_in_service` | `not_in_service: Literal["NOT_GENERAL_VEHICLE_PROXY"]` | Stores `_DecisionOutcomesConfig`'s `not in service` value under exact annotation `Literal['NOT_GENERAL_VEHICLE_PROXY']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `physically_impossible` | `physically_impossible: Literal["NOT_GENERAL_VEHICLE_PROXY"]` | Stores `_DecisionOutcomesConfig`'s `physically impossible` value under exact annotation `Literal['NOT_GENERAL_VEHICLE_PROXY']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `non_general_vehicle_nature` | `non_general_vehicle_nature: Literal["NOT_GENERAL_VEHICLE_PROXY"]` | Stores `_DecisionOutcomesConfig`'s `non general vehicle nature` value under exact annotation `Literal['NOT_GENERAL_VEHICLE_PROXY']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `rights_restricted` | `rights_restricted: Literal["RESTRICTED_REVIEW"]` | Stores `_DecisionOutcomesConfig`'s `rights restricted` value under exact annotation `Literal['RESTRICTED_REVIEW']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `private_road` | `private_road: Literal["RESTRICTED_REVIEW"]` | Stores `_DecisionOutcomesConfig`'s `private road` value under exact annotation `Literal['RESTRICTED_REVIEW']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `temporal_closure` | `temporal_closure: Literal["RESTRICTED_REVIEW"]` | Stores `_DecisionOutcomesConfig`'s `temporal closure` value under exact annotation `Literal['RESTRICTED_REVIEW']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `known_restriction` | `known_restriction: Literal["RESTRICTED_REVIEW"]` | Stores `_DecisionOutcomesConfig`'s `known restriction` value under exact annotation `Literal['RESTRICTED_REVIEW']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `other_recorded_restriction` | `other_recorded_restriction: Literal["RESTRICTED_REVIEW"]` | Stores `_DecisionOutcomesConfig`'s `other recorded restriction` value under exact annotation `Literal['RESTRICTED_REVIEW']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `special_nature` | `special_nature: Literal["RESTRICTED_REVIEW"]` | Stores `_DecisionOutcomesConfig`'s `special nature` value under exact annotation `Literal['RESTRICTED_REVIEW']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `limited_nature` | `limited_nature: Literal["LIMITED_VEHICLE_PROXY"]` | Stores `_DecisionOutcomesConfig`'s `limited nature` value under exact annotation `Literal['LIMITED_VEHICLE_PROXY']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `importance_6` | `importance_6: Literal["LIMITED_VEHICLE_PROXY"]` | Stores `_DecisionOutcomesConfig`'s `importance 6` value under exact annotation `Literal['LIMITED_VEHICLE_PROXY']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `narrow_carriageway` | `narrow_carriageway: Literal["LIMITED_VEHICLE_PROXY"]` | Stores `_DecisionOutcomesConfig`'s `narrow carriageway` value under exact annotation `Literal['LIMITED_VEHICLE_PROXY']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `open_or_toll` | `open_or_toll: Literal["GENERAL_VEHICLE_PROXY"]` | Stores `_DecisionOutcomesConfig`'s `open or toll` value under exact annotation `Literal['GENERAL_VEHICLE_PROXY']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `unknown` | `unknown: Literal["UNKNOWN_REVIEW"]` | Stores `_DecisionOutcomesConfig`'s `unknown` value under exact annotation `Literal['UNKNOWN_REVIEW']`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-**Validators and methods:**
+**Interface consumers**
 
-- None.
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class _DecisionOutcomesConfig(_StrictPolicyModel):
+    fictitious_geometry: Literal["NOT_DISTANCE_PROXY"]
+    project_geometry_not_significant: Literal["NOT_DISTANCE_PROXY"]
+    not_in_service: Literal["NOT_GENERAL_VEHICLE_PROXY"]
+    physically_impossible: Literal["NOT_GENERAL_VEHICLE_PROXY"]
+    non_general_vehicle_nature: Literal["NOT_GENERAL_VEHICLE_PROXY"]
+    rights_restricted: Literal["RESTRICTED_REVIEW"]
+    private_road: Literal["RESTRICTED_REVIEW"]
+    temporal_closure: Literal["RESTRICTED_REVIEW"]
+    known_restriction: Literal["RESTRICTED_REVIEW"]
+    other_recorded_restriction: Literal["RESTRICTED_REVIEW"]
+    special_nature: Literal["RESTRICTED_REVIEW"]
+    limited_nature: Literal["LIMITED_VEHICLE_PROXY"]
+    importance_6: Literal["LIMITED_VEHICLE_PROXY"]
+    narrow_carriageway: Literal["LIMITED_VEHICLE_PROXY"]
+    open_or_toll: Literal["GENERAL_VEHICLE_PROXY"]
+    unknown: Literal["UNKNOWN_REVIEW"]
+```
 
 ### `_PolicyConfig`
 
-**Purpose:** Represents checked-in or resolved configuration fields and validates their exact domain before use.
+**Purpose:** Validates the road contract carried by `policy_id`, `schema_version`, `scope`, `references`, `evidence_checked_on`, `vehicle_scope`, `heavy_vehicle_access`, `classes`, `source_values`, `decision_precedence`, `decision_outcomes`.
+
+**Kind:** Pydantic model.
 
 **Inheritance:** `_StrictPolicyModel`.
 
-**Model form and mutability:** class inheriting from `_StrictPolicyModel`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields**
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `policy_id` | `_ExactString` | `required` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `schema_version` | `StrictInt` | `required` | `StrictInt` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `scope` | `_ExactString` | `required` | `_ExactString` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `references` | `_ReferencesConfig` | `required` | `_ReferencesConfig` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `evidence_checked_on` | `Literal['2026-08-16']` | `required` | `Literal['2026-08-16']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `vehicle_scope` | `Literal['LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK']` | `required` | `Literal['LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `heavy_vehicle_access` | `Literal['NOT_PROVEN']` | `required` | `Literal['NOT_PROVEN']` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `classes` | `_ClassesConfig` | `required` | `_ClassesConfig` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `source_values` | `_SourceValuesConfig` | `required` | Source lineage or source-bound object whose exact identity is checked before downstream use. |
-| `decision_precedence` | `_NonEmptyStrings` | `required` | `_NonEmptyStrings` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `decision_outcomes` | `_DecisionOutcomesConfig` | `required` | `_DecisionOutcomesConfig` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `policy_id` | `policy_id: _ExactString` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
+| `schema_version` | `schema_version: StrictInt` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `scope` | `scope: _ExactString` | Closed or validated `scope` classification on `_PolicyConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `references` | `references: _ReferencesConfig` | `_PolicyConfig`'s `references` evidence/text field; it retains the exact configured or source meaning under annotation `_ReferencesConfig` and is not promoted to a legal conclusion. |
+| `evidence_checked_on` | `evidence_checked_on: Literal["2026-08-16"]` | `_PolicyConfig`'s `evidence checked on` evidence/text field; it retains the exact configured or source meaning under annotation `Literal['2026-08-16']` and is not promoted to a legal conclusion. |
+| `vehicle_scope` | `vehicle_scope: Literal["LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK"]` | Closed or validated `vehicle scope` classification on `_PolicyConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `heavy_vehicle_access` | `heavy_vehicle_access: Literal["NOT_PROVEN"]` | Explicit heavy-vehicle evidence state; current road policy requires NOT_PROVEN. |
+| `classes` | `classes: _ClassesConfig` | Closed or validated `classes` classification on `_PolicyConfig`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `source_values` | `source_values: _SourceValuesConfig` | Source fact or textual lineage named by the suffix; it becomes physical proof only where a validator rechecks bytes/source content. |
+| `decision_precedence` | `decision_precedence: _NonEmptyStrings` | Stores `_PolicyConfig`'s `decision precedence` value under exact annotation `_NonEmptyStrings`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `decision_outcomes` | `decision_outcomes: _DecisionOutcomesConfig` | Stores `_PolicyConfig`'s `decision outcomes` value under exact annotation `_DecisionOutcomesConfig`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-**Validators and methods:**
+**Validators (exact source)**
 
-- `_valid_identity_and_precedence` — `def _valid_identity_and_precedence(self) -> Self:`; decorators `model_validator(mode='after')`. The complete method algorithm appears in the function/method section.
+`_valid_identity_and_precedence`:
+
+```python
+def _valid_identity_and_precedence(self) -> Self:
+        if self.policy_id != _POLICY_ID:
+            raise ValueError("policy_id is not the approved v2 policy identity")
+        if self.schema_version != 2:
+            raise ValueError("schema_version must be exactly 2")
+        if self.scope != _POLICY_SCOPE:
+            raise ValueError("scope is not the approved official IGN evidence scope")
+        if self.decision_precedence != _EXPECTED_PRECEDENCE:
+            raise ValueError("decision_precedence differs from approved v2 order")
+        return self
+```
+
+**Interface consumers**
+
+- Pydantic constructs this model during direct/model_validate or nested-model validation; its exact validators and the module's loader/build functions below define the active framework entry points.
+
+**Exact class source**
+
+```python
+class _PolicyConfig(_StrictPolicyModel):
+    policy_id: _ExactString
+    schema_version: StrictInt
+    scope: _ExactString
+    references: _ReferencesConfig
+    evidence_checked_on: Literal["2026-08-16"]
+    vehicle_scope: Literal["LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK"]
+    heavy_vehicle_access: Literal["NOT_PROVEN"]
+    classes: _ClassesConfig
+    source_values: _SourceValuesConfig
+    decision_precedence: _NonEmptyStrings
+    decision_outcomes: _DecisionOutcomesConfig
+
+    @model_validator(mode="after")
+    def _valid_identity_and_precedence(self) -> Self:
+        if self.policy_id != _POLICY_ID:
+            raise ValueError("policy_id is not the approved v2 policy identity")
+        if self.schema_version != 2:
+            raise ValueError("schema_version must be exactly 2")
+        if self.scope != _POLICY_SCOPE:
+            raise ValueError("scope is not the approved official IGN evidence scope")
+        if self.decision_precedence != _EXPECTED_PRECEDENCE:
+            raise ValueError("decision_precedence differs from approved v2 order")
+        return self
+```
 
 ### `_CompiledClasses`
 
-**Purpose:** Groups the `CompiledClasses` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Immutable result/value envelope carrying `general_vehicle_proxy`, `limited_vehicle_proxy`, `restricted_review`, `not_general_vehicle_proxy`, `not_distance_proxy`, `unknown_review`.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `general_vehicle_proxy` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `limited_vehicle_proxy` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `restricted_review` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `not_general_vehicle_proxy` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `not_distance_proxy` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `unknown_review` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `general_vehicle_proxy` | `general_vehicle_proxy: str` | Stores `_CompiledClasses`'s `general vehicle proxy` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `limited_vehicle_proxy` | `limited_vehicle_proxy: str` | Stores `_CompiledClasses`'s `limited vehicle proxy` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `restricted_review` | `restricted_review: str` | Stores `_CompiledClasses`'s `restricted review` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `not_general_vehicle_proxy` | `not_general_vehicle_proxy: str` | Stores `_CompiledClasses`'s `not general vehicle proxy` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `not_distance_proxy` | `not_distance_proxy: str` | Stores `_CompiledClasses`'s `not distance proxy` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `unknown_review` | `unknown_review: str` | Stores `_CompiledClasses`'s `unknown review` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-- `values` — `def values(self) -> tuple[str, ...]:`; decorators `property`. The complete method algorithm appears in the function/method section.
+**Interface consumers**
+
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_compile_policy` via `_CompiledClasses`.
+
+**Exact class source**
+
+```python
+class _CompiledClasses:
+    general_vehicle_proxy: str
+    limited_vehicle_proxy: str
+    restricted_review: str
+    not_general_vehicle_proxy: str
+    not_distance_proxy: str
+    unknown_review: str
+
+    @property
+    def values(self) -> tuple[str, ...]:
+        return (
+            self.general_vehicle_proxy,
+            self.limited_vehicle_proxy,
+            self.restricted_review,
+            self.not_general_vehicle_proxy,
+            self.not_distance_proxy,
+            self.unknown_review,
+        )
+```
 
 ### `_CompiledAssetState`
 
-**Purpose:** Groups the `CompiledAssetState` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Immutable result/value envelope carrying `in_service`, `project_geometry_not_significant`, `under_construction`.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `in_service` | `frozenset[str]` | `required` | `frozenset[str]` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `project_geometry_not_significant` | `frozenset[str]` | `required` | `frozenset[str]` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `under_construction` | `frozenset[str]` | `required` | `frozenset[str]` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `in_service` | `in_service: frozenset[str]` | Structured `in service` collection owned by `_CompiledAssetState`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `project_geometry_not_significant` | `project_geometry_not_significant: frozenset[str]` | Structured `project geometry not significant` collection owned by `_CompiledAssetState`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `under_construction` | `under_construction: frozenset[str]` | Structured `under construction` collection owned by `_CompiledAssetState`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 
-- None.
+**Interface consumers**
+
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_compile_policy` via `_CompiledAssetState`.
+
+**Exact class source**
+
+```python
+class _CompiledAssetState:
+    in_service: frozenset[str]
+    project_geometry_not_significant: frozenset[str]
+    under_construction: frozenset[str]
+```
 
 ### `_CompiledNavigationReference`
 
-**Purpose:** Groups the `CompiledNavigationReference` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Immutable result/value envelope carrying `publisher`, `title`, `revision`, `evidence_scope`.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `publisher` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `title` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `revision` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `evidence_scope` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `publisher` | `publisher: str` | Stores `_CompiledNavigationReference`'s `publisher` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `title` | `title: str` | `_CompiledNavigationReference`'s `title` evidence/text field; it retains the exact configured or source meaning under annotation `str` and is not promoted to a legal conclusion. |
+| `revision` | `revision: str` | Stores `_CompiledNavigationReference`'s `revision` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `evidence_scope` | `evidence_scope: str` | Closed or validated `evidence scope` classification on `_CompiledNavigationReference`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
 
-- None.
+**Interface consumers**
+
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_compile_policy` via `_CompiledNavigationReference`.
+
+**Exact class source**
+
+```python
+class _CompiledNavigationReference:
+    publisher: str
+    title: str
+    revision: str
+    evidence_scope: str
+```
 
 ### `_CompiledBdTopoProductReference`
 
-**Purpose:** Groups the `CompiledBdTopoProductReference` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Immutable result/value envelope carrying `publisher`, `title`, `document_id`, `revision`, `evidence_scope`.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `publisher` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `title` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `document_id` | `str` | `required` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `revision` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `evidence_scope` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `publisher` | `publisher: str` | Stores `_CompiledBdTopoProductReference`'s `publisher` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `title` | `title: str` | `_CompiledBdTopoProductReference`'s `title` evidence/text field; it retains the exact configured or source meaning under annotation `str` and is not promoted to a legal conclusion. |
+| `document_id` | `document_id: str` | Exact identity for the entity named by the field; uniqueness, portability, and lineage meaning are only those explicitly validated by the owner. |
+| `revision` | `revision: str` | Stores `_CompiledBdTopoProductReference`'s `revision` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `evidence_scope` | `evidence_scope: str` | Closed or validated `evidence scope` classification on `_CompiledBdTopoProductReference`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
 
-- None.
+**Interface consumers**
+
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_compile_policy` via `_CompiledBdTopoProductReference`.
+
+**Exact class source**
+
+```python
+class _CompiledBdTopoProductReference:
+    publisher: str
+    title: str
+    document_id: str
+    revision: str
+    evidence_scope: str
+```
 
 ### `_CompiledLightVehicleAccess`
 
-**Purpose:** Groups the `CompiledLightVehicleAccess` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Immutable result/value envelope carrying `open`, `toll`, `rights_restricted`, `physically_impossible`.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `open` | `frozenset[str]` | `required` | `frozenset[str]` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `toll` | `frozenset[str]` | `required` | `frozenset[str]` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `rights_restricted` | `frozenset[str]` | `required` | `frozenset[str]` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `physically_impossible` | `frozenset[str]` | `required` | `frozenset[str]` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `open` | `open: frozenset[str]` | Structured `open` collection owned by `_CompiledLightVehicleAccess`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `toll` | `toll: frozenset[str]` | Structured `toll` collection owned by `_CompiledLightVehicleAccess`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `rights_restricted` | `rights_restricted: frozenset[str]` | Structured `rights restricted` collection owned by `_CompiledLightVehicleAccess`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `physically_impossible` | `physically_impossible: frozenset[str]` | Structured `physically impossible` collection owned by `_CompiledLightVehicleAccess`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 
-- None.
+**Interface consumers**
+
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_compile_policy` via `_CompiledLightVehicleAccess`.
+
+**Exact class source**
+
+```python
+class _CompiledLightVehicleAccess:
+    open: frozenset[str]
+    toll: frozenset[str]
+    rights_restricted: frozenset[str]
+    physically_impossible: frozenset[str]
+```
 
 ### `_CompiledRoadNature`
 
-**Purpose:** Groups the `CompiledRoadNature` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Immutable result/value envelope carrying `general_motor_road`, `limited_motor_proxy`, `non_general_vehicle`, `special_review`.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `general_motor_road` | `frozenset[str]` | `required` | `frozenset[str]` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `limited_motor_proxy` | `frozenset[str]` | `required` | `frozenset[str]` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `non_general_vehicle` | `frozenset[str]` | `required` | `frozenset[str]` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `special_review` | `frozenset[str]` | `required` | `frozenset[str]` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `general_motor_road` | `general_motor_road: frozenset[str]` | Structured `general motor road` collection owned by `_CompiledRoadNature`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `limited_motor_proxy` | `limited_motor_proxy: frozenset[str]` | Structured `limited motor proxy` collection owned by `_CompiledRoadNature`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `non_general_vehicle` | `non_general_vehicle: frozenset[str]` | Structured `non general vehicle` collection owned by `_CompiledRoadNature`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `special_review` | `special_review: frozenset[str]` | Structured `special review` collection owned by `_CompiledRoadNature`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 
-- None.
+**Interface consumers**
+
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_compile_policy` via `_CompiledRoadNature`.
+
+**Exact class source**
+
+```python
+class _CompiledRoadNature:
+    general_motor_road: frozenset[str]
+    limited_motor_proxy: frozenset[str]
+    non_general_vehicle: frozenset[str]
+    special_review: frozenset[str]
+```
 
 ### `_CompiledImportance`
 
-**Purpose:** Groups the `CompiledImportance` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Immutable result/value envelope carrying `known`, `limited`.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `known` | `frozenset[str]` | `required` | `frozenset[str]` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `limited` | `frozenset[str]` | `required` | `frozenset[str]` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `known` | `known: frozenset[str]` | Structured `known` collection owned by `_CompiledImportance`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `limited` | `limited: frozenset[str]` | Structured `limited` collection owned by `_CompiledImportance`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
 
-- None.
+**Interface consumers**
+
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_compile_policy` via `_CompiledImportance`.
+
+**Exact class source**
+
+```python
+class _CompiledImportance:
+    known: frozenset[str]
+    limited: frozenset[str]
+```
 
 ### `_CompiledDecisionOutcomes`
 
-**Purpose:** Groups the `CompiledDecisionOutcomes` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Immutable result/value envelope carrying `fictitious_geometry`, `project_geometry_not_significant`, `not_in_service`, `physically_impossible`, `non_general_vehicle_nature`, `rights_restricted`, `private_road`, `temporal_closure`, `known_restriction`, `other_recorded_restriction`, `special_nature`, `limited_nature`, `importance_6`, `narrow_carriageway`, `open_or_toll`, `unknown`.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `fictitious_geometry` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `project_geometry_not_significant` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `not_in_service` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `physically_impossible` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `non_general_vehicle_nature` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `rights_restricted` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `private_road` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `temporal_closure` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `known_restriction` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `other_recorded_restriction` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `special_nature` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `limited_nature` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `importance_6` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `narrow_carriageway` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `open_or_toll` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `unknown` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `fictitious_geometry` | `fictitious_geometry: str` | Stores `_CompiledDecisionOutcomes`'s `fictitious geometry` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `project_geometry_not_significant` | `project_geometry_not_significant: str` | Stores `_CompiledDecisionOutcomes`'s `project geometry not significant` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `not_in_service` | `not_in_service: str` | Stores `_CompiledDecisionOutcomes`'s `not in service` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `physically_impossible` | `physically_impossible: str` | Stores `_CompiledDecisionOutcomes`'s `physically impossible` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `non_general_vehicle_nature` | `non_general_vehicle_nature: str` | Stores `_CompiledDecisionOutcomes`'s `non general vehicle nature` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `rights_restricted` | `rights_restricted: str` | Stores `_CompiledDecisionOutcomes`'s `rights restricted` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `private_road` | `private_road: str` | Stores `_CompiledDecisionOutcomes`'s `private road` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `temporal_closure` | `temporal_closure: str` | Stores `_CompiledDecisionOutcomes`'s `temporal closure` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `known_restriction` | `known_restriction: str` | Stores `_CompiledDecisionOutcomes`'s `known restriction` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `other_recorded_restriction` | `other_recorded_restriction: str` | Stores `_CompiledDecisionOutcomes`'s `other recorded restriction` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `special_nature` | `special_nature: str` | Stores `_CompiledDecisionOutcomes`'s `special nature` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `limited_nature` | `limited_nature: str` | Stores `_CompiledDecisionOutcomes`'s `limited nature` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `importance_6` | `importance_6: str` | Stores `_CompiledDecisionOutcomes`'s `importance 6` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `narrow_carriageway` | `narrow_carriageway: str` | Stores `_CompiledDecisionOutcomes`'s `narrow carriageway` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `open_or_toll` | `open_or_toll: str` | Stores `_CompiledDecisionOutcomes`'s `open or toll` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `unknown` | `unknown: str` | Stores `_CompiledDecisionOutcomes`'s `unknown` value under exact annotation `str`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-- None.
+**Interface consumers**
+
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_compile_policy` via `_CompiledDecisionOutcomes`.
+
+**Exact class source**
+
+```python
+class _CompiledDecisionOutcomes:
+    fictitious_geometry: str
+    project_geometry_not_significant: str
+    not_in_service: str
+    physically_impossible: str
+    non_general_vehicle_nature: str
+    rights_restricted: str
+    private_road: str
+    temporal_closure: str
+    known_restriction: str
+    other_recorded_restriction: str
+    special_nature: str
+    limited_nature: str
+    importance_6: str
+    narrow_carriageway: str
+    open_or_toll: str
+    unknown: str
+```
 
 ### `IgnRoadVehicleProxyPolicy`
 
 **Purpose:** Immutable policy evidence compiled from the exact checked-in YAML bytes.
 
-**Inheritance:** `object`.
+**Kind:** dataclass.
 
-**Model form and mutability:** dataclass (frozen/immutable). Decorators: `dataclass(frozen=True)`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** `dataclass(frozen=True)`.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `policy_id` | `str` | `required` | Exact portable identity used to join lineage or evidence across frames and result envelopes. |
-| `schema_version` | `int` | `required` | `int` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `scope` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `navigation_reference` | `_CompiledNavigationReference` | `required` | `_CompiledNavigationReference` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `bdtopo_product_reference` | `_CompiledBdTopoProductReference` | `required` | `_CompiledBdTopoProductReference` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `evidence_checked_on` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `vehicle_scope` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `heavy_vehicle_access` | `str` | `required` | `str` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `classes` | `_CompiledClasses` | `required` | `_CompiledClasses` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `asset_state` | `_CompiledAssetState` | `required` | `_CompiledAssetState` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `light_vehicle_access` | `_CompiledLightVehicleAccess` | `required` | `_CompiledLightVehicleAccess` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `nature` | `_CompiledRoadNature` | `required` | `_CompiledRoadNature` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `known_restriction_review` | `frozenset[str]` | `required` | `frozenset[str]` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `importance` | `_CompiledImportance` | `required` | `_CompiledImportance` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `width_below_m` | `float` | `required` | Metric distance or length in metres; the full field name identifies the measurement. |
-| `decision_precedence` | `tuple[str, ...]` | `required` | `tuple[str, ...]` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `decision_outcomes` | `_CompiledDecisionOutcomes` | `required` | `_CompiledDecisionOutcomes` state used by `src/landscout/stages/road_vehicle_proxy_policy.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `config_sha256` | `str` | `required` | Lowercase SHA256 lineage/content digest; the prefix names the exact byte or canonical-content component bound by it. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `policy_id` | `policy_id: str` | Versioned policy/profile identity or scope propagated to compiled/results rows and checked against the authoritative configuration bytes. |
+| `schema_version` | `schema_version: int` | Strict compatibility version; the owning validator accepts only its documented supported integer. |
+| `scope` | `scope: str` | Closed or validated `scope` classification on `IgnRoadVehicleProxyPolicy`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `navigation_reference` | `navigation_reference: _CompiledNavigationReference` | `IgnRoadVehicleProxyPolicy`'s `navigation reference` evidence/text field; it retains the exact configured or source meaning under annotation `_CompiledNavigationReference` and is not promoted to a legal conclusion. |
+| `bdtopo_product_reference` | `bdtopo_product_reference: _CompiledBdTopoProductReference` | `IgnRoadVehicleProxyPolicy`'s `bdtopo product reference` evidence/text field; it retains the exact configured or source meaning under annotation `_CompiledBdTopoProductReference` and is not promoted to a legal conclusion. |
+| `evidence_checked_on` | `evidence_checked_on: str` | `IgnRoadVehicleProxyPolicy`'s `evidence checked on` evidence/text field; it retains the exact configured or source meaning under annotation `str` and is not promoted to a legal conclusion. |
+| `vehicle_scope` | `vehicle_scope: str` | Closed or validated `vehicle scope` classification on `IgnRoadVehicleProxyPolicy`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `heavy_vehicle_access` | `heavy_vehicle_access: str` | Explicit heavy-vehicle evidence state; current road policy requires NOT_PROVEN. |
+| `classes` | `classes: _CompiledClasses` | Closed or validated `classes` classification on `IgnRoadVehicleProxyPolicy`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `asset_state` | `asset_state: _CompiledAssetState` | Closed or validated `asset state` classification on `IgnRoadVehicleProxyPolicy`; accepted values and downstream branches are recoverable from the reproduced validators and consumers. |
+| `light_vehicle_access` | `light_vehicle_access: _CompiledLightVehicleAccess` | Stores `IgnRoadVehicleProxyPolicy`'s `light vehicle access` value under exact annotation `_CompiledLightVehicleAccess`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `nature` | `nature: _CompiledRoadNature` | Stores `IgnRoadVehicleProxyPolicy`'s `nature` value under exact annotation `_CompiledRoadNature`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `known_restriction_review` | `known_restriction_review: frozenset[str]` | Structured `known restriction review` collection owned by `IgnRoadVehicleProxyPolicy`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `importance` | `importance: _CompiledImportance` | Stores `IgnRoadVehicleProxyPolicy`'s `importance` value under exact annotation `_CompiledImportance`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `width_below_m` | `width_below_m: float` | Metre value; whether measured geometry or configured policy is determined by the owning model/function, not the suffix alone. |
+| `decision_precedence` | `decision_precedence: tuple[str, ...]` | Structured `decision precedence` collection owned by `IgnRoadVehicleProxyPolicy`; the declaration fixes member shape and the reproduced validators/callers define ordering, uniqueness, and completeness. |
+| `decision_outcomes` | `decision_outcomes: _CompiledDecisionOutcomes` | Stores `IgnRoadVehicleProxyPolicy`'s `decision outcomes` value under exact annotation `_CompiledDecisionOutcomes`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `config_sha256` | `config_sha256: str` | Lowercase SHA256 binding the bytes or canonical result component named by the field prefix. |
 
-- None.
+**Interface consumers**
+
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.road_vehicle_proxy_policy import (
+    IgnRoadVehicleProxyPolicy,
+    IgnRoadVehicleProxyPolicyError,
+    load_ign_road_vehicle_proxy_policy,
+)`.
+- import/re-export: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.road_vehicle_proxy_policy import (
+    IgnRoadVehicleProxyPolicy,
+    load_ign_road_vehicle_proxy_policy,
+)`.
+- import/re-export: `src/landscout/stages/assess_road_proximity_coverage.py::<module>` via `from landscout.stages.road_vehicle_proxy_policy import (
+    IgnRoadVehicleProxyPolicy,
+    load_ign_road_vehicle_proxy_policy,
+)`.
+- import/re-export: `src/landscout/stages/enrich_road_proximity.py::<module>` via `from landscout.stages.road_vehicle_proxy_policy import (
+    IgnRoadVehicleProxyPolicy,
+    load_ign_road_vehicle_proxy_policy,
+)`.
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_compile_policy` via `IgnRoadVehicleProxyPolicy`.
+- import/re-export: `tests/unit/test_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.road_vehicle_proxy_policy import (
+    IgnRoadVehicleProxyPolicy,
+    IgnRoadVehicleProxyPolicyError,
+    load_ign_road_vehicle_proxy_policy,
+)`.
+
+**Exact class source**
+
+```python
+class IgnRoadVehicleProxyPolicy:
+    """Immutable policy evidence compiled from the exact checked-in YAML bytes."""
+
+    policy_id: str
+    schema_version: int
+    scope: str
+    navigation_reference: _CompiledNavigationReference
+    bdtopo_product_reference: _CompiledBdTopoProductReference
+    evidence_checked_on: str
+    vehicle_scope: str
+    heavy_vehicle_access: str
+    classes: _CompiledClasses
+    asset_state: _CompiledAssetState
+    light_vehicle_access: _CompiledLightVehicleAccess
+    nature: _CompiledRoadNature
+    known_restriction_review: frozenset[str]
+    importance: _CompiledImportance
+    width_below_m: float
+    decision_precedence: tuple[str, ...]
+    decision_outcomes: _CompiledDecisionOutcomes
+    config_sha256: str
+```
 
 ### `_UniqueKeyLoader`
 
-**Purpose:** Groups the `UniqueKeyLoader` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Private PyYAML SafeLoader subclass whose mapping constructor is replaced to reject duplicate YAML keys.
+
+**Kind:** PyYAML loader subclass.
 
 **Inheritance:** `yaml.SafeLoader`.
 
-**Model form and mutability:** class inheriting from `yaml.SafeLoader`. Decorators: `none`.
+**Exact decorators:** none.
 
-**Fields:**
+**Fields:** none declared directly on this class.
 
-- No annotated instance fields are declared directly on this class.
+**Interface consumers**
 
-**Validators and methods:**
+- callback/function object: `src/landscout/stages/bess_planning_feature_policy.py::load_bess_planning_feature_policy_config` via `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
+- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::load_bess_zoning_policy_config` via `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
+- callback/function object: `src/landscout/stages/resolve_planning_feature_codes.py::load_cnig_feature_code_profile` via `yaml.load(Path(path).read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
+- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::load_ign_road_vehicle_proxy_policy` via `yaml.load(policy_bytes.decode('utf-8'), Loader=_UniqueKeyLoader)`.
+- callback/function object: `src/landscout/stages/structure_planning_regulation.py::load_planning_regulation_structure_config` via `yaml.load(config_path.read_text(encoding='utf-8'), Loader=_UniqueKeyLoader)`.
 
-- None.
+**Exact class source**
+
+```python
+class _UniqueKeyLoader(yaml.SafeLoader):
+    pass
+```
+
 
 ## 6. Functions and methods
 
 ### `_exact_string`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _exact_string(value: str) -> str:
@@ -575,56 +1263,73 @@ def _exact_string(value: str) -> str:
 
 **Purpose**
 
-Implements exact string according to the exact implementation and guards in this file.
+Private `road` helper for exact string; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+value
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `value`.
-
-**Algorithm**
-
-1. Checks `value != value.strip()`. When true: Raises `ValueError('policy strings must not contain edge whitespace')`.
-2. Returns `value`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `value != value.strip()` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `value != value.strip()`.
+- Explicit raise expressions: `ValueError('policy strings must not contain edge whitespace')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `value.strip`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_sha256` via `_exact_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_optional_official_string` via `_exact_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_policy_frame` via `_exact_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_relation_identity_string` via `_exact_string`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_feature_catalogs` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::BessPlanningFeatureApplicationArtifactManifest._validate_manifest` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/apply_bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_optional_exact_string` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_sha256_string` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::PolicySourceLock._validate_lock` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::PolicyEntry._validate_entry` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyConfig._validate_policy` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyArtifactManifest._validate_manifest` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_policy_table_rows` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::_validate_result_envelope` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_validate_official_text` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::CnigFeatureCodeProfile._validate_profile` via `_exact_string`.
+- direct call or construction: `src/landscout/stages/resolve_planning_feature_codes.py::_strict_string` via `_exact_string`.
+- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::<module>` via `AfterValidator(_exact_string)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _exact_string(value: str) -> str:
+    if value != value.strip():
+        raise ValueError("policy strings must not contain edge whitespace")
+    return value
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `road` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
 
 ### `_require_unique`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _require_unique(values: tuple[str, ...], label: str) -> None:
@@ -632,60 +1337,52 @@ def _require_unique(values: tuple[str, ...], label: str) -> None:
 
 **Purpose**
 
-Implements require unique according to the exact implementation and guards in this file.
+Private `road` helper for require unique; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `values` (`tuple[str, ...]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `len(values) != len(set(values))`. When true: Raises `ValueError(f'{label} contains duplicate source values')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(values) != len(set(values))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(values) != len(set(values))`.
+- Explicit raise expressions: `ValueError(f'{label} contains duplicate source values')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `len`, `set`.
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_AssetStateConfig._valid_groups` via `_require_unique`.
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_LightVehicleAccessConfig._valid_groups` via `_require_unique`.
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_RoadNatureConfig._valid_groups` via `_require_unique`.
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_ImportanceConfig._valid_domain` via `_require_unique`.
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_SourceValuesConfig._valid_values` via `_require_unique`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/road_vehicle_proxy_policy.py` — `_AssetStateConfig._valid_groups`
-- `src/landscout/stages/road_vehicle_proxy_policy.py` — `_ImportanceConfig._valid_domain`
-- `src/landscout/stages/road_vehicle_proxy_policy.py` — `_LightVehicleAccessConfig._valid_groups`
-- `src/landscout/stages/road_vehicle_proxy_policy.py` — `_RoadNatureConfig._valid_groups`
-- `src/landscout/stages/road_vehicle_proxy_policy.py` — `_SourceValuesConfig._valid_values`
+```python
+def _require_unique(values: tuple[str, ...], label: str) -> None:
+    if len(values) != len(set(values)):
+        raise ValueError(f"{label} contains duplicate source values")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `road` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
 
 ### `_require_disjoint`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _require_disjoint(groups: tuple[tuple[str, ...], ...], label: str) -> None:
@@ -693,59 +1390,51 @@ def _require_disjoint(groups: tuple[tuple[str, ...], ...], label: str) -> None:
 
 **Purpose**
 
-Implements require disjoint according to the exact implementation and guards in this file.
+Private `road` helper for require disjoint; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `groups` (`tuple[tuple[str, ...], ...]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `flattened` from `tuple((value for group in groups for value in group))`.
-2. Checks `len(flattened) != len(set(flattened))`. When true: Raises `ValueError(f'{label} source groups overlap')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `len(flattened) != len(set(flattened))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `len(flattened) != len(set(flattened))`.
+- Explicit raise expressions: `ValueError(f'{label} source groups overlap')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `len`, `set`, `tuple`.
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_AssetStateConfig._valid_groups` via `_require_disjoint`.
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_LightVehicleAccessConfig._valid_groups` via `_require_disjoint`.
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::_RoadNatureConfig._valid_groups` via `_require_disjoint`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/road_vehicle_proxy_policy.py` — `_AssetStateConfig._valid_groups`
-- `src/landscout/stages/road_vehicle_proxy_policy.py` — `_LightVehicleAccessConfig._valid_groups`
-- `src/landscout/stages/road_vehicle_proxy_policy.py` — `_RoadNatureConfig._valid_groups`
+```python
+def _require_disjoint(groups: tuple[tuple[str, ...], ...], label: str) -> None:
+    flattened = tuple(value for group in groups for value in group)
+    if len(flattened) != len(set(flattened)):
+        raise ValueError(f"{label} source groups overlap")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `road` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
 
 ### `_AssetStateConfig._valid_groups`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _valid_groups(self) -> Self:
@@ -753,59 +1442,68 @@ def _valid_groups(self) -> Self:
 
 **Purpose**
 
-Implements valid groups according to the exact implementation and guards in this file.
+Private `road` helper for valid groups; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `Self`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `Self`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Computes `groups` from `(self.in_service, self.project_geometry_not_significant, self.under_construction)`.
-2. Iterates `(name, values)` over `zip(('in_service', 'project_geometry_not_significant', 'under_construction'), groups, strict=True)`. For each value: Calls `_require_unique(values, name)` for its validation or side effect.
-3. Calls `_require_disjoint(groups, 'asset_state')` for its validation or side effect.
-4. Checks `groups != (('En service',), ('En projet',), ('En construction',))`. When true: Raises `ValueError('asset_state groups must cover the exact source domain')`.
-5. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `groups != (('En service',), ('En projet',), ('En construction',))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `groups != (('En service',), ('En projet',), ('En construction',))`.
+- Explicit raise expressions: `ValueError('asset_state groups must cover the exact source domain')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `_require_disjoint`, `_require_unique`, `model_validator`, `zip`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _valid_groups(self) -> Self:
+        groups = (
+            self.in_service,
+            self.project_geometry_not_significant,
+            self.under_construction,
+        )
+        for name, values in zip(
+            (
+                "in_service",
+                "project_geometry_not_significant",
+                "under_construction",
+            ),
+            groups,
+            strict=True,
+        ):
+            _require_unique(values, name)
+        _require_disjoint(groups, "asset_state")
+        if groups != (("En service",), ("En projet",), ("En construction",)):
+            raise ValueError("asset_state groups must cover the exact source domain")
+        return self
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `road` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
 
 ### `_LightVehicleAccessConfig._valid_groups`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _valid_groups(self) -> Self:
@@ -813,58 +1511,63 @@ def _valid_groups(self) -> Self:
 
 **Purpose**
 
-Implements valid groups according to the exact implementation and guards in this file.
+Private `road` helper for valid groups; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `Self`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `Self`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Computes `groups` from `(self.open, self.toll, self.rights_restricted, self.physically_impossible)`.
-2. Iterates `(name, values)` over `zip(('open', 'toll', 'rights_restricted', 'physically_impossible'), groups, strict=True)`. For each value: Calls `_require_unique(values, name)` for its validation or side effect.
-3. Calls `_require_disjoint(groups, 'light_vehicle_access')` for its validation or side effect.
-4. Returns `self`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_require_disjoint`, `_require_unique`, `model_validator`, `zip`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _valid_groups(self) -> Self:
+        groups = (
+            self.open,
+            self.toll,
+            self.rights_restricted,
+            self.physically_impossible,
+        )
+        for name, values in zip(
+            ("open", "toll", "rights_restricted", "physically_impossible"),
+            groups,
+            strict=True,
+        ):
+            _require_unique(values, name)
+        _require_disjoint(groups, "light_vehicle_access")
+        return self
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `road` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
 
 ### `_RoadNatureConfig._valid_groups`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _valid_groups(self) -> Self:
@@ -872,58 +1575,68 @@ def _valid_groups(self) -> Self:
 
 **Purpose**
 
-Implements valid groups according to the exact implementation and guards in this file.
+Private `road` helper for valid groups; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `Self`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `Self`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Computes `groups` from `(self.general_motor_road, self.limited_motor_proxy, self.non_general_vehicle, self.special_review)`.
-2. Iterates `(name, values)` over `zip(('general_motor_road', 'limited_motor_proxy', 'non_general_vehicle', 'special_review'), groups, strict=True)`. For each value: Calls `_require_unique(values, name)` for its validation or side effect.
-3. Calls `_require_disjoint(groups, 'nature')` for its validation or side effect.
-4. Returns `self`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_require_disjoint`, `_require_unique`, `model_validator`, `zip`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _valid_groups(self) -> Self:
+        groups = (
+            self.general_motor_road,
+            self.limited_motor_proxy,
+            self.non_general_vehicle,
+            self.special_review,
+        )
+        for name, values in zip(
+            (
+                "general_motor_road",
+                "limited_motor_proxy",
+                "non_general_vehicle",
+                "special_review",
+            ),
+            groups,
+            strict=True,
+        ):
+            _require_unique(values, name)
+        _require_disjoint(groups, "nature")
+        return self
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `road` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
 
 ### `_ImportanceConfig._valid_domain`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _valid_domain(self) -> Self:
@@ -931,62 +1644,60 @@ def _valid_domain(self) -> Self:
 
 **Purpose**
 
-Implements valid domain according to the exact implementation and guards in this file.
+Private `road` helper for valid domain; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `Self`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `Self`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Calls `_require_unique(self.known, 'importance.known')` for its validation or side effect.
-2. Calls `_require_unique(self.limited, 'importance.limited')` for its validation or side effect.
-3. Checks `self.known != ('1', '2', '3', '4', '5', '6')`. When true: Raises `ValueError('importance.known must cover exactly source values 1-6')`.
-4. Checks `self.limited != ('6',)`. When true: Raises `ValueError("importance.limited must contain exactly source value '6'")`.
-5. Checks `not set(self.limited).issubset(self.known)`. When true: Raises `ValueError('importance.limited must be a subset of importance.known')`.
-6. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `self.known != ('1', '2', '3', '4', '5', '6')` is true.
-- Rejects or diverts the path when `self.limited != ('6',)` is true.
-- Rejects or diverts the path when `not set(self.limited).issubset(self.known)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `self.known != ('1', '2', '3', '4', '5', '6')`.
+- Guard with a raise path: `self.limited != ('6',)`.
+- Guard with a raise path: `not set(self.limited).issubset(self.known)`.
+- Explicit raise expressions: `ValueError("importance.limited must contain exactly source value '6'")`, `ValueError('importance.known must cover exactly source values 1-6')`, `ValueError('importance.limited must be a subset of importance.known')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `_require_unique`, `model_validator`, `set`, `set(self.limited).issubset`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _valid_domain(self) -> Self:
+        _require_unique(self.known, "importance.known")
+        _require_unique(self.limited, "importance.limited")
+        if self.known != ("1", "2", "3", "4", "5", "6"):
+            raise ValueError("importance.known must cover exactly source values 1-6")
+        if self.limited != ("6",):
+            raise ValueError("importance.limited must contain exactly source value '6'")
+        if not set(self.limited).issubset(self.known):
+            raise ValueError("importance.limited must be a subset of importance.known")
+        return self
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `road` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
 
 ### `_SourceValuesConfig._valid_values`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _valid_values(self) -> Self:
@@ -994,56 +1705,53 @@ def _valid_values(self) -> Self:
 
 **Purpose**
 
-Implements valid values according to the exact implementation and guards in this file.
+Private `road` helper for valid values; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `Self`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `Self`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Calls `_require_unique(self.known_restriction_review, 'known_restriction_review')` for its validation or side effect.
-2. Returns `self`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_require_unique`, `model_validator`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _valid_values(self) -> Self:
+        _require_unique(
+            self.known_restriction_review, "known_restriction_review"
+        )
+        return self
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `road` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
 
 ### `_PolicyConfig._valid_identity_and_precedence`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _valid_identity_and_precedence(self) -> Self:
@@ -1051,62 +1759,61 @@ def _valid_identity_and_precedence(self) -> Self:
 
 **Purpose**
 
-Implements valid identity and precedence according to the exact implementation and guards in this file.
+Private `road` helper for valid identity and precedence; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `Self`.
+- Every observed return expression is reproduced without truncation:
+```python
+self
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `Self`. Observed return expression(s): `self`.
-
-**Algorithm**
-
-1. Checks `self.policy_id != _POLICY_ID`. When true: Raises `ValueError('policy_id is not the approved v2 policy identity')`.
-2. Checks `self.schema_version != 2`. When true: Raises `ValueError('schema_version must be exactly 2')`.
-3. Checks `self.scope != _POLICY_SCOPE`. When true: Raises `ValueError('scope is not the approved official IGN evidence scope')`.
-4. Checks `self.decision_precedence != _EXPECTED_PRECEDENCE`. When true: Raises `ValueError('decision_precedence differs from approved v2 order')`.
-5. Returns `self`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `self.policy_id != _POLICY_ID` is true.
-- Rejects or diverts the path when `self.schema_version != 2` is true.
-- Rejects or diverts the path when `self.scope != _POLICY_SCOPE` is true.
-- Rejects or diverts the path when `self.decision_precedence != _EXPECTED_PRECEDENCE` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `self.policy_id != _POLICY_ID`.
+- Guard with a raise path: `self.schema_version != 2`.
+- Guard with a raise path: `self.scope != _POLICY_SCOPE`.
+- Guard with a raise path: `self.decision_precedence != _EXPECTED_PRECEDENCE`.
+- Explicit raise expressions: `ValueError('decision_precedence differs from approved v2 order')`, `ValueError('policy_id is not the approved v2 policy identity')`, `ValueError('schema_version must be exactly 2')`, `ValueError('scope is not the approved official IGN evidence scope')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `model_validator`.
+- No direct call/construction/property/import/decorator/callback reference was found. Framework-decorated invocation is documented on the decorator-bearing function itself.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _valid_identity_and_precedence(self) -> Self:
+        if self.policy_id != _POLICY_ID:
+            raise ValueError("policy_id is not the approved v2 policy identity")
+        if self.schema_version != 2:
+            raise ValueError("schema_version must be exactly 2")
+        if self.scope != _POLICY_SCOPE:
+            raise ValueError("scope is not the approved official IGN evidence scope")
+        if self.decision_precedence != _EXPECTED_PRECEDENCE:
+            raise ValueError("decision_precedence differs from approved v2 order")
+        return self
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `road` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
 
 ### `_CompiledClasses.values`
 
-**Signature**
+**Exact signature**
 
 ```python
 def values(self) -> tuple[str, ...]:
@@ -1114,55 +1821,156 @@ def values(self) -> tuple[str, ...]:
 
 **Purpose**
 
-Implements values according to the exact implementation and guards in this file.
+Private `road` helper for values; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[str, ...]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(self.general_vehicle_proxy, self.limited_vehicle_proxy, self.restricted_review, self.not_general_vehicle_proxy, self.not_distance_proxy, self.unknown_review)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[str, ...]`. Observed return expression(s): `(self.general_vehicle_proxy, self.limited_vehicle_proxy, self.restricted_review, self.not_general_vehicle_proxy, self.not_distance_proxy, self.unknown_review)`.
-
-**Algorithm**
-
-1. Returns `(self.general_vehicle_proxy, self.limited_vehicle_proxy, self.restricted_review, self.not_general_vehicle_proxy, self.not_distance_proxy, self.unknown_review)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- No function calls.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_status_priority_mapping` via `priority_to_statuses.values`.
+- property/attribute access: `src/landscout/common/bess_application_contract.py::_status_priority_mapping` via `priority_to_statuses.values`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::_status_priority_mapping` via `status_to_priorities.values`.
+- property/attribute access: `src/landscout/common/bess_application_contract.py::_status_priority_mapping` via `status_to_priorities.values`.
+- callback/function object: `src/landscout/common/safe_http.py::_redirect_location` via `len(values)`.
+- callback/function object: `src/landscout/sources/gpu_fr.py::_document_from_dict` via `GpuDocumentMetadata(**values, written_files=tuple(written))`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_parcel_summary` via `priority_statuses.values`.
+- property/attribute access: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_parcel_summary` via `priority_statuses.values`.
+- direct call or construction: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_parcel_summary` via `status_priorities.values`.
+- property/attribute access: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_parcel_summary` via `status_priorities.values`.
+- callback/function object: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_assign_columns` via `pd.array(values, dtype='Int64')`.
+- callback/function object: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_assign_columns` via `pd.array(values, dtype='bool')`.
+- callback/function object: `src/landscout/stages/aggregate_bess_planning_feature_policy.py::_assign_columns` via `pd.array(values, dtype='str')`.
+- callback/function object: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_object_scalar_mask` via `np.asarray(values, dtype=bool)`.
+- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `unknown_masks.values`.
+- property/attribute access: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `unknown_masks.values`.
+- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `rule_masks.values`.
+- property/attribute access: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_classify_road_frame` via `rule_masks.values`.
+- callback/function object: `src/landscout/stages/assess_grid_coverage.py::_boundary_profile` via `_finite_nonnegative(values, 'Grid source boundary distance')`.
+- property/attribute access: `src/landscout/stages/assess_road_proximity_coverage.py::_validate_class_coverage` via `policy.classes.values`.
+- direct call or construction: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyConfig._validate_policy` via `self.status_priority.values`.
+- property/attribute access: `src/landscout/stages/bess_planning_feature_policy.py::BessPlanningFeaturePolicyConfig._validate_policy` via `self.status_priority.values`.
+- callback/function object: `src/landscout/stages/enrich_grid_proximity.py::_calculation_geometries` via `force_2d(values)`.
+- callback/function object: `src/landscout/stages/enrich_grid_proximity.py::_validate_tie_counts` via `len(values)`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_LINE_OUTPUT_MAPPING.values`.
+- property/attribute access: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_LINE_OUTPUT_MAPPING.values`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_EXACT_LINE_OUTPUT_MAPPING.values`.
+- property/attribute access: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_EXACT_LINE_OUTPUT_MAPPING.values`.
+- direct call or construction: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_POST_OUTPUT_MAPPING.values`.
+- property/attribute access: `src/landscout/stages/enrich_grid_proximity.py::_validate_result_contract` via `_POST_OUTPUT_MAPPING.values`.
+- callback/function object: `src/landscout/stages/enrich_grid_proximity.py::_distance_profile` via `len(values)`.
+- callback/function object: `src/landscout/stages/enrich_planning_features.py::_validate_ids` via `_validate_exact_strings(values, label)`.
+- callback/function object: `src/landscout/stages/enrich_planning_features.py::_standard_model` via `len(values)`.
+- callback/function object: `src/landscout/stages/enrich_planning_features.py::_source_feature_ids` via `_validate_ids(values, f'{layer.logical_name} OGR FID')`.
+- callback/function object: `src/landscout/stages/enrich_planning_features.py::_normalize_layer` via `np.isfinite(values)`.
+- direct call or construction: `src/landscout/stages/enrich_planning_zoning.py::<module>` via `GPU_ZONING_SOURCE_FIELDS.values`.
+- property/attribute access: `src/landscout/stages/enrich_planning_zoning.py::<module>` via `GPU_ZONING_SOURCE_FIELDS.values`.
+- callback/function object: `src/landscout/stages/enrich_planning_zoning.py::_standard_model` via `len(values)`.
+- property/attribute access: `src/landscout/stages/enrich_road_proximity.py::_policy_classes` via `policy.classes.values`.
+- callback/function object: `src/landscout/stages/enrich_road_proximity.py::_calculation_geometries` via `force_2d(values)`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_validate_result` via `_MATCH_OUTPUT_MAPPING.values`.
+- property/attribute access: `src/landscout/stages/enrich_road_proximity.py::_validate_result` via `_MATCH_OUTPUT_MAPPING.values`.
+- callback/function object: `src/landscout/stages/index_planning_regulation.py::_zoning_regulation_filenames` via `sorted(values, key=str.casefold)`.
+- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::_exact_id_series` via `set(values)`.
+- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::_exact_id_series` via `len(values)`.
+- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::_exact_id_series` via `tuple(values)`.
+- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `isinstance(values, (tuple, list, np.ndarray))`.
+- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::_compare_results` via `set(values)`.
+- direct call or construction: `src/landscout/stages/normalize_cadastre.py::normalize_cadastre_parcels` via `FIELD_MAPPING.values`.
+- property/attribute access: `src/landscout/stages/normalize_cadastre.py::normalize_cadastre_parcels` via `FIELD_MAPPING.values`.
+- direct call or construction: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `width_buckets.values`.
+- property/attribute access: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `width_buckets.values`.
+- direct call or construction: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `ratio_buckets.values`.
+- property/attribute access: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `ratio_buckets.values`.
+- direct call or construction: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `compactness_buckets.values`.
+- property/attribute access: `src/landscout/stages/profile_shape.py::profile_shape_distribution` via `compactness_buckets.values`.
+- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::_require_unique` via `len(values)`.
+- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::_require_unique` via `set(values)`.
+- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::_AssetStateConfig._valid_groups` via `_require_unique(values, name)`.
+- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::_LightVehicleAccessConfig._valid_groups` via `_require_unique(values, name)`.
+- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::_RoadNatureConfig._valid_groups` via `_require_unique(values, name)`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_section_starts` via `starts_by_position.values`.
+- property/attribute access: `src/landscout/stages/structure_planning_regulation.py::_section_starts` via `starts_by_position.values`.
+- direct call or construction: `src/landscout/stages/structure_planning_regulation.py::_section_starts` via `compacted.values`.
+- property/attribute access: `src/landscout/stages/structure_planning_regulation.py::_section_starts` via `compacted.values`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_policy_mutation` via `pd.Categorical(values)`.
+- callback/function object: `tests/unit/test_apply_bess_planning_feature_policy.py::_coordinated_policy_mutation` via `pd.Series(values, index=frame.index, dtype=dtype)`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_factual_prefix_lineage_change` via `paths.values`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_factual_prefix_lineage_change` via `paths.values`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `paths.values`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_all_null_raw_column_transition` via `paths.values`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_unreferenced_feature_and_row_reordering` via `paths.values`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_source_bound_loader_rejects_unreferenced_feature_and_row_reordering` via `paths.values`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_validates_upstreams_and_rebuilds_once_lightweight` via `paths.values`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_validates_upstreams_and_rebuilds_once_lightweight` via `paths.values`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `paths.values`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_bad_upstream_before_artifact_reads` via `paths.values`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_incompatible_upstreams_before_io_or_rebuild` via `paths.values`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_incompatible_upstreams_before_io_or_rebuild` via `paths.values`.
+- direct call or construction: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_empty_upstreams_before_any_io_or_rebuild` via `paths.values`.
+- property/attribute access: `tests/unit/test_apply_bess_planning_feature_policy.py::test_application_loader_rejects_empty_upstreams_before_any_io_or_rebuild` via `paths.values`.
+- callback/function object: `tests/unit/test_assess_grid_coverage.py::_parcels` via `gpd.GeoDataFrame({'parcel_id': [f'PARCEL-{position + 1}' for position in range(len(values))], 'preserved_value': list(range(len(values)))}, geometry=values, crs=crs, index=[20 + position for position in range(len(values))])`.
+- callback/function object: `tests/unit/test_assess_grid_coverage.py::_parcels` via `len(values)`.
+- callback/function object: `tests/unit/test_assess_grid_coverage.py::_lines` via `len(values)`.
+- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::_coverage` via `gpd.GeoDataFrame({'code_insee': [department_code] * len(values), 'nom_officiel': [f'Department {position}' for position in range(len(values))]}, geometry=values, crs=crs)`.
+- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::_coverage` via `len(values)`.
+- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::_metric_parcels` via `len(values)`.
+- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::_metric_parcels` via `gpd.GeoDataFrame({'parcel_id': ids, 'preserved_value': list(range(len(values)))}, geometry=values, crs='EPSG:2154', index=[20 + position for position in range(len(values))])`.
+- callback/function object: `tests/unit/test_assess_road_proximity_coverage.py::test_internal_boundary_distance_is_full_geometry_finite_and_nonnegative` via `np.isfinite(values)`.
+- callback/function object: `tests/unit/test_cadastre_loader_fr.py::_download` via `CadastreDownload(**values)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::_parcels` via `len(values)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::_parcels` via `gpd.GeoDataFrame({'parcel_id': ids, 'source_value': list(range(count))}, geometry=values, crs=crs, index=source_index)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::_lines` via `len(values)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::_lines` via `gpd.GeoDataFrame({'grid_feature_id': ids, 'grid_feature_type': feature_types or ['ELECTRIC_LINE'] * count, 'source_feature_id': [f'SOURCE-{value}' for value in ids], 'source_department_code': ['31'] * count, 'source_edition': ['2026-06-15'] * count, 'source_archive_sha256': ['a' * 64] * count, 'source_layer': ['CUSTOM_LINE_LAYER'] * count, 'spatial_role': spatial_roles or ['PROXY_GEOMETRY'] * count, 'geometry_status': geometry_statuses, 'voltage_raw': [f'{value:g} kV' if isinstance(value, (int, float)) else None for value in normalized_voltages], 'voltage_status': normalized_voltage_statuses, 'voltage_kv': normalized_voltages, 'voltage_upper_bound_kv': [np.nan] * count, 'manager_name': ['TEST MANAGER'] * count, 'asset_status_raw': ['En service'] * count}, geometry=values, crs=crs)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::_posts` via `len(values)`.
+- callback/function object: `tests/unit/test_enrich_grid_proximity.py::_posts` via `gpd.GeoDataFrame({'grid_feature_id': ids, 'grid_feature_type': feature_types or ['TRANSFORMATION_POST'] * count, 'source_feature_id': [f'SOURCE-{value}' for value in ids], 'source_department_code': ['31'] * count, 'source_edition': ['2026-06-15'] * count, 'source_archive_sha256': ['a' * 64] * count, 'source_layer': ['CUSTOM_POST_LAYER'] * count, 'spatial_role': spatial_roles or ['PROXY_GEOMETRY'] * count, 'geometry_status': geometry_statuses, 'name': ['Test post'] * count, 'importance_raw': ['5'] * count, 'asset_status_raw': ['En service'] * count}, geometry=values, crs=crs)`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::_parcels` via `gpd.GeoDataFrame({'parcel_id': ids or [f'P-{index + 1}' for index in range(len(values))], 'existing_zoning_fact': np.arange(len(values), dtype='int64') + 7}, geometry=values, crs='EPSG:2154', index=[50 + index for index in range(len(values))])`.
+- callback/function object: `tests/unit/test_enrich_planning_features.py::_parcels` via `len(values)`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::_parcels` via `len(values)`.
+- callback/function object: `tests/unit/test_enrich_planning_zoning.py::_parcels` via `gpd.GeoDataFrame({'parcel_id': ids, 'existing_grid_value': [100 + position for position in range(len(values))]}, geometry=values, crs='EPSG:2154', index=[50 + position for position in range(len(values))])`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def values(self) -> tuple[str, ...]:
+        return (
+            self.general_vehicle_proxy,
+            self.limited_vehicle_proxy,
+            self.restricted_review,
+            self.not_general_vehicle_proxy,
+            self.not_distance_proxy,
+            self.unknown_review,
+        )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `road` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
 
 ### `_construct_unique_mapping`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _construct_unique_mapping(
@@ -1174,59 +1982,66 @@ def _construct_unique_mapping(
 
 **Purpose**
 
-Implements construct unique mapping according to the exact implementation and guards in this file.
+Private `road` helper for construct unique mapping; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `loader` (`yaml.SafeLoader`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `node` (`yaml.MappingNode`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `deep` (`bool`; optional/default `False`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `dict[object, object]`.
+- Every observed return expression is reproduced without truncation:
+```python
+result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict[object, object]`. Observed return expression(s): `result`.
-
-**Algorithm**
-
-1. Defines `result` with annotation `dict[object, object]` from `{}`.
-2. Iterates `(key_node, value_node)` over `node.value`. For each value: Computes `key` from `loader.construct_object(key_node, deep=deep)`. Checks `key in result`. When true: Raises `IgnRoadVehicleProxyPolicyError(f'Duplicate YAML road-policy key: {key!r}')`. Computes `result[key]` from `loader.construct_object(value_node, deep=deep)`.
-3. Returns `result`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `key in result` is true.
-
-**Exceptions**
-
-- Explicitly raises: `IgnRoadVehicleProxyPolicyError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `key in result`.
+- Explicit raise expressions: `IgnRoadVehicleProxyPolicyError(f'Duplicate YAML road-policy key: {key!r}')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `result[key]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `IgnRoadVehicleProxyPolicyError`, `loader.construct_object`.
+- callback/function object: `src/landscout/stages/bess_planning_feature_policy.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
+- callback/function object: `src/landscout/stages/interpret_bess_zoning.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
+- callback/function object: `src/landscout/stages/resolve_planning_feature_codes.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
+- callback/function object: `src/landscout/stages/road_vehicle_proxy_policy.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
+- callback/function object: `src/landscout/stages/structure_planning_regulation.py::<module>` via `_UniqueKeyLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, _construct_unique_mapping)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def _construct_unique_mapping(
+    loader: yaml.SafeLoader,
+    node: yaml.MappingNode,
+    deep: bool = False,
+) -> dict[object, object]:
+    result: dict[object, object] = {}
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node, deep=deep)
+        if key in result:
+            raise IgnRoadVehicleProxyPolicyError(
+                f"Duplicate YAML road-policy key: {key!r}"
+            )
+        result[key] = loader.construct_object(value_node, deep=deep)
+    return result
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `road` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
 
 ### `_compile_policy`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _compile_policy(
@@ -1237,61 +2052,135 @@ def _compile_policy(
 
 **Purpose**
 
-Compiles policy according to the exact implementation and guards in this file.
+Validates and compiles policy; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `config` (`_PolicyConfig`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `config_sha256` (`str`; required) — validated configuration or policy identity that controls the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `IgnRoadVehicleProxyPolicy`.
+- Every observed return expression is reproduced without truncation:
+```python
+IgnRoadVehicleProxyPolicy(policy_id=config.policy_id, schema_version=config.schema_version, scope=config.scope, navigation_reference=_CompiledNavigationReference(publisher=config.references.navigation.publisher, title=config.references.navigation.title, revision=config.references.navigation.revision, evidence_scope=config.references.navigation.evidence_scope), bdtopo_product_reference=_CompiledBdTopoProductReference(publisher=config.references.bdtopo_product.publisher, title=config.references.bdtopo_product.title, document_id=config.references.bdtopo_product.document_id, revision=config.references.bdtopo_product.revision, evidence_scope=config.references.bdtopo_product.evidence_scope), evidence_checked_on=config.evidence_checked_on, vehicle_scope=config.vehicle_scope, heavy_vehicle_access=config.heavy_vehicle_access, classes=_CompiledClasses(general_vehicle_proxy=classes.general_vehicle_proxy, limited_vehicle_proxy=classes.limited_vehicle_proxy, restricted_review=classes.restricted_review, not_general_vehicle_proxy=classes.not_general_vehicle_proxy, not_distance_proxy=classes.not_distance_proxy, unknown_review=classes.unknown_review), asset_state=_CompiledAssetState(in_service=frozenset(source_values.asset_state.in_service), project_geometry_not_significant=frozenset(source_values.asset_state.project_geometry_not_significant), under_construction=frozenset(source_values.asset_state.under_construction)), light_vehicle_access=_CompiledLightVehicleAccess(open=frozenset(access.open), toll=frozenset(access.toll), rights_restricted=frozenset(access.rights_restricted), physically_impossible=frozenset(access.physically_impossible)), nature=_CompiledRoadNature(general_motor_road=frozenset(nature.general_motor_road), limited_motor_proxy=frozenset(nature.limited_motor_proxy), non_general_vehicle=frozenset(nature.non_general_vehicle), special_review=frozenset(nature.special_review)), known_restriction_review=frozenset(source_values.known_restriction_review), importance=_CompiledImportance(known=frozenset(source_values.importance.known), limited=frozenset(source_values.importance.limited)), width_below_m=source_values.width_below_m, decision_precedence=config.decision_precedence, decision_outcomes=_CompiledDecisionOutcomes(fictitious_geometry=outcomes.fictitious_geometry, project_geometry_not_significant=outcomes.project_geometry_not_significant, not_in_service=outcomes.not_in_service, physically_impossible=outcomes.physically_impossible, non_general_vehicle_nature=outcomes.non_general_vehicle_nature, rights_restricted=outcomes.rights_restricted, private_road=outcomes.private_road, temporal_closure=outcomes.temporal_closure, known_restriction=outcomes.known_restriction, other_recorded_restriction=outcomes.other_recorded_restriction, special_nature=outcomes.special_nature, limited_nature=outcomes.limited_nature, importance_6=outcomes.importance_6, narrow_carriageway=outcomes.narrow_carriageway, open_or_toll=outcomes.open_or_toll, unknown=outcomes.unknown), config_sha256=config_sha256)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `IgnRoadVehicleProxyPolicy`. Observed return expression(s): `IgnRoadVehicleProxyPolicy(policy_id=config.policy_id, schema_version=config.schema_version, scope=config.scope, navigation_reference=_CompiledNavigationReference(publisher=config.references.navigation.publisher, title=config.references.navigation.title, revision=config.references.navigation.revision, evidence_scope=config.references.navigation.evidence_scope), bdtopo_product_reference=_CompiledBd…`.
-
-**Algorithm**
-
-1. Computes `classes` from `config.classes`.
-2. Computes `source_values` from `config.source_values`.
-3. Computes `access` from `source_values.light_vehicle_access`.
-4. Computes `nature` from `source_values.nature`.
-5. Computes `outcomes` from `config.decision_outcomes`.
-6. Returns `IgnRoadVehicleProxyPolicy(policy_id=config.policy_id, schema_version=config.schema_version, scope=config.scope, navigation_reference=_CompiledNavigationReference(publisher=config.references.navigation.publisher, title=config.references.navigation.title, revision=config.references.navigation.revision, evidence_scope=config.references.navigation.evidence_scop…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `IgnRoadVehicleProxyPolicy`, `_CompiledAssetState`, `_CompiledBdTopoProductReference`, `_CompiledClasses`, `_CompiledDecisionOutcomes`, `_CompiledImportance`, `_CompiledLightVehicleAccess`, `_CompiledNavigationReference`, `_CompiledRoadNature`, `frozenset`.
+- direct call or construction: `src/landscout/stages/road_vehicle_proxy_policy.py::load_ign_road_vehicle_proxy_policy` via `_compile_policy`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/road_vehicle_proxy_policy.py` — `load_ign_road_vehicle_proxy_policy`
+```python
+def _compile_policy(
+    config: _PolicyConfig,
+    config_sha256: str,
+) -> IgnRoadVehicleProxyPolicy:
+    classes = config.classes
+    source_values = config.source_values
+    access = source_values.light_vehicle_access
+    nature = source_values.nature
+    outcomes = config.decision_outcomes
+    return IgnRoadVehicleProxyPolicy(
+        policy_id=config.policy_id,
+        schema_version=config.schema_version,
+        scope=config.scope,
+        navigation_reference=_CompiledNavigationReference(
+            publisher=config.references.navigation.publisher,
+            title=config.references.navigation.title,
+            revision=config.references.navigation.revision,
+            evidence_scope=config.references.navigation.evidence_scope,
+        ),
+        bdtopo_product_reference=_CompiledBdTopoProductReference(
+            publisher=config.references.bdtopo_product.publisher,
+            title=config.references.bdtopo_product.title,
+            document_id=config.references.bdtopo_product.document_id,
+            revision=config.references.bdtopo_product.revision,
+            evidence_scope=config.references.bdtopo_product.evidence_scope,
+        ),
+        evidence_checked_on=config.evidence_checked_on,
+        vehicle_scope=config.vehicle_scope,
+        heavy_vehicle_access=config.heavy_vehicle_access,
+        classes=_CompiledClasses(
+            general_vehicle_proxy=classes.general_vehicle_proxy,
+            limited_vehicle_proxy=classes.limited_vehicle_proxy,
+            restricted_review=classes.restricted_review,
+            not_general_vehicle_proxy=classes.not_general_vehicle_proxy,
+            not_distance_proxy=classes.not_distance_proxy,
+            unknown_review=classes.unknown_review,
+        ),
+        asset_state=_CompiledAssetState(
+            in_service=frozenset(source_values.asset_state.in_service),
+            project_geometry_not_significant=frozenset(
+                source_values.asset_state.project_geometry_not_significant
+            ),
+            under_construction=frozenset(source_values.asset_state.under_construction),
+        ),
+        light_vehicle_access=_CompiledLightVehicleAccess(
+            open=frozenset(access.open),
+            toll=frozenset(access.toll),
+            rights_restricted=frozenset(access.rights_restricted),
+            physically_impossible=frozenset(access.physically_impossible),
+        ),
+        nature=_CompiledRoadNature(
+            general_motor_road=frozenset(nature.general_motor_road),
+            limited_motor_proxy=frozenset(nature.limited_motor_proxy),
+            non_general_vehicle=frozenset(nature.non_general_vehicle),
+            special_review=frozenset(nature.special_review),
+        ),
+        known_restriction_review=frozenset(
+            source_values.known_restriction_review
+        ),
+        importance=_CompiledImportance(
+            known=frozenset(source_values.importance.known),
+            limited=frozenset(source_values.importance.limited),
+        ),
+        width_below_m=source_values.width_below_m,
+        decision_precedence=config.decision_precedence,
+        decision_outcomes=_CompiledDecisionOutcomes(
+            fictitious_geometry=outcomes.fictitious_geometry,
+            project_geometry_not_significant=(
+                outcomes.project_geometry_not_significant
+            ),
+            not_in_service=outcomes.not_in_service,
+            physically_impossible=outcomes.physically_impossible,
+            non_general_vehicle_nature=outcomes.non_general_vehicle_nature,
+            rights_restricted=outcomes.rights_restricted,
+            private_road=outcomes.private_road,
+            temporal_closure=outcomes.temporal_closure,
+            known_restriction=outcomes.known_restriction,
+            other_recorded_restriction=outcomes.other_recorded_restriction,
+            special_nature=outcomes.special_nature,
+            limited_nature=outcomes.limited_nature,
+            importance_6=outcomes.importance_6,
+            narrow_carriageway=outcomes.narrow_carriageway,
+            open_or_toll=outcomes.open_or_toll,
+            unknown=outcomes.unknown,
+        ),
+        config_sha256=config_sha256,
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `road` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
 
 ### `load_ign_road_vehicle_proxy_policy`
 
-**Signature**
+**Exact signature**
 
 ```python
 def load_ign_road_vehicle_proxy_policy(
@@ -1303,139 +2192,160 @@ def load_ign_road_vehicle_proxy_policy(
 
 Load and compile the strict policy from its exact UTF-8 file bytes.
 
-**Inputs**
+**Return contract**
 
-- `path` (`Path`; optional/default `_DEFAULT_POLICY_PATH`) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `IgnRoadVehicleProxyPolicy`.
+- Every observed return expression is reproduced without truncation:
+```python
+_compile_policy(config, sha256(policy_bytes).hexdigest())
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `IgnRoadVehicleProxyPolicy`. Observed return expression(s): `_compile_policy(config, sha256(policy_bytes).hexdigest())`.
-
-**Algorithm**
-
-1. Runs guarded operation: Computes `policy_bytes` from `Path(path).read_bytes()`. Computes `payload` from `yaml.load(policy_bytes.decode('utf-8'), Loader=_UniqueKeyLoader)`. Checks `not isinstance(payload, Mapping)`. When true: Raises `IgnRoadVehicleProxyPolicyError('IGN road vehicle-proxy policy must be a mapping')`. Computes `config` from `_PolicyConfig.model_validate(payload)`. Executes 1 additional source-ordered statement(s). Handles `IgnRoadVehicleProxyPolicyError`, `Exception`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(payload, Mapping)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `IgnRoadVehicleProxyPolicyError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(payload, Mapping)`.
+- Explicit raise expressions: `IgnRoadVehicleProxyPolicyError('IGN road vehicle-proxy policy is invalid')`, `IgnRoadVehicleProxyPolicyError('IGN road vehicle-proxy policy must be a mapping')`, `re-raise`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `Path(path).read_bytes`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: `Path(path).read_bytes`.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `sha256`, `sha256(policy_bytes).hexdigest`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `IgnRoadVehicleProxyPolicyError`, `Path`, `Path(path).read_bytes`, `_PolicyConfig.model_validate`, `_compile_policy`, `isinstance`, `policy_bytes.decode`, `sha256`, `sha256(policy_bytes).hexdigest`, `yaml.load`.
+- import/re-export: `src/landscout/stages/__init__.py::<module>` via `from landscout.stages.road_vehicle_proxy_policy import (
+    IgnRoadVehicleProxyPolicy,
+    IgnRoadVehicleProxyPolicyError,
+    load_ign_road_vehicle_proxy_policy,
+)`.
+- direct call or construction: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::_apply_ign_road_vehicle_proxy_policy` via `load_ign_road_vehicle_proxy_policy`.
+- import/re-export: `src/landscout/stages/apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.road_vehicle_proxy_policy import (
+    IgnRoadVehicleProxyPolicy,
+    load_ign_road_vehicle_proxy_policy,
+)`.
+- direct call or construction: `src/landscout/stages/assess_road_proximity_coverage.py::_assess_road_proximity_coverage` via `load_ign_road_vehicle_proxy_policy`.
+- import/re-export: `src/landscout/stages/assess_road_proximity_coverage.py::<module>` via `from landscout.stages.road_vehicle_proxy_policy import (
+    IgnRoadVehicleProxyPolicy,
+    load_ign_road_vehicle_proxy_policy,
+)`.
+- direct call or construction: `src/landscout/stages/enrich_road_proximity.py::_enrich_parcel_road_proximity` via `load_ign_road_vehicle_proxy_policy`.
+- import/re-export: `src/landscout/stages/enrich_road_proximity.py::<module>` via `from landscout.stages.road_vehicle_proxy_policy import (
+    IgnRoadVehicleProxyPolicy,
+    load_ign_road_vehicle_proxy_policy,
+)`.
+- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_every_configured_known_restriction_is_applied` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_lineage_is_exact_on_every_row` via `load_ign_road_vehicle_proxy_policy`.
+- import/re-export: `tests/unit/test_apply_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.road_vehicle_proxy_policy import (
+    load_ign_road_vehicle_proxy_policy,
+)`.
+- direct call or construction: `tests/unit/test_assess_road_proximity_coverage.py::_proximity` via `load_ign_road_vehicle_proxy_policy`.
+- import/re-export: `tests/unit/test_assess_road_proximity_coverage.py::<module>` via `from landscout.stages.road_vehicle_proxy_policy import (
+    load_ign_road_vehicle_proxy_policy,
+)`.
+- direct call or construction: `tests/unit/test_enrich_road_proximity.py::_road_row` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_enrich_road_proximity.py::test_selected_road_evidence_and_lineage_are_exact` via `load_ign_road_vehicle_proxy_policy`.
+- import/re-export: `tests/unit/test_enrich_road_proximity.py::<module>` via `from landscout.stages.road_vehicle_proxy_policy import (
+    load_ign_road_vehicle_proxy_policy,
+)`.
+- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::_load_payload` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_checked_in_policy_loads_with_exact_public_identity_and_reference` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_checked_in_policy_hash_binds_exact_file_bytes` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_repeat_loading_is_deterministic_and_independent` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_asset_state_groups_cover_exact_v2_domain` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_importance_domains_expose_known_without_positive_classification` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_decision_precedence_and_rule_outcomes_are_approved` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_project_geometry_rule_has_exact_precedence_position` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_approved_class_vocabulary_has_no_heavy_or_legal_claim` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_observed_d031_natures_are_covered_exactly_once` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_observed_d031_access_and_importance_vocabularies_are_compatible` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_compiled_policy_structures_are_immutable` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_mutating_source_payload_cannot_affect_another_load` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_malformed_yaml_has_controlled_error` via `load_ign_road_vehicle_proxy_policy`.
+- direct call or construction: `tests/unit/test_road_vehicle_proxy_policy.py::test_missing_file_has_controlled_error` via `load_ign_road_vehicle_proxy_policy`.
+- import/re-export: `tests/unit/test_road_vehicle_proxy_policy.py::<module>` via `from landscout.stages.road_vehicle_proxy_policy import (
+    IgnRoadVehicleProxyPolicy,
+    IgnRoadVehicleProxyPolicyError,
+    load_ign_road_vehicle_proxy_policy,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/stages/apply_road_vehicle_proxy_policy.py` — `_apply_ign_road_vehicle_proxy_policy`
-- `src/landscout/stages/assess_road_proximity_coverage.py` — `_assess_road_proximity_coverage`
-- `src/landscout/stages/enrich_road_proximity.py` — `_enrich_parcel_road_proximity`
-- `tests/unit/test_apply_road_vehicle_proxy_policy.py` — `test_every_configured_known_restriction_is_applied`
-- `tests/unit/test_apply_road_vehicle_proxy_policy.py` — `test_policy_lineage_is_exact_on_every_row`
-- `tests/unit/test_assess_road_proximity_coverage.py` — `_proximity`
-- `tests/unit/test_enrich_road_proximity.py` — `_road_row`
-- `tests/unit/test_enrich_road_proximity.py` — `test_selected_road_evidence_and_lineage_are_exact`
-- `tests/unit/test_road_vehicle_proxy_policy.py` — `_load_payload`
-- `tests/unit/test_road_vehicle_proxy_policy.py` — `test_approved_class_vocabulary_has_no_heavy_or_legal_claim`
-- `tests/unit/test_road_vehicle_proxy_policy.py` — `test_asset_state_groups_cover_exact_v2_domain`
-- `tests/unit/test_road_vehicle_proxy_policy.py` — `test_checked_in_policy_hash_binds_exact_file_bytes`
-- `tests/unit/test_road_vehicle_proxy_policy.py` — `test_checked_in_policy_loads_with_exact_public_identity_and_reference`
-- `tests/unit/test_road_vehicle_proxy_policy.py` — `test_compiled_policy_structures_are_immutable`
-- `tests/unit/test_road_vehicle_proxy_policy.py` — `test_decision_precedence_and_rule_outcomes_are_approved`
-- `tests/unit/test_road_vehicle_proxy_policy.py` — `test_importance_domains_expose_known_without_positive_classification`
-- `tests/unit/test_road_vehicle_proxy_policy.py` — `test_malformed_yaml_has_controlled_error`
-- `tests/unit/test_road_vehicle_proxy_policy.py` — `test_missing_file_has_controlled_error`
-- `tests/unit/test_road_vehicle_proxy_policy.py` — `test_mutating_source_payload_cannot_affect_another_load`
-- `tests/unit/test_road_vehicle_proxy_policy.py` — `test_observed_d031_access_and_importance_vocabularies_are_compatible`
-- `tests/unit/test_road_vehicle_proxy_policy.py` — `test_observed_d031_natures_are_covered_exactly_once`
-- `tests/unit/test_road_vehicle_proxy_policy.py` — `test_project_geometry_rule_has_exact_precedence_position`
-- `tests/unit/test_road_vehicle_proxy_policy.py` — `test_repeat_loading_is_deterministic_and_independent`
+```python
+def load_ign_road_vehicle_proxy_policy(
+    path: Path = _DEFAULT_POLICY_PATH,
+) -> IgnRoadVehicleProxyPolicy:
+    """Load and compile the strict policy from its exact UTF-8 file bytes."""
 
-**Tests**
+    try:
+        policy_bytes = Path(path).read_bytes()
+        payload = yaml.load(
+            policy_bytes.decode("utf-8"),
+            Loader=_UniqueKeyLoader,
+        )
+        if not isinstance(payload, Mapping):
+            raise IgnRoadVehicleProxyPolicyError(
+                "IGN road vehicle-proxy policy must be a mapping"
+            )
+        config = _PolicyConfig.model_validate(payload)
+        return _compile_policy(config, sha256(policy_bytes).hexdigest())
+    except IgnRoadVehicleProxyPolicyError:
+        raise
+    except Exception as error:
+        raise IgnRoadVehicleProxyPolicyError(
+            "IGN road vehicle-proxy policy is invalid"
+        ) from error
+```
 
-- `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_every_configured_known_restriction_is_applied`
-- `tests/unit/test_apply_road_vehicle_proxy_policy.py::test_policy_lineage_is_exact_on_every_row`
-- `tests/unit/test_enrich_road_proximity.py::test_selected_road_evidence_and_lineage_are_exact`
-- `tests/unit/test_road_vehicle_proxy_policy.py::test_approved_class_vocabulary_has_no_heavy_or_legal_claim`
-- `tests/unit/test_road_vehicle_proxy_policy.py::test_asset_state_groups_cover_exact_v2_domain`
-- `tests/unit/test_road_vehicle_proxy_policy.py::test_checked_in_policy_hash_binds_exact_file_bytes`
-- `tests/unit/test_road_vehicle_proxy_policy.py::test_checked_in_policy_loads_with_exact_public_identity_and_reference`
-- `tests/unit/test_road_vehicle_proxy_policy.py::test_compiled_policy_structures_are_immutable`
-- `tests/unit/test_road_vehicle_proxy_policy.py::test_decision_precedence_and_rule_outcomes_are_approved`
-- `tests/unit/test_road_vehicle_proxy_policy.py::test_importance_domains_expose_known_without_positive_classification`
-- `tests/unit/test_road_vehicle_proxy_policy.py::test_malformed_yaml_has_controlled_error`
-- `tests/unit/test_road_vehicle_proxy_policy.py::test_missing_file_has_controlled_error`
-- `tests/unit/test_road_vehicle_proxy_policy.py::test_mutating_source_payload_cannot_affect_another_load`
-- `tests/unit/test_road_vehicle_proxy_policy.py::test_observed_d031_access_and_importance_vocabularies_are_compatible`
-- `tests/unit/test_road_vehicle_proxy_policy.py::test_observed_d031_natures_are_covered_exactly_once`
-- `tests/unit/test_road_vehicle_proxy_policy.py::test_project_geometry_rule_has_exact_precedence_position`
-- `tests/unit/test_road_vehicle_proxy_policy.py::test_repeat_loading_is_deterministic_and_independent`
-
-**Business interpretation**
-
-This symbol contributes to the `road` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Road geometry and general-car evidence do not prove legal parcel access or heavy/construction-vehicle access.
 
+
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `2025-11` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `2026-05-27` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `2026-08-16` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `BD TOPO® Version 3.5 - Descriptif de contenu` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `Calcul d’itinéraire` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `DC_BDTOPO_3-5` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `GENERAL_CAR_ROUTING_RULES` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `GENERAL_VEHICLE_PROXY` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `IGN` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `LIGHT_VEHICLE_AND_GENERAL_CAR_NETWORK` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `LIMITED_VEHICLE_PROXY` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `NOT_DISTANCE_PROXY` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `NOT_GENERAL_VEHICLE_PROXY` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `NOT_PROVEN` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `RESTRICTED_REVIEW` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `SOURCE_ATTRIBUTE_SEMANTICS` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `UNKNOWN_REVIEW` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module defines an exact `__all__` contract:
+
+| Export | Kind | Origin | Included in `__all__` |
+|---|---|---|---|
+| `IgnRoadVehicleProxyPolicy` | re-exported/defined Python symbol | `defined in `src/landscout/stages/road_vehicle_proxy_policy.py`` | yes |
+| `IgnRoadVehicleProxyPolicyError` | re-exported/defined Python symbol | `defined in `src/landscout/stages/road_vehicle_proxy_policy.py`` | yes |
+| `load_ign_road_vehicle_proxy_policy` | re-exported/defined Python symbol | `defined in `src/landscout/stages/road_vehicle_proxy_policy.py`` | yes |
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `road` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the road flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -1443,8 +2353,8 @@ This file contributes to LandScout's `road` evidence flow as described by its pu
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

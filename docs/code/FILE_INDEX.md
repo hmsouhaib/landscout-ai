@@ -1,10 +1,10 @@
 # File index
 
-Every tracked project file present before this documentation tree was created has exactly one source-bound companion. Paths under `docs/code/**` are intentionally excluded from recursive companion generation.
+Each tracked file outside `docs/code/**` has exactly one SHA-bound companion. The role column is curated from the actual implementation/file consumer, not inferred from the basename alone.
 
-## Root/project files
+## Project/root metadata
 
-| Repository file | Role | Companion |
+| Repository file | Actual role | Companion |
 |---|---|---|
 | `.env.example` | Declares the example environment-variable surface for local LandScout configuration without storing secrets. | [files/.env.example.md](files/.env.example.md) |
 | `.gitignore` | Defines repository paths and generated artifacts that Git must not track. | [files/.gitignore.md](files/.gitignore.md) |
@@ -15,13 +15,13 @@ Every tracked project file present before this documentation tree was created ha
 | `data/raw/.gitkeep` | Keeps an otherwise generated/empty directory present in Git without adding runtime data. | [files/data/raw/.gitkeep.md](files/data/raw/.gitkeep.md) |
 | `outputs/.gitkeep` | Keeps an otherwise generated/empty directory present in Git without adding runtime data. | [files/outputs/.gitkeep.md](files/outputs/.gitkeep.md) |
 | `pyproject.toml` | Defines the Python project, runtime and development dependencies, and Ruff/mypy/pytest configuration. | [files/pyproject.toml.md](files/pyproject.toml.md) |
-| `src/landscout/__init__.py` | Defines the import/export surface for `src/landscout`. | [files/src/landscout/__init__.py.md](files/src/landscout/__init__.py.md) |
+| `src/landscout/__init__.py` | Defines the package version exposed as landscout.__version__. | [files/src/landscout/__init__.py.md](files/src/landscout/__init__.py.md) |
 | `src/landscout/config.py` | Loads and strictly validates scan, profile, parcel, CRS, shape-screening, AOI, and output configuration. | [files/src/landscout/config.py.md](files/src/landscout/config.py.md) |
 | `uv.lock` | Locks the resolved Python dependency graph used by uv; it is dependency evidence, not business logic. | [files/uv.lock.md](files/uv.lock.md) |
 
-## configs
+## Checked-in configuration
 
-| Repository file | Role | Companion |
+| Repository file | Actual role | Companion |
 |---|---|---|
 | `configs/access/ign_bdtopo_vehicle_proxy_policy.yaml` | Defines the approved versioned IGN general-car/light-vehicle evidence policy, source references, vocabularies, outcomes, and exact precedence. | [files/configs/access/ign_bdtopo_vehicle_proxy_policy.yaml.md](files/configs/access/ign_bdtopo_vehicle_proxy_policy.yaml.md) |
 | `configs/planning/cnig_plu_2017_feature_codes.yaml` | Defines the approved CNIG PLU v2017 official planning-feature code pairs, labels, references, and profile identity. | [files/configs/planning/cnig_plu_2017_feature_codes.yaml.md](files/configs/planning/cnig_plu_2017_feature_codes.yaml.md) |
@@ -35,11 +35,11 @@ Every tracked project file present before this documentation tree was created ha
 | `configs/sources/inpn_protected_areas_fr.yaml` | Pins the PatriNat/MNHN/INPN EP 07/2026 archive identity, size, SHA256, URLs, and cache root. | [files/configs/sources/inpn_protected_areas_fr.yaml.md](files/configs/sources/inpn_protected_areas_fr.yaml.md) |
 | `configs/sources/rte_odre_fr.yaml` | Pins the official ODRÉ API/cache identity and exact RTE dataset IDs/formats. | [files/configs/sources/rte_odre_fr.yaml.md](files/configs/sources/rte_odre_fr.yaml.md) |
 
-## common
+## Internal common contracts
 
-| Repository file | Role | Companion |
+| Repository file | Actual role | Companion |
 |---|---|---|
-| `src/landscout/common/__init__.py` | Defines the import/export surface for `src/landscout/common`. | [files/src/landscout/common/__init__.py.md](files/src/landscout/common/__init__.py.md) |
+| `src/landscout/common/__init__.py` | Marks the internal common-contract package; it declares no package export list. | [files/src/landscout/common/__init__.py.md](files/src/landscout/common/__init__.py.md) |
 | `src/landscout/common/artifact_paths.py` | Validates portable local Parquet artifact basenames across POSIX and Windows rules. | [files/src/landscout/common/artifact_paths.py.md](files/src/landscout/common/artifact_paths.py.md) |
 | `src/landscout/common/bess_application_contract.py` | Enforces intrinsic BESS planning feature-catalog and factual-relation contracts shared by application and aggregation stages. | [files/src/landscout/common/bess_application_contract.py.md](files/src/landscout/common/bess_application_contract.py.md) |
 | `src/landscout/common/cadastre_contract.py` | Provides the internal exact geometry-status vocabulary guard shared by cadastral filtering stages. | [files/src/landscout/common/cadastre_contract.py.md](files/src/landscout/common/cadastre_contract.py.md) |
@@ -50,31 +50,31 @@ Every tracked project file present before this documentation tree was created ha
 | `src/landscout/common/planning_text.py` | Normalizes planning text for deterministic matching while retaining mappings back to raw source spans. | [files/src/landscout/common/planning_text.py.md](files/src/landscout/common/planning_text.py.md) |
 | `src/landscout/common/safe_http.py` | Implements the shared HTTPS trust boundary that binds validated DNS answers to the actual TLS socket and owns redirects. | [files/src/landscout/common/safe_http.py.md](files/src/landscout/common/safe_http.py.md) |
 
-## geo
+## Geo/GIS
 
-| Repository file | Role | Companion |
+| Repository file | Actual role | Companion |
 |---|---|---|
-| `src/landscout/geo/__init__.py` | Defines the import/export surface for `src/landscout/geo`. | [files/src/landscout/geo/__init__.py.md](files/src/landscout/geo/__init__.py.md) |
+| `src/landscout/geo/__init__.py` | Re-exports the supported CRS and geometry API from landscout.geo. | [files/src/landscout/geo/__init__.py.md](files/src/landscout/geo/__init__.py.md) |
 | `src/landscout/geo/crs.py` | Exposes canonical storage and metric CRS constants. | [files/src/landscout/geo/crs.py.md](files/src/landscout/geo/crs.py.md) |
 | `src/landscout/geo/geometry.py` | Validates parcel geometry and computes metric shape measurements on calculation-only Lambert-93 copies. | [files/src/landscout/geo/geometry.py.md](files/src/landscout/geo/geometry.py.md) |
 
-## sources
+## Source adapters
 
-| Repository file | Role | Companion |
+| Repository file | Actual role | Companion |
 |---|---|---|
-| `src/landscout/sources/__init__.py` | Defines the import/export surface for `src/landscout/sources`. | [files/src/landscout/sources/__init__.py.md](files/src/landscout/sources/__init__.py.md) |
+| `src/landscout/sources/__init__.py` | Re-exports the supported external-source adapter API. | [files/src/landscout/sources/__init__.py.md](files/src/landscout/sources/__init__.py.md) |
 | `src/landscout/sources/cadastre_fr.py` | Acquires the official French cadastral parcel archive with gzip, cache-integrity, and transactional recovery checks. | [files/src/landscout/sources/cadastre_fr.py.md](files/src/landscout/sources/cadastre_fr.py.md) |
-| `src/landscout/sources/cadastre_loader_fr.py` | Physically verifies and parses a Cadastre download into source-complete parcel geometry and lineage. | [files/src/landscout/sources/cadastre_loader_fr.py.md](files/src/landscout/sources/cadastre_loader_fr.py.md) |
+| `src/landscout/sources/cadastre_loader_fr.py` | Validates a supplied CadastreDownload envelope and its current gzip bytes, then parses the source parcel attributes and polygon geometry without adding lineage columns. | [files/src/landscout/sources/cadastre_loader_fr.py.md](files/src/landscout/sources/cadastre_loader_fr.py.md) |
 | `src/landscout/sources/gpu_fr.py` | Discovers and verifies the authoritative GPU planning document, archive, spatial layers, written files, and provenance. | [files/src/landscout/sources/gpu_fr.py.md](files/src/landscout/sources/gpu_fr.py.md) |
 | `src/landscout/sources/ign_bdtopo_fr.py` | Acquires, verifies, extracts, inventories, selects, loads, and source-completely revalidates IGN BD TOPO layers. | [files/src/landscout/sources/ign_bdtopo_fr.py.md](files/src/landscout/sources/ign_bdtopo_fr.py.md) |
 | `src/landscout/sources/inpn_protected_areas_fr.py` | Acquires the pinned PatriNat/INPN EP archive and safely caches, validates, extracts, and inventories its files. | [files/src/landscout/sources/inpn_protected_areas_fr.py.md](files/src/landscout/sources/inpn_protected_areas_fr.py.md) |
 | `src/landscout/sources/rte_odre_fr.py` | Loads RTE/ODRÉ configuration and acquires official GeoJSON datasets with source, geometry, cache, and recovery validation. | [files/src/landscout/sources/rte_odre_fr.py.md](files/src/landscout/sources/rte_odre_fr.py.md) |
 
-## stages
+## Stages
 
-| Repository file | Role | Companion |
+| Repository file | Actual role | Companion |
 |---|---|---|
-| `src/landscout/stages/__init__.py` | Defines the import/export surface for `src/landscout/stages`. | [files/src/landscout/stages/__init__.py.md](files/src/landscout/stages/__init__.py.md) |
+| `src/landscout/stages/__init__.py` | Re-exports stable stage result, error, loader, validator, and transformation APIs. | [files/src/landscout/stages/__init__.py.md](files/src/landscout/stages/__init__.py.md) |
 | `src/landscout/stages/aggregate_bess_planning_feature_policy.py` | Aggregates source-bound planning feature-policy relation evidence into parcel-level precheck summaries. | [files/src/landscout/stages/aggregate_bess_planning_feature_policy.py.md](files/src/landscout/stages/aggregate_bess_planning_feature_policy.py.md) |
 | `src/landscout/stages/apply_bess_planning_feature_policy.py` | Applies exact coded-result and policy-result evidence to planning feature catalogs and relations. | [files/src/landscout/stages/apply_bess_planning_feature_policy.py.md](files/src/landscout/stages/apply_bess_planning_feature_policy.py.md) |
 | `src/landscout/stages/apply_road_vehicle_proxy_policy.py` | Applies the compiled IGN road evidence policy with strict scalar parsing, precedence, traces, and source preservation. | [files/src/landscout/stages/apply_road_vehicle_proxy_policy.py.md](files/src/landscout/stages/apply_road_vehicle_proxy_policy.py.md) |
@@ -88,19 +88,19 @@ Every tracked project file present before this documentation tree was created ha
 | `src/landscout/stages/enrich_shape.py` | Adds parcel shape metrics and diagnostics for valid cadastral geometries. | [files/src/landscout/stages/enrich_shape.py.md](files/src/landscout/stages/enrich_shape.py.md) |
 | `src/landscout/stages/filter_parcels.py` | Applies configured factual parcel-area bounds and records explicit keep/reject facts without ranking. | [files/src/landscout/stages/filter_parcels.py.md](files/src/landscout/stages/filter_parcels.py.md) |
 | `src/landscout/stages/index_planning_regulation.py` | Selects the authoritative written regulation PDF, extracts text records, and builds a byte-bound searchable index. | [files/src/landscout/stages/index_planning_regulation.py.md](files/src/landscout/stages/index_planning_regulation.py.md) |
-| `src/landscout/stages/interpret_bess_zoning.py` | Applies the checked-in written-zoning evidence policy to structured regulation evidence and parcel zoning facts. | [files/src/landscout/stages/interpret_bess_zoning.py.md](files/src/landscout/stages/interpret_bess_zoning.py.md) |
+| `src/landscout/stages/interpret_bess_zoning.py` | Applies the source-locked Muret written-zoning evidence policy to structured regulation and parcel-zone facts to produce deterministic planning precheck evidence. | [files/src/landscout/stages/interpret_bess_zoning.py.md](files/src/landscout/stages/interpret_bess_zoning.py.md) |
 | `src/landscout/stages/normalize_access_ign.py` | Source-completely normalizes IGN road segments and raw access attributes without interpreting suitability. | [files/src/landscout/stages/normalize_access_ign.py.md](files/src/landscout/stages/normalize_access_ign.py.md) |
 | `src/landscout/stages/normalize_cadastre.py` | Projects raw cadastral facts into the stable parcel schema while preserving source geometry and classifying geometry quality. | [files/src/landscout/stages/normalize_cadastre.py.md](files/src/landscout/stages/normalize_cadastre.py.md) |
 | `src/landscout/stages/normalize_grid_ign.py` | Source-completely normalizes IGN electricity lines and transformation posts into stable factual proxy catalogs. | [files/src/landscout/stages/normalize_grid_ign.py.md](files/src/landscout/stages/normalize_grid_ign.py.md) |
-| `src/landscout/stages/planning_overlay.py` | Provides the repository artifact `src/landscout/stages/planning_overlay.py` for the role described by its exact content below. | [files/src/landscout/stages/planning_overlay.py.md](files/src/landscout/stages/planning_overlay.py.md) |
+| `src/landscout/stages/planning_overlay.py` | Preserves the historical stage import path by re-exporting the shared common-layer technical overlay tolerance constants and function without adding behavior. | [files/src/landscout/stages/planning_overlay.py.md](files/src/landscout/stages/planning_overlay.py.md) |
 | `src/landscout/stages/profile_shape.py` | Profiles shape metrics and scenario evidence without making parcel suitability decisions. | [files/src/landscout/stages/profile_shape.py.md](files/src/landscout/stages/profile_shape.py.md) |
 | `src/landscout/stages/resolve_planning_feature_codes.py` | Resolves normalized factual planning features against the checked-in CNIG PLU code dictionary. | [files/src/landscout/stages/resolve_planning_feature_codes.py.md](files/src/landscout/stages/resolve_planning_feature_codes.py.md) |
 | `src/landscout/stages/road_vehicle_proxy_policy.py` | Loads and compiles the checked-in general-car/light-vehicle IGN road evidence policy. | [files/src/landscout/stages/road_vehicle_proxy_policy.py.md](files/src/landscout/stages/road_vehicle_proxy_policy.py.md) |
 | `src/landscout/stages/structure_planning_regulation.py` | Partitions the indexed written regulation into deterministic source-bound sections, zone mappings, and topic evidence. | [files/src/landscout/stages/structure_planning_regulation.py.md](files/src/landscout/stages/structure_planning_regulation.py.md) |
 
-## tests
+## Tests
 
-| Repository file | Role | Companion |
+| Repository file | Actual role | Companion |
 |---|---|---|
 | `tests/unit/test_aggregate_bess_planning_feature_policy.py` | Provides complete unit and regression coverage for the `aggregate_bess_planning_feature_policy` contracts exercised in this file. | [files/tests/unit/test_aggregate_bess_planning_feature_policy.py.md](files/tests/unit/test_aggregate_bess_planning_feature_policy.py.md) |
 | `tests/unit/test_apply_bess_planning_feature_policy.py` | Provides complete unit and regression coverage for the `apply_bess_planning_feature_policy` contracts exercised in this file. | [files/tests/unit/test_apply_bess_planning_feature_policy.py.md](files/tests/unit/test_apply_bess_planning_feature_policy.py.md) |
@@ -136,8 +136,8 @@ Every tracked project file present before this documentation tree was created ha
 | `tests/unit/test_safe_http.py` | Provides complete unit and regression coverage for the `safe_http` contracts exercised in this file. | [files/tests/unit/test_safe_http.py.md](files/tests/unit/test_safe_http.py.md) |
 | `tests/unit/test_structure_planning_regulation.py` | Provides complete unit and regression coverage for the `structure_planning_regulation` contracts exercised in this file. | [files/tests/unit/test_structure_planning_regulation.py.md](files/tests/unit/test_structure_planning_regulation.py.md) |
 
-## docs/history
+## Engineering history
 
-| Repository file | Role | Companion |
+| Repository file | Actual role | Companion |
 |---|---|---|
 | `docs/DEV_LOG.md` | Preserves chronological implementation and validation evidence; current source and tests remain authoritative. | [files/docs/DEV_LOG.md.md](files/docs/DEV_LOG.md.md) |

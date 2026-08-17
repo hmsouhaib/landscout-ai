@@ -4,9 +4,9 @@
 
 - Repository path: `tests/unit/test_index_planning_regulation.py`
 - File type: Python test
-- Primary responsibility: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
-- Layer / domain: `unit/regression test` / `test`
-- Public or internal role: Internal test support; not a production API.
+- Layer: unit/regression test
+- Domain: test
+- Responsibility: Provides complete unit and regression coverage for the `index_planning_regulation` contracts exercised in this file.
 - Source SHA256: `ccf022c4ba939e973768b63120307ae83ff402b41bc6091a013a2c0b7fe0012d`
 
 ## 1. Purpose
@@ -15,91 +15,179 @@ Provides complete unit and regression coverage for the `index_planning_regulatio
 
 ## 2. Position in LandScout architecture
 
-This file is a `unit/regression test` artifact in the `test` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **unit/regression test** layer and the **test** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from __future__ import annotations` — required by the implementation paths and symbols documented below.
-- `import json` — required by the implementation paths and symbols documented below.
-- `from copy import deepcopy` — required by the implementation paths and symbols documented below.
-- `from dataclasses import FrozenInstanceError, replace` — required by the implementation paths and symbols documented below.
-- `from hashlib import sha256` — required by the implementation paths and symbols documented below.
-- `from pathlib import Path` — required by the implementation paths and symbols documented below.
-- `from re import fullmatch` — required by the implementation paths and symbols documented below.
+- `from __future__ import annotations`
+- `import json`
+- `from copy import deepcopy`
+- `from dataclasses import FrozenInstanceError, replace`
+- `from hashlib import sha256`
+- `from importlib import import_module`
+- `from pathlib import Path`
+- `from re import fullmatch`
 
-### Third-party
+### Third-party packages
 
-- `from importlib import import_module` — required by the implementation paths and symbols documented below.
-- `import geopandas as gpd` — required by the implementation paths and symbols documented below.
-- `import pandas as pd` — required by the implementation paths and symbols documented below.
-- `import pytest` — required by the implementation paths and symbols documented below.
-- `from geopandas.testing import assert_geodataframe_equal` — required by the implementation paths and symbols documented below.
-- `from pandas.testing import assert_frame_equal` — required by the implementation paths and symbols documented below.
-- `from shapely.geometry import Polygon` — required by the implementation paths and symbols documented below.
+- `import geopandas as gpd`
+- `import pandas as pd`
+- `import pytest`
+- `from geopandas.testing import assert_geodataframe_equal`
+- `from pandas.testing import assert_frame_equal`
+- `from shapely.geometry import Polygon`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout import stages` — required by the implementation paths and symbols documented below.
-- `from landscout.common.planning_text import ( normalize_planning_search_text as _normalize_search_text, )` — required by the implementation paths and symbols documented below.
-- `from landscout.sources.gpu_fr import ( GpuArchiveDownload, GpuDocumentMetadata, GpuExtractedFile, GpuExtraction, GpuInspectedLayer, GpuLayerSummary, GpuPlanningDocument, GpuSpatialLayerReference, GpuWrittenFile, )` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.index_planning_regulation import ( PAGE_COLUMNS, SEARCH_HIT_COLUMNS, SEARCH_NORMALIZATION_PROFILE, PlanningRegulationIndexError, index_planning_regulation, search_planning_regulation, validate_planning_regulation_index, validate_planning_regulation_search_result, )` — required by the implementation paths and symbols documented below.
+- `from landscout import stages`
+- `from landscout.common.planning_text import (
+    normalize_planning_search_text as _normalize_search_text,
+)`
+- `from landscout.sources.gpu_fr import (
+    GpuArchiveDownload,
+    GpuDocumentMetadata,
+    GpuExtractedFile,
+    GpuExtraction,
+    GpuInspectedLayer,
+    GpuLayerSummary,
+    GpuPlanningDocument,
+    GpuSpatialLayerReference,
+    GpuWrittenFile,
+)`
+- `from landscout.stages.index_planning_regulation import (
+    PAGE_COLUMNS,
+    SEARCH_HIT_COLUMNS,
+    SEARCH_NORMALIZATION_PROFILE,
+    PlanningRegulationIndexError,
+    index_planning_regulation,
+    search_planning_regulation,
+    validate_planning_regulation_index,
+    validate_planning_regulation_search_result,
+)`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `DOCUMENT_ID` | `"doc-1"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `ARCHIVE_SHA` | `"a" * 64` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `DEFAULT_PDF` | `"31395_reglement_20240215.pdf"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `PDF_BYTES` | `b"synthetic-pdf-bytes"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `DOCUMENT_ID`
+
+```python
+DOCUMENT_ID = "doc-1"
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_enrich_planning_features.py::_planning_document` (value argument/reference), `tests/unit/test_index_planning_regulation.py::_summary` (value argument/reference), `tests/unit/test_index_planning_regulation.py::_document` (value argument/reference).
+
+#### `ARCHIVE_SHA`
+
+```python
+ARCHIVE_SHA = "a" * 64
+```
+
+Hash identity, algorithm, or canonical-content field used by the named integrity contract. Consumers include `tests/unit/test_enrich_planning_features.py::_planning_document` (value argument/reference), `tests/unit/test_enrich_planning_features.py::_planning_document` (value argument/reference), `tests/unit/test_index_planning_regulation.py::_summary` (value argument/reference), `tests/unit/test_index_planning_regulation.py::_document` (value argument/reference).
+
+#### `DEFAULT_PDF`
+
+```python
+DEFAULT_PDF = "31395_reglement_20240215.pdf"
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `PDF_BYTES`
+
+```python
+PDF_BYTES = b"synthetic-pdf-bytes"
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_index_planning_regulation.py::_fixture_document` (value argument/reference), `tests/unit/test_index_planning_regulation.py::test_pdf_inventory_integrity_mismatch_fails` (value argument/reference), `tests/unit/test_index_planning_regulation.py::test_complete_index_envelope_mutation_is_rejected` (value argument/reference).
+
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
 ### `_FakePage`
 
-**Purpose:** Groups the `FakePage` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Encapsulates the test behavior implemented by its exact methods and attributes below.
 
-**Inheritance:** `object`.
+**Kind:** class.
 
-**Model form and mutability:** class inheriting from `object`. Decorators: `none`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** none.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `result` | `not explicitly annotated` | `assigned in `__init__` from `result`` | `not explicitly annotated` state used by `tests/unit/test_index_planning_regulation.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `result` | `self.result = result  # assigned in __init__` | Stores `_FakePage`'s `result` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
 
-- `__init__` — `def __init__(self, result: object) -> None:`; decorators `none`. The complete method algorithm appears in the function/method section.
-- `extract_text` — `def extract_text(self) -> object:`; decorators `none`. The complete method algorithm appears in the function/method section.
+**Interface consumers**
+
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::_FakeReader.__init__` via `_FakePage`.
+
+**Exact class source**
+
+```python
+class _FakePage:
+    def __init__(self, result: object) -> None:
+        self.result = result
+
+    def extract_text(self) -> object:
+        if isinstance(self.result, Exception):
+            raise self.result
+        return self.result
+```
 
 ### `_FakeReader`
 
-**Purpose:** Groups the `FakeReader` state and behavior shown by its fields, inheritance, validators, and methods.
+**Purpose:** Encapsulates the test behavior implemented by its exact methods and attributes below.
 
-**Inheritance:** `object`.
+**Kind:** class.
 
-**Model form and mutability:** class inheriting from `object`. Decorators: `none`.
+**Inheritance:** plain object.
 
-**Fields:**
+**Exact decorators:** none.
 
-| Field | Type | Required/default | Meaning / source / consumers |
-|---|---|---|---|
-| `pages` | `not explicitly annotated` | `assigned in `__init__` from `[_FakePage(page) for page in pages]`` | `not explicitly annotated` state used by `tests/unit/test_index_planning_regulation.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
-| `is_encrypted` | `not explicitly annotated` | `assigned in `__init__` from `encrypted`` | `not explicitly annotated` state used by `tests/unit/test_index_planning_regulation.py`; allowed values and consumers are fixed by constructors, validators, and algorithms below. |
+**Fields**
 
-**Validators and methods:**
+| Field | Exact declaration | Meaning |
+|---|---|---|
+| `pages` | `self.pages = [_FakePage(page) for page in pages]  # assigned in __init__` | Stores `_FakeReader`'s `pages` value under exact annotation `not explicitly annotated`; its reproduced constructors, validators, and consumers establish the operational meaning without reclassifying it as a frame column. |
+| `is_encrypted` | `self.is_encrypted = encrypted  # assigned in __init__` | Boolean `is encrypted` flag on `_FakeReader`; exact strictness and cross-field effects are defined by the reproduced declaration and validators. |
 
-- `__init__` — `def __init__(self, pages: list[object], *, encrypted: bool = False) -> None:`; decorators `none`. The complete method algorithm appears in the function/method section.
+**Interface consumers**
+
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::_patch_reader` via `_FakeReader`.
+
+**Exact class source**
+
+```python
+class _FakeReader:
+    def __init__(self, pages: list[object], *, encrypted: bool = False) -> None:
+        self.pages = [_FakePage(page) for page in pages]
+        self.is_encrypted = encrypted
+```
+
 
 ## 6. Functions and methods
 
 ### `_FakePage.__init__`
 
-**Signature**
+**Exact signature**
 
 ```python
 def __init__(self, result: object) -> None:
@@ -107,56 +195,48 @@ def __init__(self, result: object) -> None:
 
 **Purpose**
 
-Implements init according to the exact implementation and guards in this file.
+Private `test` helper for init; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `result` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `self.result` from `result`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `self.result`.
+- Input mutation: `self.result`.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- No function calls.
+- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
+- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def __init__(self, result: object) -> None:
+        self.result = result
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_FakePage.extract_text`
 
-**Signature**
+**Exact signature**
 
 ```python
 def extract_text(self) -> object:
@@ -164,56 +244,53 @@ def extract_text(self) -> object:
 
 **Purpose**
 
-Extracts and validates text according to the exact implementation and guards in this file.
+Validates and extracts text; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `object`.
+- Every observed return expression is reproduced without truncation:
+```python
+self.result
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `object`. Observed return expression(s): `self.result`.
-
-**Algorithm**
-
-1. Checks `isinstance(self.result, Exception)`. When true: Raises `self.result`.
-2. Returns `self.result`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `isinstance(self.result, Exception)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `self.result`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `isinstance(self.result, Exception)`.
+- Explicit raise expressions: `self.result`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `isinstance`.
+- direct call or construction: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `reader.pages[page_index].extract_text`.
+- property/attribute access: `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` via `reader.pages[page_index].extract_text`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def extract_text(self) -> object:
+        if isinstance(self.result, Exception):
+            raise self.result
+        return self.result
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_FakeReader.__init__`
 
-**Signature**
+**Exact signature**
 
 ```python
 def __init__(self, pages: list[object], *, encrypted: bool = False) -> None:
@@ -221,58 +298,49 @@ def __init__(self, pages: list[object], *, encrypted: bool = False) -> None:
 
 **Purpose**
 
-Implements init according to the exact implementation and guards in this file.
+Private `test` helper for init; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `self` (`unannotated`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `pages` (`list[object]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `encrypted` (`bool`; optional/default `False`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `self.pages` from `[_FakePage(page) for page in pages]`.
-2. Computes `self.is_encrypted` from `encrypted`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `self.is_encrypted`, `self.pages`.
+- Input mutation: `self.is_encrypted`, `self.pages`.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_FakePage`.
+- direct call or construction: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
+- property/attribute access: `src/landscout/common/safe_http.py::_BoundHTTPSConnection.__init__` via `super().__init__`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def __init__(self, pages: list[object], *, encrypted: bool = False) -> None:
+        self.pages = [_FakePage(page) for page in pages]
+        self.is_encrypted = encrypted
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_patch_reader`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _patch_reader(
@@ -285,74 +353,65 @@ def _patch_reader(
 
 **Purpose**
 
-Implements patch reader according to the exact implementation and guards in this file.
+Private `test` helper for patch reader; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `monkeypatch` (`pytest.MonkeyPatch`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `pages` (`list[object]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `encrypted` (`bool`; optional/default `False`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Calls `monkeypatch.setattr(regulation_module, 'PdfReader', lambda *args, **kwargs: _FakeReader(pages, encrypted=encrypted))` for its validation or side effect.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_FakeReader`, `monkeypatch.setattr`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::_one_page_index` via `_patch_reader`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_source_nomfic_resolves_generic_filename` via `_patch_reader`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_explicit_source_validated_selection_succeeds` via `_patch_reader`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unchanged_zoning_source_is_revalidated_before_selection` via `_patch_reader`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unrelated_non_pdf_written_file_does_not_block_selection` via `_patch_reader`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_page_states_numbering_and_hashes` via `_patch_reader`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_zero_page_pdf_is_rejected` via `_patch_reader`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_version_discovery_failure_is_controlled_and_chained` via `_patch_reader`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_index_integrity_mutations_fail` via `_patch_reader`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_extraction_and_search_do_not_mutate_inputs` via `_patch_reader`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_index_planning_regulation.py` — `_one_page_index`
-- `tests/unit/test_index_planning_regulation.py` — `test_explicit_source_validated_selection_succeeds`
-- `tests/unit/test_index_planning_regulation.py` — `test_extraction_and_search_do_not_mutate_inputs`
-- `tests/unit/test_index_planning_regulation.py` — `test_index_integrity_mutations_fail`
-- `tests/unit/test_index_planning_regulation.py` — `test_page_states_numbering_and_hashes`
-- `tests/unit/test_index_planning_regulation.py` — `test_source_nomfic_resolves_generic_filename`
-- `tests/unit/test_index_planning_regulation.py` — `test_unchanged_zoning_source_is_revalidated_before_selection`
-- `tests/unit/test_index_planning_regulation.py` — `test_unrelated_non_pdf_written_file_does_not_block_selection`
-- `tests/unit/test_index_planning_regulation.py` — `test_version_discovery_failure_is_controlled_and_chained`
-- `tests/unit/test_index_planning_regulation.py` — `test_zero_page_pdf_is_rejected`
+```python
+def _patch_reader(
+    monkeypatch: pytest.MonkeyPatch,
+    pages: list[object],
+    *,
+    encrypted: bool = False,
+) -> None:
+    monkeypatch.setattr(
+        regulation_module,
+        "PdfReader",
+        lambda *args, **kwargs: _FakeReader(pages, encrypted=encrypted),
+    )
+```
 
-**Tests**
-
-- `tests/unit/test_index_planning_regulation.py::test_explicit_source_validated_selection_succeeds`
-- `tests/unit/test_index_planning_regulation.py::test_extraction_and_search_do_not_mutate_inputs`
-- `tests/unit/test_index_planning_regulation.py::test_index_integrity_mutations_fail`
-- `tests/unit/test_index_planning_regulation.py::test_page_states_numbering_and_hashes`
-- `tests/unit/test_index_planning_regulation.py::test_source_nomfic_resolves_generic_filename`
-- `tests/unit/test_index_planning_regulation.py::test_unchanged_zoning_source_is_revalidated_before_selection`
-- `tests/unit/test_index_planning_regulation.py::test_unrelated_non_pdf_written_file_does_not_block_selection`
-- `tests/unit/test_index_planning_regulation.py::test_version_discovery_failure_is_controlled_and_chained`
-- `tests/unit/test_index_planning_regulation.py::test_zero_page_pdf_is_rejected`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_summary`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _summary(
@@ -364,59 +423,86 @@ def _summary(
 
 **Purpose**
 
-Implements summary according to the exact implementation and guards in this file.
+Private `test` helper for summary; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_layer` (`str`; optional/default `'ZONE'`) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `GpuLayerSummary`.
+- Every observed return expression is reproduced without truncation:
+```python
+GpuLayerSummary(source_document_id=DOCUMENT_ID, source_archive_sha256=ARCHIVE_SHA, source_layer=source_layer, crs='EPSG:2154', feature_count=len(frame), columns=tuple((str(column) for column in frame.columns)), dtypes=tuple(((str(column), str(dtype)) for column, dtype in frame.dtypes.items())), null_counts=tuple(((str(column), int(frame[column].isna().sum())) for column in frame.columns)), geometry_types=tuple(((str(key), int(value)) for key, value in geometry.geom_type.value_counts().sort_index().items())), null_geometry_count=int((~non_null).sum()), empty_geometry_count=int((non_null & geometry.is_empty).sum()), invalid_geometry_count=int((non_empty & ~geometry.is_valid).sum()))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `GpuLayerSummary`. Observed return expression(s): `GpuLayerSummary(source_document_id=DOCUMENT_ID, source_archive_sha256=ARCHIVE_SHA, source_layer=source_layer, crs='EPSG:2154', feature_count=len(frame), columns=tuple((str(column) for column in frame.columns)), dtypes=tuple(((str(column), str(dtype)) for column, dtype in frame.dtypes.items())), null_counts=tuple(((str(column), int(frame[column].isna().sum())) for column in frame.columns)), geomet…`.
-
-**Algorithm**
-
-1. Computes `geometry` from `frame.geometry`.
-2. Computes `non_null` from `geometry.notna()`.
-3. Computes `non_empty` from `non_null & ~geometry.is_empty`.
-4. Returns `GpuLayerSummary(source_document_id=DOCUMENT_ID, source_archive_sha256=ARCHIVE_SHA, source_layer=source_layer, crs='EPSG:2154', feature_count=len(frame), columns=tuple((str(column) for column in frame.columns)), dtypes=tuple(((str(column), str(dtype)) for column, dtype in frame.dtypes.items())), null_counts=tuple(((str(column), int(frame[column].isna().sum()…`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `(non_empty & ~geometry.is_valid).sum`, `(non_null & geometry.is_empty).sum`, `geometry.geom_type.value_counts`, `geometry.geom_type.value_counts().sort_index`, `geometry.geom_type.value_counts().sort_index().items`, `geometry.notna`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(non_empty & ~geometry.is_valid).sum`, `(non_null & geometry.is_empty).sum`, `(~non_null).sum`, `GpuLayerSummary`, `frame.dtypes.items`, `frame[column].isna`, `frame[column].isna().sum`, `geometry.geom_type.value_counts`, `geometry.geom_type.value_counts().sort_index`, `geometry.geom_type.value_counts().sort_index().items`, `geometry.notna`, `int`, `len`, `str`, `tuple`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_inspected` via `_summary`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_materialize_layer` via `_summary`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_planning_document` via `_summary`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_prescription_surface_uses_validated_source_ogr_fid_when_cnig_id_absent` via `_summary`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_replace_related_layer` via `_summary`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_source_complete_contract` via `_summary`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::_shapefile_ogr_fid_source_complete_contract` via `_summary`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `_summary`.
+- direct call or construction: `tests/unit/test_normalize_access_ign.py::_source` via `_summary`.
+- direct call or construction: `tests/unit/test_normalize_access_ign.py::test_high_level_rejects_coordinated_road_frame_and_summary_forgery` via `_summary`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::_source_bundle` via `_summary`.
+- direct call or construction: `tests/unit/test_normalize_grid_ign.py::test_high_level_rejects_coordinated_frame_and_summary_forgery` via `_summary`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_index_planning_regulation.py` — `_write_zoning_source`
+```python
+def _summary(
+    frame: gpd.GeoDataFrame,
+    *,
+    source_layer: str = "ZONE",
+) -> GpuLayerSummary:
+    geometry = frame.geometry
+    non_null = geometry.notna()
+    non_empty = non_null & ~geometry.is_empty
+    return GpuLayerSummary(
+        source_document_id=DOCUMENT_ID,
+        source_archive_sha256=ARCHIVE_SHA,
+        source_layer=source_layer,
+        crs="EPSG:2154",
+        feature_count=len(frame),
+        columns=tuple(str(column) for column in frame.columns),
+        dtypes=tuple((str(column), str(dtype)) for column, dtype in frame.dtypes.items()),
+        null_counts=tuple(
+            (str(column), int(frame[column].isna().sum())) for column in frame.columns
+        ),
+        geometry_types=tuple(
+            (str(key), int(value))
+            for key, value in geometry.geom_type.value_counts().sort_index().items()
+        ),
+        null_geometry_count=int((~non_null).sum()),
+        empty_geometry_count=int((non_null & geometry.is_empty).sum()),
+        invalid_geometry_count=int((non_empty & ~geometry.is_valid).sum()),
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_zone_frame`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _zone_frame(
@@ -428,60 +514,76 @@ def _zone_frame(
 
 **Purpose**
 
-Implements zone frame according to the exact implementation and guards in this file.
+Private `test` helper for zone frame; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `nomfic` (`list[object] | None`; optional/default `None`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `include_nomfic` (`bool`; optional/default `True`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+gpd.GeoDataFrame(attributes, geometry=[Polygon([(index, 0), (index, 1), (index + 1, 1), (index + 1, 0), (index, 0)]) for index in range(count)], crs='EPSG:2154')
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `gpd.GeoDataFrame(attributes, geometry=[Polygon([(index, 0), (index, 1), (index + 1, 1), (index + 1, 0), (index, 0)]) for index in range(count)], crs='EPSG:2154')`.
-
-**Algorithm**
-
-1. Computes `filenames` from `[DEFAULT_PDF] if nomfic is None else nomfic`.
-2. Computes `count` from `len(filenames)`.
-3. Defines `attributes` with annotation `dict[str, list[object]]` from `{'LIB_IDZONE': [f'ZONE-{index + 1}' for index in range(count)]}`.
-4. Checks `include_nomfic`. When true: Computes `attributes['NOMFIC']` from `filenames`.
-5. Returns `gpd.GeoDataFrame(attributes, geometry=[Polygon([(index, 0), (index, 1), (index + 1, 1), (index + 1, 0), (index, 0)]) for index in range(count)], crs='EPSG:2154')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `attributes['NOMFIC']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `Polygon`, `gpd.GeoDataFrame`, `len`, `range`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::_fixture_document` via `_zone_frame`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_index_planning_regulation.py` — `_fixture_document`
+```python
+def _zone_frame(
+    nomfic: list[object] | None = None,
+    *,
+    include_nomfic: bool = True,
+) -> gpd.GeoDataFrame:
+    filenames = [DEFAULT_PDF] if nomfic is None else nomfic
+    count = len(filenames)
+    attributes: dict[str, list[object]] = {
+        "LIB_IDZONE": [f"ZONE-{index + 1}" for index in range(count)]
+    }
+    if include_nomfic:
+        attributes["NOMFIC"] = filenames
+    return gpd.GeoDataFrame(
+        attributes,
+        geometry=[
+            Polygon(
+                [
+                    (index, 0),
+                    (index, 1),
+                    (index + 1, 1),
+                    (index + 1, 0),
+                    (index, 0),
+                ]
+            )
+            for index in range(count)
+        ],
+        crs="EPSG:2154",
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_inventory_item`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _inventory_item(relative_path: str, data: bytes = PDF_BYTES) -> GpuExtractedFile:
@@ -489,56 +591,56 @@ def _inventory_item(relative_path: str, data: bytes = PDF_BYTES) -> GpuExtracted
 
 **Purpose**
 
-Implements inventory item according to the exact implementation and guards in this file.
+Private `test` helper for inventory item; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `relative_path` (`str`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `data` (`bytes`; optional/default `PDF_BYTES`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `GpuExtractedFile`.
+- Every observed return expression is reproduced without truncation:
+```python
+GpuExtractedFile(relative_path=relative_path, file_type='pdf', size_bytes=len(data), sha256=sha256(data).hexdigest(), category='WRITTEN_REGULATION')
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `GpuExtractedFile`. Observed return expression(s): `GpuExtractedFile(relative_path=relative_path, file_type='pdf', size_bytes=len(data), sha256=sha256(data).hexdigest(), category='WRITTEN_REGULATION')`.
-
-**Algorithm**
-
-1. Returns `GpuExtractedFile(relative_path=relative_path, file_type='pdf', size_bytes=len(data), sha256=sha256(data).hexdigest(), category='WRITTEN_REGULATION')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `sha256`, `sha256(data).hexdigest`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `GpuExtractedFile`, `len`, `sha256`, `sha256(data).hexdigest`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::_fixture_document` via `_inventory_item`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_index_planning_regulation.py` — `_fixture_document`
+```python
+def _inventory_item(relative_path: str, data: bytes = PDF_BYTES) -> GpuExtractedFile:
+    return GpuExtractedFile(
+        relative_path=relative_path,
+        file_type="pdf",
+        size_bytes=len(data),
+        sha256=sha256(data).hexdigest(),
+        category="WRITTEN_REGULATION",
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_spatial_inventory_item`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _spatial_inventory_item(root: Path, path: Path) -> GpuExtractedFile:
@@ -546,57 +648,57 @@ def _spatial_inventory_item(root: Path, path: Path) -> GpuExtractedFile:
 
 **Purpose**
 
-Implements spatial inventory item according to the exact implementation and guards in this file.
+Private `test` helper for spatial inventory item; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `root` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `GpuExtractedFile`.
+- Every observed return expression is reproduced without truncation:
+```python
+GpuExtractedFile(relative_path=path.relative_to(root).as_posix(), file_type=path.suffix.lower().lstrip('.') or 'binary', size_bytes=len(data), sha256=sha256(data).hexdigest(), category='SPATIAL_DATA')
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `GpuExtractedFile`. Observed return expression(s): `GpuExtractedFile(relative_path=path.relative_to(root).as_posix(), file_type=path.suffix.lower().lstrip('.') or 'binary', size_bytes=len(data), sha256=sha256(data).hexdigest(), category='SPATIAL_DATA')`.
-
-**Algorithm**
-
-1. Computes `data` from `path.read_bytes()`.
-2. Returns `GpuExtractedFile(relative_path=path.relative_to(root).as_posix(), file_type=path.suffix.lower().lstrip('.') or 'binary', size_bytes=len(data), sha256=sha256(data).hexdigest(), category='SPATIAL_DATA')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `path.read_bytes`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: `path.read_bytes`.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: `sha256`, `sha256(data).hexdigest`.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `GpuExtractedFile`, `len`, `path.read_bytes`, `path.relative_to`, `path.relative_to(root).as_posix`, `path.suffix.lower`, `path.suffix.lower().lstrip`, `sha256`, `sha256(data).hexdigest`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::_write_zoning_source` via `_spatial_inventory_item`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_index_planning_regulation.py` — `_write_zoning_source`
+```python
+def _spatial_inventory_item(root: Path, path: Path) -> GpuExtractedFile:
+    data = path.read_bytes()
+    return GpuExtractedFile(
+        relative_path=path.relative_to(root).as_posix(),
+        file_type=path.suffix.lower().lstrip(".") or "binary",
+        size_bytes=len(data),
+        sha256=sha256(data).hexdigest(),
+        category="SPATIAL_DATA",
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_write_zoning_source`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _write_zoning_source(
@@ -609,63 +711,85 @@ def _write_zoning_source(
 
 **Purpose**
 
-Writes zoning source according to the exact implementation and guards in this file.
+Serializes zoning source; exact branches, calls, and return construction are reproduced below.
 
-**Inputs**
+**Return contract**
 
-- `root` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `frame` (`gpd.GeoDataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_format` (`str`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[GpuInspectedLayer, tuple[GpuExtractedFile, ...]]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(layer, inventory)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[GpuInspectedLayer, tuple[GpuExtractedFile, ...]]`. Observed return expression(s): `(layer, inventory)`.
-
-**Algorithm**
-
-1. Computes `spatial_root` from `root / 'spatial'`.
-2. Calls `spatial_root.mkdir(parents=True, exist_ok=True)` for its validation or side effect.
-3. Checks `source_format == 'GPKG'`. When true: Computes `path` from `spatial_root / 'zone.gpkg'`. Computes `source_layer` from `'ZONE'`. Calls `frame.to_file(path, layer=source_layer, driver='GPKG', engine='pyogrio')` for its validation or side effect. Executes 3 additional source-ordered statement(s). Otherwise: Checks `source_format == 'ESRI Shapefile'`. When true: Computes `path` from `spatial_root / 'ZONE.shp'`. Computes `source_layer` from `path.stem`. Calls `frame.to_file(path, driver='ESRI Shapefile', engine='pyogrio')` for its validation or side effect. Executes 3 additional source-ordered statement(s). Otherwise: Raises `AssertionError(f'Unsupported test source format: {source_format}')`.
-4. Computes `reference` from `GpuSpatialLayerReference(path, source_layer, driver)`.
-5. Computes `layer` from `GpuInspectedLayer('zoning', reference, loaded, _summary(loaded, source_layer=source_layer))`.
-6. Computes `inventory` from `tuple((_spatial_inventory_item(root, item) for item in source_paths))`.
-7. Returns `(layer, inventory)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `AssertionError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `AssertionError(f'Unsupported test source format: {source_format}')`.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `gpd.read_file`, `spatial_root.mkdir`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: `gpd.read_file`.
+- Filesystem write: `frame.to_file`, `spatial_root.mkdir`.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `AssertionError`, `GpuInspectedLayer`, `GpuSpatialLayerReference`, `_spatial_inventory_item`, `_summary`, `candidate.is_file`, `frame.to_file`, `gpd.read_file`, `path.parent.glob`, `sorted`, `spatial_root.mkdir`, `tuple`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::_fixture_document` via `_write_zoning_source`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_index_planning_regulation.py` — `_fixture_document`
+```python
+def _write_zoning_source(
+    root: Path,
+    frame: gpd.GeoDataFrame,
+    *,
+    source_format: str,
+) -> tuple[GpuInspectedLayer, tuple[GpuExtractedFile, ...]]:
+    spatial_root = root / "spatial"
+    spatial_root.mkdir(parents=True, exist_ok=True)
+    if source_format == "GPKG":
+        path = spatial_root / "zone.gpkg"
+        source_layer = "ZONE"
+        frame.to_file(path, layer=source_layer, driver="GPKG", engine="pyogrio")
+        source_paths = (path,)
+        loaded = gpd.read_file(path, layer=source_layer, engine="pyogrio")
+        driver = "GPKG"
+    elif source_format == "ESRI Shapefile":
+        path = spatial_root / "ZONE.shp"
+        source_layer = path.stem
+        frame.to_file(path, driver="ESRI Shapefile", engine="pyogrio")
+        source_paths = tuple(
+            candidate
+            for candidate in sorted(path.parent.glob(f"{path.stem}.*"))
+            if candidate.is_file()
+        )
+        loaded = gpd.read_file(path, engine="pyogrio")
+        driver = "ESRI Shapefile"
+    else:  # pragma: no cover - fixture misuse
+        raise AssertionError(f"Unsupported test source format: {source_format}")
+    reference = GpuSpatialLayerReference(path, source_layer, driver)
+    layer = GpuInspectedLayer(
+        "zoning",
+        reference,
+        loaded,
+        _summary(loaded, source_layer=source_layer),
+    )
+    inventory = tuple(_spatial_inventory_item(root, item) for item in source_paths)
+    return layer, inventory
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_document`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _document(
@@ -680,66 +804,135 @@ def _document(
 
 **Purpose**
 
-Implements document according to the exact implementation and guards in this file.
+Private `test` helper for document; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `root` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `inventory` (`tuple[GpuExtractedFile, ...]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zoning` (`GpuInspectedLayer`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zoning_filenames` (`list[object] | None`; optional/default `None`) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `written_filenames` (`tuple[str, ...]`; optional/default `(DEFAULT_PDF,)`) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `GpuPlanningDocument`.
+- Every observed return expression is reproduced without truncation:
+```python
+GpuPlanningDocument(extraction=extraction, all_spatial_layers=(zoning.reference,), zoning=zoning, related_layers=())
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `GpuPlanningDocument`. Observed return expression(s): `GpuPlanningDocument(extraction=extraction, all_spatial_layers=(zoning.reference,), zoning=zoning, related_layers=())`.
-
-**Algorithm**
-
-1. Computes `inventory` from `tuple(sorted(inventory, key=lambda item: item.relative_path))`.
-2. Computes `written` from `tuple((GpuWrittenFile(filename=value, title=None, document_path=None, source_url=None) for value in written_filenames))`.
-3. Computes `metadata` from `GpuDocumentMetadata(provider="Géoportail de l'Urbanisme", portal='GPU', commune_code='31395', partition='DU_31395', document_id=DOCUMENT_ID, document_family='DU', document_type='PLU', document_title='Planning document', status='document.production', legal_status='APPROVED', effective_status='EN_VIGUEUR', version='10',…`.
-4. Computes `archive` from `GpuArchiveDownload(document=metadata, download_timestamp='2026-08-12T12:00:00+00:00', filename='31395_PLU_20240215.zip', archive_format='zip', file_size=100, sha256=ARCHIVE_SHA, path=root.parent / 'source.zip', cache_hit=True)`.
-5. Computes `marker` from `root / '.landscout-gpu-extraction.json'`.
-6. Calls `marker.write_text(json.dumps({'schema_version': 2, 'archive_sha256': archive.sha256, 'files': [{'relative_path': item.relative_path, 'size_bytes': item.size_bytes, 'sha256': item.sha256} for item in inventory]}, sort_keys=True), encoding='utf-8')` for its validation or side effect.
-7. Computes `extraction` from `GpuExtraction(archive=archive, extraction_root=root, files=inventory, standard_models=('CNIG PLU v2017',), cache_hit=True)`.
-8. Returns `GpuPlanningDocument(extraction=extraction, all_spatial_layers=(zoning.reference,), zoning=zoning, related_layers=())`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `GpuArchiveDownload`, `marker.write_text`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: `GpuArchiveDownload`.
+- Filesystem read: none directly visible.
+- Filesystem write: `marker.write_text`.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `GpuArchiveDownload`, `GpuDocumentMetadata`, `GpuExtraction`, `GpuPlanningDocument`, `GpuWrittenFile`, `json.dumps`, `marker.write_text`, `sorted`, `tuple`.
+- direct call or construction: `tests/unit/test_gpu_fr.py::_download` via `_document`.
+- direct call or construction: `tests/unit/test_gpu_fr.py::test_document_discovery_success` via `_document`.
+- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_document_inconsistent_with_config` via `_document`.
+- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `_document`.
+- direct call or construction: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_unsafe_archive_name_before_io` via `_document`.
+- direct call or construction: `tests/unit/test_gpu_fr.py::test_archive_name_with_one_zip_suffix_is_not_duplicated` via `_document`.
+- direct call or construction: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `_document`.
+- direct call or construction: `tests/unit/test_gpu_fr.py::test_corrupt_download_is_rejected` via `_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::_fixture_document` via `_document`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_index_planning_regulation.py` — `_fixture_document`
+```python
+def _document(
+    root: Path,
+    inventory: tuple[GpuExtractedFile, ...],
+    zoning: GpuInspectedLayer,
+    *,
+    zoning_filenames: list[object] | None = None,
+    written_filenames: tuple[str, ...] = (DEFAULT_PDF,),
+) -> GpuPlanningDocument:
+    inventory = tuple(sorted(inventory, key=lambda item: item.relative_path))
+    written = tuple(
+        GpuWrittenFile(filename=value, title=None, document_path=None, source_url=None)
+        for value in written_filenames
+    )
+    metadata = GpuDocumentMetadata(
+        provider="Géoportail de l'Urbanisme",
+        portal="GPU",
+        commune_code="31395",
+        partition="DU_31395",
+        document_id=DOCUMENT_ID,
+        document_family="DU",
+        document_type="PLU",
+        document_title="Planning document",
+        status="document.production",
+        legal_status="APPROVED",
+        effective_status="EN_VIGUEUR",
+        version="10",
+        archive_name="31395_PLU_20240215",
+        publication_timestamp=None,
+        update_timestamp=None,
+        revision_date=None,
+        producer=None,
+        standard_model="CNIG PLU v2017",
+        projection="EPSG:2154",
+        metadata_identifier=None,
+        source_url="https://www.geoportail-urbanisme.gouv.fr/api/document/download-by-partition/DU_31395",
+        written_files=written,
+    )
+    archive = GpuArchiveDownload(
+        document=metadata,
+        download_timestamp="2026-08-12T12:00:00+00:00",
+        filename="31395_PLU_20240215.zip",
+        archive_format="zip",
+        file_size=100,
+        sha256=ARCHIVE_SHA,
+        path=root.parent / "source.zip",
+        cache_hit=True,
+    )
+    marker = root / ".landscout-gpu-extraction.json"
+    marker.write_text(
+        json.dumps(
+            {
+                "schema_version": 2,
+                "archive_sha256": archive.sha256,
+                "files": [
+                    {
+                        "relative_path": item.relative_path,
+                        "size_bytes": item.size_bytes,
+                        "sha256": item.sha256,
+                    }
+                    for item in inventory
+                ],
+            },
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+    extraction = GpuExtraction(
+        archive=archive,
+        extraction_root=root,
+        files=inventory,
+        standard_models=("CNIG PLU v2017",),
+        cache_hit=True,
+    )
+    return GpuPlanningDocument(
+        extraction=extraction,
+        all_spatial_layers=(zoning.reference,),
+        zoning=zoning,
+        related_layers=(),
+    )
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_fixture_document`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _fixture_document(
@@ -756,116 +949,108 @@ def _fixture_document(
 
 **Purpose**
 
-Implements fixture document according to the exact implementation and guards in this file.
+Private `test` helper for fixture document; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `tmp_path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `filename` (`str`; optional/default `DEFAULT_PDF`) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `zoning_filenames` (`list[object] | None`; optional/default `None`) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `written_filenames` (`tuple[str, ...] | None`; optional/default `None`) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `inventory_filenames` (`tuple[str, ...] | None`; optional/default `None`) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `source_format` (`str`; optional/default `'GPKG'`) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `include_nomfic` (`bool`; optional/default `True`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `GpuPlanningDocument`.
+- Every observed return expression is reproduced without truncation:
+```python
+_document(root, tuple(inventory), zoning, zoning_filenames=zoning_filenames or [filename], written_filenames=(filename,) if written_filenames is None else written_filenames)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `GpuPlanningDocument`. Observed return expression(s): `_document(root, tuple(inventory), zoning, zoning_filenames=zoning_filenames or [filename], written_filenames=(filename,) if written_filenames is None else written_filenames)`.
-
-**Algorithm**
-
-1. Computes `root` from `tmp_path / 'extraction'`.
-2. Computes `inventory_names` from `(filename,) if inventory_filenames is None else inventory_filenames`.
-3. Defines `inventory` with annotation `list[GpuExtractedFile]` from `[]`.
-4. Iterates `(index, name)` over `enumerate(inventory_names)`. For each value: Computes `relative` from `f'written-{index}/{name}'`. Computes `path` from `root.joinpath(*relative.split('/'))`. Calls `path.parent.mkdir(parents=True, exist_ok=True)` for its validation or side effect. Executes 2 additional source-ordered statement(s).
-5. Computes `(zoning, spatial_inventory)` from `_write_zoning_source(root, _zone_frame([filename] if zoning_filenames is None else zoning_filenames, include_nomfic=include_nomfic), source_format=source_format)`.
-6. Calls `inventory.extend(spatial_inventory)` for its validation or side effect.
-7. Returns `_document(root, tuple(inventory), zoning, zoning_filenames=zoning_filenames or [filename], written_filenames=(filename,) if written_filenames is None else written_filenames)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `_write_zoning_source`, `path.parent.mkdir`, `path.write_bytes`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: `path.parent.mkdir`, `path.write_bytes`.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `_document`, `_inventory_item`, `_write_zoning_source`, `_zone_frame`, `enumerate`, `inventory.append`, `inventory.extend`, `path.parent.mkdir`, `path.write_bytes`, `relative.split`, `root.joinpath`, `tuple`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::_one_page_index` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_source_nomfic_resolves_generic_filename` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_explicit_source_validated_selection_succeeds` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unchanged_zoning_source_is_revalidated_before_selection` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_nomfic_is_rejected_before_selection` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_zoning_geometry_or_order_is_rejected` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_zoning_source_bytes_changed_after_ingestion_are_rejected` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_zoning_source_inventory_integrity_mismatch_is_rejected` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_missing_nomfic_field_is_rejected` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_null_nomfic_is_rejected` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_multiple_nomfic_values_are_ambiguous` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unsafe_explicit_filename_is_rejected` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_explicit_filename_not_referenced_by_zoning_fails` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_written_files_fails` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unrelated_non_pdf_written_file_does_not_block_selection` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_inventory_fails` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_duplicate_inventory_basename_fails` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_path_outside_root_is_rejected` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_pdf_inventory_integrity_mismatch_fails` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_page_states_numbering_and_hashes` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_zero_page_pdf_is_rejected` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_pdf_reader_failure_is_controlled_and_chained` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_version_discovery_failure_is_controlled_and_chained` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_index_integrity_mutations_fail` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_malformed_source_metadata_raises_controlled_index_error` via `_fixture_document`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_extraction_and_search_do_not_mutate_inputs` via `_fixture_document`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_index_planning_regulation.py` — `_one_page_index`
-- `tests/unit/test_index_planning_regulation.py` — `test_duplicate_inventory_basename_fails`
-- `tests/unit/test_index_planning_regulation.py` — `test_explicit_filename_not_referenced_by_zoning_fails`
-- `tests/unit/test_index_planning_regulation.py` — `test_explicit_source_validated_selection_succeeds`
-- `tests/unit/test_index_planning_regulation.py` — `test_extraction_and_search_do_not_mutate_inputs`
-- `tests/unit/test_index_planning_regulation.py` — `test_filename_absent_from_inventory_fails`
-- `tests/unit/test_index_planning_regulation.py` — `test_filename_absent_from_written_files_fails`
-- `tests/unit/test_index_planning_regulation.py` — `test_index_integrity_mutations_fail`
-- `tests/unit/test_index_planning_regulation.py` — `test_malformed_source_metadata_raises_controlled_index_error`
-- `tests/unit/test_index_planning_regulation.py` — `test_missing_nomfic_field_is_rejected`
-- `tests/unit/test_index_planning_regulation.py` — `test_multiple_nomfic_values_are_ambiguous`
-- `tests/unit/test_index_planning_regulation.py` — `test_mutated_loaded_nomfic_is_rejected_before_selection`
-- `tests/unit/test_index_planning_regulation.py` — `test_mutated_loaded_zoning_geometry_or_order_is_rejected`
-- `tests/unit/test_index_planning_regulation.py` — `test_null_nomfic_is_rejected`
-- `tests/unit/test_index_planning_regulation.py` — `test_page_states_numbering_and_hashes`
-- `tests/unit/test_index_planning_regulation.py` — `test_path_outside_root_is_rejected`
-- `tests/unit/test_index_planning_regulation.py` — `test_pdf_inventory_integrity_mismatch_fails`
-- `tests/unit/test_index_planning_regulation.py` — `test_pdf_reader_failure_is_controlled_and_chained`
-- `tests/unit/test_index_planning_regulation.py` — `test_source_nomfic_resolves_generic_filename`
-- `tests/unit/test_index_planning_regulation.py` — `test_unchanged_zoning_source_is_revalidated_before_selection`
-- `tests/unit/test_index_planning_regulation.py` — `test_unrelated_non_pdf_written_file_does_not_block_selection`
-- `tests/unit/test_index_planning_regulation.py` — `test_unsafe_explicit_filename_is_rejected`
-- `tests/unit/test_index_planning_regulation.py` — `test_version_discovery_failure_is_controlled_and_chained`
-- `tests/unit/test_index_planning_regulation.py` — `test_zero_page_pdf_is_rejected`
-- `tests/unit/test_index_planning_regulation.py` — `test_zoning_source_bytes_changed_after_ingestion_are_rejected`
-- `tests/unit/test_index_planning_regulation.py` — `test_zoning_source_inventory_integrity_mismatch_is_rejected`
+```python
+def _fixture_document(
+    tmp_path: Path,
+    *,
+    filename: str = DEFAULT_PDF,
+    zoning_filenames: list[object] | None = None,
+    written_filenames: tuple[str, ...] | None = None,
+    inventory_filenames: tuple[str, ...] | None = None,
+    source_format: str = "GPKG",
+    include_nomfic: bool = True,
+) -> GpuPlanningDocument:
+    root = tmp_path / "extraction"
+    inventory_names = (filename,) if inventory_filenames is None else inventory_filenames
+    inventory: list[GpuExtractedFile] = []
+    for index, name in enumerate(inventory_names):
+        relative = f"written-{index}/{name}"
+        path = root.joinpath(*relative.split("/"))
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(PDF_BYTES)
+        inventory.append(_inventory_item(relative))
+    zoning, spatial_inventory = _write_zoning_source(
+        root,
+        _zone_frame(
+            [filename] if zoning_filenames is None else zoning_filenames,
+            include_nomfic=include_nomfic,
+        ),
+        source_format=source_format,
+    )
+    inventory.extend(spatial_inventory)
+    return _document(
+        root,
+        tuple(inventory),
+        zoning,
+        zoning_filenames=zoning_filenames or [filename],
+        written_filenames=(filename,) if written_filenames is None else written_filenames,
+    )
+```
 
-**Tests**
-
-- `tests/unit/test_index_planning_regulation.py::test_duplicate_inventory_basename_fails`
-- `tests/unit/test_index_planning_regulation.py::test_explicit_filename_not_referenced_by_zoning_fails`
-- `tests/unit/test_index_planning_regulation.py::test_explicit_source_validated_selection_succeeds`
-- `tests/unit/test_index_planning_regulation.py::test_extraction_and_search_do_not_mutate_inputs`
-- `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_inventory_fails`
-- `tests/unit/test_index_planning_regulation.py::test_filename_absent_from_written_files_fails`
-- `tests/unit/test_index_planning_regulation.py::test_index_integrity_mutations_fail`
-- `tests/unit/test_index_planning_regulation.py::test_malformed_source_metadata_raises_controlled_index_error`
-- `tests/unit/test_index_planning_regulation.py::test_missing_nomfic_field_is_rejected`
-- `tests/unit/test_index_planning_regulation.py::test_multiple_nomfic_values_are_ambiguous`
-- `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_nomfic_is_rejected_before_selection`
-- `tests/unit/test_index_planning_regulation.py::test_mutated_loaded_zoning_geometry_or_order_is_rejected`
-- `tests/unit/test_index_planning_regulation.py::test_null_nomfic_is_rejected`
-- `tests/unit/test_index_planning_regulation.py::test_page_states_numbering_and_hashes`
-- `tests/unit/test_index_planning_regulation.py::test_path_outside_root_is_rejected`
-- `tests/unit/test_index_planning_regulation.py::test_pdf_inventory_integrity_mismatch_fails`
-- `tests/unit/test_index_planning_regulation.py::test_pdf_reader_failure_is_controlled_and_chained`
-- `tests/unit/test_index_planning_regulation.py::test_source_nomfic_resolves_generic_filename`
-- `tests/unit/test_index_planning_regulation.py::test_unchanged_zoning_source_is_revalidated_before_selection`
-- `tests/unit/test_index_planning_regulation.py::test_unrelated_non_pdf_written_file_does_not_block_selection`
-- `tests/unit/test_index_planning_regulation.py::test_unsafe_explicit_filename_is_rejected`
-- `tests/unit/test_index_planning_regulation.py::test_version_discovery_failure_is_controlled_and_chained`
-- `tests/unit/test_index_planning_regulation.py::test_zero_page_pdf_is_rejected`
-- `tests/unit/test_index_planning_regulation.py::test_zoning_source_bytes_changed_after_ingestion_are_rejected`
-- `tests/unit/test_index_planning_regulation.py::test_zoning_source_inventory_integrity_mismatch_is_rejected`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_one_page_index`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _one_page_index(
@@ -877,307 +1062,168 @@ def _one_page_index(
 
 **Purpose**
 
-Implements one page index according to the exact implementation and guards in this file.
+Private `test` helper for one page index; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `tmp_path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `monkeypatch` (`pytest.MonkeyPatch`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `text` (`str`; optional/default `'Énergie'`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `unannotated`. Observed return expression(s): `index_planning_regulation(document)`.
-
-**Algorithm**
-
-1. Computes `document` from `_fixture_document(tmp_path)`.
-2. Calls `_patch_reader(monkeypatch, [text])` for its validation or side effect.
-3. Returns `index_planning_regulation(document)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `_fixture_document`, `_patch_reader`, `index_planning_regulation`.
-
-**Known repository callers**
-
-- `tests/unit/test_index_planning_regulation.py` — `_valid_search_result`
-- `tests/unit/test_index_planning_regulation.py` — `test_complete_index_envelope_mutation_is_rejected`
-- `tests/unit/test_index_planning_regulation.py` — `test_coordinated_page_mutation_fails_envelope_hash`
-- `tests/unit/test_index_planning_regulation.py` — `test_duplicate_normalized_search_terms_are_rejected`
-- `tests/unit/test_index_planning_regulation.py` — `test_empty_search_result_has_stable_schema_and_lineage`
-- `tests/unit/test_index_planning_regulation.py` — `test_invalid_search_term_is_rejected`
-- `tests/unit/test_index_planning_regulation.py` — `test_literal_search_does_not_add_semantic_synonyms`
-- `tests/unit/test_index_planning_regulation.py` — `test_malformed_page_hash_schema_is_rejected_as_controlled_error`
-- `tests/unit/test_index_planning_regulation.py` — `test_malformed_page_value_raises_controlled_index_error`
-- `tests/unit/test_index_planning_regulation.py` — `test_raw_context_preserves_source_typography`
-- `tests/unit/test_index_planning_regulation.py` — `test_unsupported_or_malformed_index_hash_schema_is_rejected`
-- `tests/unit/test_index_planning_regulation.py` — `test_zero_context_preserves_complete_raw_unicode_span`
-
-**Tests**
-
-- `tests/unit/test_index_planning_regulation.py::test_complete_index_envelope_mutation_is_rejected`
-- `tests/unit/test_index_planning_regulation.py::test_coordinated_page_mutation_fails_envelope_hash`
-- `tests/unit/test_index_planning_regulation.py::test_duplicate_normalized_search_terms_are_rejected`
-- `tests/unit/test_index_planning_regulation.py::test_empty_search_result_has_stable_schema_and_lineage`
-- `tests/unit/test_index_planning_regulation.py::test_invalid_search_term_is_rejected`
-- `tests/unit/test_index_planning_regulation.py::test_literal_search_does_not_add_semantic_synonyms`
-- `tests/unit/test_index_planning_regulation.py::test_malformed_page_hash_schema_is_rejected_as_controlled_error`
-- `tests/unit/test_index_planning_regulation.py::test_malformed_page_value_raises_controlled_index_error`
-- `tests/unit/test_index_planning_regulation.py::test_raw_context_preserves_source_typography`
-- `tests/unit/test_index_planning_regulation.py::test_unsupported_or_malformed_index_hash_schema_is_rejected`
-- `tests/unit/test_index_planning_regulation.py::test_zero_context_preserves_complete_raw_unicode_span`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_pdf_reader_failure_is_controlled_and_chained.fail_reader`
-
-**Signature**
-
+- Declared return annotation: `unannotated`.
+- Every observed return expression is reproduced without truncation:
 ```python
-def fail_reader(*args: object, **kwargs: object) -> object:
+index_planning_regulation(document)
 ```
 
-**Purpose**
+**Validation and exceptions**
 
-Implements fail reader according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `object`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Raises `RuntimeError('broken xref')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `RuntimeError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RuntimeError`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_raw_context_preserves_source_typography` via `_one_page_index`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_zero_context_preserves_complete_raw_unicode_span` via `_one_page_index`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_literal_search_does_not_add_semantic_synonyms` via `_one_page_index`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_coordinated_page_mutation_fails_envelope_hash` via `_one_page_index`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_complete_index_envelope_mutation_is_rejected` via `_one_page_index`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_unsupported_or_malformed_index_hash_schema_is_rejected` via `_one_page_index`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_malformed_page_hash_schema_is_rejected_as_controlled_error` via `_one_page_index`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::_valid_search_result` via `_one_page_index`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_invalid_search_term_is_rejected` via `_one_page_index`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_duplicate_normalized_search_terms_are_rejected` via `_one_page_index`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_empty_search_result_has_stable_schema_and_lineage` via `_one_page_index`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_malformed_page_value_raises_controlled_index_error` via `_one_page_index`.
 
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_version_discovery_failure_is_controlled_and_chained.fail_version`
-
-**Signature**
-
-```python
-def fail_version(name: str) -> str:
-```
-
-**Purpose**
-
-Implements fail version according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `name` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `str`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Raises `RuntimeError(name)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `RuntimeError`. Called functions may raise their documented controlled errors.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `RuntimeError`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `_valid_search_result`
-
-**Signature**
+**Complete source-ordered implementation**
 
 ```python
-def _valid_search_result(
+def _one_page_index(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
+    text: str = "Énergie",
 ):
+    document = _fixture_document(tmp_path)
+    _patch_reader(monkeypatch, [text])
+    return index_planning_regulation(document)
 ```
 
-**Purpose**
-
-Implements valid search result according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `tmp_path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `monkeypatch` (`pytest.MonkeyPatch`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `unannotated`. Observed return expression(s): `(index, result)`.
-
-**Algorithm**
-
-1. Computes `index` from `_one_page_index(tmp_path, monkeypatch, 'Énergie énergie et Équipement d’intérêt collectif')`.
-2. Computes `result` from `search_planning_regulation(index, ['energie', "equipement d'interet collectif"])`.
-3. Returns `(index, result)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `_one_page_index`, `search_planning_regulation`.
-
-**Known repository callers**
-
-- `tests/unit/test_index_planning_regulation.py` — `test_malformed_hit_value_raises_controlled_index_error`
-- `tests/unit/test_index_planning_regulation.py` — `test_search_hit_lineage_mutation_fails`
-- `tests/unit/test_index_planning_regulation.py` — `test_search_index_identity_schema_and_terms_are_sealed`
-- `tests/unit/test_index_planning_regulation.py` — `test_search_requested_terms_must_be_an_immutable_exact_tuple`
-- `tests/unit/test_index_planning_regulation.py` — `test_search_result_envelope_is_valid_and_deterministic`
-- `tests/unit/test_index_planning_regulation.py` — `test_search_result_integrity_mutations_fail`
-
-**Tests**
-
-- `tests/unit/test_index_planning_regulation.py::test_malformed_hit_value_raises_controlled_index_error`
-- `tests/unit/test_index_planning_regulation.py::test_search_hit_lineage_mutation_fails`
-- `tests/unit/test_index_planning_regulation.py::test_search_index_identity_schema_and_terms_are_sealed`
-- `tests/unit/test_index_planning_regulation.py::test_search_requested_terms_must_be_an_immutable_exact_tuple`
-- `tests/unit/test_index_planning_regulation.py::test_search_result_envelope_is_valid_and_deterministic`
-- `tests/unit/test_index_planning_regulation.py::test_search_result_integrity_mutations_fail`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_public_api_exports_immutable_models_and_validators`
 
-**Signature**
-
-```python
-def test_public_api_exports_immutable_models_and_validators() -> None:
-```
-
 **Purpose**
 
-Protects the `public api exports immutable models and validators` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: none.
-- Contains 0 explicit setup/context statement(s).
+```python
+for name in (
+        "PlanningRegulationIndex",
+        "PlanningRegulationIndexError",
+        "PlanningRegulationSearchResult",
+        "index_planning_regulation",
+        "search_planning_regulation",
+        "validate_planning_regulation_index",
+        "validate_planning_regulation_search_result",
+    ):
+        assert name in stages.__all__
+        assert hasattr(stages, name)
+```
 
 **Action**
 
-- Calls `hasattr`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: `assert name in stages.__all__`; `assert hasattr(stages, name)`.
-- Expected exception contexts: none.
+```python
+# Completion without an exception is the asserted outcome.
+```
 
 **Regression protected**
 
-- Protects the exact `public api exports immutable models and validators` contract against a future change that would violate these assertions or controlled-failure expectations.
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- In-memory/local unit boundary defined entirely by the reproduced setup.
 
-**Calls**
+**Complete test implementation**
 
-- `hasattr`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+```python
+def test_public_api_exports_immutable_models_and_validators() -> None:
+    for name in (
+        "PlanningRegulationIndex",
+        "PlanningRegulationIndexError",
+        "PlanningRegulationSearchResult",
+        "index_planning_regulation",
+        "search_planning_regulation",
+        "validate_planning_regulation_index",
+        "validate_planning_regulation_search_result",
+    ):
+        assert name in stages.__all__
+        assert hasattr(stages, name)
+```
 
 ### `test_source_nomfic_resolves_generic_filename`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `filename`.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path, filename=filename)
+_patch_reader(monkeypatch, ["Texte"])
+```
+
+**Action**
+
+```python
+result = index_planning_regulation(document)
+```
+
+**Expected result**
+
+```python
+assert Path(result.pdf_relative_path).name == filename
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_source_nomfic_resolves_generic_filename(
@@ -1185,95 +1231,120 @@ def test_source_nomfic_resolves_generic_filename(
     monkeypatch: pytest.MonkeyPatch,
     filename: str,
 ) -> None:
+    document = _fixture_document(tmp_path, filename=filename)
+    _patch_reader(monkeypatch, ["Texte"])
+    result = index_planning_regulation(document)
+    assert Path(result.pdf_relative_path).name == filename
 ```
-
-**Purpose**
-
-Protects the `source nomfic resolves generic filename` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`, `filename`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path, filename=filename)`.
-- Computes `result` from `index_planning_regulation(document)`.
-
-**Action**
-
-- Calls `Path`, `_fixture_document`, `_patch_reader`, `index_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: `assert Path(result.pdf_relative_path).name == filename`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `source nomfic resolves generic filename` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `Path`, `_fixture_document`, `_patch_reader`, `index_planning_regulation`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_explicit_source_validated_selection_succeeds`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+filenames = ("a.pdf", "b.pdf")
+document = _fixture_document(
+        tmp_path,
+        filename="a.pdf",
+        zoning_filenames=list(filenames),
+        written_filenames=filenames,
+        inventory_filenames=filenames,
+    )
+_patch_reader(monkeypatch, ["Texte"])
+```
+
+**Action**
+
+```python
+result = index_planning_regulation(document, regulation_filename="b.pdf")
+```
+
+**Expected result**
+
+```python
+assert Path(result.pdf_relative_path).name == "b.pdf"
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_explicit_source_validated_selection_succeeds(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    filenames = ("a.pdf", "b.pdf")
+    document = _fixture_document(
+        tmp_path,
+        filename="a.pdf",
+        zoning_filenames=list(filenames),
+        written_filenames=filenames,
+        inventory_filenames=filenames,
+    )
+    _patch_reader(monkeypatch, ["Texte"])
+    result = index_planning_regulation(document, regulation_filename="b.pdf")
+    assert Path(result.pdf_relative_path).name == "b.pdf"
 ```
-
-**Purpose**
-
-Protects the `explicit source validated selection succeeds` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `filenames` from `('a.pdf', 'b.pdf')`.
-- Computes `document` from `_fixture_document(tmp_path, filename='a.pdf', zoning_filenames=list(filenames), written_filenames=filenames, inventory_filenames=filenames)`.
-- Computes `result` from `index_planning_regulation(document, regulation_filename='b.pdf')`.
-
-**Action**
-
-- Calls `Path`, `_fixture_document`, `_patch_reader`, `index_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: `assert Path(result.pdf_relative_path).name == 'b.pdf'`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `explicit source validated selection succeeds` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `Path`, `_fixture_document`, `_patch_reader`, `index_planning_regulation`, `list`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_unchanged_zoning_source_is_revalidated_before_selection`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `source_format`.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path, source_format=source_format)
+_patch_reader(monkeypatch, ["Texte"])
+```
+
+**Action**
+
+```python
+result = index_planning_regulation(document)
+```
+
+**Expected result**
+
+```python
+assert result.regulation_filename == DEFAULT_PDF
+assert result.source_selection_method == "ZONING_NOMFIC"
+assert fullmatch(r"[0-9a-f]{64}", result.source_selection_sha256)
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_unchanged_zoning_source_is_revalidated_before_selection(
@@ -1281,974 +1352,1277 @@ def test_unchanged_zoning_source_is_revalidated_before_selection(
     monkeypatch: pytest.MonkeyPatch,
     source_format: str,
 ) -> None:
+    document = _fixture_document(tmp_path, source_format=source_format)
+    _patch_reader(monkeypatch, ["Texte"])
+    result = index_planning_regulation(document)
+    assert result.regulation_filename == DEFAULT_PDF
+    assert result.source_selection_method == "ZONING_NOMFIC"
+    assert fullmatch(r"[0-9a-f]{64}", result.source_selection_sha256)
 ```
-
-**Purpose**
-
-Protects the `unchanged zoning source is revalidated before selection` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`, `source_format`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path, source_format=source_format)`.
-- Computes `result` from `index_planning_regulation(document)`.
-
-**Action**
-
-- Calls `_fixture_document`, `_patch_reader`, `fullmatch`, `index_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: `assert result.regulation_filename == DEFAULT_PDF`; `assert result.source_selection_method == 'ZONING_NOMFIC'`; `assert fullmatch('[0-9a-f]{64}', result.source_selection_sha256)`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `unchanged zoning source is revalidated before selection` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `_patch_reader`, `fullmatch`, `index_planning_regulation`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_mutated_loaded_nomfic_is_rejected_before_selection`
 
-**Signature**
-
-```python
-def test_mutated_loaded_nomfic_is_rejected_before_selection(tmp_path: Path) -> None:
-```
-
 **Purpose**
 
-Protects the `mutated loaded nomfic is rejected before selection` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 5 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path)`.
-- Computes `mutated` from `document.zoning.data.copy(deep=True)`.
-- Computes `mutated.loc[0, 'NOMFIC']` from `'other_reglement.pdf'`.
-- Computes `corrupted` from `replace(document, zoning=replace(document.zoning, data=mutated))`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='zoning|source')` and executes: Calls `index_planning_regulation(corrupted)` for its validation or side effect.
+```python
+document = _fixture_document(tmp_path)
+mutated = document.zoning.data.copy(deep=True)
+mutated.loc[0, "NOMFIC"] = "other_reglement.pdf"
+corrupted = replace(document, zoning=replace(document.zoning, data=mutated))
+```
 
 **Action**
 
-- Calls `_fixture_document`, `document.zoning.data.copy`, `index_planning_regulation`, `replace`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='zoning|source'): index_planning_regulation(corrupted)`.
+```python
+with pytest.raises(PlanningRegulationIndexError, match="zoning|source"):
+        index_planning_regulation(corrupted)
+```
 
 **Regression protected**
 
-- Protects the exact `mutated loaded nomfic is rejected before selection` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
 
 **Test boundary**
 
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
+- Uses a temporary synthetic filesystem/source.
 
-**Calls**
+**Complete test implementation**
 
-- `_fixture_document`, `document.zoning.data.copy`, `index_planning_regulation`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+```python
+def test_mutated_loaded_nomfic_is_rejected_before_selection(tmp_path: Path) -> None:
+    document = _fixture_document(tmp_path)
+    mutated = document.zoning.data.copy(deep=True)
+    mutated.loc[0, "NOMFIC"] = "other_reglement.pdf"
+    corrupted = replace(document, zoning=replace(document.zoning, data=mutated))
+    with pytest.raises(PlanningRegulationIndexError, match="zoning|source"):
+        index_planning_regulation(corrupted)
+```
 
 ### `test_mutated_loaded_zoning_geometry_or_order_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `mutation`.
+
+**Setup**
+
+```python
+document = _fixture_document(
+        tmp_path,
+        zoning_filenames=[DEFAULT_PDF, DEFAULT_PDF],
+    )
+mutated = document.zoning.data.copy(deep=True)
+if mutation == "reorder":
+        mutated = mutated.iloc[::-1].reset_index(drop=True)
+    else:
+        geometry = mutated.geometry.copy()
+        geometry.iloc[0] = Polygon([(20, 0), (20, 1), (21, 1), (21, 0), (20, 0)])
+        mutated = mutated.set_geometry(geometry)
+corrupted = replace(document, zoning=replace(document.zoning, data=mutated))
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="zoning|source"):
+        index_planning_regulation(corrupted)
+```
+
+**Regression protected**
+
+Prevents geometry changes from passing a preservation or source-bound comparison merely because other fields were updated coherently.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_mutated_loaded_zoning_geometry_or_order_is_rejected(
     tmp_path: Path,
     mutation: str,
 ) -> None:
+    document = _fixture_document(
+        tmp_path,
+        zoning_filenames=[DEFAULT_PDF, DEFAULT_PDF],
+    )
+    mutated = document.zoning.data.copy(deep=True)
+    if mutation == "reorder":
+        mutated = mutated.iloc[::-1].reset_index(drop=True)
+    else:
+        geometry = mutated.geometry.copy()
+        geometry.iloc[0] = Polygon([(20, 0), (20, 1), (21, 1), (21, 0), (20, 0)])
+        mutated = mutated.set_geometry(geometry)
+    corrupted = replace(document, zoning=replace(document.zoning, data=mutated))
+    with pytest.raises(PlanningRegulationIndexError, match="zoning|source"):
+        index_planning_regulation(corrupted)
 ```
-
-**Purpose**
-
-Protects the `mutated loaded zoning geometry or order is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `mutation`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path, zoning_filenames=[DEFAULT_PDF, DEFAULT_PDF])`.
-- Computes `mutated` from `document.zoning.data.copy(deep=True)`.
-- Computes `corrupted` from `replace(document, zoning=replace(document.zoning, data=mutated))`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='zoning|source')` and executes: Calls `index_planning_regulation(corrupted)` for its validation or side effect.
-
-**Action**
-
-- Calls `Polygon`, `_fixture_document`, `document.zoning.data.copy`, `index_planning_regulation`, `mutated.geometry.copy`, `mutated.iloc[::-1].reset_index`, `mutated.set_geometry`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='zoning|source'): index_planning_regulation(corrupted)`.
-
-**Regression protected**
-
-- Protects the exact `mutated loaded zoning geometry or order is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `Polygon`, `_fixture_document`, `document.zoning.data.copy`, `index_planning_regulation`, `mutated.geometry.copy`, `mutated.iloc[::-1].reset_index`, `mutated.set_geometry`, `pytest.mark.parametrize`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_zoning_source_bytes_changed_after_ingestion_are_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path)
+with document.zoning.reference.dataset_path.open("ab") as stream:
+        stream.write(b"tamper")
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="size|SHA256|integrity"):
+        index_planning_regulation(document)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_zoning_source_bytes_changed_after_ingestion_are_rejected(
     tmp_path: Path,
 ) -> None:
+    document = _fixture_document(tmp_path)
+    with document.zoning.reference.dataset_path.open("ab") as stream:
+        stream.write(b"tamper")
+    with pytest.raises(PlanningRegulationIndexError, match="size|SHA256|integrity"):
+        index_planning_regulation(document)
 ```
-
-**Purpose**
-
-Protects the `zoning source bytes changed after ingestion are rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path)`.
-- Enters managed context(s) `document.zoning.reference.dataset_path.open('ab')` and executes: Calls `stream.write(b'tamper')` for its validation or side effect.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='size|SHA256|integrity')` and executes: Calls `index_planning_regulation(document)` for its validation or side effect.
-
-**Action**
-
-- Calls `_fixture_document`, `document.zoning.reference.dataset_path.open`, `index_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='size|SHA256|integrity'): index_planning_regulation(document)`.
-
-**Regression protected**
-
-- Protects the exact `zoning source bytes changed after ingestion are rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `document.zoning.reference.dataset_path.open`, `index_planning_regulation`, `pytest.raises`, `stream.write`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_zoning_source_inventory_integrity_mismatch_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `field`.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path)
+items = list(document.extraction.files)
+position = next(
+        index for index, item in enumerate(items) if item.category == "SPATIAL_DATA"
+    )
+current = items[position]
+replacement: object = (
+        current.size_bytes + 1 if field == "size_bytes" else "b" * 64
+    )
+items[position] = replace(current, **{field: replacement})
+corrupted = replace(
+        document,
+        extraction=replace(document.extraction, files=tuple(items)),
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="size|SHA256|integrity"):
+        index_planning_regulation(corrupted)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_zoning_source_inventory_integrity_mismatch_is_rejected(
     tmp_path: Path,
     field: str,
 ) -> None:
+    document = _fixture_document(tmp_path)
+    items = list(document.extraction.files)
+    position = next(
+        index for index, item in enumerate(items) if item.category == "SPATIAL_DATA"
+    )
+    current = items[position]
+    replacement: object = (
+        current.size_bytes + 1 if field == "size_bytes" else "b" * 64
+    )
+    items[position] = replace(current, **{field: replacement})
+    corrupted = replace(
+        document,
+        extraction=replace(document.extraction, files=tuple(items)),
+    )
+    with pytest.raises(PlanningRegulationIndexError, match="size|SHA256|integrity"):
+        index_planning_regulation(corrupted)
 ```
-
-**Purpose**
-
-Protects the `zoning source inventory integrity mismatch is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `field`.
-- Contains 8 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path)`.
-- Computes `items` from `list(document.extraction.files)`.
-- Computes `position` from `next((index for index, item in enumerate(items) if item.category == 'SPATIAL_DATA'))`.
-- Computes `current` from `items[position]`.
-- Defines `replacement` with annotation `object` from `current.size_bytes + 1 if field == 'size_bytes' else 'b' * 64`.
-- Computes `items[position]` from `replace(current, **{field: replacement})`.
-- Computes `corrupted` from `replace(document, extraction=replace(document.extraction, files=tuple(items)))`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='size|SHA256|integrity')` and executes: Calls `index_planning_regulation(corrupted)` for its validation or side effect.
-
-**Action**
-
-- Calls `_fixture_document`, `enumerate`, `index_planning_regulation`, `next`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='size|SHA256|integrity'): index_planning_regulation(corrupted)`.
-
-**Regression protected**
-
-- Protects the exact `zoning source inventory integrity mismatch is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `enumerate`, `index_planning_regulation`, `list`, `next`, `pytest.mark.parametrize`, `pytest.raises`, `replace`, `tuple`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_missing_nomfic_field_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path, include_nomfic=False)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="missing NOMFIC"):
+        index_planning_regulation(document)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_missing_nomfic_field_is_rejected(tmp_path: Path) -> None:
+    document = _fixture_document(tmp_path, include_nomfic=False)
+    with pytest.raises(PlanningRegulationIndexError, match="missing NOMFIC"):
+        index_planning_regulation(document)
 ```
-
-**Purpose**
-
-Protects the `missing nomfic field is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path, include_nomfic=False)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='missing NOMFIC')` and executes: Calls `index_planning_regulation(document)` for its validation or side effect.
-
-**Action**
-
-- Calls `_fixture_document`, `index_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='missing NOMFIC'): index_planning_regulation(document)`.
-
-**Regression protected**
-
-- Protects the exact `missing nomfic field is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `index_planning_regulation`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_null_nomfic_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path, zoning_filenames=[None])
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="no regulation filename"):
+        index_planning_regulation(document)
+```
+
+**Regression protected**
+
+Pins true-null handling and prevents textual or malformed null-like values from changing the contract.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_null_nomfic_is_rejected(tmp_path: Path) -> None:
+    document = _fixture_document(tmp_path, zoning_filenames=[None])
+    with pytest.raises(PlanningRegulationIndexError, match="no regulation filename"):
+        index_planning_regulation(document)
 ```
-
-**Purpose**
-
-Protects the `null nomfic is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path, zoning_filenames=[None])`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='no regulation filename')` and executes: Calls `index_planning_regulation(document)` for its validation or side effect.
-
-**Action**
-
-- Calls `_fixture_document`, `index_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='no regulation filename'): index_planning_regulation(document)`.
-
-**Regression protected**
-
-- Protects the exact `null nomfic is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `index_planning_regulation`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_multiple_nomfic_values_are_ambiguous`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+document = _fixture_document(
+        tmp_path,
+        filename="a.pdf",
+        zoning_filenames=["a.pdf", "b.pdf"],
+        written_filenames=("a.pdf", "b.pdf"),
+        inventory_filenames=("a.pdf", "b.pdf"),
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="ambiguous"):
+        index_planning_regulation(document)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_multiple_nomfic_values_are_ambiguous(tmp_path: Path) -> None:
+    document = _fixture_document(
+        tmp_path,
+        filename="a.pdf",
+        zoning_filenames=["a.pdf", "b.pdf"],
+        written_filenames=("a.pdf", "b.pdf"),
+        inventory_filenames=("a.pdf", "b.pdf"),
+    )
+    with pytest.raises(PlanningRegulationIndexError, match="ambiguous"):
+        index_planning_regulation(document)
 ```
-
-**Purpose**
-
-Protects the `multiple nomfic values are ambiguous` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path, filename='a.pdf', zoning_filenames=['a.pdf', 'b.pdf'], written_filenames=('a.pdf', 'b.pdf'), inventory_filenames=('a.pdf', 'b.pdf'))`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='ambiguous')` and executes: Calls `index_planning_regulation(document)` for its validation or side effect.
-
-**Action**
-
-- Calls `_fixture_document`, `index_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='ambiguous'): index_planning_regulation(document)`.
-
-**Regression protected**
-
-- Protects the exact `multiple nomfic values are ambiguous` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `index_planning_regulation`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_unsafe_explicit_filename_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `filename`.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="filename"):
+        index_planning_regulation(document, regulation_filename=filename)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_unsafe_explicit_filename_is_rejected(tmp_path: Path, filename: str) -> None:
+    document = _fixture_document(tmp_path)
+    with pytest.raises(PlanningRegulationIndexError, match="filename"):
+        index_planning_regulation(document, regulation_filename=filename)
 ```
-
-**Purpose**
-
-Protects the `unsafe explicit filename is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `filename`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='filename')` and executes: Calls `index_planning_regulation(document, regulation_filename=filename)` for its validation or side effect.
-
-**Action**
-
-- Calls `_fixture_document`, `index_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='filename'): index_planning_regulation(document, regulation_filename=filename)`.
-
-**Regression protected**
-
-- Protects the exact `unsafe explicit filename is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `index_planning_regulation`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_explicit_filename_not_referenced_by_zoning_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="not referenced"):
+        index_planning_regulation(document, regulation_filename="other.pdf")
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_explicit_filename_not_referenced_by_zoning_fails(tmp_path: Path) -> None:
+    document = _fixture_document(tmp_path)
+    with pytest.raises(PlanningRegulationIndexError, match="not referenced"):
+        index_planning_regulation(document, regulation_filename="other.pdf")
 ```
-
-**Purpose**
-
-Protects the `explicit filename not referenced by zoning fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='not referenced')` and executes: Calls `index_planning_regulation(document, regulation_filename='other.pdf')` for its validation or side effect.
-
-**Action**
-
-- Calls `_fixture_document`, `index_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='not referenced'): index_planning_regulation(document, regulation_filename='other.pdf')`.
-
-**Regression protected**
-
-- Protects the exact `explicit filename not referenced by zoning fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `index_planning_regulation`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_filename_absent_from_written_files_fails`
 
-**Signature**
-
-```python
-def test_filename_absent_from_written_files_fails(tmp_path: Path) -> None:
-```
-
 **Purpose**
 
-Protects the `filename absent from written files fails` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path, written_filenames=('other.pdf',))`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='written_files')` and executes: Calls `index_planning_regulation(document)` for its validation or side effect.
+```python
+document = _fixture_document(tmp_path, written_filenames=("other.pdf",))
+```
 
 **Action**
 
-- Calls `_fixture_document`, `index_planning_regulation`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='written_files'): index_planning_regulation(document)`.
+```python
+with pytest.raises(PlanningRegulationIndexError, match="written_files"):
+        index_planning_regulation(document)
+```
 
 **Regression protected**
 
-- Protects the exact `filename absent from written files fails` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
 
 **Test boundary**
 
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
+- Uses a temporary synthetic filesystem/source.
 
-**Calls**
+**Complete test implementation**
 
-- `_fixture_document`, `index_planning_regulation`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+```python
+def test_filename_absent_from_written_files_fails(tmp_path: Path) -> None:
+    document = _fixture_document(tmp_path, written_filenames=("other.pdf",))
+    with pytest.raises(PlanningRegulationIndexError, match="written_files"):
+        index_planning_regulation(document)
+```
 
 ### `test_unrelated_non_pdf_written_file_does_not_block_selection`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+document = _fixture_document(
+        tmp_path, written_filenames=(DEFAULT_PDF, "technical-note.txt")
+    )
+_patch_reader(monkeypatch, ["Texte"])
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert index_planning_regulation(document).total_page_count == 1
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_unrelated_non_pdf_written_file_does_not_block_selection(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    document = _fixture_document(
+        tmp_path, written_filenames=(DEFAULT_PDF, "technical-note.txt")
+    )
+    _patch_reader(monkeypatch, ["Texte"])
+    assert index_planning_regulation(document).total_page_count == 1
 ```
-
-**Purpose**
-
-Protects the `unrelated non pdf written file does not block selection` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path, written_filenames=(DEFAULT_PDF, 'technical-note.txt'))`.
-
-**Action**
-
-- Calls `_fixture_document`, `_patch_reader`, `index_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: `assert index_planning_regulation(document).total_page_count == 1`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `unrelated non pdf written file does not block selection` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `_patch_reader`, `index_planning_regulation`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_filename_absent_from_inventory_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path)
+item_position = next(
+        index
+        for index, item in enumerate(document.extraction.files)
+        if item.category == "WRITTEN_REGULATION"
+    )
+items = list(document.extraction.files)
+items[item_position] = replace(
+        items[item_position], relative_path="written/other.pdf"
+    )
+corrupted = replace(
+        document,
+        extraction=replace(document.extraction, files=tuple(items)),
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(
+        PlanningRegulationIndexError,
+        match="missing from GPU inventory|verified manifest",
+    ):
+        index_planning_regulation(corrupted)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_filename_absent_from_inventory_fails(tmp_path: Path) -> None:
+    document = _fixture_document(tmp_path)
+    item_position = next(
+        index
+        for index, item in enumerate(document.extraction.files)
+        if item.category == "WRITTEN_REGULATION"
+    )
+    items = list(document.extraction.files)
+    items[item_position] = replace(
+        items[item_position], relative_path="written/other.pdf"
+    )
+    corrupted = replace(
+        document,
+        extraction=replace(document.extraction, files=tuple(items)),
+    )
+    with pytest.raises(
+        PlanningRegulationIndexError,
+        match="missing from GPU inventory|verified manifest",
+    ):
+        index_planning_regulation(corrupted)
 ```
-
-**Purpose**
-
-Protects the `filename absent from inventory fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 6 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path)`.
-- Computes `item_position` from `next((index for index, item in enumerate(document.extraction.files) if item.category == 'WRITTEN_REGULATION'))`.
-- Computes `items` from `list(document.extraction.files)`.
-- Computes `items[item_position]` from `replace(items[item_position], relative_path='written/other.pdf')`.
-- Computes `corrupted` from `replace(document, extraction=replace(document.extraction, files=tuple(items)))`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='missing from GPU inventory|verified manifest')` and executes: Calls `index_planning_regulation(corrupted)` for its validation or side effect.
-
-**Action**
-
-- Calls `_fixture_document`, `enumerate`, `index_planning_regulation`, `next`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='missing from GPU inventory|verified manifest'): index_planning_regulation(corrupted)`.
-
-**Regression protected**
-
-- Protects the exact `filename absent from inventory fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `enumerate`, `index_planning_regulation`, `list`, `next`, `pytest.raises`, `replace`, `tuple`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_duplicate_inventory_basename_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+document = _fixture_document(
+        tmp_path, inventory_filenames=(DEFAULT_PDF, DEFAULT_PDF)
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="ambiguous"):
+        index_planning_regulation(document)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_duplicate_inventory_basename_fails(tmp_path: Path) -> None:
+    document = _fixture_document(
+        tmp_path, inventory_filenames=(DEFAULT_PDF, DEFAULT_PDF)
+    )
+    with pytest.raises(PlanningRegulationIndexError, match="ambiguous"):
+        index_planning_regulation(document)
 ```
-
-**Purpose**
-
-Protects the `duplicate inventory basename fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path, inventory_filenames=(DEFAULT_PDF, DEFAULT_PDF))`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='ambiguous')` and executes: Calls `index_planning_regulation(document)` for its validation or side effect.
-
-**Action**
-
-- Calls `_fixture_document`, `index_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='ambiguous'): index_planning_regulation(document)`.
-
-**Regression protected**
-
-- Protects the exact `duplicate inventory basename fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `index_planning_regulation`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_path_outside_root_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path)
+item = replace(
+        document.extraction.files[0], relative_path=f"../{DEFAULT_PDF}"
+    )
+corrupted = replace(
+        document,
+        extraction=replace(document.extraction, files=(item,)),
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(
+        PlanningRegulationIndexError,
+        match="unsafe|verified manifest",
+    ):
+        index_planning_regulation(corrupted)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_path_outside_root_is_rejected(tmp_path: Path) -> None:
+    document = _fixture_document(tmp_path)
+    item = replace(
+        document.extraction.files[0], relative_path=f"../{DEFAULT_PDF}"
+    )
+    corrupted = replace(
+        document,
+        extraction=replace(document.extraction, files=(item,)),
+    )
+    with pytest.raises(
+        PlanningRegulationIndexError,
+        match="unsafe|verified manifest",
+    ):
+        index_planning_regulation(corrupted)
 ```
-
-**Purpose**
-
-Protects the `path outside root is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path)`.
-- Computes `item` from `replace(document.extraction.files[0], relative_path=f'../{DEFAULT_PDF}')`.
-- Computes `corrupted` from `replace(document, extraction=replace(document.extraction, files=(item,)))`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='unsafe|verified manifest')` and executes: Calls `index_planning_regulation(corrupted)` for its validation or side effect.
-
-**Action**
-
-- Calls `_fixture_document`, `index_planning_regulation`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='unsafe|verified manifest'): index_planning_regulation(corrupted)`.
-
-**Regression protected**
-
-- Protects the exact `path outside root is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `index_planning_regulation`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_pdf_inventory_integrity_mismatch_fails`
 
-**Signature**
-
-```python
-def test_pdf_inventory_integrity_mismatch_fails(tmp_path: Path, field: str) -> None:
-```
-
 **Purpose**
 
-Protects the `pdf inventory integrity mismatch fails` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `field`.
 
 **Setup**
 
-- Uses parameters/fixtures: `tmp_path`, `field`.
-- Contains 7 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path)`.
-- Defines `value` with annotation `object` from `len(PDF_BYTES) + 1 if field == 'size_bytes' else 'b' * 64`.
-- Computes `item_position` from `next((index for index, item in enumerate(document.extraction.files) if item.category == 'WRITTEN_REGULATION'))`.
-- Computes `items` from `list(document.extraction.files)`.
-- Computes `items[item_position]` from `replace(items[item_position], **{field: value})`.
-- Computes `corrupted` from `replace(document, extraction=replace(document.extraction, files=tuple(items)))`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='differs')` and executes: Calls `index_planning_regulation(corrupted)` for its validation or side effect.
+```python
+document = _fixture_document(tmp_path)
+value: object = len(PDF_BYTES) + 1 if field == "size_bytes" else "b" * 64
+item_position = next(
+        index
+        for index, item in enumerate(document.extraction.files)
+        if item.category == "WRITTEN_REGULATION"
+    )
+items = list(document.extraction.files)
+items[item_position] = replace(items[item_position], **{field: value})
+corrupted = replace(
+        document,
+        extraction=replace(document.extraction, files=tuple(items)),
+    )
+```
 
 **Action**
 
-- Calls `_fixture_document`, `enumerate`, `index_planning_regulation`, `next`, `replace`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='differs'): index_planning_regulation(corrupted)`.
+```python
+with pytest.raises(PlanningRegulationIndexError, match="differs"):
+        index_planning_regulation(corrupted)
+```
 
 **Regression protected**
 
-- Protects the exact `pdf inventory integrity mismatch fails` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
 
 **Test boundary**
 
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
+- Uses a temporary synthetic filesystem/source.
 
-**Calls**
+**Complete test implementation**
 
-- `_fixture_document`, `enumerate`, `index_planning_regulation`, `len`, `list`, `next`, `pytest.mark.parametrize`, `pytest.raises`, `replace`, `tuple`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+```python
+def test_pdf_inventory_integrity_mismatch_fails(tmp_path: Path, field: str) -> None:
+    document = _fixture_document(tmp_path)
+    value: object = len(PDF_BYTES) + 1 if field == "size_bytes" else "b" * 64
+    item_position = next(
+        index
+        for index, item in enumerate(document.extraction.files)
+        if item.category == "WRITTEN_REGULATION"
+    )
+    items = list(document.extraction.files)
+    items[item_position] = replace(items[item_position], **{field: value})
+    corrupted = replace(
+        document,
+        extraction=replace(document.extraction, files=tuple(items)),
+    )
+    with pytest.raises(PlanningRegulationIndexError, match="differs"):
+        index_planning_regulation(corrupted)
+```
 
 ### `test_page_states_numbering_and_hashes`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path)
+raw = "ÉNERGIE\n Batterie  "
+_patch_reader(monkeypatch, [raw, " \n", RuntimeError("page failed")])
+```
+
+**Action**
+
+```python
+result = index_planning_regulation(document)
+validate_planning_regulation_index(result)
+```
+
+**Expected result**
+
+```python
+assert tuple(result.pages.columns) == PAGE_COLUMNS
+assert result.pages.page_number.tolist() == [1, 2, 3]
+assert result.pages.extraction_status.tolist() == ["TEXT", "EMPTY", "ERROR"]
+assert result.pages.loc[0, "raw_text"] == raw
+assert result.pages.loc[0, "normalized_search_text"] == "energie batterie"
+assert result.pages.page_content_sha256.str.fullmatch(r"[0-9a-f]{64}").all()
+assert fullmatch(r"[0-9a-f]{64}", result.pages_content_sha256)
+with pytest.raises(FrozenInstanceError):
+        result.total_page_count = 9
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_page_states_numbering_and_hashes(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    document = _fixture_document(tmp_path)
+    raw = "ÉNERGIE\n Batterie  "
+    _patch_reader(monkeypatch, [raw, " \n", RuntimeError("page failed")])
+    result = index_planning_regulation(document)
+    assert tuple(result.pages.columns) == PAGE_COLUMNS
+    assert result.pages.page_number.tolist() == [1, 2, 3]
+    assert result.pages.extraction_status.tolist() == ["TEXT", "EMPTY", "ERROR"]
+    assert result.pages.loc[0, "raw_text"] == raw
+    assert result.pages.loc[0, "normalized_search_text"] == "energie batterie"
+    assert result.pages.page_content_sha256.str.fullmatch(r"[0-9a-f]{64}").all()
+    assert fullmatch(r"[0-9a-f]{64}", result.pages_content_sha256)
+    validate_planning_regulation_index(result)
+    with pytest.raises(FrozenInstanceError):
+        result.total_page_count = 9
 ```
-
-**Purpose**
-
-Protects the `page states numbering and hashes` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path)`.
-- Computes `raw` from `'ÉNERGIE\n Batterie '`.
-- Computes `result` from `index_planning_regulation(document)`.
-- Enters managed context(s) `pytest.raises(FrozenInstanceError)` and executes: Computes `result.total_page_count` from `9`.
-
-**Action**
-
-- Calls `RuntimeError`, `_fixture_document`, `_patch_reader`, `fullmatch`, `index_planning_regulation`, `result.pages.extraction_status.tolist`, `result.pages.page_content_sha256.str.fullmatch`, `result.pages.page_content_sha256.str.fullmatch('[0-9a-f]{64}').all`, `result.pages.page_number.tolist`, `validate_planning_regulation_index`.
-
-**Expected result**
-
-- Direct assertions: `assert tuple(result.pages.columns) == PAGE_COLUMNS`; `assert result.pages.page_number.tolist() == [1, 2, 3]`; `assert result.pages.extraction_status.tolist() == ['TEXT', 'EMPTY', 'ERROR']`; `assert result.pages.loc[0, 'raw_text'] == raw`; `assert result.pages.loc[0, 'normalized_search_text'] == 'energie batterie'`; `assert result.pages.page_content_sha256.str.fullmatch('[0-9a-f]{64}').all()`; `assert fullmatch('[0-9a-f]{64}', result.pages_content_sha256)`.
-- Expected exception contexts: `with pytest.raises(FrozenInstanceError): result.total_page_count = 9`.
-
-**Regression protected**
-
-- Protects the exact `page states numbering and hashes` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `RuntimeError`, `_fixture_document`, `_patch_reader`, `fullmatch`, `index_planning_regulation`, `pytest.raises`, `result.pages.extraction_status.tolist`, `result.pages.page_content_sha256.str.fullmatch`, `result.pages.page_content_sha256.str.fullmatch('[0-9a-f]{64}').all`, `result.pages.page_number.tolist`, `tuple`, `validate_planning_regulation_index`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_zero_page_pdf_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path)
+_patch_reader(monkeypatch, [])
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="at least one page"):
+        index_planning_regulation(document)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_zero_page_pdf_is_rejected(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    document = _fixture_document(tmp_path)
+    _patch_reader(monkeypatch, [])
+    with pytest.raises(PlanningRegulationIndexError, match="at least one page"):
+        index_planning_regulation(document)
 ```
-
-**Purpose**
-
-Protects the `zero page pdf is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='at least one page')` and executes: Calls `index_planning_regulation(document)` for its validation or side effect.
-
-**Action**
-
-- Calls `_fixture_document`, `_patch_reader`, `index_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='at least one page'): index_planning_regulation(document)`.
-
-**Regression protected**
-
-- Protects the exact `zero page pdf is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `_patch_reader`, `index_planning_regulation`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_pdf_reader_failure_is_controlled_and_chained`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path)
+def fail_reader(*args: object, **kwargs: object) -> object:
+        raise RuntimeError("broken xref")
+monkeypatch.setattr(regulation_module, "PdfReader", fail_reader)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(
+        PlanningRegulationIndexError, match="opened or parsed"
+    ) as caught:
+        index_planning_regulation(document)
+assert isinstance(caught.value.__cause__, RuntimeError)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_pdf_reader_failure_is_controlled_and_chained(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    document = _fixture_document(tmp_path)
+
+    def fail_reader(*args: object, **kwargs: object) -> object:
+        raise RuntimeError("broken xref")
+
+    monkeypatch.setattr(regulation_module, "PdfReader", fail_reader)
+    with pytest.raises(
+        PlanningRegulationIndexError, match="opened or parsed"
+    ) as caught:
+        index_planning_regulation(document)
+    assert isinstance(caught.value.__cause__, RuntimeError)
+```
+
+### `test_pdf_reader_failure_is_controlled_and_chained.fail_reader`
+
+**Exact signature**
+
+```python
+def fail_reader(*args: object, **kwargs: object) -> object:
 ```
 
 **Purpose**
 
-Protects the `pdf reader failure is controlled and chained` behavior encoded by this regression's setup, action, and assertions.
+Private `test` helper for fail reader; its complete implementation below is the authoritative behavioral contract.
 
-**Setup**
+**Return contract**
 
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='opened or parsed')` and executes: Calls `index_planning_regulation(document)` for its validation or side effect.
+- Declared return annotation: `object`.
+- No explicit return; normal completion returns `None`.
 
-**Action**
+**Validation and exceptions**
 
-- Calls `RuntimeError`, `_fixture_document`, `index_planning_regulation`, `isinstance`, `monkeypatch.setattr`.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `RuntimeError('broken xref')`.
 
-**Expected result**
+**Side effects**
 
-- Direct assertions: `assert isinstance(caught.value.__cause__, RuntimeError)`.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='opened or parsed') as caught: index_planning_regulation(document)`.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Regression protected**
+**Repository interfaces and consumers**
 
-- Protects the exact `pdf reader failure is controlled and chained` contract against a future change that would violate these assertions or controlled-failure expectations.
+- callback/function object: `tests/unit/test_index_planning_regulation.py::test_pdf_reader_failure_is_controlled_and_chained` via `monkeypatch.setattr(regulation_module, 'PdfReader', fail_reader)`.
 
-**Test boundary**
+**Complete source-ordered implementation**
 
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
+```python
+def fail_reader(*args: object, **kwargs: object) -> object:
+        raise RuntimeError("broken xref")
+```
 
-**Calls**
-
-- `RuntimeError`, `_fixture_document`, `index_planning_regulation`, `isinstance`, `monkeypatch.setattr`, `pytest.raises`.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_french_literal_normalization`
 
-**Signature**
-
-```python
-def test_french_literal_normalization(source: str, term: str) -> None:
-```
-
 **Purpose**
 
-Protects the `french literal normalization` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `source`, `term`.
 
 **Setup**
 
-- Uses parameters/fixtures: `source`, `term`.
-- Contains 0 explicit setup/context statement(s).
+```python
+# No separate setup statement.
+```
 
 **Action**
 
-- Calls `_normalize_search_text`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: `assert _normalize_search_text(source) == term`.
-- Expected exception contexts: none.
+```python
+assert _normalize_search_text(source) == term
+```
 
 **Regression protected**
 
-- Protects the exact `french literal normalization` contract against a future change that would violate these assertions or controlled-failure expectations.
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- In-memory/local unit boundary defined entirely by the reproduced setup.
 
-**Calls**
+**Complete test implementation**
 
-- `_normalize_search_text`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+```python
+def test_french_literal_normalization(source: str, term: str) -> None:
+    assert _normalize_search_text(source) == term
+```
 
 ### `test_raw_context_preserves_source_typography`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+raw = "Le projet vise un Équipement d’intérêt collectif dans la zone."
+index = _one_page_index(tmp_path, monkeypatch, raw)
+hit = result.hits.iloc[0]
+```
+
+**Action**
+
+```python
+result = search_planning_regulation(
+        index, ["equipement d'interet collectif"], context_characters=4
+    )
+```
+
+**Expected result**
+
+```python
+assert hit["page_number"] == 1
+assert hit["occurrence_count"] == 1
+assert "Équipement d’intérêt collectif" in hit["raw_context"]
+assert "equipement d'interet collectif" in hit["normalized_context"]
+assert index.pages.iloc[0]["raw_text"] == raw
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_raw_context_preserves_source_typography(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    raw = "Le projet vise un Équipement d’intérêt collectif dans la zone."
+    index = _one_page_index(tmp_path, monkeypatch, raw)
+    result = search_planning_regulation(
+        index, ["equipement d'interet collectif"], context_characters=4
+    )
+    hit = result.hits.iloc[0]
+    assert hit["page_number"] == 1
+    assert hit["occurrence_count"] == 1
+    assert "Équipement d’intérêt collectif" in hit["raw_context"]
+    assert "equipement d'interet collectif" in hit["normalized_context"]
+    assert index.pages.iloc[0]["raw_text"] == raw
 ```
-
-**Purpose**
-
-Protects the `raw context preserves source typography` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `raw` from `'Le projet vise un Équipement d’intérêt collectif dans la zone.'`.
-- Computes `index` from `_one_page_index(tmp_path, monkeypatch, raw)`.
-- Computes `result` from `search_planning_regulation(index, ["equipement d'interet collectif"], context_characters=4)`.
-- Computes `hit` from `result.hits.iloc[0]`.
-
-**Action**
-
-- Calls `_one_page_index`, `search_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: `assert hit['page_number'] == 1`; `assert hit['occurrence_count'] == 1`; `assert 'Équipement d’intérêt collectif' in hit['raw_context']`; `assert "equipement d'interet collectif" in hit['normalized_context']`; `assert index.pages.iloc[0]['raw_text'] == raw`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `raw context preserves source typography` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_one_page_index`, `search_planning_regulation`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_zero_context_preserves_complete_raw_unicode_span`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `expected_normalized`, `expected_raw`, `raw`, `term`.
+
+**Setup**
+
+```python
+index = _one_page_index(tmp_path, monkeypatch, raw)
+hit = result.hits.iloc[0]
+```
+
+**Action**
+
+```python
+result = search_planning_regulation(index, [term], context_characters=0)
+```
+
+**Expected result**
+
+```python
+assert hit["raw_context"] == expected_raw
+assert hit["normalized_context"] == expected_normalized
+assert hit["raw_context"] in raw
+assert index.pages.iloc[0]["raw_text"] == raw
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_zero_context_preserves_complete_raw_unicode_span(
@@ -2259,195 +2633,290 @@ def test_zero_context_preserves_complete_raw_unicode_span(
     expected_raw: str,
     expected_normalized: str,
 ) -> None:
+    index = _one_page_index(tmp_path, monkeypatch, raw)
+    result = search_planning_regulation(index, [term], context_characters=0)
+    hit = result.hits.iloc[0]
+    assert hit["raw_context"] == expected_raw
+    assert hit["normalized_context"] == expected_normalized
+    assert hit["raw_context"] in raw
+    assert index.pages.iloc[0]["raw_text"] == raw
 ```
-
-**Purpose**
-
-Protects the `zero context preserves complete raw unicode span` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`, `raw`, `term`, `expected_raw`, `expected_normalized`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `index` from `_one_page_index(tmp_path, monkeypatch, raw)`.
-- Computes `result` from `search_planning_regulation(index, [term], context_characters=0)`.
-- Computes `hit` from `result.hits.iloc[0]`.
-
-**Action**
-
-- Calls `_one_page_index`, `search_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: `assert hit['raw_context'] == expected_raw`; `assert hit['normalized_context'] == expected_normalized`; `assert hit['raw_context'] in raw`; `assert index.pages.iloc[0]['raw_text'] == raw`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `zero context preserves complete raw unicode span` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_one_page_index`, `pytest.mark.parametrize`, `search_planning_regulation`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_literal_search_does_not_add_semantic_synonyms`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+index = _one_page_index(tmp_path, monkeypatch, "Une batterie est mentionnée.")
+```
+
+**Action**
+
+```python
+result = search_planning_regulation(index, ["accumulateur"])
+```
+
+**Expected result**
+
+```python
+assert result.hits.empty
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_literal_search_does_not_add_semantic_synonyms(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    index = _one_page_index(tmp_path, monkeypatch, "Une batterie est mentionnée.")
+    result = search_planning_regulation(index, ["accumulateur"])
+    assert result.hits.empty
 ```
-
-**Purpose**
-
-Protects the `literal search does not add semantic synonyms` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `index` from `_one_page_index(tmp_path, monkeypatch, 'Une batterie est mentionnée.')`.
-- Computes `result` from `search_planning_regulation(index, ['accumulateur'])`.
-
-**Action**
-
-- Calls `_one_page_index`, `search_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: `assert result.hits.empty`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `literal search does not add semantic synonyms` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_one_page_index`, `search_planning_regulation`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_version_discovery_failure_is_controlled_and_chained`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path)
+_patch_reader(monkeypatch, ["Texte"])
+def fail_version(name: str) -> str:
+        raise RuntimeError(name)
+monkeypatch.setattr(regulation_module, "version", fail_version)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="version") as caught:
+        index_planning_regulation(document)
+assert isinstance(caught.value.__cause__, RuntimeError)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_version_discovery_failure_is_controlled_and_chained(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    document = _fixture_document(tmp_path)
+    _patch_reader(monkeypatch, ["Texte"])
+
+    def fail_version(name: str) -> str:
+        raise RuntimeError(name)
+
+    monkeypatch.setattr(regulation_module, "version", fail_version)
+    with pytest.raises(PlanningRegulationIndexError, match="version") as caught:
+        index_planning_regulation(document)
+    assert isinstance(caught.value.__cause__, RuntimeError)
+```
+
+### `test_version_discovery_failure_is_controlled_and_chained.fail_version`
+
+**Exact signature**
+
+```python
+def fail_version(name: str) -> str:
 ```
 
 **Purpose**
 
-Protects the `version discovery failure is controlled and chained` behavior encoded by this regression's setup, action, and assertions.
+Private `test` helper for fail version; its complete implementation below is the authoritative behavioral contract.
 
-**Setup**
+**Return contract**
 
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='version')` and executes: Calls `index_planning_regulation(document)` for its validation or side effect.
+- Declared return annotation: `str`.
+- No explicit return; normal completion returns `None`.
 
-**Action**
+**Validation and exceptions**
 
-- Calls `RuntimeError`, `_fixture_document`, `_patch_reader`, `index_planning_regulation`, `isinstance`, `monkeypatch.setattr`.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `RuntimeError(name)`.
 
-**Expected result**
+**Side effects**
 
-- Direct assertions: `assert isinstance(caught.value.__cause__, RuntimeError)`.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='version') as caught: index_planning_regulation(document)`.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Regression protected**
+**Repository interfaces and consumers**
 
-- Protects the exact `version discovery failure is controlled and chained` contract against a future change that would violate these assertions or controlled-failure expectations.
+- callback/function object: `tests/unit/test_index_planning_regulation.py::test_version_discovery_failure_is_controlled_and_chained` via `monkeypatch.setattr(regulation_module, 'version', fail_version)`.
 
-**Test boundary**
+**Complete source-ordered implementation**
 
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
+```python
+def fail_version(name: str) -> str:
+        raise RuntimeError(name)
+```
 
-**Calls**
-
-- `RuntimeError`, `_fixture_document`, `_patch_reader`, `index_planning_regulation`, `isinstance`, `monkeypatch.setattr`, `pytest.raises`.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_coordinated_page_mutation_fails_envelope_hash`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+index = _one_page_index(tmp_path, monkeypatch)
+pages = index.pages.copy(deep=True)
+pages.loc[0, "raw_text"] = "Nouveau"
+pages.loc[0, "normalized_search_text"] = "nouveau"
+pages.loc[0, "character_count"] = 7
+row = pages.iloc[0].to_dict()
+pages.loc[0, "page_content_sha256"] = regulation_module._page_content_sha256(row)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="envelope"):
+        validate_planning_regulation_index(replace(index, pages=pages))
+```
+
+**Regression protected**
+
+Prevents coordinated metadata/content mutation from being accepted without agreement with the authoritative byte or result envelope.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_coordinated_page_mutation_fails_envelope_hash(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    index = _one_page_index(tmp_path, monkeypatch)
+    pages = index.pages.copy(deep=True)
+    pages.loc[0, "raw_text"] = "Nouveau"
+    pages.loc[0, "normalized_search_text"] = "nouveau"
+    pages.loc[0, "character_count"] = 7
+    row = pages.iloc[0].to_dict()
+    pages.loc[0, "page_content_sha256"] = regulation_module._page_content_sha256(row)
+    with pytest.raises(PlanningRegulationIndexError, match="envelope"):
+        validate_planning_regulation_index(replace(index, pages=pages))
 ```
-
-**Purpose**
-
-Protects the `coordinated page mutation fails envelope hash` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 8 explicit setup/context statement(s).
-- Computes `index` from `_one_page_index(tmp_path, monkeypatch)`.
-- Computes `pages` from `index.pages.copy(deep=True)`.
-- Computes `pages.loc[0, 'raw_text']` from `'Nouveau'`.
-- Computes `pages.loc[0, 'normalized_search_text']` from `'nouveau'`.
-- Computes `pages.loc[0, 'character_count']` from `7`.
-- Computes `row` from `pages.iloc[0].to_dict()`.
-- Computes `pages.loc[0, 'page_content_sha256']` from `regulation_module._page_content_sha256(row)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='envelope')` and executes: Calls `validate_planning_regulation_index(replace(index, pages=pages))` for its validation or side effect.
-
-**Action**
-
-- Calls `_one_page_index`, `index.pages.copy`, `pages.iloc[0].to_dict`, `regulation_module._page_content_sha256`, `replace`, `validate_planning_regulation_index`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='envelope'): validate_planning_regulation_index(replace(index, pages=pages))`.
-
-**Regression protected**
-
-- Protects the exact `coordinated page mutation fails envelope hash` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_one_page_index`, `index.pages.copy`, `pages.iloc[0].to_dict`, `pytest.raises`, `regulation_module._page_content_sha256`, `replace`, `validate_planning_regulation_index`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_index_integrity_mutations_fail`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `target`, `value`.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path)
+_patch_reader(monkeypatch, ["One", "Two"])
+if target == "page_hash":
+        pages = index.pages.copy(deep=True)
+        pages.loc[0, "page_content_sha256"] = value
+        corrupted = replace(index, pages=pages)
+    elif target == "envelope_hash":
+        corrupted = replace(index, pages_content_sha256=value)
+    elif target == "profile":
+        corrupted = replace(index, search_normalization_profile=value)
+    else:
+        corrupted = replace(index, pages=index.pages.iloc[::-1].reset_index(drop=True))
+```
+
+**Action**
+
+```python
+index = index_planning_regulation(document)
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_index(corrupted)
+```
+
+**Regression protected**
+
+Prevents coordinated metadata/content mutation from being accepted without agreement with the authoritative byte or result envelope.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_index_integrity_mutations_fail(
@@ -2456,48 +2925,63 @@ def test_index_integrity_mutations_fail(
     target: str,
     value: object,
 ) -> None:
+    document = _fixture_document(tmp_path)
+    _patch_reader(monkeypatch, ["One", "Two"])
+    index = index_planning_regulation(document)
+    if target == "page_hash":
+        pages = index.pages.copy(deep=True)
+        pages.loc[0, "page_content_sha256"] = value
+        corrupted = replace(index, pages=pages)
+    elif target == "envelope_hash":
+        corrupted = replace(index, pages_content_sha256=value)
+    elif target == "profile":
+        corrupted = replace(index, search_normalization_profile=value)
+    else:
+        corrupted = replace(index, pages=index.pages.iloc[::-1].reset_index(drop=True))
+    with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_index(corrupted)
 ```
-
-**Purpose**
-
-Protects the `index integrity mutations fail` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`, `target`, `value`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path)`.
-- Computes `index` from `index_planning_regulation(document)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError)` and executes: Calls `validate_planning_regulation_index(corrupted)` for its validation or side effect.
-
-**Action**
-
-- Calls `_fixture_document`, `_patch_reader`, `index.pages.copy`, `index.pages.iloc[::-1].reset_index`, `index_planning_regulation`, `replace`, `validate_planning_regulation_index`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError): validate_planning_regulation_index(corrupted)`.
-
-**Regression protected**
-
-- Protects the exact `index integrity mutations fail` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `_patch_reader`, `index.pages.copy`, `index.pages.iloc[::-1].reset_index`, `index_planning_regulation`, `pytest.mark.parametrize`, `pytest.raises`, `replace`, `validate_planning_regulation_index`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_complete_index_envelope_mutation_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `field`, `replacement`.
+
+**Setup**
+
+```python
+index = _one_page_index(tmp_path, monkeypatch)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_index(replace(index, **{field: replacement}))
+```
+
+**Regression protected**
+
+Prevents coordinated metadata/content mutation from being accepted without agreement with the authoritative byte or result envelope.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_complete_index_envelope_mutation_is_rejected(
@@ -2506,47 +2990,53 @@ def test_complete_index_envelope_mutation_is_rejected(
     field: str,
     replacement: object,
 ) -> None:
+    index = _one_page_index(tmp_path, monkeypatch)
+    with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_index(replace(index, **{field: replacement}))
 ```
-
-**Purpose**
-
-Protects the `complete index envelope mutation is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`, `field`, `replacement`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `index` from `_one_page_index(tmp_path, monkeypatch)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError)` and executes: Calls `validate_planning_regulation_index(replace(index, **{field: replacement}))` for its validation or side effect.
-
-**Action**
-
-- Calls `_one_page_index`, `replace`, `validate_planning_regulation_index`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError): validate_planning_regulation_index(replace(index, **{field: replacement}))`.
-
-**Regression protected**
-
-- Protects the exact `complete index envelope mutation is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_one_page_index`, `len`, `pytest.mark.parametrize`, `pytest.raises`, `replace`, `validate_planning_regulation_index`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_unsupported_or_malformed_index_hash_schema_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `replacement`.
+
+**Setup**
+
+```python
+index = _one_page_index(tmp_path, monkeypatch)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_index(
+            replace(index, index_hash_schema_version=replacement)
+        )
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_unsupported_or_malformed_index_hash_schema_is_rejected(
@@ -2554,47 +3044,55 @@ def test_unsupported_or_malformed_index_hash_schema_is_rejected(
     monkeypatch: pytest.MonkeyPatch,
     replacement: object,
 ) -> None:
+    index = _one_page_index(tmp_path, monkeypatch)
+    with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_index(
+            replace(index, index_hash_schema_version=replacement)
+        )
 ```
-
-**Purpose**
-
-Protects the `unsupported or malformed index hash schema is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`, `replacement`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `index` from `_one_page_index(tmp_path, monkeypatch)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError)` and executes: Calls `validate_planning_regulation_index(replace(index, index_hash_schema_version=replacement))` for its validation or side effect.
-
-**Action**
-
-- Calls `_one_page_index`, `replace`, `validate_planning_regulation_index`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError): validate_planning_regulation_index(replace(index, index_hash_schema_version=replacement))`.
-
-**Regression protected**
-
-- Protects the exact `unsupported or malformed index hash schema is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_one_page_index`, `pytest.mark.parametrize`, `pytest.raises`, `replace`, `validate_planning_regulation_index`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_malformed_page_hash_schema_is_rejected_as_controlled_error`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `replacement`.
+
+**Setup**
+
+```python
+index = _one_page_index(tmp_path, monkeypatch)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_index(
+            replace(index, page_hash_schema_version=replacement)
+        )
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_malformed_page_hash_schema_is_rejected_as_controlled_error(
@@ -2602,94 +3100,190 @@ def test_malformed_page_hash_schema_is_rejected_as_controlled_error(
     monkeypatch: pytest.MonkeyPatch,
     replacement: object,
 ) -> None:
+    index = _one_page_index(tmp_path, monkeypatch)
+    with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_index(
+            replace(index, page_hash_schema_version=replacement)
+        )
+```
+
+### `_valid_search_result`
+
+**Exact signature**
+
+```python
+def _valid_search_result(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
 ```
 
 **Purpose**
 
-Protects the `malformed page hash schema is rejected as controlled error` behavior encoded by this regression's setup, action, and assertions.
+Private `test` helper for valid search result; its complete implementation below is the authoritative behavioral contract.
 
-**Setup**
+**Return contract**
 
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`, `replacement`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `index` from `_one_page_index(tmp_path, monkeypatch)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError)` and executes: Calls `validate_planning_regulation_index(replace(index, page_hash_schema_version=replacement))` for its validation or side effect.
+- Declared return annotation: `unannotated`.
+- Every observed return expression is reproduced without truncation:
+```python
+(index, result)
+```
 
-**Action**
+**Validation and exceptions**
 
-- Calls `_one_page_index`, `replace`, `validate_planning_regulation_index`.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
-**Expected result**
+**Side effects**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError): validate_planning_regulation_index(replace(index, page_hash_schema_version=replacement))`.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Regression protected**
+**Repository interfaces and consumers**
 
-- Protects the exact `malformed page hash schema is rejected as controlled error` contract against a future change that would violate these assertions or controlled-failure expectations.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_result_envelope_is_valid_and_deterministic` via `_valid_search_result`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_index_identity_schema_and_terms_are_sealed` via `_valid_search_result`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_requested_terms_must_be_an_immutable_exact_tuple` via `_valid_search_result`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_result_integrity_mutations_fail` via `_valid_search_result`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_search_hit_lineage_mutation_fails` via `_valid_search_result`.
+- direct call or construction: `tests/unit/test_index_planning_regulation.py::test_malformed_hit_value_raises_controlled_index_error` via `_valid_search_result`.
 
-**Test boundary**
+**Complete source-ordered implementation**
 
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
+```python
+def _valid_search_result(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    index = _one_page_index(
+        tmp_path,
+        monkeypatch,
+        "Énergie énergie et Équipement d’intérêt collectif",
+    )
+    result = search_planning_regulation(
+        index, ["energie", "equipement d'interet collectif"]
+    )
+    return index, result
+```
 
-**Calls**
-
-- `_one_page_index`, `pytest.mark.parametrize`, `pytest.raises`, `replace`, `validate_planning_regulation_index`.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_search_result_envelope_is_valid_and_deterministic`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+index, first = _valid_search_result(tmp_path, monkeypatch)
+assert_frame_equal(first.hits, second.hits)
+```
+
+**Action**
+
+```python
+second = search_planning_regulation(index, first.requested_terms)
+validate_planning_regulation_search_result(index, first)
+```
+
+**Expected result**
+
+```python
+assert tuple(first.hits.columns) == SEARCH_HIT_COLUMNS
+assert first.search_normalization_profile == SEARCH_NORMALIZATION_PROFILE
+assert first.index_content_sha256 == index.index_content_sha256
+assert first.search_hash_schema_version == regulation_module.SEARCH_HASH_SCHEMA_VERSION
+assert first.hit_count == 2
+assert first.hits_content_sha256 == second.hits_content_sha256
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_search_result_envelope_is_valid_and_deterministic(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    index, first = _valid_search_result(tmp_path, monkeypatch)
+    second = search_planning_regulation(index, first.requested_terms)
+    assert tuple(first.hits.columns) == SEARCH_HIT_COLUMNS
+    assert first.search_normalization_profile == SEARCH_NORMALIZATION_PROFILE
+    assert first.index_content_sha256 == index.index_content_sha256
+    assert first.search_hash_schema_version == regulation_module.SEARCH_HASH_SCHEMA_VERSION
+    assert first.hit_count == 2
+    assert_frame_equal(first.hits, second.hits)
+    assert first.hits_content_sha256 == second.hits_content_sha256
+    validate_planning_regulation_search_result(index, first)
 ```
-
-**Purpose**
-
-Protects the `search result envelope is valid and deterministic` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `(index, first)` from `_valid_search_result(tmp_path, monkeypatch)`.
-- Computes `second` from `search_planning_regulation(index, first.requested_terms)`.
-
-**Action**
-
-- Calls `_valid_search_result`, `search_planning_regulation`, `validate_planning_regulation_search_result`.
-
-**Expected result**
-
-- Direct assertions: `assert tuple(first.hits.columns) == SEARCH_HIT_COLUMNS`; `assert first.search_normalization_profile == SEARCH_NORMALIZATION_PROFILE`; `assert first.index_content_sha256 == index.index_content_sha256`; `assert first.search_hash_schema_version == regulation_module.SEARCH_HASH_SCHEMA_VERSION`; `assert first.hit_count == 2`; `assert first.hits_content_sha256 == second.hits_content_sha256`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `search result envelope is valid and deterministic` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_valid_search_result`, `assert_frame_equal`, `search_planning_regulation`, `tuple`, `validate_planning_regulation_search_result`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_search_index_identity_schema_and_terms_are_sealed`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `field`, `replacement`.
+
+**Setup**
+
+```python
+index, result = _valid_search_result(tmp_path, monkeypatch)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_search_result(
+            index,
+            replace(result, **{field: replacement}),
+        )
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_search_index_identity_schema_and_terms_are_sealed(
@@ -2698,95 +3292,124 @@ def test_search_index_identity_schema_and_terms_are_sealed(
     field: str,
     replacement: object,
 ) -> None:
+    index, result = _valid_search_result(tmp_path, monkeypatch)
+    with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_search_result(
+            index,
+            replace(result, **{field: replacement}),
+        )
 ```
-
-**Purpose**
-
-Protects the `search index identity schema and terms are sealed` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`, `field`, `replacement`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `(index, result)` from `_valid_search_result(tmp_path, monkeypatch)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError)` and executes: Calls `validate_planning_regulation_search_result(index, replace(result, **{field: replacement}))` for its validation or side effect.
-
-**Action**
-
-- Calls `_valid_search_result`, `replace`, `validate_planning_regulation_search_result`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError): validate_planning_regulation_search_result(index, replace(result, **{field: replacement}))`.
-
-**Regression protected**
-
-- Protects the exact `search index identity schema and terms are sealed` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_valid_search_result`, `pytest.mark.parametrize`, `pytest.raises`, `replace`, `validate_planning_regulation_search_result`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_search_requested_terms_must_be_an_immutable_exact_tuple`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+index, result = _valid_search_result(tmp_path, monkeypatch)
+corrupted = replace(
+        result,
+        requested_terms=list(result.requested_terms),  # type: ignore[arg-type]
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="tuple"):
+        validate_planning_regulation_search_result(index, corrupted)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_search_requested_terms_must_be_an_immutable_exact_tuple(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    index, result = _valid_search_result(tmp_path, monkeypatch)
+    corrupted = replace(
+        result,
+        requested_terms=list(result.requested_terms),  # type: ignore[arg-type]
+    )
+    with pytest.raises(PlanningRegulationIndexError, match="tuple"):
+        validate_planning_regulation_search_result(index, corrupted)
 ```
-
-**Purpose**
-
-Protects the `search requested terms must be an immutable exact tuple` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `(index, result)` from `_valid_search_result(tmp_path, monkeypatch)`.
-- Computes `corrupted` from `replace(result, requested_terms=list(result.requested_terms))`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='tuple')` and executes: Calls `validate_planning_regulation_search_result(index, corrupted)` for its validation or side effect.
-
-**Action**
-
-- Calls `_valid_search_result`, `replace`, `validate_planning_regulation_search_result`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='tuple'): validate_planning_regulation_search_result(index, corrupted)`.
-
-**Regression protected**
-
-- Protects the exact `search requested terms must be an immutable exact tuple` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_valid_search_result`, `list`, `pytest.raises`, `replace`, `validate_planning_regulation_search_result`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_search_result_integrity_mutations_fail`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `target`, `value`.
+
+**Setup**
+
+```python
+index, result = _valid_search_result(tmp_path, monkeypatch)
+if target in {"document_id", "pdf_sha256", "hits_content_sha256"}:
+        corrupted = replace(result, **{target: value})
+    else:
+        hits = result.hits.copy(deep=True)
+        if target == "duplicate":
+            hits = pd.concat([hits, hits.iloc[[0]]], ignore_index=True)
+            corrupted = replace(result, hit_count=len(hits), hits=hits)
+        else:
+            hits[target] = hits[target].astype(object)
+            hits.loc[0, target] = value
+            corrupted = replace(result, hits=hits)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_search_result(index, corrupted)
+```
+
+**Regression protected**
+
+Prevents coordinated metadata/content mutation from being accepted without agreement with the authoritative byte or result envelope.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_search_result_integrity_mutations_fail(
@@ -2795,47 +3418,65 @@ def test_search_result_integrity_mutations_fail(
     target: str,
     value: object,
 ) -> None:
+    index, result = _valid_search_result(tmp_path, monkeypatch)
+    if target in {"document_id", "pdf_sha256", "hits_content_sha256"}:
+        corrupted = replace(result, **{target: value})
+    else:
+        hits = result.hits.copy(deep=True)
+        if target == "duplicate":
+            hits = pd.concat([hits, hits.iloc[[0]]], ignore_index=True)
+            corrupted = replace(result, hit_count=len(hits), hits=hits)
+        else:
+            hits[target] = hits[target].astype(object)
+            hits.loc[0, target] = value
+            corrupted = replace(result, hits=hits)
+    with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_search_result(index, corrupted)
 ```
-
-**Purpose**
-
-Protects the `search result integrity mutations fail` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`, `target`, `value`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `(index, result)` from `_valid_search_result(tmp_path, monkeypatch)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError)` and executes: Calls `validate_planning_regulation_search_result(index, corrupted)` for its validation or side effect.
-
-**Action**
-
-- Calls `_valid_search_result`, `hits[target].astype`, `pd.concat`, `replace`, `result.hits.copy`, `validate_planning_regulation_search_result`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError): validate_planning_regulation_search_result(index, corrupted)`.
-
-**Regression protected**
-
-- Protects the exact `search result integrity mutations fail` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_valid_search_result`, `hits[target].astype`, `len`, `pd.concat`, `pytest.mark.parametrize`, `pytest.raises`, `replace`, `result.hits.copy`, `validate_planning_regulation_search_result`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_search_hit_lineage_mutation_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `column`.
+
+**Setup**
+
+```python
+index, result = _valid_search_result(tmp_path, monkeypatch)
+hits = result.hits.copy(deep=True)
+hits.loc[0, column] = "b" * 64 if column == "pdf_sha256" else "wrong"
+corrupted = replace(result, hits=hits)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="lineage"):
+        validate_planning_regulation_search_result(index, corrupted)
+```
+
+**Regression protected**
+
+Prevents coordinated metadata/content mutation from being accepted without agreement with the authoritative byte or result envelope.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_search_hit_lineage_mutation_fails(
@@ -2843,50 +3484,54 @@ def test_search_hit_lineage_mutation_fails(
     monkeypatch: pytest.MonkeyPatch,
     column: str,
 ) -> None:
+    index, result = _valid_search_result(tmp_path, monkeypatch)
+    hits = result.hits.copy(deep=True)
+    hits.loc[0, column] = "b" * 64 if column == "pdf_sha256" else "wrong"
+    corrupted = replace(result, hits=hits)
+    with pytest.raises(PlanningRegulationIndexError, match="lineage"):
+        validate_planning_regulation_search_result(index, corrupted)
 ```
-
-**Purpose**
-
-Protects the `search hit lineage mutation fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`, `column`.
-- Contains 5 explicit setup/context statement(s).
-- Computes `(index, result)` from `_valid_search_result(tmp_path, monkeypatch)`.
-- Computes `hits` from `result.hits.copy(deep=True)`.
-- Computes `hits.loc[0, column]` from `'b' * 64 if column == 'pdf_sha256' else 'wrong'`.
-- Computes `corrupted` from `replace(result, hits=hits)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='lineage')` and executes: Calls `validate_planning_regulation_search_result(index, corrupted)` for its validation or side effect.
-
-**Action**
-
-- Calls `_valid_search_result`, `replace`, `result.hits.copy`, `validate_planning_regulation_search_result`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='lineage'): validate_planning_regulation_search_result(index, corrupted)`.
-
-**Regression protected**
-
-- Protects the exact `search hit lineage mutation fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_valid_search_result`, `pytest.mark.parametrize`, `pytest.raises`, `replace`, `result.hits.copy`, `validate_planning_regulation_search_result`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_invalid_search_term_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `term`.
+
+**Setup**
+
+```python
+index = _one_page_index(tmp_path, monkeypatch)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="search term"):
+        search_planning_regulation(index, [term])
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_invalid_search_term_is_rejected(
@@ -2894,424 +3539,462 @@ def test_invalid_search_term_is_rejected(
     monkeypatch: pytest.MonkeyPatch,
     term: object,
 ) -> None:
+    index = _one_page_index(tmp_path, monkeypatch)
+    with pytest.raises(PlanningRegulationIndexError, match="search term"):
+        search_planning_regulation(index, [term])
 ```
-
-**Purpose**
-
-Protects the `invalid search term is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`, `term`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `index` from `_one_page_index(tmp_path, monkeypatch)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='search term')` and executes: Calls `search_planning_regulation(index, [term])` for its validation or side effect.
-
-**Action**
-
-- Calls `_one_page_index`, `search_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='search term'): search_planning_regulation(index, [term])`.
-
-**Regression protected**
-
-- Protects the exact `invalid search term is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_one_page_index`, `pytest.mark.parametrize`, `pytest.raises`, `search_planning_regulation`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_duplicate_normalized_search_terms_are_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+index = _one_page_index(tmp_path, monkeypatch)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError, match="unique"):
+        search_planning_regulation(index, ["énergie", "ENERGIE"])
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_duplicate_normalized_search_terms_are_rejected(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    index = _one_page_index(tmp_path, monkeypatch)
+    with pytest.raises(PlanningRegulationIndexError, match="unique"):
+        search_planning_regulation(index, ["énergie", "ENERGIE"])
 ```
-
-**Purpose**
-
-Protects the `duplicate normalized search terms are rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `index` from `_one_page_index(tmp_path, monkeypatch)`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='unique')` and executes: Calls `search_planning_regulation(index, ['énergie', 'ENERGIE'])` for its validation or side effect.
-
-**Action**
-
-- Calls `_one_page_index`, `search_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='unique'): search_planning_regulation(index, ['énergie', 'ENERGIE'])`.
-
-**Regression protected**
-
-- Protects the exact `duplicate normalized search terms are rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_one_page_index`, `pytest.raises`, `search_planning_regulation`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_empty_search_result_has_stable_schema_and_lineage`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+index = _one_page_index(tmp_path, monkeypatch, "Aucun terme")
+```
+
+**Action**
+
+```python
+result = search_planning_regulation(index, ["batterie"])
+validate_planning_regulation_search_result(index, result)
+```
+
+**Expected result**
+
+```python
+assert result.hit_count == 0
+assert result.hits.empty
+assert tuple(result.hits.columns) == SEARCH_HIT_COLUMNS
+assert result.document_id == index.document_id
+assert result.pdf_sha256 == index.pdf_sha256
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_empty_search_result_has_stable_schema_and_lineage(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    index = _one_page_index(tmp_path, monkeypatch, "Aucun terme")
+    result = search_planning_regulation(index, ["batterie"])
+    assert result.hit_count == 0
+    assert result.hits.empty
+    assert tuple(result.hits.columns) == SEARCH_HIT_COLUMNS
+    assert result.document_id == index.document_id
+    assert result.pdf_sha256 == index.pdf_sha256
+    validate_planning_regulation_search_result(index, result)
 ```
-
-**Purpose**
-
-Protects the `empty search result has stable schema and lineage` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `index` from `_one_page_index(tmp_path, monkeypatch, 'Aucun terme')`.
-- Computes `result` from `search_planning_regulation(index, ['batterie'])`.
-
-**Action**
-
-- Calls `_one_page_index`, `search_planning_regulation`, `validate_planning_regulation_search_result`.
-
-**Expected result**
-
-- Direct assertions: `assert result.hit_count == 0`; `assert result.hits.empty`; `assert tuple(result.hits.columns) == SEARCH_HIT_COLUMNS`; `assert result.document_id == index.document_id`; `assert result.pdf_sha256 == index.pdf_sha256`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `empty search result has stable schema and lineage` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_one_page_index`, `search_planning_regulation`, `tuple`, `validate_planning_regulation_search_result`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_malformed_page_value_raises_controlled_index_error`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+index = _one_page_index(tmp_path, monkeypatch)
+pages = index.pages.copy(deep=True)
+pages.at[0, "extraction_error"] = ["ambiguous", "value"]
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_index(replace(index, pages=pages))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_malformed_page_value_raises_controlled_index_error(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    index = _one_page_index(tmp_path, monkeypatch)
+    pages = index.pages.copy(deep=True)
+    pages.at[0, "extraction_error"] = ["ambiguous", "value"]
+    with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_index(replace(index, pages=pages))
 ```
-
-**Purpose**
-
-Protects the `malformed page value raises controlled index error` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `index` from `_one_page_index(tmp_path, monkeypatch)`.
-- Computes `pages` from `index.pages.copy(deep=True)`.
-- Computes `pages.at[0, 'extraction_error']` from `['ambiguous', 'value']`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError)` and executes: Calls `validate_planning_regulation_index(replace(index, pages=pages))` for its validation or side effect.
-
-**Action**
-
-- Calls `_one_page_index`, `index.pages.copy`, `replace`, `validate_planning_regulation_index`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError): validate_planning_regulation_index(replace(index, pages=pages))`.
-
-**Regression protected**
-
-- Protects the exact `malformed page value raises controlled index error` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_one_page_index`, `index.pages.copy`, `pytest.raises`, `replace`, `validate_planning_regulation_index`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_malformed_hit_value_raises_controlled_index_error`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+index, result = _valid_search_result(tmp_path, monkeypatch)
+hits = result.hits.copy(deep=True)
+hits["raw_context"] = hits["raw_context"].astype(object)
+hits.at[0, "raw_context"] = ["not", "text"]
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_search_result(
+            index,
+            replace(result, hits=hits),
+        )
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_malformed_hit_value_raises_controlled_index_error(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    index, result = _valid_search_result(tmp_path, monkeypatch)
+    hits = result.hits.copy(deep=True)
+    hits["raw_context"] = hits["raw_context"].astype(object)
+    hits.at[0, "raw_context"] = ["not", "text"]
+    with pytest.raises(PlanningRegulationIndexError):
+        validate_planning_regulation_search_result(
+            index,
+            replace(result, hits=hits),
+        )
 ```
-
-**Purpose**
-
-Protects the `malformed hit value raises controlled index error` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 5 explicit setup/context statement(s).
-- Computes `(index, result)` from `_valid_search_result(tmp_path, monkeypatch)`.
-- Computes `hits` from `result.hits.copy(deep=True)`.
-- Computes `hits['raw_context']` from `hits['raw_context'].astype(object)`.
-- Computes `hits.at[0, 'raw_context']` from `['not', 'text']`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError)` and executes: Calls `validate_planning_regulation_search_result(index, replace(result, hits=hits))` for its validation or side effect.
-
-**Action**
-
-- Calls `_valid_search_result`, `hits['raw_context'].astype`, `replace`, `result.hits.copy`, `validate_planning_regulation_search_result`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError): validate_planning_regulation_search_result(index, replace(result, hits=hits))`.
-
-**Regression protected**
-
-- Protects the exact `malformed hit value raises controlled index error` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_valid_search_result`, `hits['raw_context'].astype`, `pytest.raises`, `replace`, `result.hits.copy`, `validate_planning_regulation_search_result`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_canonical_hash_serialization_failure_is_controlled_and_chained`
 
-**Signature**
-
-```python
-def test_canonical_hash_serialization_failure_is_controlled_and_chained() -> None:
-```
-
 **Purpose**
 
-Protects the `canonical hash serialization failure is controlled and chained` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `invalid_payload` from `{'not_json': object()}`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError, match='serialized')` and executes: Calls `regulation_module._canonical_sha256(invalid_payload)` for its validation or side effect.
+```python
+invalid_payload = {"not_json": object()}
+```
 
 **Action**
 
-- Calls `isinstance`, `object`, `regulation_module._canonical_sha256`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: `assert isinstance(caught.value.__cause__, TypeError)`.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError, match='serialized') as caught: regulation_module._canonical_sha256(invalid_payload)`.
+```python
+with pytest.raises(
+        PlanningRegulationIndexError,
+        match="serialized",
+    ) as caught:
+        regulation_module._canonical_sha256(invalid_payload)
+assert isinstance(caught.value.__cause__, TypeError)
+```
 
 **Regression protected**
 
-- Protects the exact `canonical hash serialization failure is controlled and chained` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- In-memory/local unit boundary defined entirely by the reproduced setup.
 
-**Calls**
+**Complete test implementation**
 
-- `isinstance`, `object`, `pytest.raises`, `regulation_module._canonical_sha256`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+```python
+def test_canonical_hash_serialization_failure_is_controlled_and_chained() -> None:
+    invalid_payload = {"not_json": object()}
+    with pytest.raises(
+        PlanningRegulationIndexError,
+        match="serialized",
+    ) as caught:
+        regulation_module._canonical_sha256(invalid_payload)
+    assert isinstance(caught.value.__cause__, TypeError)
+```
 
 ### `test_malformed_source_metadata_raises_controlled_index_error`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path)
+metadata = replace(
+        document.extraction.archive.document,
+        written_files=(object(),),  # type: ignore[arg-type]
+    )
+archive = replace(document.extraction.archive, document=metadata)
+corrupted = replace(
+        document,
+        extraction=replace(document.extraction, archive=archive),
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(PlanningRegulationIndexError):
+        index_planning_regulation(corrupted)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+
+**Complete test implementation**
 
 ```python
 def test_malformed_source_metadata_raises_controlled_index_error(
     tmp_path: Path,
 ) -> None:
+    document = _fixture_document(tmp_path)
+    metadata = replace(
+        document.extraction.archive.document,
+        written_files=(object(),),  # type: ignore[arg-type]
+    )
+    archive = replace(document.extraction.archive, document=metadata)
+    corrupted = replace(
+        document,
+        extraction=replace(document.extraction, archive=archive),
+    )
+    with pytest.raises(PlanningRegulationIndexError):
+        index_planning_regulation(corrupted)
 ```
-
-**Purpose**
-
-Protects the `malformed source metadata raises controlled index error` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 5 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path)`.
-- Computes `metadata` from `replace(document.extraction.archive.document, written_files=(object(),))`.
-- Computes `archive` from `replace(document.extraction.archive, document=metadata)`.
-- Computes `corrupted` from `replace(document, extraction=replace(document.extraction, archive=archive))`.
-- Enters managed context(s) `pytest.raises(PlanningRegulationIndexError)` and executes: Calls `index_planning_regulation(corrupted)` for its validation or side effect.
-
-**Action**
-
-- Calls `_fixture_document`, `index_planning_regulation`, `object`, `replace`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(PlanningRegulationIndexError): index_planning_regulation(corrupted)`.
-
-**Regression protected**
-
-- Protects the exact `malformed source metadata raises controlled index error` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `index_planning_regulation`, `object`, `pytest.raises`, `replace`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_extraction_and_search_do_not_mutate_inputs`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+document = _fixture_document(tmp_path)
+extraction_before = deepcopy(document.extraction)
+zoning_before = document.zoning.data.copy(deep=True)
+_patch_reader(monkeypatch, ["Énergie"])
+pages_before = index.pages.copy(deep=True)
+assert_geodataframe_equal(document.zoning.data, zoning_before)
+assert_frame_equal(index.pages, pages_before)
+```
+
+**Action**
+
+```python
+index = index_planning_regulation(document)
+search_planning_regulation(index, ["energie"])
+```
+
+**Expected result**
+
+```python
+assert document.extraction == extraction_before
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_extraction_and_search_do_not_mutate_inputs(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    document = _fixture_document(tmp_path)
+    extraction_before = deepcopy(document.extraction)
+    zoning_before = document.zoning.data.copy(deep=True)
+    _patch_reader(monkeypatch, ["Énergie"])
+    index = index_planning_regulation(document)
+    pages_before = index.pages.copy(deep=True)
+    search_planning_regulation(index, ["energie"])
+    assert document.extraction == extraction_before
+    assert_geodataframe_equal(document.zoning.data, zoning_before)
+    assert_frame_equal(index.pages, pages_before)
 ```
 
-**Purpose**
-
-Protects the `extraction and search do not mutate inputs` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `monkeypatch`.
-- Contains 5 explicit setup/context statement(s).
-- Computes `document` from `_fixture_document(tmp_path)`.
-- Computes `extraction_before` from `deepcopy(document.extraction)`.
-- Computes `zoning_before` from `document.zoning.data.copy(deep=True)`.
-- Computes `index` from `index_planning_regulation(document)`.
-- Computes `pages_before` from `index.pages.copy(deep=True)`.
-
-**Action**
-
-- Calls `_fixture_document`, `_patch_reader`, `deepcopy`, `document.zoning.data.copy`, `index.pages.copy`, `index_planning_regulation`, `search_planning_regulation`.
-
-**Expected result**
-
-- Direct assertions: `assert document.extraction == extraction_before`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `extraction and search do not mutate inputs` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks; actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_fixture_document`, `_patch_reader`, `assert_frame_equal`, `assert_geodataframe_equal`, `deepcopy`, `document.zoning.data.copy`, `index.pages.copy`, `index_planning_regulation`, `search_planning_regulation`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `NOMFIC` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `character_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `extraction_error` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `normalized_context` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `normalized_search_text` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `occurrence_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `page_content_sha256` | Logical dtype: nullable string or exact string as declared by the schema. Nullability: normally non-null for required lineage; exact validator is authoritative. | lowercase SHA256 binding the component named by the prefix. Consumers and exact calculations are the functions that reference this column above. |
-| `page_number` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `raw_context` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `raw_text` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `test` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the test flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -3319,8 +4002,8 @@ This file contributes to LandScout's `test` evidence flow as described by its pu
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

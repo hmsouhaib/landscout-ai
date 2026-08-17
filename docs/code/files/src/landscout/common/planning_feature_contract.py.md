@@ -4,9 +4,9 @@
 
 - Repository path: `src/landscout/common/planning_feature_contract.py`
 - File type: Python source
-- Primary responsibility: Validates stored factual planning relation semantics without rereading GPU geometry.
-- Layer / domain: `internal common contract/utility` / `planning`
-- Public or internal role: Module symbols without a package re-export are internal unless imported directly by repository code.
+- Layer: internal common contract
+- Domain: planning
+- Responsibility: Validates stored factual planning relation semantics without rereading GPU geometry.
 - Source SHA256: `b70e9bd8a63dedae29603d3cae1ef7d81ee776c25c7b53389fcc7a0736a73f36`
 
 ## 1. Purpose
@@ -15,43 +15,106 @@ Validates stored factual planning relation semantics without rereading GPU geome
 
 ## 2. Position in LandScout architecture
 
-This file is a `internal common contract/utility` artifact in the `planning` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **internal common contract** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from __future__ import annotations` — required by the implementation paths and symbols documented below.
-- `import math` — required by the implementation paths and symbols documented below.
-- `from numbers import Integral, Real` — required by the implementation paths and symbols documented below.
+- `from __future__ import annotations`
+- `import math`
+- `from numbers import Integral, Real`
 
-### Third-party
+### Third-party packages
 
-- `import numpy as np` — required by the implementation paths and symbols documented below.
-- `import pandas as pd` — required by the implementation paths and symbols documented below.
+- `import numpy as np`
+- `import pandas as pd`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout.common.planning_overlay import technical_overlay_tolerance` — required by the implementation paths and symbols documented below.
+- `from landscout.common.planning_overlay import technical_overlay_tolerance`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `RELATION_FLOAT_COLUMNS` | `frozenset( { "parcel_metric_area_m2", "feature_area_m2", "source_line_length_m", "intersection_area_m2", "intersection_length_m", "parcel_share_pct", "feature_share_pct", } )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `RELATION_COUNT_COLUMNS` | `frozenset( { "point_member_count", "point_members_inside_count", "point_members_boundary_count", } )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `REQUIRED_RELATION_COLUMNS` | `frozenset( {"geometry_kind", "relation_type"} &#124; RELATION_FLOAT_COLUMNS &#124; RELATION_COUNT_COLUMNS )` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `RELATION_TYPES_BY_GEOMETRY_KIND` | `{ "SURFACE": frozenset({"AREA_OVERLAP", "TOUCH_ONLY"}), "LINE": frozenset({"LENGTH_OVERLAP", "TOUCH_ONLY"}), "POINT": frozenset({"INSIDE", "BOUNDARY_TOUCH"}), }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `RELATION_FLOAT_COLUMNS`
+
+```python
+RELATION_FLOAT_COLUMNS = frozenset(
+    {
+        "parcel_metric_area_m2",
+        "feature_area_m2",
+        "source_line_length_m",
+        "intersection_area_m2",
+        "intersection_length_m",
+        "parcel_share_pct",
+        "feature_share_pct",
+    }
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import/re-export).
+
+#### `RELATION_COUNT_COLUMNS`
+
+```python
+RELATION_COUNT_COLUMNS = frozenset(
+    {
+        "point_member_count",
+        "point_members_inside_count",
+        "point_members_boundary_count",
+    }
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section. Consumers include `src/landscout/stages/enrich_planning_features.py::<module>` (import/re-export).
+
+#### `REQUIRED_RELATION_COLUMNS`
+
+```python
+REQUIRED_RELATION_COLUMNS = frozenset(
+    {"geometry_kind", "relation_type"} | RELATION_FLOAT_COLUMNS | RELATION_COUNT_COLUMNS
+)
+```
+
+Named frame schema/required-field contract; the resolved fields and dtypes are documented in the Data contracts section.
+
+#### `RELATION_TYPES_BY_GEOMETRY_KIND`
+
+```python
+RELATION_TYPES_BY_GEOMETRY_KIND = {
+    "SURFACE": frozenset({"AREA_OVERLAP", "TOUCH_ONLY"}),
+    "LINE": frozenset({"LENGTH_OVERLAP", "TOUCH_ONLY"}),
+    "POINT": frozenset({"INSIDE", "BOUNDARY_TOUCH"}),
+}
+```
+
+Closed vocabulary, ordering, or accepted-domain constant. Its member strings are values, not DataFrame columns unless separately listed in a schema.
+
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
-No class, model, or dataclass is declared in this file.
+No class/model/dataclass is declared.
 
 ## 6. Functions and methods
 
 ### `_missing`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _missing(value: object) -> bool:
@@ -59,58 +122,58 @@ def _missing(value: object) -> bool:
 
 **Purpose**
 
-Implements missing according to the exact implementation and guards in this file.
+Private `planning` helper for missing; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `bool`.
+- Every observed return expression is reproduced without truncation:
+```python
+isinstance(missing, (bool, np.bool_)) and bool(missing)
 
-**Returns**
+False
+```
 
-- Declared return type: `bool`. Observed return expression(s): `isinstance(missing, (bool, np.bool_)) and bool(missing)`; `False`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Runs guarded operation: Computes `missing` from `pd.isna(value)`. Handles `(TypeError, ValueError)`.
-2. Returns `isinstance(missing, (bool, np.bool_)) and bool(missing)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `bool`, `isinstance`, `pd.isna`.
+- direct call or construction: `src/landscout/common/planning_feature_contract.py::_number` via `_missing`.
+- direct call or construction: `src/landscout/common/planning_feature_contract.py::_count` via `_missing`.
+- direct call or construction: `src/landscout/common/planning_feature_contract.py::_require_null` via `_missing`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/planning_feature_contract.py` — `_count`
-- `src/landscout/common/planning_feature_contract.py` — `_number`
-- `src/landscout/common/planning_feature_contract.py` — `_require_null`
+```python
+def _missing(value: object) -> bool:
+    try:
+        missing = pd.isna(value)
+    except (TypeError, ValueError):
+        return False
+    return isinstance(missing, (bool, np.bool_)) and bool(missing)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_number`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _number(value: object, label: str, *, required: bool) -> float | None:
@@ -118,64 +181,64 @@ def _number(value: object, label: str, *, required: bool) -> float | None:
 
 **Purpose**
 
-Implements number according to the exact implementation and guards in this file.
+Private `planning` helper for number; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `required` (`bool`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `float | None`.
+- Every observed return expression is reproduced without truncation:
+```python
+number
 
-**Returns**
+None
+```
 
-- Declared return type: `float | None`. Observed return expression(s): `number`; `None`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Checks `_missing(value)`. When true: Checks `required`. When true: Raises `ValueError(f'{label} must not be null')`. Returns `None`.
-2. Checks `isinstance(value, bool) or not isinstance(value, Real)`. When true: Raises `TypeError(f'{label} must be numeric')`.
-3. Computes `number` from `float(value)`.
-4. Checks `not math.isfinite(number) or number < 0`. When true: Raises `ValueError(f'{label} must be finite and non-negative')`.
-5. Returns `number`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `_missing(value)` is true.
-- Rejects or diverts the path when `isinstance(value, bool) or not isinstance(value, Real)` is true.
-- Rejects or diverts the path when `not math.isfinite(number) or number < 0` is true.
-- Rejects or diverts the path when `required` is true.
-
-**Exceptions**
-
-- Explicitly raises: `TypeError`, `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `_missing(value)`.
+- Guard with a raise path: `isinstance(value, bool) or not isinstance(value, Real)`.
+- Guard with a raise path: `not math.isfinite(number) or number < 0`.
+- Guard with a raise path: `required`.
+- Explicit raise expressions: `TypeError(f'{label} must be numeric')`, `ValueError(f'{label} must be finite and non-negative')`, `ValueError(f'{label} must not be null')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `TypeError`, `ValueError`, `_missing`, `float`, `isinstance`, `math.isfinite`.
+- direct call or construction: `src/landscout/common/planning_feature_contract.py::validate_intrinsic_planning_feature_relations` via `_number`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/planning_feature_contract.py` — `validate_intrinsic_planning_feature_relations`
+```python
+def _number(value: object, label: str, *, required: bool) -> float | None:
+    if _missing(value):
+        if required:
+            raise ValueError(f"{label} must not be null")
+        return None
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise TypeError(f"{label} must be numeric")
+    number = float(value)
+    if not math.isfinite(number) or number < 0:
+        raise ValueError(f"{label} must be finite and non-negative")
+    return number
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_count`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _count(value: object, label: str, *, required: bool) -> int | None:
@@ -183,61 +246,60 @@ def _count(value: object, label: str, *, required: bool) -> int | None:
 
 **Purpose**
 
-Implements count according to the exact implementation and guards in this file.
+Private `planning` helper for count; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `value` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `label` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `required` (`bool`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `int | None`.
+- Every observed return expression is reproduced without truncation:
+```python
+int(value)
 
-**Returns**
+None
+```
 
-- Declared return type: `int | None`. Observed return expression(s): `int(value)`; `None`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Checks `_missing(value)`. When true: Checks `required`. When true: Raises `ValueError(f'{label} must not be null')`. Returns `None`.
-2. Checks `isinstance(value, bool) or not isinstance(value, Integral) or int(value) < 0`. When true: Raises `ValueError(f'{label} must be a strict non-negative integer')`.
-3. Returns `int(value)`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `_missing(value)` is true.
-- Rejects or diverts the path when `isinstance(value, bool) or not isinstance(value, Integral) or int(value) < 0` is true.
-- Rejects or diverts the path when `required` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `_missing(value)`.
+- Guard with a raise path: `isinstance(value, bool) or not isinstance(value, Integral) or int(value) < 0`.
+- Guard with a raise path: `required`.
+- Explicit raise expressions: `ValueError(f'{label} must be a strict non-negative integer')`, `ValueError(f'{label} must not be null')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `_missing`, `int`, `isinstance`.
+- direct call or construction: `src/landscout/common/planning_feature_contract.py::validate_intrinsic_planning_feature_relations` via `_count`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/planning_feature_contract.py` — `validate_intrinsic_planning_feature_relations`
+```python
+def _count(value: object, label: str, *, required: bool) -> int | None:
+    if _missing(value):
+        if required:
+            raise ValueError(f"{label} must not be null")
+        return None
+    if isinstance(value, bool) or not isinstance(value, Integral) or int(value) < 0:
+        raise ValueError(f"{label} must be a strict non-negative integer")
+    return int(value)
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `_require_null`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _require_null(row: dict[str, object], columns: tuple[str, ...], kind: str) -> None:
@@ -245,57 +307,48 @@ def _require_null(row: dict[str, object], columns: tuple[str, ...], kind: str) -
 
 **Purpose**
 
-Implements require null according to the exact implementation and guards in this file.
+Private `planning` helper for require null; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `row` (`dict[str, object]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `columns` (`tuple[str, ...]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `kind` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `any((not _missing(row[column]) for column in columns))`. When true: Raises `ValueError(f'{kind} relation populated an unrelated metric')`.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `any((not _missing(row[column]) for column in columns))` is true.
-
-**Exceptions**
-
-- Explicitly raises: `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `any((not _missing(row[column]) for column in columns))`.
+- Explicit raise expressions: `ValueError(f'{kind} relation populated an unrelated metric')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `ValueError`, `_missing`, `any`.
+- direct call or construction: `src/landscout/common/planning_feature_contract.py::validate_intrinsic_planning_feature_relations` via `_require_null`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/planning_feature_contract.py` — `validate_intrinsic_planning_feature_relations`
+```python
+def _require_null(row: dict[str, object], columns: tuple[str, ...], kind: str) -> None:
+    if any(not _missing(row[column]) for column in columns):
+        raise ValueError(f"{kind} relation populated an unrelated metric")
+```
 
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `validate_intrinsic_planning_feature_relations`
 
-**Signature**
+**Exact signature**
 
 ```python
 def validate_intrinsic_planning_feature_relations(frame: pd.DataFrame) -> None:
@@ -305,121 +358,320 @@ def validate_intrinsic_planning_feature_relations(frame: pd.DataFrame) -> None:
 
 Validate stored relation types, metrics, nulls, and count semantics locally.
 
-**Inputs**
+**Return contract**
 
-- `frame` (`pd.DataFrame`; required) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `not isinstance(frame, pd.DataFrame)`. When true: Raises `TypeError('planning relations must be a DataFrame')`.
-2. Checks `frame.columns.duplicated().any()`. When true: Raises `ValueError('planning relations contain duplicate columns')`.
-3. Checks `not REQUIRED_RELATION_COLUMNS.issubset(frame.columns)`. When true: Raises `ValueError('planning relation factual metric schema is incomplete')`.
-4. Iterates `column` over `RELATION_FLOAT_COLUMNS`. For each value: Iterates `value` over `frame[column].tolist()`. For each value: Calls `_number(value, f'relation {column}', required=False)` for its validation or side effect.
-5. Iterates `column` over `RELATION_COUNT_COLUMNS`. For each value: Iterates `value` over `frame[column].tolist()`. For each value: Calls `_count(value, f'relation {column}', required=False)` for its validation or side effect.
-6. Iterates `row` over `frame.to_dict('records')`. For each value: Computes `kind` from `row['geometry_kind']`. Computes `relation_type` from `row['relation_type']`. Computes `allowed` from `RELATION_TYPES_BY_GEOMETRY_KIND.get(kind)`. Executes 6 additional source-ordered statement(s).
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `not isinstance(frame, pd.DataFrame)` is true.
-- Rejects or diverts the path when `frame.columns.duplicated().any()` is true.
-- Rejects or diverts the path when `not REQUIRED_RELATION_COLUMNS.issubset(frame.columns)` is true.
-- Rejects or diverts the path when `allowed is None` is true.
-- Rejects or diverts the path when `not isinstance(relation_type, str) or relation_type not in allowed` is true.
-- Rejects or diverts the path when `parcel_area <= 0` is true.
-- Rejects or diverts the path when `kind == 'SURFACE'` is true.
-- Rejects or diverts the path when `feature_area <= 0` is true.
-- Rejects or diverts the path when `relation_type != expected_type` is true.
-- Rejects or diverts the path when `area - parcel_area > technical_overlay_tolerance(parcel_area)` is true.
-- Rejects or diverts the path when `area - feature_area > technical_overlay_tolerance(feature_area)` is true.
-- Rejects or diverts the path when `abs(parcel_pct - expected_parcel_pct) > pct_tolerance or abs(feature_pct - expected_feature_pct) > pct_tolerance` is true.
-- Rejects or diverts the path when `kind == 'LINE'` is true.
-- Rejects or diverts the path when `source_length <= 0` is true.
-- Rejects or diverts the path when `length - source_length > technical_overlay_tolerance(source_length)` is true.
-- Rejects or diverts the path when `member_count <= 0` is true.
-- Rejects or diverts the path when `inside + boundary > member_count` is true.
-- Rejects or diverts the path when `relation_type == 'INSIDE' and inside < 1` is true.
-- Rejects or diverts the path when `relation_type == 'BOUNDARY_TOUCH' and (inside != 0 or boundary < 1)` is true.
-
-**Exceptions**
-
-- Explicitly raises: `TypeError`, `ValueError`. Called functions may raise their documented controlled errors.
+- Guard with a raise path: `not isinstance(frame, pd.DataFrame)`.
+- Guard with a raise path: `frame.columns.duplicated().any()`.
+- Guard with a raise path: `not REQUIRED_RELATION_COLUMNS.issubset(frame.columns)`.
+- Guard with a raise path: `allowed is None`.
+- Guard with a raise path: `not isinstance(relation_type, str) or relation_type not in allowed`.
+- Guard with a raise path: `parcel_area <= 0`.
+- Guard with a raise path: `kind == 'SURFACE'`.
+- Guard with a raise path: `feature_area <= 0`.
+- Guard with a raise path: `relation_type != expected_type`.
+- Guard with a raise path: `area - parcel_area > technical_overlay_tolerance(parcel_area)`.
+- Guard with a raise path: `area - feature_area > technical_overlay_tolerance(feature_area)`.
+- Guard with a raise path: `abs(parcel_pct - expected_parcel_pct) > pct_tolerance or abs(feature_pct - expected_feature_pct) > pct_tolerance`.
+- Guard with a raise path: `kind == 'LINE'`.
+- Guard with a raise path: `source_length <= 0`.
+- Guard with a raise path: `relation_type != expected_type`.
+- Guard with a raise path: `length - source_length > technical_overlay_tolerance(source_length)`.
+- Guard with a raise path: `member_count <= 0`.
+- Guard with a raise path: `inside + boundary > member_count`.
+- Guard with a raise path: `relation_type == 'INSIDE' and inside < 1`.
+- Guard with a raise path: `relation_type == 'BOUNDARY_TOUCH' and (inside != 0 or boundary < 1)`.
+- Explicit raise expressions: `TypeError('planning relations must be a DataFrame')`, `ValueError('BOUNDARY_TOUCH relation type requires only boundary point members')`, `ValueError('INSIDE relation type requires an inside point member')`, `ValueError('line intersection exceeds source line length')`, `ValueError('line relation type is inconsistent with its length')`, `ValueError('planning relation factual metric schema is incomplete')`, `ValueError('planning relation geometry kind is invalid')`, `ValueError('planning relations contain duplicate columns')`, `ValueError('point covered members exceed source members')`, `ValueError('point member count must be positive')`, `ValueError('relation parcel metric area must be positive')`, `ValueError('source line length must be positive')`, `ValueError('surface feature area must be positive')`, `ValueError('surface intersection exceeds feature area')`, `ValueError('surface intersection exceeds parcel area')`, `ValueError('surface relation percentages are inconsistent')`, `ValueError('surface relation type is inconsistent with its area')`, `ValueError(f'{kind} relation type is incompatible with its geometry kind')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: `RELATION_TYPES_BY_GEOMETRY_KIND.get`.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `RELATION_TYPES_BY_GEOMETRY_KIND.get`, `REQUIRED_RELATION_COLUMNS.issubset`, `TypeError`, `ValueError`, `_count`, `_number`, `_require_null`, `abs`, `frame.columns.duplicated`, `frame.columns.duplicated().any`, `frame.to_dict`, `frame[column].tolist`, `isinstance`, `max`, `technical_overlay_tolerance`.
+- direct call or construction: `src/landscout/common/bess_application_contract.py::validate_bess_application_relation_frame` via `validate_intrinsic_planning_feature_relations`.
+- import/re-export: `src/landscout/common/bess_application_contract.py::<module>` via `from landscout.common.planning_feature_contract import (
+    validate_intrinsic_planning_feature_relations,
+)`.
+- direct call or construction: `src/landscout/stages/enrich_planning_features.py::_validate_relation_semantics` via `validate_intrinsic_planning_feature_relations`.
+- import/re-export: `src/landscout/stages/enrich_planning_features.py::<module>` via `from landscout.common.planning_feature_contract import (
+    validate_intrinsic_planning_feature_relations,
+)`.
+- direct call or construction: `tests/unit/test_enrich_planning_features.py::test_shared_intrinsic_relation_semantics_reject_every_invalid_case` via `validate_intrinsic_planning_feature_relations`.
+- import/re-export: `tests/unit/test_enrich_planning_features.py::<module>` via `from landscout.common.planning_feature_contract import (
+    validate_intrinsic_planning_feature_relations,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/bess_application_contract.py` — `validate_bess_application_relation_frame`
-- `src/landscout/stages/enrich_planning_features.py` — `_validate_relation_semantics`
-- `tests/unit/test_enrich_planning_features.py` — `test_shared_intrinsic_relation_semantics_reject_every_invalid_case`
+```python
+def validate_intrinsic_planning_feature_relations(frame: pd.DataFrame) -> None:
+    """Validate stored relation types, metrics, nulls, and count semantics locally."""
 
-**Tests**
+    if not isinstance(frame, pd.DataFrame):
+        raise TypeError("planning relations must be a DataFrame")
+    if frame.columns.duplicated().any():
+        raise ValueError("planning relations contain duplicate columns")
+    if not REQUIRED_RELATION_COLUMNS.issubset(frame.columns):
+        raise ValueError("planning relation factual metric schema is incomplete")
+    for column in RELATION_FLOAT_COLUMNS:
+        for value in frame[column].tolist():
+            _number(value, f"relation {column}", required=False)
+    for column in RELATION_COUNT_COLUMNS:
+        for value in frame[column].tolist():
+            _count(value, f"relation {column}", required=False)
 
-- `tests/unit/test_enrich_planning_features.py::test_shared_intrinsic_relation_semantics_reject_every_invalid_case`
+    for row in frame.to_dict("records"):
+        kind = row["geometry_kind"]
+        relation_type = row["relation_type"]
+        allowed = RELATION_TYPES_BY_GEOMETRY_KIND.get(kind)
+        if allowed is None:
+            raise ValueError("planning relation geometry kind is invalid")
+        if not isinstance(relation_type, str) or relation_type not in allowed:
+            raise ValueError(
+                f"{kind} relation type is incompatible with its geometry kind"
+            )
+        parcel_area = _number(
+            row["parcel_metric_area_m2"],
+            "relation parcel metric area",
+            required=True,
+        )
+        assert parcel_area is not None
+        if parcel_area <= 0:
+            raise ValueError("relation parcel metric area must be positive")
 
-**Business interpretation**
+        if kind == "SURFACE":
+            feature_area = _number(
+                row["feature_area_m2"], "surface feature area", required=True
+            )
+            area = _number(
+                row["intersection_area_m2"],
+                "surface intersection area",
+                required=True,
+            )
+            parcel_pct = _number(
+                row["parcel_share_pct"], "surface parcel share", required=True
+            )
+            feature_pct = _number(
+                row["feature_share_pct"], "surface feature share", required=True
+            )
+            assert None not in (feature_area, area, parcel_pct, feature_pct)
+            assert feature_area is not None and area is not None
+            assert parcel_pct is not None and feature_pct is not None
+            if feature_area <= 0:
+                raise ValueError("surface feature area must be positive")
+            expected_type = "AREA_OVERLAP" if area > 0 else "TOUCH_ONLY"
+            if relation_type != expected_type:
+                raise ValueError("surface relation type is inconsistent with its area")
+            if area - parcel_area > technical_overlay_tolerance(parcel_area):
+                raise ValueError("surface intersection exceeds parcel area")
+            if area - feature_area > technical_overlay_tolerance(feature_area):
+                raise ValueError("surface intersection exceeds feature area")
+            expected_parcel_pct = 100.0 * area / parcel_area
+            expected_feature_pct = 100.0 * area / feature_area
+            pct_tolerance = max(
+                100.0 * technical_overlay_tolerance(parcel_area) / parcel_area,
+                100.0 * technical_overlay_tolerance(feature_area) / feature_area,
+            )
+            if (
+                abs(parcel_pct - expected_parcel_pct) > pct_tolerance
+                or abs(feature_pct - expected_feature_pct) > pct_tolerance
+            ):
+                raise ValueError("surface relation percentages are inconsistent")
+            _require_null(
+                row,
+                (
+                    "source_line_length_m",
+                    "intersection_length_m",
+                    *RELATION_COUNT_COLUMNS,
+                ),
+                kind,
+            )
+        elif kind == "LINE":
+            source_length = _number(
+                row["source_line_length_m"], "source line length", required=True
+            )
+            length = _number(
+                row["intersection_length_m"],
+                "line intersection length",
+                required=True,
+            )
+            assert source_length is not None and length is not None
+            if source_length <= 0:
+                raise ValueError("source line length must be positive")
+            expected_type = "LENGTH_OVERLAP" if length > 0 else "TOUCH_ONLY"
+            if relation_type != expected_type:
+                raise ValueError("line relation type is inconsistent with its length")
+            if length - source_length > technical_overlay_tolerance(source_length):
+                raise ValueError("line intersection exceeds source line length")
+            _require_null(
+                row,
+                (
+                    "feature_area_m2",
+                    "intersection_area_m2",
+                    "parcel_share_pct",
+                    "feature_share_pct",
+                    *RELATION_COUNT_COLUMNS,
+                ),
+                kind,
+            )
+        else:
+            member_count = _count(
+                row["point_member_count"], "point member count", required=True
+            )
+            inside = _count(
+                row["point_members_inside_count"],
+                "point inside member count",
+                required=True,
+            )
+            boundary = _count(
+                row["point_members_boundary_count"],
+                "point boundary member count",
+                required=True,
+            )
+            assert (
+                member_count is not None and inside is not None and boundary is not None
+            )
+            if member_count <= 0:
+                raise ValueError("point member count must be positive")
+            if inside + boundary > member_count:
+                raise ValueError("point covered members exceed source members")
+            if relation_type == "INSIDE" and inside < 1:
+                raise ValueError("INSIDE relation type requires an inside point member")
+            if relation_type == "BOUNDARY_TOUCH" and (inside != 0 or boundary < 1):
+                raise ValueError(
+                    "BOUNDARY_TOUCH relation type requires only boundary point members"
+                )
+            _require_null(
+                row,
+                (
+                    "feature_area_m2",
+                    "source_line_length_m",
+                    "intersection_area_m2",
+                    "intersection_length_m",
+                    "parcel_share_pct",
+                    "feature_share_pct",
+                ),
+                kind,
+            )
+```
 
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
+
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+### `RELATION_FLOAT_COLUMNS` — canonical or derived frame-column schema
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `feature_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `feature_share_pct` | Logical dtype: float64. Nullability: determined by the owning schema/dtype map and explicit null guards. | percentage derived from the exact numerator/denominator named by its stage. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry_kind` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `intersection_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `intersection_length_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_metric_area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_share_pct` | Logical dtype: float64. Nullability: determined by the owning schema/dtype map and explicit null guards. | percentage derived from the exact numerator/denominator named by its stage. Consumers and exact calculations are the functions that reference this column above. |
-| `point_member_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `point_members_boundary_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `point_members_inside_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `relation_type` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed source, geometry, feature, relation, or lineage domain enforced by validators. Consumers and exact calculations are the functions that reference this column above. |
-| `source_line_length_m` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | linear distance/length in metres; proxy meaning is limited by the introducing stage. Consumers and exact calculations are the functions that reference this column above. |
+```python
+RELATION_FLOAT_COLUMNS = frozenset(
+    {
+        "parcel_metric_area_m2",
+        "feature_area_m2",
+        "source_line_length_m",
+        "intersection_area_m2",
+        "intersection_length_m",
+        "parcel_share_pct",
+        "feature_share_pct",
+    }
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `feature_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 2 | `feature_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 3 | `intersection_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 4 | `intersection_length_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 5 | `parcel_metric_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 6 | `parcel_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 7 | `source_line_length_m` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+
+### `RELATION_COUNT_COLUMNS` — canonical or derived frame-column schema
+
+```python
+RELATION_COUNT_COLUMNS = frozenset(
+    {
+        "point_member_count",
+        "point_members_inside_count",
+        "point_members_boundary_count",
+    }
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `point_member_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 2 | `point_members_boundary_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 3 | `point_members_inside_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+
+### `REQUIRED_RELATION_COLUMNS` — required input frame fields (unordered when stored as a set)
+
+```python
+REQUIRED_RELATION_COLUMNS = frozenset(
+    {"geometry_kind", "relation_type"} | RELATION_FLOAT_COLUMNS | RELATION_COUNT_COLUMNS
+)
+```
+
+| Position/value | Exact field | Dtype | Nullability | Classification | Meaning / explicit non-meaning |
+|---:|---|---|---|---|---|
+| 1 | `feature_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 2 | `feature_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 3 | `geometry_kind` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 4 | `intersection_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 5 | `intersection_length_m` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 6 | `parcel_metric_area_m2` | float64 when builder initializes NaN/numeric metric; otherwise exact source numeric dtype shown by implementation | null only on the explicit no-measurement/invalid path | geometry metric | Square-metre geometry measurement; not a policy threshold unless the field belongs to configuration. |
+| 7 | `parcel_share_pct` | builder/source numeric dtype shown by the implementation; no cast is inferred from the name | null on explicit no-match/unknown paths | derived fact or proxy metric | Numeric evidence in the unit encoded by the suffix; it does not establish legal/capacity suitability. |
+| 8 | `point_member_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 9 | `point_members_boundary_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 10 | `point_members_inside_count` | builder/source integer dtype shown by the implementation | null only where the schema expressly represents no match | derived count | Count of the entity named by the field; it is not a score. |
+| 11 | `relation_type` | source-preserved or builder-dependent dtype; this schema declaration fixes presence/order but performs no cast | source/build nullability; this presence/order declaration itself does not cast or add a null constraint | factual/derived field identified by the owning schema | The complete introducing and consuming implementations below define the value; no proxy/policy meaning is inferred from spelling alone. |
+| 12 | `source_line_length_m` | source-preserved/dynamic Pandas dtype (the normalizer copies the source Series without casting) | source nulls are preserved unless an explicit identity guard rejects them | source fact | Copied source value; no semantic interpretation is implied by normalization. |
+
+
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `planning` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the planning flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -427,8 +679,8 @@ This file contributes to LandScout's `planning` evidence flow as described by it
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

@@ -4,9 +4,9 @@
 
 - Repository path: `tests/unit/test_normalize_cadastre.py`
 - File type: Python test
-- Primary responsibility: Provides complete unit and regression coverage for the `normalize_cadastre` contracts exercised in this file.
-- Layer / domain: `unit/regression test` / `test`
-- Public or internal role: Internal test support; not a production API.
+- Layer: unit/regression test
+- Domain: test
+- Responsibility: Provides complete unit and regression coverage for the `normalize_cadastre` contracts exercised in this file.
 - Source SHA256: `2ee56ea4fa80743a6834d5fc1449e92e5509b2e39071cc2035a80b11e50b3f86`
 
 ## 1. Purpose
@@ -15,39 +15,57 @@ Provides complete unit and regression coverage for the `normalize_cadastre` cont
 
 ## 2. Position in LandScout architecture
 
-This file is a `unit/regression test` artifact in the `test` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **unit/regression test** layer and the **test** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from copy import deepcopy` — required by the implementation paths and symbols documented below.
+- `from copy import deepcopy`
 
-### Third-party
+### Third-party packages
 
-- `import geopandas as gpd` — required by the implementation paths and symbols documented below.
-- `import pandas as pd` — required by the implementation paths and symbols documented below.
-- `import pytest` — required by the implementation paths and symbols documented below.
-- `from geopandas.testing import assert_geodataframe_equal` — required by the implementation paths and symbols documented below.
-- `from shapely.geometry import LineString, MultiPolygon, Point, Polygon` — required by the implementation paths and symbols documented below.
+- `import geopandas as gpd`
+- `import pandas as pd`
+- `import pytest`
+- `from geopandas.testing import assert_geodataframe_equal`
+- `from shapely.geometry import LineString, MultiPolygon, Point, Polygon`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout.stages.normalize_cadastre import ( CadastreNormalizationError, normalize_cadastre_parcels, )` — required by the implementation paths and symbols documented below.
+- `from landscout.stages.normalize_cadastre import (
+    CadastreNormalizationError,
+    normalize_cadastre_parcels,
+)`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-No module-level meaningful constant is defined. Literal domains enforced inside functions are documented with those functions.
+### A. Python constants
+
+No meaningful module constant is declared.
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
-No class, model, or dataclass is declared in this file.
+No class/model/dataclass is declared.
 
 ## 6. Functions and methods
 
 ### `_source_parcels`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _source_parcels(
@@ -59,761 +77,885 @@ def _source_parcels(
 
 **Purpose**
 
-Implements source parcels according to the exact implementation and guards in this file.
+Private `test` helper for source parcels; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `geometries` (`list[object]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `ids` (`list[object] | None`; optional/default `None`) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `crs` (`str | None`; optional/default `'EPSG:4326'`) — coordinate reference system identity. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `gpd.GeoDataFrame`.
+- Every observed return expression is reproduced without truncation:
+```python
+gpd.GeoDataFrame({'id': parcel_ids, 'commune': ['31395'] * count, 'prefixe': ['000'] * count, 'section': ['A'] * count, 'numero': [str(index + 1) for index in range(count)], 'contenance': [1000.0] * count, 'arpente': [False] * count, 'created': ['2020-01-01'] * count, 'updated': ['2024-01-01'] * count}, geometry=geometries, crs=crs)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `gpd.GeoDataFrame({'id': parcel_ids, 'commune': ['31395'] * count, 'prefixe': ['000'] * count, 'section': ['A'] * count, 'numero': [str(index + 1) for index in range(count)], 'contenance': [1000.0] * count, 'arpente': [False] * count, 'created': ['2020-01-01'] * count, 'updated': ['2024-01-01'] * count}, geometry=geometries, crs=crs)`.
-
-**Algorithm**
-
-1. Computes `parcel_ids` from `ids or [f'parcel-{index}' for index in range(len(geometries))]`.
-2. Computes `count` from `len(geometries)`.
-3. Returns `gpd.GeoDataFrame({'id': parcel_ids, 'commune': ['31395'] * count, 'prefixe': ['000'] * count, 'section': ['A'] * count, 'numero': [str(index + 1) for index in range(count)], 'contenance': [1000.0] * count, 'arpente': [False] * count, 'created': ['2020-01-01'] * count, 'updated': ['2024-01-01'] * count}, geometry=geometries, crs=crs)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `gpd.GeoDataFrame`, `len`, `range`, `str`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_field_normalization` via `_source_parcels`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_lambert93_area_calculation` via `_source_parcels`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_output_geometry_stays_in_wgs84` via `_source_parcels`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_invalid_geometry_is_preserved_with_null_area` via `_source_parcels`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_missing_crs_fails` via `_source_parcels`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_duplicate_parcel_id_fails` via `_source_parcels`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_duplicate_columns_are_rejected` via `_source_parcels`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_projected_source_crs_is_rejected` via `_source_parcels`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_parcel_id_must_be_an_exact_nonempty_string` via `_source_parcels`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_non_polygonal_geometry_is_rejected` via `_source_parcels`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_valid_multipolygon_is_accepted` via `_source_parcels`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_null_and_empty_geometry_are_preserved_as_invalid` via `_source_parcels`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_normalization_does_not_mutate_input` via `_source_parcels`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_every_cadastral_identity_field_requires_an_exact_nonempty_string` via `_source_parcels`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_commune_requires_canonical_french_insee_identity` via `_source_parcels`.
+- direct call or construction: `tests/unit/test_normalize_cadastre.py::test_commune_accepts_canonical_french_insee_identity` via `_source_parcels`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_normalize_cadastre.py` — `test_commune_accepts_canonical_french_insee_identity`
-- `tests/unit/test_normalize_cadastre.py` — `test_commune_requires_canonical_french_insee_identity`
-- `tests/unit/test_normalize_cadastre.py` — `test_duplicate_columns_are_rejected`
-- `tests/unit/test_normalize_cadastre.py` — `test_duplicate_parcel_id_fails`
-- `tests/unit/test_normalize_cadastre.py` — `test_every_cadastral_identity_field_requires_an_exact_nonempty_string`
-- `tests/unit/test_normalize_cadastre.py` — `test_field_normalization`
-- `tests/unit/test_normalize_cadastre.py` — `test_invalid_geometry_is_preserved_with_null_area`
-- `tests/unit/test_normalize_cadastre.py` — `test_lambert93_area_calculation`
-- `tests/unit/test_normalize_cadastre.py` — `test_missing_crs_fails`
-- `tests/unit/test_normalize_cadastre.py` — `test_non_polygonal_geometry_is_rejected`
-- `tests/unit/test_normalize_cadastre.py` — `test_normalization_does_not_mutate_input`
-- `tests/unit/test_normalize_cadastre.py` — `test_null_and_empty_geometry_are_preserved_as_invalid`
-- `tests/unit/test_normalize_cadastre.py` — `test_output_geometry_stays_in_wgs84`
-- `tests/unit/test_normalize_cadastre.py` — `test_parcel_id_must_be_an_exact_nonempty_string`
-- `tests/unit/test_normalize_cadastre.py` — `test_projected_source_crs_is_rejected`
-- `tests/unit/test_normalize_cadastre.py` — `test_valid_multipolygon_is_accepted`
+```python
+def _source_parcels(
+    geometries: list[object],
+    ids: list[object] | None = None,
+    crs: str | None = "EPSG:4326",
+) -> gpd.GeoDataFrame:
+    parcel_ids = ids or [f"parcel-{index}" for index in range(len(geometries))]
+    count = len(geometries)
+    return gpd.GeoDataFrame(
+        {
+            "id": parcel_ids,
+            "commune": ["31395"] * count,
+            "prefixe": ["000"] * count,
+            "section": ["A"] * count,
+            "numero": [str(index + 1) for index in range(count)],
+            "contenance": [1000.0] * count,
+            "arpente": [False] * count,
+            "created": ["2020-01-01"] * count,
+            "updated": ["2024-01-01"] * count,
+        },
+        geometry=geometries,
+        crs=crs,
+    )
+```
 
-**Tests**
-
-- `tests/unit/test_normalize_cadastre.py::test_commune_accepts_canonical_french_insee_identity`
-- `tests/unit/test_normalize_cadastre.py::test_commune_requires_canonical_french_insee_identity`
-- `tests/unit/test_normalize_cadastre.py::test_duplicate_columns_are_rejected`
-- `tests/unit/test_normalize_cadastre.py::test_duplicate_parcel_id_fails`
-- `tests/unit/test_normalize_cadastre.py::test_every_cadastral_identity_field_requires_an_exact_nonempty_string`
-- `tests/unit/test_normalize_cadastre.py::test_field_normalization`
-- `tests/unit/test_normalize_cadastre.py::test_invalid_geometry_is_preserved_with_null_area`
-- `tests/unit/test_normalize_cadastre.py::test_lambert93_area_calculation`
-- `tests/unit/test_normalize_cadastre.py::test_missing_crs_fails`
-- `tests/unit/test_normalize_cadastre.py::test_non_polygonal_geometry_is_rejected`
-- `tests/unit/test_normalize_cadastre.py::test_normalization_does_not_mutate_input`
-- `tests/unit/test_normalize_cadastre.py::test_null_and_empty_geometry_are_preserved_as_invalid`
-- `tests/unit/test_normalize_cadastre.py::test_output_geometry_stays_in_wgs84`
-- `tests/unit/test_normalize_cadastre.py::test_parcel_id_must_be_an_exact_nonempty_string`
-- `tests/unit/test_normalize_cadastre.py::test_projected_source_crs_is_rejected`
-- `tests/unit/test_normalize_cadastre.py::test_valid_multipolygon_is_accepted`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
-### `valid_polygon`
+### `valid_polygon` — pytest fixture
 
-**Signature**
+- Scope: `function` (decorator `pytest.fixture`).
+- Returned/yielded object expression(s): `Polygon([(2.35, 43.45), (2.36, 43.45), (2.36, 43.46), (2.35, 43.45)])`.
+- Tests requesting it by parameter injection: `test_field_normalization`, `test_lambert93_area_calculation`, `test_output_geometry_stays_in_wgs84`, `test_missing_crs_fails`, `test_duplicate_parcel_id_fails`, `test_duplicate_columns_are_rejected`, `test_projected_source_crs_is_rejected`, `test_parcel_id_must_be_an_exact_nonempty_string`, `test_valid_multipolygon_is_accepted`, `test_normalization_does_not_mutate_input`, `test_every_cadastral_identity_field_requires_an_exact_nonempty_string`, `test_commune_requires_canonical_french_insee_identity`, `test_commune_accepts_canonical_french_insee_identity`.
+
+**Complete fixture implementation**
 
 ```python
 def valid_polygon() -> Polygon:
+    return Polygon(
+        [(2.35, 43.45), (2.36, 43.45), (2.36, 43.46), (2.35, 43.45)]
+    )
 ```
-
-**Purpose**
-
-Implements valid polygon according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- No parameters.
-
-**Returns**
-
-- Declared return type: `Polygon`. Observed return expression(s): `Polygon([(2.35, 43.45), (2.36, 43.45), (2.36, 43.46), (2.35, 43.45)])`.
-
-**Algorithm**
-
-1. Returns `Polygon([(2.35, 43.45), (2.36, 43.45), (2.36, 43.46), (2.35, 43.45)])`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `Polygon`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_field_normalization`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `valid_polygon` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+normalized = normalize_cadastre_parcels(_source_parcels([valid_polygon]))
+```
+
+**Expected result**
+
+```python
+assert list(normalized.columns) == [
+        "parcel_id",
+        "commune_code",
+        "section_prefix",
+        "section",
+        "parcel_number",
+        "source_contenance",
+        "source_arpente",
+        "source_created_at",
+        "source_updated_at",
+        "geometry_status",
+        "area_m2",
+        "geometry",
+    ]
+assert normalized.iloc[0]["parcel_id"] == "parcel-0"
+assert normalized.iloc[0]["commune_code"] == "31395"
+assert normalized.iloc[0]["geometry_status"] == "VALID"
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_field_normalization(valid_polygon: Polygon) -> None:
+    normalized = normalize_cadastre_parcels(_source_parcels([valid_polygon]))
+
+    assert list(normalized.columns) == [
+        "parcel_id",
+        "commune_code",
+        "section_prefix",
+        "section",
+        "parcel_number",
+        "source_contenance",
+        "source_arpente",
+        "source_created_at",
+        "source_updated_at",
+        "geometry_status",
+        "area_m2",
+        "geometry",
+    ]
+    assert normalized.iloc[0]["parcel_id"] == "parcel-0"
+    assert normalized.iloc[0]["commune_code"] == "31395"
+    assert normalized.iloc[0]["geometry_status"] == "VALID"
 ```
-
-**Purpose**
-
-Protects the `field normalization` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `valid_polygon`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `normalized` from `normalize_cadastre_parcels(_source_parcels([valid_polygon]))`.
-
-**Action**
-
-- Calls `_source_parcels`, `normalize_cadastre_parcels`.
-
-**Expected result**
-
-- Direct assertions: `assert list(normalized.columns) == ['parcel_id', 'commune_code', 'section_prefix', 'section', 'parcel_number', 'source_contenance', 'source_arpente', 'source_created_at', 'source_updated_at', 'geometry_status', 'area_m2', 'geometry']`; `assert normalized.iloc[0]['parcel_id'] == 'parcel-0'`; `assert normalized.iloc[0]['commune_code'] == '31395'`; `assert normalized.iloc[0]['geometry_status'] == 'VALID'`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `field normalization` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_parcels`, `list`, `normalize_cadastre_parcels`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_lambert93_area_calculation`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `valid_polygon` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _source_parcels([valid_polygon])
+expected_area = source.to_crs("EPSG:2154").geometry.area.iloc[0]
+```
+
+**Action**
+
+```python
+normalized = normalize_cadastre_parcels(source)
+```
+
+**Expected result**
+
+```python
+assert normalized.iloc[0]["area_m2"] == pytest.approx(expected_area)
+assert normalized.iloc[0]["area_m2"] > 0
+```
+
+**Regression protected**
+
+Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_lambert93_area_calculation(valid_polygon: Polygon) -> None:
+    source = _source_parcels([valid_polygon])
+    expected_area = source.to_crs("EPSG:2154").geometry.area.iloc[0]
+
+    normalized = normalize_cadastre_parcels(source)
+
+    assert normalized.iloc[0]["area_m2"] == pytest.approx(expected_area)
+    assert normalized.iloc[0]["area_m2"] > 0
 ```
-
-**Purpose**
-
-Protects the `lambert93 area calculation` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `valid_polygon`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source` from `_source_parcels([valid_polygon])`.
-- Computes `expected_area` from `source.to_crs('EPSG:2154').geometry.area.iloc[0]`.
-- Computes `normalized` from `normalize_cadastre_parcels(source)`.
-
-**Action**
-
-- Calls `_source_parcels`, `normalize_cadastre_parcels`, `source.to_crs`.
-
-**Expected result**
-
-- Direct assertions: `assert normalized.iloc[0]['area_m2'] == pytest.approx(expected_area)`; `assert normalized.iloc[0]['area_m2'] > 0`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `lambert93 area calculation` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_parcels`, `normalize_cadastre_parcels`, `pytest.approx`, `source.to_crs`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_output_geometry_stays_in_wgs84`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `valid_polygon` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _source_parcels([valid_polygon])
+```
+
+**Action**
+
+```python
+normalized = normalize_cadastre_parcels(source)
+```
+
+**Expected result**
+
+```python
+assert normalized.crs is not None
+assert normalized.crs.to_epsg() == 4326
+assert normalized.geometry.iloc[0].equals_exact(valid_polygon, tolerance=0)
+```
+
+**Regression protected**
+
+Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_output_geometry_stays_in_wgs84(valid_polygon: Polygon) -> None:
+    source = _source_parcels([valid_polygon])
+
+    normalized = normalize_cadastre_parcels(source)
+
+    assert normalized.crs is not None
+    assert normalized.crs.to_epsg() == 4326
+    assert normalized.geometry.iloc[0].equals_exact(valid_polygon, tolerance=0)
 ```
-
-**Purpose**
-
-Protects the `output geometry stays in wgs84` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `valid_polygon`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `source` from `_source_parcels([valid_polygon])`.
-- Computes `normalized` from `normalize_cadastre_parcels(source)`.
-
-**Action**
-
-- Calls `_source_parcels`, `normalize_cadastre_parcels`, `normalized.crs.to_epsg`, `normalized.geometry.iloc[0].equals_exact`.
-
-**Expected result**
-
-- Direct assertions: `assert normalized.crs is not None`; `assert normalized.crs.to_epsg() == 4326`; `assert normalized.geometry.iloc[0].equals_exact(valid_polygon, tolerance=0)`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `output geometry stays in wgs84` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_parcels`, `normalize_cadastre_parcels`, `normalized.crs.to_epsg`, `normalized.geometry.iloc[0].equals_exact`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_invalid_geometry_is_preserved_with_null_area`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+bow_tie = Polygon(
+        [(2.35, 43.45), (2.36, 43.46), (2.35, 43.46), (2.36, 43.45)]
+    )
+```
+
+**Action**
+
+```python
+normalized = normalize_cadastre_parcels(_source_parcels([bow_tie]))
+```
+
+**Expected result**
+
+```python
+assert not bow_tie.is_valid
+assert normalized.iloc[0]["geometry_status"] == "INVALID"
+assert normalized["area_m2"].isna().iloc[0]
+assert normalized.geometry.iloc[0].equals_exact(bow_tie, tolerance=0)
+```
+
+**Regression protected**
+
+Pins true-null handling and prevents textual or malformed null-like values from changing the contract.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_invalid_geometry_is_preserved_with_null_area() -> None:
+    bow_tie = Polygon(
+        [(2.35, 43.45), (2.36, 43.46), (2.35, 43.46), (2.36, 43.45)]
+    )
+    assert not bow_tie.is_valid
+
+    normalized = normalize_cadastre_parcels(_source_parcels([bow_tie]))
+
+    assert normalized.iloc[0]["geometry_status"] == "INVALID"
+    assert normalized["area_m2"].isna().iloc[0]
+    assert normalized.geometry.iloc[0].equals_exact(bow_tie, tolerance=0)
 ```
-
-**Purpose**
-
-Protects the `invalid geometry is preserved with null area` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `bow_tie` from `Polygon([(2.35, 43.45), (2.36, 43.46), (2.35, 43.46), (2.36, 43.45)])`.
-- Computes `normalized` from `normalize_cadastre_parcels(_source_parcels([bow_tie]))`.
-
-**Action**
-
-- Calls `Polygon`, `_source_parcels`, `normalize_cadastre_parcels`, `normalized.geometry.iloc[0].equals_exact`, `normalized['area_m2'].isna`.
-
-**Expected result**
-
-- Direct assertions: `assert not bow_tie.is_valid`; `assert normalized.iloc[0]['geometry_status'] == 'INVALID'`; `assert normalized['area_m2'].isna().iloc[0]`; `assert normalized.geometry.iloc[0].equals_exact(bow_tie, tolerance=0)`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `invalid geometry is preserved with null area` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `Polygon`, `_source_parcels`, `normalize_cadastre_parcels`, `normalized.geometry.iloc[0].equals_exact`, `normalized['area_m2'].isna`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_missing_crs_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `valid_polygon` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _source_parcels([valid_polygon], crs=None)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(CadastreNormalizationError, match="CRS"):
+        normalize_cadastre_parcels(source)
+```
+
+**Regression protected**
+
+Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_missing_crs_fails(valid_polygon: Polygon) -> None:
+    source = _source_parcels([valid_polygon], crs=None)
+
+    with pytest.raises(CadastreNormalizationError, match="CRS"):
+        normalize_cadastre_parcels(source)
 ```
-
-**Purpose**
-
-Protects the `missing crs fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `valid_polygon`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `source` from `_source_parcels([valid_polygon], crs=None)`.
-- Enters managed context(s) `pytest.raises(CadastreNormalizationError, match='CRS')` and executes: Calls `normalize_cadastre_parcels(source)` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_parcels`, `normalize_cadastre_parcels`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(CadastreNormalizationError, match='CRS'): normalize_cadastre_parcels(source)`.
-
-**Regression protected**
-
-- Protects the exact `missing crs fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_parcels`, `normalize_cadastre_parcels`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_duplicate_parcel_id_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `valid_polygon` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _source_parcels(
+        [valid_polygon, valid_polygon], ids=["duplicate", "duplicate"]
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(CadastreNormalizationError, match="unique"):
+        normalize_cadastre_parcels(source)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_duplicate_parcel_id_fails(valid_polygon: Polygon) -> None:
+    source = _source_parcels(
+        [valid_polygon, valid_polygon], ids=["duplicate", "duplicate"]
+    )
+
+    with pytest.raises(CadastreNormalizationError, match="unique"):
+        normalize_cadastre_parcels(source)
 ```
-
-**Purpose**
-
-Protects the `duplicate parcel id fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `valid_polygon`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `source` from `_source_parcels([valid_polygon, valid_polygon], ids=['duplicate', 'duplicate'])`.
-- Enters managed context(s) `pytest.raises(CadastreNormalizationError, match='unique')` and executes: Calls `normalize_cadastre_parcels(source)` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_parcels`, `normalize_cadastre_parcels`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(CadastreNormalizationError, match='unique'): normalize_cadastre_parcels(source)`.
-
-**Regression protected**
-
-- Protects the exact `duplicate parcel id fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_parcels`, `normalize_cadastre_parcels`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_non_geodataframe_is_rejected_safely`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(CadastreNormalizationError, match="GeoDataFrame"):
+        normalize_cadastre_parcels(pd.DataFrame({"id": ["parcel"]}))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_non_geodataframe_is_rejected_safely() -> None:
+    with pytest.raises(CadastreNormalizationError, match="GeoDataFrame"):
+        normalize_cadastre_parcels(pd.DataFrame({"id": ["parcel"]}))
 ```
-
-**Purpose**
-
-Protects the `non geodataframe is rejected safely` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 1 explicit setup/context statement(s).
-- Enters managed context(s) `pytest.raises(CadastreNormalizationError, match='GeoDataFrame')` and executes: Calls `normalize_cadastre_parcels(pd.DataFrame({'id': ['parcel']}))` for its validation or side effect.
-
-**Action**
-
-- Calls `normalize_cadastre_parcels`, `pd.DataFrame`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(CadastreNormalizationError, match='GeoDataFrame'): normalize_cadastre_parcels(pd.DataFrame({'id': ['parcel']}))`.
-
-**Regression protected**
-
-- Protects the exact `non geodataframe is rejected safely` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `normalize_cadastre_parcels`, `pd.DataFrame`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_duplicate_columns_are_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `valid_polygon` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source = _source_parcels([valid_polygon])
+duplicate = gpd.GeoDataFrame(
+        pd.concat([source, source[["id"]]], axis=1),
+        geometry="geometry",
+        crs=source.crs,
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(CadastreNormalizationError, match="columns.*unique"):
+        normalize_cadastre_parcels(duplicate)
+```
+
+**Regression protected**
+
+Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_duplicate_columns_are_rejected(valid_polygon: Polygon) -> None:
+    source = _source_parcels([valid_polygon])
+    duplicate = gpd.GeoDataFrame(
+        pd.concat([source, source[["id"]]], axis=1),
+        geometry="geometry",
+        crs=source.crs,
+    )
+
+    with pytest.raises(CadastreNormalizationError, match="columns.*unique"):
+        normalize_cadastre_parcels(duplicate)
 ```
-
-**Purpose**
-
-Protects the `duplicate columns are rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `valid_polygon`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source` from `_source_parcels([valid_polygon])`.
-- Computes `duplicate` from `gpd.GeoDataFrame(pd.concat([source, source[['id']]], axis=1), geometry='geometry', crs=source.crs)`.
-- Enters managed context(s) `pytest.raises(CadastreNormalizationError, match='columns.*unique')` and executes: Calls `normalize_cadastre_parcels(duplicate)` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_parcels`, `gpd.GeoDataFrame`, `normalize_cadastre_parcels`, `pd.concat`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(CadastreNormalizationError, match='columns.*unique'): normalize_cadastre_parcels(duplicate)`.
-
-**Regression protected**
-
-- Protects the exact `duplicate columns are rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_parcels`, `gpd.GeoDataFrame`, `normalize_cadastre_parcels`, `pd.concat`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_projected_source_crs_is_rejected`
 
-**Signature**
-
-```python
-def test_projected_source_crs_is_rejected(valid_polygon: Polygon) -> None:
-```
-
 **Purpose**
 
-Protects the `projected source crs is rejected` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `valid_polygon` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: `valid_polygon`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `source` from `_source_parcels([valid_polygon]).to_crs('EPSG:2154')`.
-- Enters managed context(s) `pytest.raises(CadastreNormalizationError, match='4326')` and executes: Calls `normalize_cadastre_parcels(source)` for its validation or side effect.
+```python
+source = _source_parcels([valid_polygon]).to_crs("EPSG:2154")
+```
 
 **Action**
 
-- Calls `_source_parcels`, `_source_parcels([valid_polygon]).to_crs`, `normalize_cadastre_parcels`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(CadastreNormalizationError, match='4326'): normalize_cadastre_parcels(source)`.
+```python
+with pytest.raises(CadastreNormalizationError, match="4326"):
+        normalize_cadastre_parcels(source)
+```
 
 **Regression protected**
 
-- Protects the exact `projected source crs is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
 
 **Test boundary**
 
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
 
-**Calls**
+**Complete test implementation**
 
-- `_source_parcels`, `_source_parcels([valid_polygon]).to_crs`, `normalize_cadastre_parcels`, `pytest.raises`.
+```python
+def test_projected_source_crs_is_rejected(valid_polygon: Polygon) -> None:
+    source = _source_parcels([valid_polygon]).to_crs("EPSG:2154")
 
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    with pytest.raises(CadastreNormalizationError, match="4326"):
+        normalize_cadastre_parcels(source)
+```
 
 ### `test_parcel_id_must_be_an_exact_nonempty_string`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `valid_polygon` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: `identifier`.
+
+**Setup**
+
+```python
+source = _source_parcels([valid_polygon], ids=[identifier])
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(CadastreNormalizationError, match="parcel_id"):
+        normalize_cadastre_parcels(source)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_parcel_id_must_be_an_exact_nonempty_string(
     valid_polygon: Polygon,
     identifier: object,
 ) -> None:
+    source = _source_parcels([valid_polygon], ids=[identifier])
+
+    with pytest.raises(CadastreNormalizationError, match="parcel_id"):
+        normalize_cadastre_parcels(source)
 ```
-
-**Purpose**
-
-Protects the `parcel id must be an exact nonempty string` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `valid_polygon`, `identifier`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `source` from `_source_parcels([valid_polygon], ids=[identifier])`.
-- Enters managed context(s) `pytest.raises(CadastreNormalizationError, match='parcel_id')` and executes: Calls `normalize_cadastre_parcels(source)` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_parcels`, `normalize_cadastre_parcels`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(CadastreNormalizationError, match='parcel_id'): normalize_cadastre_parcels(source)`.
-
-**Regression protected**
-
-- Protects the exact `parcel id must be an exact nonempty string` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_parcels`, `normalize_cadastre_parcels`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_non_polygonal_geometry_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `geometry`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(CadastreNormalizationError, match="Polygon"):
+        normalize_cadastre_parcels(_source_parcels([geometry]))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_non_polygonal_geometry_is_rejected(geometry: object) -> None:
+    with pytest.raises(CadastreNormalizationError, match="Polygon"):
+        normalize_cadastre_parcels(_source_parcels([geometry]))
 ```
-
-**Purpose**
-
-Protects the `non polygonal geometry is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `geometry`.
-- Contains 1 explicit setup/context statement(s).
-- Enters managed context(s) `pytest.raises(CadastreNormalizationError, match='Polygon')` and executes: Calls `normalize_cadastre_parcels(_source_parcels([geometry]))` for its validation or side effect.
-
-**Action**
-
-- Calls `LineString`, `Point`, `_source_parcels`, `normalize_cadastre_parcels`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(CadastreNormalizationError, match='Polygon'): normalize_cadastre_parcels(_source_parcels([geometry]))`.
-
-**Regression protected**
-
-- Protects the exact `non polygonal geometry is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `LineString`, `Point`, `_source_parcels`, `normalize_cadastre_parcels`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_valid_multipolygon_is_accepted`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `valid_polygon` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+normalized = normalize_cadastre_parcels(
+        _source_parcels([MultiPolygon([valid_polygon])])
+    )
+```
+
+**Expected result**
+
+```python
+assert normalized.loc[0, "geometry_status"] == "VALID"
+assert normalized.loc[0, "area_m2"] > 0
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_valid_multipolygon_is_accepted(valid_polygon: Polygon) -> None:
+    normalized = normalize_cadastre_parcels(
+        _source_parcels([MultiPolygon([valid_polygon])])
+    )
+
+    assert normalized.loc[0, "geometry_status"] == "VALID"
+    assert normalized.loc[0, "area_m2"] > 0
 ```
-
-**Purpose**
-
-Protects the `valid multipolygon is accepted` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `valid_polygon`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `normalized` from `normalize_cadastre_parcels(_source_parcels([MultiPolygon([valid_polygon])]))`.
-
-**Action**
-
-- Calls `MultiPolygon`, `_source_parcels`, `normalize_cadastre_parcels`.
-
-**Expected result**
-
-- Direct assertions: `assert normalized.loc[0, 'geometry_status'] == 'VALID'`; `assert normalized.loc[0, 'area_m2'] > 0`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `valid multipolygon is accepted` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `MultiPolygon`, `_source_parcels`, `normalize_cadastre_parcels`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_null_and_empty_geometry_are_preserved_as_invalid`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `geometry`.
+
+**Setup**
+
+```python
+if geometry is None:
+        assert normalized.geometry.isna().iloc[0]
+    else:
+        assert normalized.geometry.is_empty.iloc[0]
+```
+
+**Action**
+
+```python
+normalized = normalize_cadastre_parcels(_source_parcels([geometry]))
+```
+
+**Expected result**
+
+```python
+assert normalized.loc[0, "geometry_status"] == "INVALID"
+assert pd.isna(normalized.loc[0, "area_m2"])
+```
+
+**Regression protected**
+
+Pins true-null handling and prevents textual or malformed null-like values from changing the contract.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_null_and_empty_geometry_are_preserved_as_invalid(geometry: object) -> None:
+    normalized = normalize_cadastre_parcels(_source_parcels([geometry]))
+
+    assert normalized.loc[0, "geometry_status"] == "INVALID"
+    assert pd.isna(normalized.loc[0, "area_m2"])
+    if geometry is None:
+        assert normalized.geometry.isna().iloc[0]
+    else:
+        assert normalized.geometry.is_empty.iloc[0]
 ```
-
-**Purpose**
-
-Protects the `null and empty geometry are preserved as invalid` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `geometry`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `normalized` from `normalize_cadastre_parcels(_source_parcels([geometry]))`.
-
-**Action**
-
-- Calls `Polygon`, `_source_parcels`, `normalize_cadastre_parcels`, `normalized.geometry.isna`, `pd.isna`.
-
-**Expected result**
-
-- Direct assertions: `assert normalized.loc[0, 'geometry_status'] == 'INVALID'`; `assert pd.isna(normalized.loc[0, 'area_m2'])`; `assert normalized.geometry.isna().iloc[0]`; `assert normalized.geometry.is_empty.iloc[0]`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `null and empty geometry are preserved as invalid` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `Polygon`, `_source_parcels`, `normalize_cadastre_parcels`, `normalized.geometry.isna`, `pd.isna`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_normalization_does_not_mutate_input`
 
-**Signature**
-
-```python
-def test_normalization_does_not_mutate_input(valid_polygon: Polygon) -> None:
-```
-
 **Purpose**
 
-Protects the `normalization does not mutate input` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `valid_polygon` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: `valid_polygon`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `source` from `_source_parcels([valid_polygon])`.
-- Computes `before` from `deepcopy(source)`.
+```python
+source = _source_parcels([valid_polygon])
+before = deepcopy(source)
+assert_geodataframe_equal(source, before)
+```
 
 **Action**
 
-- Calls `_source_parcels`, `deepcopy`, `normalize_cadastre_parcels`.
+```python
+normalize_cadastre_parcels(source)
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: none.
+```python
+# Completion without an exception is the asserted outcome.
+```
 
 **Regression protected**
 
-- Protects the exact `normalization does not mutate input` contract against a future change that would violate these assertions or controlled-failure expectations.
+Pins the exact framework interaction and outcome reproduced in the complete test source.
 
 **Test boundary**
 
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
 
-**Calls**
+**Complete test implementation**
 
-- `_source_parcels`, `assert_geodataframe_equal`, `deepcopy`, `normalize_cadastre_parcels`.
+```python
+def test_normalization_does_not_mutate_input(valid_polygon: Polygon) -> None:
+    source = _source_parcels([valid_polygon])
+    before = deepcopy(source)
 
-**Does NOT prove**
+    normalize_cadastre_parcels(source)
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    assert_geodataframe_equal(source, before)
+```
 
 ### `test_every_cadastral_identity_field_requires_an_exact_nonempty_string`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `valid_polygon` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: `column`, `value`.
+
+**Setup**
+
+```python
+source = _source_parcels([valid_polygon])
+source[column] = source[column].astype(object)
+source.loc[0, column] = value
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(CadastreNormalizationError, match=column):
+        normalize_cadastre_parcels(source)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_every_cadastral_identity_field_requires_an_exact_nonempty_string(
@@ -821,189 +963,155 @@ def test_every_cadastral_identity_field_requires_an_exact_nonempty_string(
     column: str,
     value: object,
 ) -> None:
+    source = _source_parcels([valid_polygon])
+    source[column] = source[column].astype(object)
+    source.loc[0, column] = value
+
+    with pytest.raises(CadastreNormalizationError, match=column):
+        normalize_cadastre_parcels(source)
 ```
-
-**Purpose**
-
-Protects the `every cadastral identity field requires an exact nonempty string` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `valid_polygon`, `column`, `value`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `source` from `_source_parcels([valid_polygon])`.
-- Computes `source[column]` from `source[column].astype(object)`.
-- Computes `source.loc[0, column]` from `value`.
-- Enters managed context(s) `pytest.raises(CadastreNormalizationError, match=column)` and executes: Calls `normalize_cadastre_parcels(source)` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_parcels`, `normalize_cadastre_parcels`, `source[column].astype`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(CadastreNormalizationError, match=column): normalize_cadastre_parcels(source)`.
-
-**Regression protected**
-
-- Protects the exact `every cadastral identity field requires an exact nonempty string` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_parcels`, `normalize_cadastre_parcels`, `pytest.mark.parametrize`, `pytest.raises`, `source[column].astype`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_commune_requires_canonical_french_insee_identity`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `valid_polygon` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: `commune`.
+
+**Setup**
+
+```python
+source = _source_parcels([valid_polygon])
+source.loc[0, "commune"] = commune
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(CadastreNormalizationError, match="commune"):
+        normalize_cadastre_parcels(source)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_commune_requires_canonical_french_insee_identity(
     valid_polygon: Polygon,
     commune: str,
 ) -> None:
+    source = _source_parcels([valid_polygon])
+    source.loc[0, "commune"] = commune
+
+    with pytest.raises(CadastreNormalizationError, match="commune"):
+        normalize_cadastre_parcels(source)
 ```
-
-**Purpose**
-
-Protects the `commune requires canonical french insee identity` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `valid_polygon`, `commune`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source` from `_source_parcels([valid_polygon])`.
-- Computes `source.loc[0, 'commune']` from `commune`.
-- Enters managed context(s) `pytest.raises(CadastreNormalizationError, match='commune')` and executes: Calls `normalize_cadastre_parcels(source)` for its validation or side effect.
-
-**Action**
-
-- Calls `_source_parcels`, `normalize_cadastre_parcels`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(CadastreNormalizationError, match='commune'): normalize_cadastre_parcels(source)`.
-
-**Regression protected**
-
-- Protects the exact `commune requires canonical french insee identity` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_parcels`, `normalize_cadastre_parcels`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_commune_accepts_canonical_french_insee_identity`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `valid_polygon` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: `commune`.
+
+**Setup**
+
+```python
+source = _source_parcels([valid_polygon])
+source.loc[0, "commune"] = commune
+```
+
+**Action**
+
+```python
+result = normalize_cadastre_parcels(source)
+```
+
+**Expected result**
+
+```python
+assert result.loc[0, "commune_code"] == commune
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_commune_accepts_canonical_french_insee_identity(
     valid_polygon: Polygon,
     commune: str,
 ) -> None:
+    source = _source_parcels([valid_polygon])
+    source.loc[0, "commune"] = commune
+
+    result = normalize_cadastre_parcels(source)
+
+    assert result.loc[0, "commune_code"] == commune
 ```
 
-**Purpose**
-
-Protects the `commune accepts canonical french insee identity` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `valid_polygon`, `commune`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source` from `_source_parcels([valid_polygon])`.
-- Computes `source.loc[0, 'commune']` from `commune`.
-- Computes `result` from `normalize_cadastre_parcels(source)`.
-
-**Action**
-
-- Calls `_source_parcels`, `normalize_cadastre_parcels`.
-
-**Expected result**
-
-- Direct assertions: `assert result.loc[0, 'commune_code'] == commune`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `commune accepts canonical french insee identity` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_source_parcels`, `normalize_cadastre_parcels`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `arpente` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `commune` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `commune_code` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `contenance` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `created` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `id` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `numero` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `prefixe` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `section` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `updated` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `test` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the test flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -1011,8 +1119,8 @@ This file contributes to LandScout's `test` evidence flow as described by its pu
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

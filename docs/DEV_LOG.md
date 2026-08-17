@@ -2,11 +2,30 @@
 
 ## Current project state
 
-- Current phase: Cross-stage source-trust and policy-integrity hardening
-- Latest completed step: STEP 7F.1A.3
+- Current phase: Technical-reference fidelity correction
+- Latest completed step: STEP 7F.1A.3.1
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: independent review of STEP 7F.1A.3; no functional step selected
+- Next step waiting for review: independent review of STEP 7F.1A.3.1; no functional step selected
+
+## STEP 7F.1A.3.1 — Rebuild documentation fidelity from source semantics
+
+- Status: Complete. This documentation-only correction re-audited all 100 tracked-file companions and all 15 cross-cutting documents against the actual implementation, constants, aliases, models, validators, exports, callers, tests, and checked-in configuration. No production, test, configuration, project-metadata, or dependency file changed.
+- Contract taxonomy: Python constants, type aliases and closed domains, Pydantic/dataclass fields, frame columns, JSON/GeoJSON keys, mapping keys, configuration leaves, status values, filesystem metadata, and package exports are now documented as separate categories. The audit removed 113 prior enum/domain values from false frame-column classification and leaves zero current enum-as-column conflicts.
+- Frame contracts: 93 canonical/source-reviewed frame schemas covering 1,178 ordered column-contract rows were audited. Ninety-one mapping-derived output columns and 16 pass-through schema contracts were recovered from mappings, constructors, schema expansions, copies, joins, suffixes, and validators. Tables state the established dtype/nullability/domain and distinguish source fact, derived geometry fact, lineage, proxy evidence, policy configuration/result, diagnostic, and unresolved evidence.
+- Cadastre correction: the normalized parcel contract explicitly lists all 12 columns from `parcel_id` through active `geometry`; source-to-output mappings, true null behavior, `VALID`/`INVALID`, `area_m2`, row/index preservation, shape suffixes, area rejection schemas, enabled/disabled shape screening, and policy metadata are documented. Cross-cutting documents now state that `load_cadastre_parcels` returns parsed source attributes plus geometry and adds no provider/URL/timestamp/size/SHA lineage columns; normalization therefore propagates no download lineage.
+- Python contracts: 59 meaningful aliases, 412 constants, 20 meaningful dunder declarations, 227 class/model/dataclass contracts, and 1,123 fields were re-audited. Exact `__all__` surfaces and origin modules are recorded for package initializers; modules without `__all__` no longer receive a generic export claim. `landscout.__version__ = "0.1.0"` is documented separately from packaging metadata. Fourteen standard-library/third-party import classifications were corrected.
+- Configuration contracts: all 11 YAML files were re-audited, with 1,167 exact path/value/model/domain/strictness/nullability/cross-field/unit/consumer constraints recorded. Dynamic consumers include the road policy path built by `road_vehicle_proxy_policy.py` and the BESS profile resolved through `ProfileReference.path`.
+- Test contracts: all 1,258 `test_*` functions and 13 actual pytest fixtures are documented. Five hundred sixty-two parametrized arguments are distinguished from fixture injection. Callback, property, decorator, and framework consumption is recorded separately from direct calls; exact setup/action/expected result and source implementation accompany every regression purpose, including DNS rebinding, recovery preservation, physical alternate layers, coordinated artifact mutation, and planning semantics.
+- Algorithm/source fidelity: every material function/method includes its complete exact signature, every observed return expression without truncation, explicit guards/raises, complete source-ordered implementation, categorized side effects, interfaces, and business boundary. The final audit found zero omitted-statement placeholders, zero known truncation markers, zero false generic `__all__` claims, zero missing symbols/tests/aliases/constants/exports, and zero Markdown fence or conflict-marker defects.
+- Manual review: complete representative companions were compared with source/tests for root metadata, configuration, common, Geo/GIS, Cadastre, RTE/ODRÉ, IGN, GPU, INPN, Cadastre stages, grid, road, written planning, CNIG planning, feature-policy application/aggregation, and safe-HTTPS tests. All 15 architecture, flow, trust, GIS, cache, pipeline, testing, glossary, change-impact, index, and reading-guide documents were then reread against source rather than against companions alone.
+- Source/SHA audit: exactly 100 companions exist for 100 tracked files outside `docs/code/**`; there are zero missing, duplicate, or extra companions and zero source SHA256 mismatches. The final independent audit also found zero undocumented Python symbols, aliases, dunders, exports, tests, fixtures, parameterized arguments, mappings, or canonical columns.
+- Validation: the default Windows user temp root was unreadable in the managed environment, so that attempt produced setup-only `PermissionError` failures. The unchanged complete suite was then run with a repository-local pytest base temp and passed 2,842 tests with 4 expected geometry/CRS warnings in 650.96 seconds. Repository Ruff passed; mypy reported no issues in 45 source files; `uv lock --check` resolved 48 packages; `uv pip check` verified 49 compatible installed packages; and `git diff --check` passed.
+- Boundary: no source acquisition, cache, geometry, policy, planning, road, grid, Cadastre, environment, scoring, ranking, parcel decision, ownership, export, legal, or engineering behavior changed.
+
+### CODE FOLLOW-UP OBSERVATIONS
+
+- `load_cadastre_parcels` validates the exact supplied `CadastreDownload` type, path, filename, positive size, lowercase SHA256, current physical bytes, gzip validity, post-read byte stability, and polygonal parsed frame. Its local envelope validator currently accepts either an `http` or `https` URL scheme and does not independently re-pin `cadastre.data.gouv.fr`. The downloader constructs and safely acquires the official HTTPS URL, but an independently forged loader envelope is not host-pinned by the loader itself. This observation is documented only; no source behavior was changed in this ticket.
 
 ## STEP 7F.1A.3 — Build complete living code documentation
 

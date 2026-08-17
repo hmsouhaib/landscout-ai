@@ -4,9 +4,9 @@
 
 - Repository path: `src/landscout/common/planning_text.py`
 - File type: Python source
-- Primary responsibility: Normalizes planning text for deterministic matching while retaining mappings back to raw source spans.
-- Layer / domain: `internal common contract/utility` / `planning`
-- Public or internal role: Module symbols without a package re-export are internal unless imported directly by repository code.
+- Layer: internal common contract
+- Domain: planning
+- Responsibility: Normalizes planning text for deterministic matching while retaining mappings back to raw source spans.
 - Source SHA256: `1e4d6ec3de5914174eaa053c2c6afdf700ab00bfd6d96db98281a1991f7eae80`
 
 ## 1. Purpose
@@ -15,41 +15,82 @@ Normalizes planning text for deterministic matching while retaining mappings bac
 
 ## 2. Position in LandScout architecture
 
-This file is a `internal common contract/utility` artifact in the `planning` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **internal common contract** layer and the **planning** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `from __future__ import annotations` — required by the implementation paths and symbols documented below.
-- `import unicodedata` — required by the implementation paths and symbols documented below.
+- `from __future__ import annotations`
+- `import unicodedata`
 
-### Third-party
+### Third-party packages
 
-- None.
+- `None.`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- None.
+- `None.`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `SEARCH_NORMALIZATION_PROFILE` | `"fr_literal_v1"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_APOSTROPHES` | `frozenset("'’‘ʼ‛＇ꞌ")` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_DASHES` | `frozenset("-‐‑‒–—―−﹘﹣－")` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `_SPECIAL_EXPANSIONS` | `{"œ": "oe", "Œ": "oe", "æ": "ae", "Æ": "ae"}` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `SEARCH_NORMALIZATION_PROFILE`
+
+```python
+SEARCH_NORMALIZATION_PROFILE = "fr_literal_v1"
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `src/landscout/stages/index_planning_regulation.py::<module>` (property/attribute access), `src/landscout/stages/index_planning_regulation.py::_index_planning_regulation` (value argument/reference), `tests/unit/test_index_planning_regulation.py::<module>` (import/re-export), `tests/unit/test_interpret_bess_zoning.py::_index` (value argument/reference), `tests/unit/test_interpret_bess_zoning.py::<module>` (import/re-export), `tests/unit/test_structure_planning_regulation.py::_index` (value argument/reference), `tests/unit/test_structure_planning_regulation.py::<module>` (import/re-export).
+
+#### `_APOSTROPHES`
+
+```python
+_APOSTROPHES = frozenset("'’‘ʼ‛＇ꞌ")
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `_DASHES`
+
+```python
+_DASHES = frozenset("-‐‑‒–—―−﹘﹣－")
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `_SPECIAL_EXPANSIONS`
+
+```python
+_SPECIAL_EXPANSIONS = {"œ": "oe", "Œ": "oe", "æ": "ae", "Æ": "ae"}
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
-No class, model, or dataclass is declared in this file.
+No class/model/dataclass is declared.
 
 ## 6. Functions and methods
 
 ### `normalize_planning_search_text_with_mapping`
 
-**Signature**
+**Exact signature**
 
 ```python
 def normalize_planning_search_text_with_mapping(
@@ -61,59 +102,116 @@ def normalize_planning_search_text_with_mapping(
 
 Normalize literal-search text and map each output character to a raw span.
 
-**Inputs**
+**Return contract**
 
-- `value` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `tuple[str, tuple[tuple[int, int], ...]]`.
+- Every observed return expression is reproduced without truncation:
+```python
+(''.join(output), tuple(raw_spans))
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `tuple[str, tuple[tuple[int, int], ...]]`. Observed return expression(s): `(''.join(output), tuple(raw_spans))`.
-
-**Algorithm**
-
-1. Defines `output` with annotation `list[str]` from `[]`.
-2. Defines `raw_spans` with annotation `list[tuple[int, int]]` from `[]`.
-3. Defines `pending_space_span` with annotation `tuple[int, int] | None` from `None`.
-4. Defines `pending_ignored_start` with annotation `int | None` from `None`.
-5. Computes `raw_position` from `0`.
-6. Repeats the guarded body while `raw_position < len(value)` remains true.
-7. Returns `(''.join(output), tuple(raw_spans))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `raw_spans[-1]`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `''.join`, `_SPECIAL_EXPANSIONS.get`, `all`, `character.casefold`, `character.isspace`, `emitted.extend`, `len`, `output.append`, `raw_spans.append`, `tuple`, `unicodedata.combining`, `unicodedata.normalize`.
+- direct call or construction: `src/landscout/common/planning_text.py::normalize_planning_search_text` via `normalize_planning_search_text_with_mapping`.
+- property/attribute access: `src/landscout/stages/index_planning_regulation.py::<module>` via `planning_text.normalize_planning_search_text_with_mapping`.
+- import/re-export: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.common.planning_text import (
+    normalize_planning_search_text,
+    normalize_planning_search_text_with_mapping,
+    raw_context_from_spans,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `src/landscout/common/planning_text.py` — `normalize_planning_search_text`
+```python
+def normalize_planning_search_text_with_mapping(
+    value: str,
+) -> tuple[str, tuple[tuple[int, int], ...]]:
+    """Normalize literal-search text and map each output character to a raw span."""
 
-**Tests**
+    output: list[str] = []
+    raw_spans: list[tuple[int, int]] = []
+    pending_space_span: tuple[int, int] | None = None
+    pending_ignored_start: int | None = None
+    raw_position = 0
+    while raw_position < len(value):
+        raw_character = value[raw_position]
+        if raw_character == "\u00ad":
+            if raw_spans:
+                previous_start, _ = raw_spans[-1]
+                raw_spans[-1] = (previous_start, raw_position + 1)
+            if pending_ignored_start is None:
+                pending_ignored_start = raw_position
+            raw_position += 1
+            continue
+        raw_end = raw_position + 1
+        while raw_end < len(value) and unicodedata.combining(value[raw_end]):
+            raw_end += 1
+        cluster = value[raw_position:raw_end]
+        expanded = _SPECIAL_EXPANSIONS.get(raw_character, raw_character)
+        emitted: list[str] = []
+        for character in unicodedata.normalize("NFKD", expanded + cluster[1:]):
+            if unicodedata.combining(character):
+                continue
+            if character in _APOSTROPHES:
+                folded = "'"
+            elif character in _DASHES:
+                folded = "-"
+            else:
+                folded = character.casefold()
+            emitted.extend(folded)
+        if not emitted:
+            raw_position = raw_end
+            continue
+        if all(character.isspace() for character in emitted):
+            if output:
+                if pending_space_span is None:
+                    pending_space_span = (raw_position, raw_end)
+                else:
+                    pending_space_span = (pending_space_span[0], raw_end)
+            raw_position = raw_end
+            continue
+        if pending_space_span is not None:
+            output.append(" ")
+            raw_spans.append(pending_space_span)
+            pending_space_span = None
+        for normalized_character in emitted:
+            output.append(normalized_character)
+            raw_spans.append(
+                (
+                    pending_ignored_start
+                    if pending_ignored_start is not None
+                    else raw_position,
+                    raw_end,
+                )
+            )
+        pending_ignored_start = None
+        raw_position = raw_end
+    return "".join(output), tuple(raw_spans)
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `normalize_planning_search_text`
 
-**Signature**
+**Exact signature**
 
 ```python
 def normalize_planning_search_text(value: str) -> str:
@@ -123,57 +221,61 @@ def normalize_planning_search_text(value: str) -> str:
 
 Normalize text using the stable ``fr_literal_v1`` search profile.
 
-**Inputs**
+**Return contract**
 
-- `value` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+normalize_planning_search_text_with_mapping(value)[0]
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `str`. Observed return expression(s): `normalize_planning_search_text_with_mapping(value)[0]`.
-
-**Algorithm**
-
-1. Returns `normalize_planning_search_text_with_mapping(value)[0]`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `normalize_planning_search_text_with_mapping`.
+- property/attribute access: `src/landscout/stages/index_planning_regulation.py::<module>` via `planning_text.normalize_planning_search_text`.
+- import/re-export: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.common.planning_text import (
+    normalize_planning_search_text,
+    normalize_planning_search_text_with_mapping,
+    raw_context_from_spans,
+)`.
+- import/re-export: `tests/unit/test_index_planning_regulation.py::<module>` via `from landscout.common.planning_text import (
+    normalize_planning_search_text as _normalize_search_text,
+)`.
+- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break` via `normalize_planning_search_text`.
+- direct call or construction: `tests/unit/test_structure_planning_regulation.py::test_token_boundary_and_longest_match_policy` via `normalize_planning_search_text`.
+- import/re-export: `tests/unit/test_structure_planning_regulation.py::<module>` via `from landscout.common.planning_text import normalize_planning_search_text`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_index_planning_regulation.py` — `test_french_literal_normalization`
-- `tests/unit/test_structure_planning_regulation.py` — `test_equal_length_overlap_uses_configured_term_order_as_tie_break`
-- `tests/unit/test_structure_planning_regulation.py` — `test_token_boundary_and_longest_match_policy`
+```python
+def normalize_planning_search_text(value: str) -> str:
+    """Normalize text using the stable ``fr_literal_v1`` search profile."""
 
-**Tests**
+    return normalize_planning_search_text_with_mapping(value)[0]
+```
 
-- `tests/unit/test_index_planning_regulation.py::test_french_literal_normalization`
-- `tests/unit/test_structure_planning_regulation.py::test_equal_length_overlap_uses_configured_term_order_as_tie_break`
-- `tests/unit/test_structure_planning_regulation.py::test_token_boundary_and_longest_match_policy`
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
 ### `raw_context_from_spans`
 
-**Signature**
+**Exact signature**
 
 ```python
 def raw_context_from_spans(
@@ -188,87 +290,98 @@ def raw_context_from_spans(
 
 Return the exact raw substring covering a normalized-text range.
 
-**Inputs**
+**Return contract**
 
-- `raw_text` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `raw_spans` (`tuple[tuple[int, int], ...]`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `normalized_start` (`int`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `normalized_end` (`int`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `str`.
+- Every observed return expression is reproduced without truncation:
+```python
+raw_text[raw_start:raw_end]
 
-**Returns**
+''
+```
 
-- Declared return type: `str`. Observed return expression(s): `raw_text[raw_start:raw_end]`; `''`.
+**Validation and exceptions**
 
-**Algorithm**
-
-1. Checks `normalized_start >= normalized_end`. When true: Returns `''`.
-2. Computes `raw_start` from `raw_spans[normalized_start][0]`.
-3. Computes `raw_end` from `raw_spans[normalized_end - 1][1]`.
-4. Returns `raw_text[raw_start:raw_end]`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- No function calls.
+- property/attribute access: `src/landscout/stages/index_planning_regulation.py::<module>` via `planning_text.raw_context_from_spans`.
+- import/re-export: `src/landscout/stages/structure_planning_regulation.py::<module>` via `from landscout.common.planning_text import (
+    normalize_planning_search_text,
+    normalize_planning_search_text_with_mapping,
+    raw_context_from_spans,
+)`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-No direct repository caller found.
+```python
+def raw_context_from_spans(
+    raw_text: str,
+    raw_spans: tuple[tuple[int, int], ...],
+    normalized_start: int,
+    normalized_end: int,
+) -> str:
+    """Return the exact raw substring covering a normalized-text range."""
 
-**Tests**
+    if normalized_start >= normalized_end:
+        return ""
+    raw_start = raw_spans[normalized_start][0]
+    raw_end = raw_spans[normalized_end - 1][1]
+    return raw_text[raw_start:raw_end]
+```
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `planning` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - Planning facts and prechecks do not constitute legal advice, authorization, or prohibition.
 
+
 ## 7. Data contracts
 
-No DataFrame/GeoDataFrame column is referenced directly. Object and scalar contracts are documented through classes, parameters, returns, constants, and validators.
+No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
+
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `planning` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the planning flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -276,8 +389,8 @@ This file contributes to LandScout's `planning` evidence flow as described by it
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

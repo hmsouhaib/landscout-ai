@@ -4,9 +4,9 @@
 
 - Repository path: `tests/unit/test_filter_parcels.py`
 - File type: Python test
-- Primary responsibility: Provides complete unit and regression coverage for the `filter_parcels` contracts exercised in this file.
-- Layer / domain: `unit/regression test` / `test`
-- Public or internal role: Internal test support; not a production API.
+- Layer: unit/regression test
+- Domain: test
+- Responsibility: Provides complete unit and regression coverage for the `filter_parcels` contracts exercised in this file.
 - Source SHA256: `d2b7a4bd8e16d349973ac8c21c1609dada89ae0604c6723f72b997660c2eaf1a`
 
 ## 1. Purpose
@@ -15,242 +15,235 @@ Provides complete unit and regression coverage for the `filter_parcels` contract
 
 ## 2. Position in LandScout architecture
 
-This file is a `unit/regression test` artifact in the `test` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **unit/regression test** layer and the **test** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- None.
+- `None.`
 
-### Third-party
+### Third-party packages
 
-- `import geopandas as gpd` — required by the implementation paths and symbols documented below.
-- `import pandas as pd` — required by the implementation paths and symbols documented below.
-- `import pytest` — required by the implementation paths and symbols documented below.
-- `from shapely.geometry import Polygon` — required by the implementation paths and symbols documented below.
+- `import geopandas as gpd`
+- `import pandas as pd`
+- `import pytest`
+- `from shapely.geometry import Polygon`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout.config import ParcelConfig` — required by the implementation paths and symbols documented below.
-- `from landscout.stages.filter_parcels import ParcelFilterError, filter_parcels_by_area` — required by the implementation paths and symbols documented below.
+- `from landscout.config import ParcelConfig`
+- `from landscout.stages.filter_parcels import ParcelFilterError, filter_parcels_by_area`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-No module-level meaningful constant is defined. Literal domains enforced inside functions are documented with those functions.
+### A. Python constants
+
+No meaningful module constant is declared.
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
-No class, model, or dataclass is declared in this file.
+No class/model/dataclass is declared.
 
 ## 6. Functions and methods
 
-### `area_config`
+### `area_config` — pytest fixture
 
-**Signature**
+- Scope: `function` (decorator `pytest.fixture`).
+- Returned/yielded object expression(s): `ParcelConfig(min_area_m2=2000, max_area_m2=15000)`.
+- Tests requesting it by parameter injection: `test_minimum_boundary_is_included`, `test_maximum_boundary_is_included`, `test_rejected_parcel_has_expected_reason`, `test_no_parcel_disappears`, `test_missing_parcel_id_fails`, `test_null_parcel_id_fails`, `test_duplicate_parcel_id_fails`, `test_candidate_and_rejected_ids_do_not_overlap`, `test_exact_parcel_ids_are_preserved`, `test_valid_geometry_requires_strict_positive_finite_area`, `test_area_filter_requires_exact_non_empty_parcel_ids`, `test_area_filter_rejects_plain_dataframe`, `test_area_filter_rejects_duplicate_columns`, `test_area_filter_rejects_malformed_spatial_envelope`, `test_area_filter_rejects_noncanonical_geometry_status`.
+
+**Complete fixture implementation**
 
 ```python
 def area_config() -> ParcelConfig:
+    return ParcelConfig(min_area_m2=2000, max_area_m2=15000)
 ```
 
-**Purpose**
+### `parcels` — pytest fixture
 
-Implements area config according to the exact implementation and guards in this file.
+- Scope: `function` (decorator `pytest.fixture`).
+- Returned/yielded object expression(s): `gpd.GeoDataFrame({'parcel_id': ['at-minimum', 'at-maximum', 'below-minimum', 'above-maximum', 'invalid-geometry', 'unknown-area'], 'geometry_status': ['VALID', 'VALID', 'VALID', 'VALID', 'INVALID', 'INVALID'], 'area_m2': [2000.0, 15000.0, 1999.0, 15001.0, 5000.0, None], 'commune_code': ['31395'] * 6}, geometry=[geometry] * 6, crs='EPSG:4326')`.
+- Tests requesting it by parameter injection: `test_minimum_boundary_is_included`, `test_maximum_boundary_is_included`, `test_rejected_parcel_has_expected_reason`, `test_no_parcel_disappears`, `test_thresholds_come_from_config`, `test_missing_parcel_id_fails`, `test_null_parcel_id_fails`, `test_duplicate_parcel_id_fails`, `test_candidate_and_rejected_ids_do_not_overlap`, `test_exact_parcel_ids_are_preserved`, `test_valid_geometry_requires_strict_positive_finite_area`, `test_area_filter_requires_exact_non_empty_parcel_ids`, `test_area_filter_rejects_plain_dataframe`, `test_area_filter_rejects_duplicate_columns`, `test_area_filter_rejects_malformed_spatial_envelope`, `test_area_filter_rejects_noncanonical_geometry_status`.
 
-**Inputs**
-
-- No parameters.
-
-**Returns**
-
-- Declared return type: `ParcelConfig`. Observed return expression(s): `ParcelConfig(min_area_m2=2000, max_area_m2=15000)`.
-
-**Algorithm**
-
-1. Returns `ParcelConfig(min_area_m2=2000, max_area_m2=15000)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `ParcelConfig`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `parcels`
-
-**Signature**
+**Complete fixture implementation**
 
 ```python
 def parcels() -> gpd.GeoDataFrame:
+    geometry = Polygon([(2.0, 43.0), (2.1, 43.0), (2.1, 43.1), (2.0, 43.0)])
+    return gpd.GeoDataFrame(
+        {
+            "parcel_id": [
+                "at-minimum",
+                "at-maximum",
+                "below-minimum",
+                "above-maximum",
+                "invalid-geometry",
+                "unknown-area",
+            ],
+            "geometry_status": [
+                "VALID",
+                "VALID",
+                "VALID",
+                "VALID",
+                "INVALID",
+                "INVALID",
+            ],
+            "area_m2": [2000.0, 15000.0, 1999.0, 15001.0, 5000.0, None],
+            "commune_code": ["31395"] * 6,
+        },
+        geometry=[geometry] * 6,
+        crs="EPSG:4326",
+    )
 ```
-
-**Purpose**
-
-Implements parcels according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- No parameters.
-
-**Returns**
-
-- Declared return type: `gpd.GeoDataFrame`. Observed return expression(s): `gpd.GeoDataFrame({'parcel_id': ['at-minimum', 'at-maximum', 'below-minimum', 'above-maximum', 'invalid-geometry', 'unknown-area'], 'geometry_status': ['VALID', 'VALID', 'VALID', 'VALID', 'INVALID', 'INVALID'], 'area_m2': [2000.0, 15000.0, 1999.0, 15001.0, 5000.0, None], 'commune_code': ['31395'] * 6}, geometry=[geometry] * 6, crs='EPSG:4326')`.
-
-**Algorithm**
-
-1. Computes `geometry` from `Polygon([(2.0, 43.0), (2.1, 43.0), (2.1, 43.1), (2.0, 43.0)])`.
-2. Returns `gpd.GeoDataFrame({'parcel_id': ['at-minimum', 'at-maximum', 'below-minimum', 'above-maximum', 'invalid-geometry', 'unknown-area'], 'geometry_status': ['VALID', 'VALID', 'VALID', 'VALID', 'INVALID', 'INVALID'], 'area_m2': [2000.0, 15000.0, 1999.0, 15001.0, 5000.0, None], 'commune_code': ['31395'] * 6}, geometry=[geometry] * 6, crs='EPSG:4326')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `Polygon`, `gpd.GeoDataFrame`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_minimum_boundary_is_included`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`), `area_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+candidates, _ = filter_parcels_by_area(parcels, area_config)
+```
+
+**Expected result**
+
+```python
+assert "at-minimum" in set(candidates["parcel_id"])
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_minimum_boundary_is_included(
     parcels: gpd.GeoDataFrame, area_config: ParcelConfig
 ) -> None:
+    candidates, _ = filter_parcels_by_area(parcels, area_config)
+
+    assert "at-minimum" in set(candidates["parcel_id"])
 ```
-
-**Purpose**
-
-Protects the `minimum boundary is included` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `area_config`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `(candidates, _)` from `filter_parcels_by_area(parcels, area_config)`.
-
-**Action**
-
-- Calls `filter_parcels_by_area`.
-
-**Expected result**
-
-- Direct assertions: `assert 'at-minimum' in set(candidates['parcel_id'])`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `minimum boundary is included` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `filter_parcels_by_area`, `set`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_maximum_boundary_is_included`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`), `area_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+candidates, _ = filter_parcels_by_area(parcels, area_config)
+```
+
+**Expected result**
+
+```python
+assert "at-maximum" in set(candidates["parcel_id"])
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_maximum_boundary_is_included(
     parcels: gpd.GeoDataFrame, area_config: ParcelConfig
 ) -> None:
+    candidates, _ = filter_parcels_by_area(parcels, area_config)
+
+    assert "at-maximum" in set(candidates["parcel_id"])
 ```
-
-**Purpose**
-
-Protects the `maximum boundary is included` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `area_config`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `(candidates, _)` from `filter_parcels_by_area(parcels, area_config)`.
-
-**Action**
-
-- Calls `filter_parcels_by_area`.
-
-**Expected result**
-
-- Direct assertions: `assert 'at-maximum' in set(candidates['parcel_id'])`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `maximum boundary is included` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `filter_parcels_by_area`, `set`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_rejected_parcel_has_expected_reason`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`), `area_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: `expected_reason`, `parcel_id`.
+
+**Setup**
+
+```python
+row = rejected.loc[rejected["parcel_id"] == parcel_id].iloc[0]
+```
+
+**Action**
+
+```python
+_, rejected = filter_parcels_by_area(parcels, area_config)
+```
+
+**Expected result**
+
+```python
+assert row["rejection_reason"] == expected_reason
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_rejected_parcel_has_expected_reason(
@@ -259,367 +252,413 @@ def test_rejected_parcel_has_expected_reason(
     parcel_id: str,
     expected_reason: str,
 ) -> None:
+    _, rejected = filter_parcels_by_area(parcels, area_config)
+
+    row = rejected.loc[rejected["parcel_id"] == parcel_id].iloc[0]
+    assert row["rejection_reason"] == expected_reason
 ```
-
-**Purpose**
-
-Protects the `rejected parcel has expected reason` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `area_config`, `parcel_id`, `expected_reason`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `(_, rejected)` from `filter_parcels_by_area(parcels, area_config)`.
-- Computes `row` from `rejected.loc[rejected['parcel_id'] == parcel_id].iloc[0]`.
-
-**Action**
-
-- Calls `filter_parcels_by_area`.
-
-**Expected result**
-
-- Direct assertions: `assert row['rejection_reason'] == expected_reason`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `rejected parcel has expected reason` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `filter_parcels_by_area`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_no_parcel_disappears`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`), `area_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+candidates, rejected = filter_parcels_by_area(parcels, area_config)
+```
+
+**Expected result**
+
+```python
+assert len(parcels) == len(candidates) + len(rejected)
+assert set(parcels["parcel_id"]) == set(candidates["parcel_id"]) | set(
+        rejected["parcel_id"]
+    )
+assert candidates.crs == parcels.crs
+assert rejected.crs == parcels.crs
+```
+
+**Regression protected**
+
+Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_no_parcel_disappears(
     parcels: gpd.GeoDataFrame, area_config: ParcelConfig
 ) -> None:
+    candidates, rejected = filter_parcels_by_area(parcels, area_config)
+
+    assert len(parcels) == len(candidates) + len(rejected)
+    assert set(parcels["parcel_id"]) == set(candidates["parcel_id"]) | set(
+        rejected["parcel_id"]
+    )
+    assert candidates.crs == parcels.crs
+    assert rejected.crs == parcels.crs
 ```
-
-**Purpose**
-
-Protects the `no parcel disappears` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `area_config`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `(candidates, rejected)` from `filter_parcels_by_area(parcels, area_config)`.
-
-**Action**
-
-- Calls `filter_parcels_by_area`.
-
-**Expected result**
-
-- Direct assertions: `assert len(parcels) == len(candidates) + len(rejected)`; `assert set(parcels['parcel_id']) == set(candidates['parcel_id']) | set(rejected['parcel_id'])`; `assert candidates.crs == parcels.crs`; `assert rejected.crs == parcels.crs`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `no parcel disappears` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `filter_parcels_by_area`, `len`, `set`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_thresholds_come_from_config`
 
-**Signature**
-
-```python
-def test_thresholds_come_from_config(parcels: gpd.GeoDataFrame) -> None:
-```
-
 **Purpose**
 
-Protects the `thresholds come from config` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: `parcels`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `custom_config` from `ParcelConfig(min_area_m2=1999, max_area_m2=2000)`.
-- Computes `(candidates, _)` from `filter_parcels_by_area(parcels, custom_config)`.
+```python
+# No separate setup statement.
+```
 
 **Action**
 
-- Calls `ParcelConfig`, `filter_parcels_by_area`.
+```python
+custom_config = ParcelConfig(min_area_m2=1999, max_area_m2=2000)
+candidates, _ = filter_parcels_by_area(parcels, custom_config)
+```
 
 **Expected result**
 
-- Direct assertions: `assert set(candidates['parcel_id']) == {'below-minimum', 'at-minimum'}`.
-- Expected exception contexts: none.
+```python
+assert set(candidates["parcel_id"]) == {"below-minimum", "at-minimum"}
+```
 
 **Regression protected**
 
-- Protects the exact `thresholds come from config` contract against a future change that would violate these assertions or controlled-failure expectations.
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
 
-**Calls**
+**Complete test implementation**
 
-- `ParcelConfig`, `filter_parcels_by_area`, `set`.
+```python
+def test_thresholds_come_from_config(parcels: gpd.GeoDataFrame) -> None:
+    custom_config = ParcelConfig(min_area_m2=1999, max_area_m2=2000)
 
-**Does NOT prove**
+    candidates, _ = filter_parcels_by_area(parcels, custom_config)
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    assert set(candidates["parcel_id"]) == {"below-minimum", "at-minimum"}
+```
 
 ### `test_missing_parcel_id_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`), `area_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+without_id = parcels.drop(columns=["parcel_id"])
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ParcelFilterError, match="parcel_id"):
+        filter_parcels_by_area(without_id, area_config)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_missing_parcel_id_fails(
     parcels: gpd.GeoDataFrame, area_config: ParcelConfig
 ) -> None:
+    without_id = parcels.drop(columns=["parcel_id"])
+
+    with pytest.raises(ParcelFilterError, match="parcel_id"):
+        filter_parcels_by_area(without_id, area_config)
 ```
-
-**Purpose**
-
-Protects the `missing parcel id fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `area_config`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `without_id` from `parcels.drop(columns=['parcel_id'])`.
-- Enters managed context(s) `pytest.raises(ParcelFilterError, match='parcel_id')` and executes: Calls `filter_parcels_by_area(without_id, area_config)` for its validation or side effect.
-
-**Action**
-
-- Calls `filter_parcels_by_area`, `parcels.drop`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ParcelFilterError, match='parcel_id'): filter_parcels_by_area(without_id, area_config)`.
-
-**Regression protected**
-
-- Protects the exact `missing parcel id fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `filter_parcels_by_area`, `parcels.drop`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_null_parcel_id_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`), `area_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+with_null = parcels.copy()
+with_null.loc[0, "parcel_id"] = None
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ParcelFilterError, match="null"):
+        filter_parcels_by_area(with_null, area_config)
+```
+
+**Regression protected**
+
+Pins true-null handling and prevents textual or malformed null-like values from changing the contract.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_null_parcel_id_fails(
     parcels: gpd.GeoDataFrame, area_config: ParcelConfig
 ) -> None:
+    with_null = parcels.copy()
+    with_null.loc[0, "parcel_id"] = None
+
+    with pytest.raises(ParcelFilterError, match="null"):
+        filter_parcels_by_area(with_null, area_config)
 ```
-
-**Purpose**
-
-Protects the `null parcel id fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `area_config`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `with_null` from `parcels.copy()`.
-- Computes `with_null.loc[0, 'parcel_id']` from `None`.
-- Enters managed context(s) `pytest.raises(ParcelFilterError, match='null')` and executes: Calls `filter_parcels_by_area(with_null, area_config)` for its validation or side effect.
-
-**Action**
-
-- Calls `filter_parcels_by_area`, `parcels.copy`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ParcelFilterError, match='null'): filter_parcels_by_area(with_null, area_config)`.
-
-**Regression protected**
-
-- Protects the exact `null parcel id fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `filter_parcels_by_area`, `parcels.copy`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_duplicate_parcel_id_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`), `area_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+with_duplicate = parcels.copy()
+with_duplicate.loc[1, "parcel_id"] = with_duplicate.loc[0, "parcel_id"]
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ParcelFilterError, match="unique"):
+        filter_parcels_by_area(with_duplicate, area_config)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_duplicate_parcel_id_fails(
     parcels: gpd.GeoDataFrame, area_config: ParcelConfig
 ) -> None:
+    with_duplicate = parcels.copy()
+    with_duplicate.loc[1, "parcel_id"] = with_duplicate.loc[0, "parcel_id"]
+
+    with pytest.raises(ParcelFilterError, match="unique"):
+        filter_parcels_by_area(with_duplicate, area_config)
 ```
-
-**Purpose**
-
-Protects the `duplicate parcel id fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `area_config`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `with_duplicate` from `parcels.copy()`.
-- Computes `with_duplicate.loc[1, 'parcel_id']` from `with_duplicate.loc[0, 'parcel_id']`.
-- Enters managed context(s) `pytest.raises(ParcelFilterError, match='unique')` and executes: Calls `filter_parcels_by_area(with_duplicate, area_config)` for its validation or side effect.
-
-**Action**
-
-- Calls `filter_parcels_by_area`, `parcels.copy`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ParcelFilterError, match='unique'): filter_parcels_by_area(with_duplicate, area_config)`.
-
-**Regression protected**
-
-- Protects the exact `duplicate parcel id fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `filter_parcels_by_area`, `parcels.copy`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_candidate_and_rejected_ids_do_not_overlap`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`), `area_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+candidates, rejected = filter_parcels_by_area(parcels, area_config)
+```
+
+**Expected result**
+
+```python
+assert set(candidates["parcel_id"]).isdisjoint(set(rejected["parcel_id"]))
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_candidate_and_rejected_ids_do_not_overlap(
     parcels: gpd.GeoDataFrame, area_config: ParcelConfig
 ) -> None:
+    candidates, rejected = filter_parcels_by_area(parcels, area_config)
+
+    assert set(candidates["parcel_id"]).isdisjoint(set(rejected["parcel_id"]))
 ```
-
-**Purpose**
-
-Protects the `candidate and rejected ids do not overlap` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `area_config`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `(candidates, rejected)` from `filter_parcels_by_area(parcels, area_config)`.
-
-**Action**
-
-- Calls `filter_parcels_by_area`.
-
-**Expected result**
-
-- Direct assertions: `assert set(candidates['parcel_id']).isdisjoint(set(rejected['parcel_id']))`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `candidate and rejected ids do not overlap` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `filter_parcels_by_area`, `set`, `set(candidates['parcel_id']).isdisjoint`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_exact_parcel_ids_are_preserved`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`), `area_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+output_ids = list(candidates["parcel_id"]) + list(rejected["parcel_id"])
+```
+
+**Action**
+
+```python
+candidates, rejected = filter_parcels_by_area(parcels, area_config)
+```
+
+**Expected result**
+
+```python
+assert len(output_ids) == len(set(output_ids))
+assert set(output_ids) == set(parcels["parcel_id"])
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_exact_parcel_ids_are_preserved(
     parcels: gpd.GeoDataFrame, area_config: ParcelConfig
 ) -> None:
+    candidates, rejected = filter_parcels_by_area(parcels, area_config)
+
+    output_ids = list(candidates["parcel_id"]) + list(rejected["parcel_id"])
+    assert len(output_ids) == len(set(output_ids))
+    assert set(output_ids) == set(parcels["parcel_id"])
 ```
-
-**Purpose**
-
-Protects the `exact parcel ids are preserved` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `area_config`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `(candidates, rejected)` from `filter_parcels_by_area(parcels, area_config)`.
-- Computes `output_ids` from `list(candidates['parcel_id']) + list(rejected['parcel_id'])`.
-
-**Action**
-
-- Calls `filter_parcels_by_area`.
-
-**Expected result**
-
-- Direct assertions: `assert len(output_ids) == len(set(output_ids))`; `assert set(output_ids) == set(parcels['parcel_id'])`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `exact parcel ids are preserved` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `filter_parcels_by_area`, `len`, `list`, `set`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_valid_geometry_requires_strict_positive_finite_area`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`), `area_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: `area`.
+
+**Setup**
+
+```python
+invalid = parcels.copy()
+invalid["area_m2"] = invalid["area_m2"].astype(object)
+invalid.loc[0, "area_m2"] = area
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ParcelFilterError, match="strict positive finite numeric"):
+        filter_parcels_by_area(invalid, area_config)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_valid_geometry_requires_strict_positive_finite_area(
@@ -627,49 +666,55 @@ def test_valid_geometry_requires_strict_positive_finite_area(
     area_config: ParcelConfig,
     area: object,
 ) -> None:
+    invalid = parcels.copy()
+    invalid["area_m2"] = invalid["area_m2"].astype(object)
+    invalid.loc[0, "area_m2"] = area
+
+    with pytest.raises(ParcelFilterError, match="strict positive finite numeric"):
+        filter_parcels_by_area(invalid, area_config)
 ```
-
-**Purpose**
-
-Protects the `valid geometry requires strict positive finite area` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `area_config`, `area`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `invalid` from `parcels.copy()`.
-- Computes `invalid['area_m2']` from `invalid['area_m2'].astype(object)`.
-- Computes `invalid.loc[0, 'area_m2']` from `area`.
-- Enters managed context(s) `pytest.raises(ParcelFilterError, match='strict positive finite numeric')` and executes: Calls `filter_parcels_by_area(invalid, area_config)` for its validation or side effect.
-
-**Action**
-
-- Calls `filter_parcels_by_area`, `float`, `invalid['area_m2'].astype`, `parcels.copy`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ParcelFilterError, match='strict positive finite numeric'): filter_parcels_by_area(invalid, area_config)`.
-
-**Regression protected**
-
-- Protects the exact `valid geometry requires strict positive finite area` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `filter_parcels_by_area`, `float`, `invalid['area_m2'].astype`, `parcels.copy`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_area_filter_requires_exact_non_empty_parcel_ids`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`), `area_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: `parcel_id`.
+
+**Setup**
+
+```python
+invalid = parcels.copy()
+invalid["parcel_id"] = invalid["parcel_id"].astype(object)
+invalid.loc[0, "parcel_id"] = parcel_id
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ParcelFilterError, match="exact non-empty strings"):
+        filter_parcels_by_area(invalid, area_config)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_area_filter_requires_exact_non_empty_parcel_ids(
@@ -677,141 +722,167 @@ def test_area_filter_requires_exact_non_empty_parcel_ids(
     area_config: ParcelConfig,
     parcel_id: object,
 ) -> None:
+    invalid = parcels.copy()
+    invalid["parcel_id"] = invalid["parcel_id"].astype(object)
+    invalid.loc[0, "parcel_id"] = parcel_id
+
+    with pytest.raises(ParcelFilterError, match="exact non-empty strings"):
+        filter_parcels_by_area(invalid, area_config)
 ```
-
-**Purpose**
-
-Protects the `area filter requires exact non empty parcel ids` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `area_config`, `parcel_id`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `invalid` from `parcels.copy()`.
-- Computes `invalid['parcel_id']` from `invalid['parcel_id'].astype(object)`.
-- Computes `invalid.loc[0, 'parcel_id']` from `parcel_id`.
-- Enters managed context(s) `pytest.raises(ParcelFilterError, match='exact non-empty strings')` and executes: Calls `filter_parcels_by_area(invalid, area_config)` for its validation or side effect.
-
-**Action**
-
-- Calls `filter_parcels_by_area`, `invalid['parcel_id'].astype`, `parcels.copy`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ParcelFilterError, match='exact non-empty strings'): filter_parcels_by_area(invalid, area_config)`.
-
-**Regression protected**
-
-- Protects the exact `area filter requires exact non empty parcel ids` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `filter_parcels_by_area`, `invalid['parcel_id'].astype`, `parcels.copy`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_area_filter_rejects_plain_dataframe`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`), `area_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+plain = pd.DataFrame(parcels)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ParcelFilterError, match="GeoDataFrame"):
+        filter_parcels_by_area(plain, area_config)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_area_filter_rejects_plain_dataframe(
     parcels: gpd.GeoDataFrame, area_config: ParcelConfig
 ) -> None:
+    plain = pd.DataFrame(parcels)
+
+    with pytest.raises(ParcelFilterError, match="GeoDataFrame"):
+        filter_parcels_by_area(plain, area_config)
 ```
-
-**Purpose**
-
-Protects the `area filter rejects plain dataframe` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `area_config`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `plain` from `pd.DataFrame(parcels)`.
-- Enters managed context(s) `pytest.raises(ParcelFilterError, match='GeoDataFrame')` and executes: Calls `filter_parcels_by_area(plain, area_config)` for its validation or side effect.
-
-**Action**
-
-- Calls `filter_parcels_by_area`, `pd.DataFrame`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ParcelFilterError, match='GeoDataFrame'): filter_parcels_by_area(plain, area_config)`.
-
-**Regression protected**
-
-- Protects the exact `area filter rejects plain dataframe` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `filter_parcels_by_area`, `pd.DataFrame`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_area_filter_rejects_duplicate_columns`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`), `area_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+duplicate = gpd.GeoDataFrame(
+        pd.concat([parcels, parcels[["parcel_id"]]], axis=1),
+        geometry="geometry",
+        crs=parcels.crs,
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ParcelFilterError, match="columns.*unique"):
+        filter_parcels_by_area(duplicate, area_config)
+```
+
+**Regression protected**
+
+Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_area_filter_rejects_duplicate_columns(
     parcels: gpd.GeoDataFrame, area_config: ParcelConfig
 ) -> None:
+    duplicate = gpd.GeoDataFrame(
+        pd.concat([parcels, parcels[["parcel_id"]]], axis=1),
+        geometry="geometry",
+        crs=parcels.crs,
+    )
+
+    with pytest.raises(ParcelFilterError, match="columns.*unique"):
+        filter_parcels_by_area(duplicate, area_config)
 ```
-
-**Purpose**
-
-Protects the `area filter rejects duplicate columns` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `area_config`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `duplicate` from `gpd.GeoDataFrame(pd.concat([parcels, parcels[['parcel_id']]], axis=1), geometry='geometry', crs=parcels.crs)`.
-- Enters managed context(s) `pytest.raises(ParcelFilterError, match='columns.*unique')` and executes: Calls `filter_parcels_by_area(duplicate, area_config)` for its validation or side effect.
-
-**Action**
-
-- Calls `filter_parcels_by_area`, `gpd.GeoDataFrame`, `pd.concat`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ParcelFilterError, match='columns.*unique'): filter_parcels_by_area(duplicate, area_config)`.
-
-**Regression protected**
-
-- Protects the exact `area filter rejects duplicate columns` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `filter_parcels_by_area`, `gpd.GeoDataFrame`, `pd.concat`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_area_filter_rejects_malformed_spatial_envelope`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`), `area_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: `mode`.
+
+**Setup**
+
+```python
+invalid = parcels.copy()
+if mode == "missing_geometry":
+        invalid = invalid.drop(columns="geometry")
+    elif mode == "missing_crs":
+        invalid = invalid.set_crs(None, allow_override=True)
+    else:
+        invalid.geometry.array._crs = "not-a-crs"
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ParcelFilterError, match="geometry|CRS"):
+        filter_parcels_by_area(invalid, area_config)
+```
+
+**Regression protected**
+
+Prevents geometry calculations or source acceptance under an unapproved/missing coordinate reference system.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_area_filter_rejects_malformed_spatial_envelope(
@@ -819,47 +890,59 @@ def test_area_filter_rejects_malformed_spatial_envelope(
     area_config: ParcelConfig,
     mode: str,
 ) -> None:
+    invalid = parcels.copy()
+    if mode == "missing_geometry":
+        invalid = invalid.drop(columns="geometry")
+    elif mode == "missing_crs":
+        invalid = invalid.set_crs(None, allow_override=True)
+    else:
+        invalid.geometry.array._crs = "not-a-crs"
+
+    with pytest.raises(ParcelFilterError, match="geometry|CRS"):
+        filter_parcels_by_area(invalid, area_config)
 ```
-
-**Purpose**
-
-Protects the `area filter rejects malformed spatial envelope` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `area_config`, `mode`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `invalid` from `parcels.copy()`.
-- Enters managed context(s) `pytest.raises(ParcelFilterError, match='geometry|CRS')` and executes: Calls `filter_parcels_by_area(invalid, area_config)` for its validation or side effect.
-
-**Action**
-
-- Calls `filter_parcels_by_area`, `invalid.drop`, `invalid.set_crs`, `parcels.copy`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ParcelFilterError, match='geometry|CRS'): filter_parcels_by_area(invalid, area_config)`.
-
-**Regression protected**
-
-- Protects the exact `area filter rejects malformed spatial envelope` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `filter_parcels_by_area`, `invalid.drop`, `invalid.set_crs`, `parcels.copy`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_area_filter_rejects_noncanonical_geometry_status`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `parcels` (local fixture, scope `function`), `area_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: `geometry_status`.
+
+**Setup**
+
+```python
+invalid = parcels.copy()
+invalid["geometry_status"] = invalid["geometry_status"].astype(object)
+invalid.loc[0, "geometry_status"] = geometry_status
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ParcelFilterError, match="geometry_status"):
+        filter_parcels_by_area(invalid, area_config)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_area_filter_rejects_noncanonical_geometry_status(
@@ -867,86 +950,49 @@ def test_area_filter_rejects_noncanonical_geometry_status(
     area_config: ParcelConfig,
     geometry_status: object,
 ) -> None:
+    invalid = parcels.copy()
+    invalid["geometry_status"] = invalid["geometry_status"].astype(object)
+    invalid.loc[0, "geometry_status"] = geometry_status
+
+    with pytest.raises(ParcelFilterError, match="geometry_status"):
+        filter_parcels_by_area(invalid, area_config)
 ```
 
-**Purpose**
-
-Protects the `area filter rejects noncanonical geometry status` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `parcels`, `area_config`, `geometry_status`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `invalid` from `parcels.copy()`.
-- Computes `invalid['geometry_status']` from `invalid['geometry_status'].astype(object)`.
-- Computes `invalid.loc[0, 'geometry_status']` from `geometry_status`.
-- Enters managed context(s) `pytest.raises(ParcelFilterError, match='geometry_status')` and executes: Calls `filter_parcels_by_area(invalid, area_config)` for its validation or side effect.
-
-**Action**
-
-- Calls `filter_parcels_by_area`, `invalid['geometry_status'].astype`, `parcels.copy`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ParcelFilterError, match='geometry_status'): filter_parcels_by_area(invalid, area_config)`.
-
-**Regression protected**
-
-- Protects the exact `area filter rejects noncanonical geometry status` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `filter_parcels_by_area`, `invalid['geometry_status'].astype`, `parcels.copy`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `area_m2` | Logical dtype: float64 or strict numeric scalar as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | area in square metres computed on an EPSG:2154 calculation copy or copied from validated factual relations. Consumers and exact calculations are the functions that reference this column above. |
-| `columns` | Logical dtype: mapping/domain key (not asserted as a DataFrame column). Nullability: not applicable as a column. | exact lookup/domain label used by an implementation mapping; it is intentionally not presented as a contractual frame column. Consumers and exact calculations are the functions that reference this column above. |
-| `commune_code` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry_status` | Logical dtype: nullable string/string categorical value. Nullability: determined by the owning schema/dtype map and explicit null guards. | closed factual, technical, official, policy, or diagnostic vocabulary enforced by module constants. Consumers and exact calculations are the functions that reference this column above. |
-| `parcel_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `rejection_reason` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `test` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the test flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -954,8 +1000,8 @@ This file contributes to LandScout's `test` evidence flow as described by its pu
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.

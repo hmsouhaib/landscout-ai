@@ -4,9 +4,9 @@
 
 - Repository path: `tests/unit/test_rte_odre_fr.py`
 - File type: Python test
-- Primary responsibility: Provides complete unit and regression coverage for the `rte_odre_fr` contracts exercised in this file.
-- Layer / domain: `unit/regression test` / `test`
-- Public or internal role: Internal test support; not a production API.
+- Layer: unit/regression test
+- Domain: test
+- Responsibility: Provides complete unit and regression coverage for the `rte_odre_fr` contracts exercised in this file.
 - Source SHA256: `f437738409f25094f06ca20da5b68afc673ce5b4efb3e8879c1a0b1956700263`
 
 ## 1. Purpose
@@ -15,49 +15,103 @@ Provides complete unit and regression coverage for the `rte_odre_fr` contracts e
 
 ## 2. Position in LandScout architecture
 
-This file is a `unit/regression test` artifact in the `test` domain. Its actual upstream inputs and downstream calls are enumerated at symbol level below. It participates only in implemented portions of SCAN, FILTER, or ANALYZE where the documented public functions show that flow; it does not imply implemented SCORE, IDENTIFY, or EXPORT phases.
+This file belongs to the **unit/regression test** layer and the **test** domain. Its trust and business authority is limited to the exact source, validators, schemas, and callers reproduced below.
 
 ## 3. Imports and dependencies
 
-### Python standard library
+### Python 3.12 standard library
 
-- `import io` — required by the implementation paths and symbols documented below.
-- `import json` — required by the implementation paths and symbols documented below.
-- `from datetime import UTC, datetime, timedelta` — required by the implementation paths and symbols documented below.
-- `from hashlib import sha256` — required by the implementation paths and symbols documented below.
-- `from pathlib import Path` — required by the implementation paths and symbols documented below.
-- `from urllib.error import HTTPError` — required by the implementation paths and symbols documented below.
+- `import io`
+- `import json`
+- `from datetime import UTC, datetime, timedelta`
+- `from hashlib import sha256`
+- `from pathlib import Path`
+- `from unittest.mock import patch`
+- `from urllib.error import HTTPError`
 
-### Third-party
+### Third-party packages
 
-- `from unittest.mock import patch` — required by the implementation paths and symbols documented below.
-- `import pytest` — required by the implementation paths and symbols documented below.
-- `import yaml` — required by the implementation paths and symbols documented below.
-- `from pydantic import HttpUrl, ValidationError` — required by the implementation paths and symbols documented below.
+- `import pytest`
+- `import yaml`
+- `from pydantic import HttpUrl, ValidationError`
 
-### Internal LandScout
+### Internal LandScout imports
 
-- `from landscout.sources import rte_odre_fr` — required by the implementation paths and symbols documented below.
-- `from landscout.sources.rte_odre_fr import ( RteOdreDownloadError, RteOdreExportSummary, RteOdreSourceConfig, build_rte_odre_export_url, build_rte_odre_metadata_url, download_rte_odre_dataset, fetch_rte_odre_dataset_metadata, load_rte_odre_source_config, )` — required by the implementation paths and symbols documented below.
+- `from landscout.sources import rte_odre_fr`
+- `from landscout.sources.rte_odre_fr import (
+    RteOdreDownloadError,
+    RteOdreExportSummary,
+    RteOdreSourceConfig,
+    build_rte_odre_export_url,
+    build_rte_odre_metadata_url,
+    download_rte_odre_dataset,
+    fetch_rte_odre_dataset_metadata,
+    load_rte_odre_source_config,
+)`
 
-## 4. Constants and domains
+## 4. Contract taxonomy
 
-| Constant | Exact value/domain | Meaning and consumers |
-|---|---|---|
-| `PROJECT_ROOT` | `Path(__file__).parents[2]` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `CONFIG_PATH` | `PROJECT_ROOT / "configs/sources/rte_odre_fr.yaml"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `BASE_URL` | `"https://odre.opendatasoft.com/api/explore/v2.1"` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
-| `DATASET_IDS` | `{ "sites": "postes-electriques-rte", "overhead_lines": "lignes-aeriennes-rte-nv", "underground_lines": "lignes-souterraines-rte-nv", }` | Defines an implementation domain, schema, unit, role, version, or technical bound consumed by symbols in this module and its static callers. |
+### A. Python constants
+
+#### `PROJECT_ROOT`
+
+```python
+PROJECT_ROOT = Path(__file__).parents[2]
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+#### `CONFIG_PATH`
+
+```python
+CONFIG_PATH = PROJECT_ROOT / "configs/sources/rte_odre_fr.yaml"
+```
+
+Module-level technical/source/policy constant consumed by the exact references below. Consumers include `tests/unit/test_ign_bdtopo_fr.py::source_config` (value argument/reference), `tests/unit/test_rte_odre_fr.py::source_config` (value argument/reference).
+
+#### `BASE_URL`
+
+```python
+BASE_URL = "https://odre.opendatasoft.com/api/explore/v2.1"
+```
+
+Configured/constructed URL component or origin constraint; it is textual identity until the transport/source validator proves bytes.
+
+#### `DATASET_IDS`
+
+```python
+DATASET_IDS = {
+    "sites": "postes-electriques-rte",
+    "overhead_lines": "lignes-aeriennes-rte-nv",
+    "underground_lines": "lignes-souterraines-rte-nv",
+}
+```
+
+Module-level technical/source/policy constant consumed by the exact references below.
+
+
+### B. Type aliases and closed domains
+
+No module-level Literal/Annotated/TypeAlias declaration is present.
+
+### C. Meaningful dunder contracts
+
+No meaningful module-level dunder contract is declared.
+
+### D–J. Models, frames, JSON/mappings, configuration, filesystem metadata, exports
+
+Models/dataclasses are documented in section 5. Frame columns and mappings are documented below. JSON/config/filesystem fields are identified by their owning declarations rather than merged with frame columns.
+
 
 ## 5. Classes / models / dataclasses
 
-No class, model, or dataclass is declared in this file.
+No class/model/dataclass is declared.
 
 ## 6. Functions and methods
 
 ### `_config_data`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _config_data() -> dict:
@@ -65,65 +119,60 @@ def _config_data() -> dict:
 
 **Purpose**
 
-Implements config data according to the exact implementation and guards in this file.
+Private `test` helper for config data; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- No parameters.
+- Declared return annotation: `dict`.
+- Every observed return expression is reproduced without truncation:
+```python
+yaml.safe_load(stream)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `dict`. Observed return expression(s): `yaml.safe_load(stream)`.
-
-**Algorithm**
-
-1. Enters managed context(s) `CONFIG_PATH.open(encoding='utf-8')` and executes: Returns `yaml.safe_load(stream)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `CONFIG_PATH.open`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `CONFIG_PATH.open`, `yaml.safe_load`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_invalid_department_coverage_config_fails` via `_config_data`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_required_source_field_fails` via `_config_data`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_invalid_source_configuration_fails` via `_config_data`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_unknown_source_config_field_is_rejected` via `_config_data`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_missing_dataset_id_fails` via `_config_data`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_empty_base_url_fails` via `_config_data`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_api_base_is_pinned_to_the_official_https_origin_and_path` via `_config_data`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_negative_cache_age_fails` via `_config_data`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_unsupported_export_format_fails` via `_config_data`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_export_url_uses_configured_dataset_id` via `_config_data`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_rte_odre_fr.py` — `test_api_base_is_pinned_to_the_official_https_origin_and_path`
-- `tests/unit/test_rte_odre_fr.py` — `test_empty_base_url_fails`
-- `tests/unit/test_rte_odre_fr.py` — `test_export_url_uses_configured_dataset_id`
-- `tests/unit/test_rte_odre_fr.py` — `test_missing_dataset_id_fails`
-- `tests/unit/test_rte_odre_fr.py` — `test_negative_cache_age_fails`
-- `tests/unit/test_rte_odre_fr.py` — `test_unsupported_export_format_fails`
+```python
+def _config_data() -> dict:
+    with CONFIG_PATH.open(encoding="utf-8") as stream:
+        return yaml.safe_load(stream)
+```
 
-**Tests**
-
-- `tests/unit/test_rte_odre_fr.py::test_api_base_is_pinned_to_the_official_https_origin_and_path`
-- `tests/unit/test_rte_odre_fr.py::test_empty_base_url_fails`
-- `tests/unit/test_rte_odre_fr.py::test_export_url_uses_configured_dataset_id`
-- `tests/unit/test_rte_odre_fr.py::test_missing_dataset_id_fails`
-- `tests/unit/test_rte_odre_fr.py::test_negative_cache_age_fails`
-- `tests/unit/test_rte_odre_fr.py::test_unsupported_export_format_fails`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_metadata_content`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _metadata_content(dataset_id: str, records_count: int | None = 2) -> bytes:
@@ -131,98 +180,89 @@ def _metadata_content(dataset_id: str, records_count: int | None = 2) -> bytes:
 
 **Purpose**
 
-Implements metadata content according to the exact implementation and guards in this file.
+Private `test` helper for metadata content; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `dataset_id` (`str`; required) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `records_count` (`int | None`; optional/default `2`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `bytes`.
+- Every observed return expression is reproduced without truncation:
+```python
+json.dumps(payload, ensure_ascii=False).encode('utf-8')
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `bytes`. Observed return expression(s): `json.dumps(payload, ensure_ascii=False).encode('utf-8')`.
-
-**Algorithm**
-
-1. Computes `payload` from `{'dataset_id': dataset_id, 'metas': {'default': {'title': 'Official RTE dataset', 'publisher': 'RTE', 'modified': '2026-06-16T12:00:00+00:00', 'data_processed': '2026-06-16T12:01:00+00:00', 'metadata_processed': '2026-06-16T12:01:01+00:00', 'license': 'Licence Ouverte v2.0 (Etalab)', 'records_count': records_count, 'd…`.
-2. Returns `json.dumps(payload, ensure_ascii=False).encode('utf-8')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `json.dumps`, `json.dumps(payload, ensure_ascii=False).encode`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network.response_for_url` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network.record_network` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_metadata_content`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.response_for_url` via `_metadata_content`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_rte_odre_fr.py` — `test_cached_export_summary_mismatch_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_corrupted_cached_export_triggers_refresh`
-- `tests/unit/test_rte_odre_fr.py` — `test_corrupted_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_double_failure_preserves_recovery_and_next_run_uses_zero_network.response_for_url`
-- `tests/unit/test_rte_odre_fr.py` — `test_double_failure_preserves_recovery_and_next_run_uses_zero_network`
-- `tests/unit/test_rte_odre_fr.py` — `test_expired_cache_is_refreshed`
-- `tests/unit/test_rte_odre_fr.py` — `test_failed_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_fresh_cache_is_reused`
-- `tests/unit/test_rte_odre_fr.py` — `test_http_failure_raises_and_cleans_temporary_files`
-- `tests/unit/test_rte_odre_fr.py` — `test_invalid_cached_record_count_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_invalid_geojson_download_is_rejected`
-- `tests/unit/test_rte_odre_fr.py` — `test_lineage_sidecar_records_integrity`
-- `tests/unit/test_rte_odre_fr.py` — `test_metadata_export_record_count_mismatch_is_rejected`
-- `tests/unit/test_rte_odre_fr.py` — `test_metadata_is_captured_without_fabrication`
-- `tests/unit/test_rte_odre_fr.py` — `test_metadata_publication_failure_restores_previous_pair`
-- `tests/unit/test_rte_odre_fr.py` — `test_negative_source_record_count_is_rejected`
-- `tests/unit/test_rte_odre_fr.py` — `test_null_feature_geometries_are_accepted`
-- `tests/unit/test_rte_odre_fr.py` — `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.response_for_url`
-- `tests/unit/test_rte_odre_fr.py` — `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error`
-- `tests/unit/test_rte_odre_fr.py` — `test_successful_download`
-- `tests/unit/test_rte_odre_fr.py` — `test_temporary_link_or_junction_cannot_modify_target_before_rte_network.record_network`
-- `tests/unit/test_rte_odre_fr.py` — `test_temporary_link_or_junction_cannot_modify_target_before_rte_network`
-- `tests/unit/test_rte_odre_fr.py` — `test_unavailable_metadata_record_count_is_accepted`
+```python
+def _metadata_content(dataset_id: str, records_count: int | None = 2) -> bytes:
+    payload = {
+        "dataset_id": dataset_id,
+        "metas": {
+            "default": {
+                "title": "Official RTE dataset",
+                "publisher": "RTE",
+                "modified": "2026-06-16T12:00:00+00:00",
+                "data_processed": "2026-06-16T12:01:00+00:00",
+                "metadata_processed": "2026-06-16T12:01:01+00:00",
+                "license": "Licence Ouverte v2.0 (Etalab)",
+                "records_count": records_count,
+                "description": (
+                    "RTE a fait évoluer l'accès aux données GPS pour des raisons "
+                    "de sécurité publique."
+                ),
+            }
+        },
+    }
+    return json.dumps(payload, ensure_ascii=False).encode("utf-8")
+```
 
-**Tests**
-
-- `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh`
-- `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network`
-- `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed`
-- `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused`
-- `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files`
-- `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected`
-- `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity`
-- `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected`
-- `tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication`
-- `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair`
-- `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected`
-- `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted`
-- `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error`
-- `tests/unit/test_rte_odre_fr.py::test_successful_download`
-- `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network`
-- `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_feature_collection`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _feature_collection(*, all_null_geometry: bool = False) -> bytes:
@@ -230,90 +270,83 @@ def _feature_collection(*, all_null_geometry: bool = False) -> bytes:
 
 **Purpose**
 
-Implements feature collection according to the exact implementation and guards in this file.
+Private `test` helper for feature collection; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `all_null_geometry` (`bool`; optional/default `False`) — tabular or spatial input whose schema and values are validated by the function. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `bytes`.
+- Every observed return expression is reproduced without truncation:
+```python
+json.dumps(payload).encode('utf-8')
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `bytes`. Observed return expression(s): `json.dumps(payload).encode('utf-8')`.
-
-**Algorithm**
-
-1. Computes `geometry` from `None if all_null_geometry else {'type': 'Point', 'coordinates': [1, 2]}`.
-2. Computes `payload` from `{'type': 'FeatureCollection', 'features': [{'type': 'Feature', 'properties': {'code': 'A'}, 'geometry': geometry}, {'type': 'Feature', 'properties': {'code': 'B'}, 'geometry': None}]}`.
-3. Returns `json.dumps(payload).encode('utf-8')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `json.dumps`, `json.dumps(payload).encode`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network.response_for_url` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network.record_network` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_feature_collection`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.response_for_url` via `_feature_collection`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_rte_odre_fr.py` — `test_cached_export_summary_mismatch_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_corrupted_cached_export_triggers_refresh`
-- `tests/unit/test_rte_odre_fr.py` — `test_corrupted_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_double_failure_preserves_recovery_and_next_run_uses_zero_network.response_for_url`
-- `tests/unit/test_rte_odre_fr.py` — `test_double_failure_preserves_recovery_and_next_run_uses_zero_network`
-- `tests/unit/test_rte_odre_fr.py` — `test_expired_cache_is_refreshed`
-- `tests/unit/test_rte_odre_fr.py` — `test_failed_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_fresh_cache_is_reused`
-- `tests/unit/test_rte_odre_fr.py` — `test_invalid_cached_record_count_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_lineage_sidecar_records_integrity`
-- `tests/unit/test_rte_odre_fr.py` — `test_metadata_export_record_count_mismatch_is_rejected`
-- `tests/unit/test_rte_odre_fr.py` — `test_metadata_publication_failure_restores_previous_pair`
-- `tests/unit/test_rte_odre_fr.py` — `test_null_feature_geometries_are_accepted`
-- `tests/unit/test_rte_odre_fr.py` — `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.response_for_url`
-- `tests/unit/test_rte_odre_fr.py` — `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error`
-- `tests/unit/test_rte_odre_fr.py` — `test_successful_download`
-- `tests/unit/test_rte_odre_fr.py` — `test_temporary_link_or_junction_cannot_modify_target_before_rte_network.record_network`
-- `tests/unit/test_rte_odre_fr.py` — `test_temporary_link_or_junction_cannot_modify_target_before_rte_network`
-- `tests/unit/test_rte_odre_fr.py` — `test_unavailable_metadata_record_count_is_accepted`
+```python
+def _feature_collection(*, all_null_geometry: bool = False) -> bytes:
+    geometry = None if all_null_geometry else {"type": "Point", "coordinates": [1, 2]}
+    payload = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {"code": "A"},
+                "geometry": geometry,
+            },
+            {
+                "type": "Feature",
+                "properties": {"code": "B"},
+                "geometry": None,
+            },
+        ],
+    }
+    return json.dumps(payload).encode("utf-8")
+```
 
-**Tests**
-
-- `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh`
-- `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network`
-- `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed`
-- `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused`
-- `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity`
-- `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected`
-- `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair`
-- `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted`
-- `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error`
-- `tests/unit/test_rte_odre_fr.py::test_successful_download`
-- `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network`
-- `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_response`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _response(content: bytes) -> io.BytesIO:
@@ -321,96 +354,102 @@ def _response(content: bytes) -> io.BytesIO:
 
 **Purpose**
 
-Implements response according to the exact implementation and guards in this file.
+Private `test` helper for response; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `content` (`bytes`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `io.BytesIO`.
+- Every observed return expression is reproduced without truncation:
+```python
+io.BytesIO(content)
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `io.BytesIO`. Observed return expression(s): `io.BytesIO(content)`.
-
-**Algorithm**
-
-1. Returns `io.BytesIO(content)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `io.BytesIO`.
+- property/attribute access: `src/landscout/common/safe_http.py::SafeHttpsResponse.read` via `self._response`.
+- property/attribute access: `src/landscout/common/safe_http.py::SafeHttpsResponse.close` via `self._response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::_extracted_fixture` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_fresh_cache_is_reused_without_network` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_new_archive_is_rejected_and_temporary_files_are_cleaned` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_official_checksum_mismatch_is_rejected` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_unsafe_parent_archive_member_is_rejected` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_synthetic_archive_extracts_and_discovers_required_layers` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_default_extraction_path_is_short_and_content_addressed` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_electricity_loader_retains_both_layer_counts` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_discovery_loads_selected_physical_layer` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_road_layer_fails_safely` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_ambiguous_road_layer_fails_safely` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_wrong_archive_config_department` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_changed_layer_inventory` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_rejects_geographic_crs` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_loader_preserves_lambert93_lines_unchanged` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_road_layer_does_not_change_electricity_loading_or_cache_shape` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_loader_selects_configured_identity` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_one_authoritative_feature` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_requires_configured_identity_field` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_missing_department_coverage_layer_fails` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_department_coverage_layer_discovery_must_be_unambiguous` via `_response`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_direct_consumers_reject_same_inventory_content_tampering` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_successful_download` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network.response_for_url` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network.record_network` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_response`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.response_for_url` via `_response`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_rte_odre_fr.py` — `test_cached_export_summary_mismatch_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_corrupted_cached_export_triggers_refresh`
-- `tests/unit/test_rte_odre_fr.py` — `test_corrupted_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_double_failure_preserves_recovery_and_next_run_uses_zero_network.response_for_url`
-- `tests/unit/test_rte_odre_fr.py` — `test_double_failure_preserves_recovery_and_next_run_uses_zero_network`
-- `tests/unit/test_rte_odre_fr.py` — `test_expired_cache_is_refreshed`
-- `tests/unit/test_rte_odre_fr.py` — `test_failed_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_fresh_cache_is_reused`
-- `tests/unit/test_rte_odre_fr.py` — `test_http_failure_raises_and_cleans_temporary_files`
-- `tests/unit/test_rte_odre_fr.py` — `test_invalid_cached_record_count_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_invalid_geojson_download_is_rejected`
-- `tests/unit/test_rte_odre_fr.py` — `test_lineage_sidecar_records_integrity`
-- `tests/unit/test_rte_odre_fr.py` — `test_metadata_export_record_count_mismatch_is_rejected`
-- `tests/unit/test_rte_odre_fr.py` — `test_metadata_is_captured_without_fabrication`
-- `tests/unit/test_rte_odre_fr.py` — `test_metadata_publication_failure_restores_previous_pair`
-- `tests/unit/test_rte_odre_fr.py` — `test_negative_source_record_count_is_rejected`
-- `tests/unit/test_rte_odre_fr.py` — `test_null_feature_geometries_are_accepted`
-- `tests/unit/test_rte_odre_fr.py` — `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.response_for_url`
-- `tests/unit/test_rte_odre_fr.py` — `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error`
-- `tests/unit/test_rte_odre_fr.py` — `test_successful_download`
-- `tests/unit/test_rte_odre_fr.py` — `test_temporary_link_or_junction_cannot_modify_target_before_rte_network.record_network`
-- `tests/unit/test_rte_odre_fr.py` — `test_temporary_link_or_junction_cannot_modify_target_before_rte_network`
-- `tests/unit/test_rte_odre_fr.py` — `test_unavailable_metadata_record_count_is_accepted`
+```python
+def _response(content: bytes) -> io.BytesIO:
+    return io.BytesIO(content)
+```
 
-**Tests**
-
-- `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py::test_corrupted_cached_export_triggers_refresh`
-- `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network`
-- `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed`
-- `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py::test_fresh_cache_is_reused`
-- `tests/unit/test_rte_odre_fr.py::test_http_failure_raises_and_cleans_temporary_files`
-- `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py::test_invalid_geojson_download_is_rejected`
-- `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity`
-- `tests/unit/test_rte_odre_fr.py::test_metadata_export_record_count_mismatch_is_rejected`
-- `tests/unit/test_rte_odre_fr.py::test_metadata_is_captured_without_fabrication`
-- `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair`
-- `tests/unit/test_rte_odre_fr.py::test_negative_source_record_count_is_rejected`
-- `tests/unit/test_rte_odre_fr.py::test_null_feature_geometries_are_accepted`
-- `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error`
-- `tests/unit/test_rte_odre_fr.py::test_successful_download`
-- `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network`
-- `tests/unit/test_rte_odre_fr.py::test_unavailable_metadata_record_count_is_accepted`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_metadata_path`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _metadata_path(cache_dir: Path, dataset_id: str) -> Path:
@@ -418,74 +457,66 @@ def _metadata_path(cache_dir: Path, dataset_id: str) -> Path:
 
 **Purpose**
 
-Implements metadata path according to the exact implementation and guards in this file.
+Private `test` helper for metadata path; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `cache_dir` (`Path`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `dataset_id` (`str`; required) — exact identifier/code used by the contract. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `Path`.
+- Every observed return expression is reproduced without truncation:
+```python
+cache_dir / f'{dataset_id}.geojson.metadata.json'
+```
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `Path`. Observed return expression(s): `cache_dir / f'{dataset_id}.geojson.metadata.json'`.
-
-**Algorithm**
-
-1. Returns `cache_dir / f'{dataset_id}.geojson.metadata.json'`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- No function calls.
+- direct call or construction: `src/landscout/sources/inpn_protected_areas_fr.py::download_inpn_protected_areas_archive` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_successful_archive_download_persists_sha256` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `_metadata_path`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_metadata_path`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_rte_odre_fr.py` — `test_cached_export_summary_mismatch_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_corrupted_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_double_failure_preserves_recovery_and_next_run_uses_zero_network`
-- `tests/unit/test_rte_odre_fr.py` — `test_expired_cache_is_refreshed`
-- `tests/unit/test_rte_odre_fr.py` — `test_failed_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_invalid_cached_record_count_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_lineage_sidecar_records_integrity`
-- `tests/unit/test_rte_odre_fr.py` — `test_metadata_publication_failure_restores_previous_pair`
-- `tests/unit/test_rte_odre_fr.py` — `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error`
-- `tests/unit/test_rte_odre_fr.py` — `test_temporary_link_or_junction_cannot_modify_target_before_rte_network`
+```python
+def _metadata_path(cache_dir: Path, dataset_id: str) -> Path:
+    return cache_dir / f"{dataset_id}.geojson.metadata.json"
+```
 
-**Tests**
-
-- `tests/unit/test_rte_odre_fr.py::test_cached_export_summary_mismatch_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network`
-- `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed`
-- `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py::test_invalid_cached_record_count_invalidates_cache`
-- `tests/unit/test_rte_odre_fr.py::test_lineage_sidecar_records_integrity`
-- `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair`
-- `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error`
-- `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `_expire_cache`
 
-**Signature**
+**Exact signature**
 
 ```python
 def _expire_cache(metadata_path: Path) -> None:
@@ -493,123 +524,349 @@ def _expire_cache(metadata_path: Path) -> None:
 
 **Purpose**
 
-Implements expire cache according to the exact implementation and guards in this file.
+Private `test` helper for expire cache; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `metadata_path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Computes `metadata` from `json.loads(metadata_path.read_text(encoding='utf-8'))`.
-2. Computes `metadata['download_timestamp']` from `(datetime.now(UTC) - timedelta(hours=169)).isoformat()`.
-3. Calls `metadata_path.write_text(json.dumps(metadata), encoding='utf-8')` for its validation or side effect.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
 **Side effects**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `metadata_path.read_text`, `metadata_path.write_text`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- Network I/O: none directly visible.
+- Filesystem read: `metadata_path.read_text`.
+- Filesystem write: `metadata_path.write_text`.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: `metadata['download_timestamp']`.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `(datetime.now(UTC) - timedelta(hours=169)).isoformat`, `datetime.now`, `json.dumps`, `json.loads`, `metadata_path.read_text`, `metadata_path.write_text`, `timedelta`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_expired_cache_is_refreshed` via `_expire_cache`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_failed_refresh_preserves_valid_cache` via `_expire_cache`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_corrupt_refresh_preserves_valid_cache` via `_expire_cache`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `_expire_cache`.
+- direct call or construction: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_expire_cache`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed` via `_expire_cache`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache` via `_expire_cache`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache` via `_expire_cache`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `_expire_cache`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `_expire_cache`.
+- direct call or construction: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `_expire_cache`.
 
-**Known repository callers**
+**Complete source-ordered implementation**
 
-- `tests/unit/test_rte_odre_fr.py` — `test_corrupted_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_double_failure_preserves_recovery_and_next_run_uses_zero_network`
-- `tests/unit/test_rte_odre_fr.py` — `test_expired_cache_is_refreshed`
-- `tests/unit/test_rte_odre_fr.py` — `test_failed_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py` — `test_metadata_publication_failure_restores_previous_pair`
-- `tests/unit/test_rte_odre_fr.py` — `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error`
+```python
+def _expire_cache(metadata_path: Path) -> None:
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    metadata["download_timestamp"] = (
+        datetime.now(UTC) - timedelta(hours=169)
+    ).isoformat()
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+```
 
-**Tests**
-
-- `tests/unit/test_rte_odre_fr.py::test_corrupted_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network`
-- `tests/unit/test_rte_odre_fr.py::test_expired_cache_is_refreshed`
-- `tests/unit/test_rte_odre_fr.py::test_failed_refresh_preserves_previous_valid_cache`
-- `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair`
-- `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error`
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
-### `source_config`
+### `source_config` — pytest fixture
 
-**Signature**
+- Scope: `function` (decorator `pytest.fixture`).
+- Returned/yielded object expression(s): `load_rte_odre_source_config(CONFIG_PATH)`.
+- Tests requesting it by parameter injection: `test_valid_source_config_loads`, `test_mutated_loaded_api_origin_is_rejected_before_metadata_network`, `test_build_export_url`, `test_build_metadata_url`, `test_metadata_is_captured_without_fabrication`, `test_successful_download`, `test_metadata_export_record_count_mismatch_is_rejected`, `test_unavailable_metadata_record_count_is_accepted`, `test_negative_source_record_count_is_rejected`, `test_fresh_cache_is_reused`, `test_expired_cache_is_refreshed`, `test_http_failure_raises_and_cleans_temporary_files`, `test_failed_refresh_preserves_previous_valid_cache`, `test_corrupted_refresh_preserves_previous_valid_cache`, `test_metadata_publication_failure_restores_previous_pair`, `test_invalid_geojson_download_is_rejected`, `test_null_feature_geometries_are_accepted`, `test_lineage_sidecar_records_integrity`, `test_invalid_cached_record_count_invalidates_cache`, `test_cached_export_summary_mismatch_invalidates_cache`, `test_corrupted_cached_export_triggers_refresh`, `test_double_failure_preserves_recovery_and_next_run_uses_zero_network`, `test_temporary_link_or_junction_cannot_modify_target_before_rte_network`, `test_broken_recovery_symlink_rejects_rte_before_network`, `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error`.
+
+**Complete fixture implementation**
 
 ```python
 def source_config() -> RteOdreSourceConfig:
+    return load_rte_odre_source_config(CONFIG_PATH)
 ```
+
+### `test_valid_source_config_loads`
 
 **Purpose**
 
-Implements source config according to the exact implementation and guards in this file.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
 
-**Inputs**
+**Pytest argument classification**
 
-- No parameters.
+- Fixture-injected arguments: `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
 
-**Returns**
+**Setup**
 
-- Declared return type: `RteOdreSourceConfig`. Observed return expression(s): `load_rte_odre_source_config(CONFIG_PATH)`.
+```python
+# No separate setup statement.
+```
 
-**Algorithm**
+**Action**
 
-1. Returns `load_rte_odre_source_config(CONFIG_PATH)`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
-**Validation and invariants**
+**Expected result**
 
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
+```python
+assert source_config.provider == "RTE"
+assert source_config.portal == "ODRE"
+assert source_config.datasets.sites.dataset_id == "postes-electriques-rte"
+assert source_config.cache.max_age_hours == 168
+```
 
-**Exceptions**
+**Regression protected**
 
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
 
-**Side effects**
+**Test boundary**
 
-- Potentially relevant filesystem/network/calculation calls visible in the body: `load_rte_odre_source_config`. The exact effect occurs only on the guarded branch shown by the algorithm.
+- In-memory/local unit boundary defined entirely by the reproduced setup.
 
-**Calls**
+**Complete test implementation**
 
-- `load_rte_odre_source_config`.
+```python
+def test_valid_source_config_loads(source_config: RteOdreSourceConfig) -> None:
+    assert source_config.provider == "RTE"
+    assert source_config.portal == "ODRE"
+    assert source_config.datasets.sites.dataset_id == "postes-electriques-rte"
+    assert source_config.cache.max_age_hours == 168
+```
 
-**Known repository callers**
+### `test_missing_dataset_id_fails`
 
-No direct repository caller found.
+**Purpose**
 
-**Tests**
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
 
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
+**Pytest argument classification**
 
-**Business interpretation**
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
 
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
+**Setup**
 
-**Does NOT prove**
+```python
+config_data = _config_data()
+del config_data["datasets"]["sites"]["dataset_id"]
+```
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ValidationError):
+        RteOdreSourceConfig.model_validate(config_data)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_missing_dataset_id_fails() -> None:
+    config_data = _config_data()
+    del config_data["datasets"]["sites"]["dataset_id"]
+
+    with pytest.raises(ValidationError):
+        RteOdreSourceConfig.model_validate(config_data)
+```
+
+### `test_empty_base_url_fails`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+config_data = _config_data()
+config_data["api"]["base_url"] = ""
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ValidationError):
+        RteOdreSourceConfig.model_validate(config_data)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_empty_base_url_fails() -> None:
+    config_data = _config_data()
+    config_data["api"]["base_url"] = ""
+
+    with pytest.raises(ValidationError):
+        RteOdreSourceConfig.model_validate(config_data)
+```
+
+### `test_api_base_is_pinned_to_the_official_https_origin_and_path`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `base_url`.
+
+**Setup**
+
+```python
+config_data = _config_data()
+config_data["api"]["base_url"] = base_url
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ValidationError):
+        RteOdreSourceConfig.model_validate(config_data)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
+
+```python
+def test_api_base_is_pinned_to_the_official_https_origin_and_path(
+    base_url: str,
+) -> None:
+    config_data = _config_data()
+    config_data["api"]["base_url"] = base_url
+
+    with pytest.raises(ValidationError):
+        RteOdreSourceConfig.model_validate(config_data)
+```
+
+### `test_mutated_loaded_api_origin_is_rejected_before_metadata_network`
+
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `source_config` (local fixture, scope `function`), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+source_config.api.base_url = HttpUrl(
+        "https://unrelated.example/api/explore/v2.1"
+    )
+network_calls = 0
+def fail_network(*args: object, **kwargs: object) -> object:
+        nonlocal network_calls
+        network_calls += 1
+        raise AssertionError("network used after ODRE origin mutation")
+monkeypatch.setattr(rte_odre_fr, "open_safe_https", fail_network)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(RteOdreDownloadError, match="config|official|origin"):
+        fetch_rte_odre_dataset_metadata(source_config, "sites")
+assert network_calls == 0
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
+
+```python
+def test_mutated_loaded_api_origin_is_rejected_before_metadata_network(
+    source_config: RteOdreSourceConfig,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source_config.api.base_url = HttpUrl(
+        "https://unrelated.example/api/explore/v2.1"
+    )
+    network_calls = 0
+
+    def fail_network(*args: object, **kwargs: object) -> object:
+        nonlocal network_calls
+        network_calls += 1
+        raise AssertionError("network used after ODRE origin mutation")
+
+    monkeypatch.setattr(rte_odre_fr, "open_safe_https", fail_network)
+
+    with pytest.raises(RteOdreDownloadError, match="config|official|origin"):
+        fetch_rte_odre_dataset_metadata(source_config, "sites")
+
+    assert network_calls == 0
+```
 
 ### `test_mutated_loaded_api_origin_is_rejected_before_metadata_network.fail_network`
 
-**Signature**
+**Exact signature**
 
 ```python
 def fail_network(*args: object, **kwargs: object) -> object:
@@ -617,1363 +874,526 @@ def fail_network(*args: object, **kwargs: object) -> object:
 
 **Purpose**
 
-Implements fail network according to the exact implementation and guards in this file.
+Private `test` helper for fail network; its complete implementation below is the authoritative behavioral contract.
 
-**Inputs**
+**Return contract**
 
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
+- Declared return annotation: `object`.
+- No explicit return; normal completion returns `None`.
 
-**Returns**
+**Validation and exceptions**
 
-- Declared return type: `object`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Executes `nonlocal network_calls`.
-2. Updates `network_calls` using `` and `1`.
-3. Raises `AssertionError('network used after ODRE origin mutation')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `AssertionError`. Called functions may raise their documented controlled errors.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `AssertionError('network used after ODRE origin mutation')`.
 
 **Side effects**
 
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Calls**
+**Repository interfaces and consumers**
 
-- `AssertionError`.
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
 
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_metadata_publication_failure_restores_previous_pair.fail_metadata_publication`
-
-**Signature**
+**Complete source-ordered implementation**
 
 ```python
-def fail_metadata_publication(source: Path, target: Path) -> None:
+def fail_network(*args: object, **kwargs: object) -> object:
+        nonlocal network_calls
+        network_calls += 1
+        raise AssertionError("network used after ODRE origin mutation")
 ```
 
-**Purpose**
-
-Implements fail metadata publication according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `source` (`Path`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `target` (`Path`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Executes `nonlocal failure_injected`.
-2. Checks `source == temporary_metadata and target == metadata_path`. When true: Computes `failure_injected` from `True`. Raises `PermissionError('simulated persistent metadata file lock')`.
-3. Calls `original_replace(source, target)` for its validation or side effect.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `source == temporary_metadata and target == metadata_path` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PermissionError`. Called functions may raise their documented controlled errors.
-
-**Side effects**
-
-- Potentially relevant filesystem/network/calculation calls visible in the body: `original_replace`. The exact effect occurs only on the guarded branch shown by the algorithm.
-
-**Calls**
-
-- `PermissionError`, `original_replace`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_double_failure_preserves_recovery_and_next_run_uses_zero_network.fail_publication_and_rollback`
-
-**Signature**
-
-```python
-def fail_publication_and_rollback(source: Path, target: Path) -> None:
-```
-
-**Purpose**
-
-Implements fail publication and rollback according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `source` (`Path`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `target` (`Path`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `source == temporary_metadata and target == metadata_path`. When true: Raises `OSError('publication failed')`.
-2. Checks `source == archive_backup and target == first.path`. When true: Raises `OSError('rollback failed')`.
-3. Calls `original_replace(source, target)` for its validation or side effect.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `source == temporary_metadata and target == metadata_path` is true.
-- Rejects or diverts the path when `source == archive_backup and target == first.path` is true.
-
-**Exceptions**
-
-- Explicitly raises: `OSError`. Called functions may raise their documented controlled errors.
-
-**Side effects**
-
-- Potentially relevant filesystem/network/calculation calls visible in the body: `original_replace`. The exact effect occurs only on the guarded branch shown by the algorithm.
-
-**Calls**
-
-- `OSError`, `original_replace`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_double_failure_preserves_recovery_and_next_run_uses_zero_network.response_for_url`
-
-**Signature**
-
-```python
-def response_for_url(url: str, *args: object, **kwargs: object) -> io.BytesIO:
-```
-
-**Purpose**
-
-Implements response for url according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `url` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `io.BytesIO`. Observed return expression(s): `_response(_metadata_content(dataset_id))`; `_response(_feature_collection())`.
-
-**Algorithm**
-
-1. Checks `url.endswith('/exports/geojson')`. When true: Returns `_response(_feature_collection())`.
-2. Returns `_response(_metadata_content(dataset_id))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `_feature_collection`, `_metadata_content`, `_response`, `url.endswith`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_double_failure_preserves_recovery_and_next_run_uses_zero_network.fail_network`
-
-**Signature**
-
-```python
-def fail_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
-```
-
-**Purpose**
-
-Implements fail network according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `url` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `io.BytesIO`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Calls `network_calls.append(url)` for its validation or side effect.
-2. Raises `AssertionError('manual recovery state must fail before HTTP')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `AssertionError`. Called functions may raise their documented controlled errors.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `AssertionError`, `network_calls.append`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_temporary_link_or_junction_cannot_modify_target_before_rte_network.simulated_is_symlink`
-
-**Signature**
-
-```python
-def simulated_is_symlink(path: Path) -> bool:
-```
-
-**Purpose**
-
-Implements simulated is symlink according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `bool`. Observed return expression(s): `link_kind == 'symlink' and path == unsafe_path or original_is_symlink(path)`.
-
-**Algorithm**
-
-1. Returns `link_kind == 'symlink' and path == unsafe_path or original_is_symlink(path)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `original_is_symlink`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_temporary_link_or_junction_cannot_modify_target_before_rte_network.simulated_is_junction`
-
-**Signature**
-
-```python
-def simulated_is_junction(path: Path) -> bool:
-```
-
-**Purpose**
-
-Implements simulated is junction according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `bool`. Observed return expression(s): `link_kind == 'junction' and path == unsafe_path or original_is_junction(path)`.
-
-**Algorithm**
-
-1. Returns `link_kind == 'junction' and path == unsafe_path or original_is_junction(path)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `original_is_junction`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_temporary_link_or_junction_cannot_modify_target_before_rte_network.simulated_symlink_open`
-
-**Signature**
-
-```python
-def simulated_symlink_open(
-        path: Path, *args: object, **kwargs: object
-    ) -> object:
-```
-
-**Purpose**
-
-Implements simulated symlink open according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `object`. Observed return expression(s): `original_open(path, *args, **kwargs)`; `original_open(sentinel, *args, **kwargs)`.
-
-**Algorithm**
-
-1. Checks `path == unsafe_path`. When true: Returns `original_open(sentinel, *args, **kwargs)`.
-2. Returns `original_open(path, *args, **kwargs)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
-
-**Side effects**
-
-- Potentially relevant filesystem/network/calculation calls visible in the body: `original_open`. The exact effect occurs only on the guarded branch shown by the algorithm.
-
-**Calls**
-
-- `original_open`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_temporary_link_or_junction_cannot_modify_target_before_rte_network.record_network`
-
-**Signature**
-
-```python
-def record_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
-```
-
-**Purpose**
-
-Implements record network according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `url` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `io.BytesIO`. Observed return expression(s): `_response(_metadata_content(dataset_id))`; `_response(_feature_collection())`.
-
-**Algorithm**
-
-1. Executes `nonlocal network_calls`.
-2. Updates `network_calls` using `` and `1`.
-3. Checks `url.endswith('/exports/geojson')`. When true: Returns `_response(_feature_collection())`.
-4. Returns `_response(_metadata_content(dataset_id))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `_feature_collection`, `_metadata_content`, `_response`, `url.endswith`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_broken_recovery_symlink_rejects_rte_before_network.simulated_is_symlink`
-
-**Signature**
-
-```python
-def simulated_is_symlink(path: Path) -> bool:
-```
-
-**Purpose**
-
-Implements simulated is symlink according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `bool`. Observed return expression(s): `path == recovery_path or original_is_symlink(path)`.
-
-**Algorithm**
-
-1. Returns `path == recovery_path or original_is_symlink(path)`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `original_is_symlink`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_broken_recovery_symlink_rejects_rte_before_network.fail_network`
-
-**Signature**
-
-```python
-def fail_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
-```
-
-**Purpose**
-
-Implements fail network according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `url` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `io.BytesIO`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Calls `network_calls.append(url)` for its validation or side effect.
-2. Raises `AssertionError('broken recovery link must fail before HTTP')`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- Explicitly raises: `AssertionError`. Called functions may raise their documented controlled errors.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `AssertionError`, `network_calls.append`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.fail_publication_and_rollback`
-
-**Signature**
-
-```python
-def fail_publication_and_rollback(source: Path, target: Path) -> None:
-```
-
-**Purpose**
-
-Implements fail publication and rollback according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `source` (`Path`; required) — upstream source-bound object and its lineage. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `target` (`Path`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Executes `nonlocal rollback_failed`.
-2. Checks `source == temporary_metadata and target == metadata_path`. When true: Raises `OSError('publication failed')`.
-3. Checks `source == archive_backup and target == first.path`. When true: Computes `rollback_failed` from `True`. Raises `OSError('rollback failed')`.
-4. Calls `original_replace(source, target)` for its validation or side effect.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `source == temporary_metadata and target == metadata_path` is true.
-- Rejects or diverts the path when `source == archive_backup and target == first.path` is true.
-
-**Exceptions**
-
-- Explicitly raises: `OSError`. Called functions may raise their documented controlled errors.
-
-**Side effects**
-
-- Potentially relevant filesystem/network/calculation calls visible in the body: `original_replace`. The exact effect occurs only on the guarded branch shown by the algorithm.
-
-**Calls**
-
-- `OSError`, `original_replace`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.fail_temporary_cleanup`
-
-**Signature**
-
-```python
-def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
-```
-
-**Purpose**
-
-Implements fail temporary cleanup according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `path` (`Path`; required) — filesystem location participating in the operation. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `missing_ok` (`bool`; optional/default `False`) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `None`. No explicit `return` expression is present; normal completion returns `None`.
-
-**Algorithm**
-
-1. Checks `rollback_failed and path == temporary_metadata`. When true: Raises `PermissionError('temporary cleanup failed')`.
-2. Calls `original_unlink(path, missing_ok=missing_ok)` for its validation or side effect.
-
-**Validation and invariants**
-
-- Rejects or diverts the path when `rollback_failed and path == temporary_metadata` is true.
-
-**Exceptions**
-
-- Explicitly raises: `PermissionError`. Called functions may raise their documented controlled errors.
-
-**Side effects**
-
-- Potentially relevant filesystem/network/calculation calls visible in the body: `original_unlink`. The exact effect occurs only on the guarded branch shown by the algorithm.
-
-**Calls**
-
-- `PermissionError`, `original_unlink`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.response_for_url`
-
-**Signature**
-
-```python
-def response_for_url(url: str, *args: object, **kwargs: object) -> io.BytesIO:
-```
-
-**Purpose**
-
-Implements response for url according to the exact implementation and guards in this file.
-
-**Inputs**
-
-- `url` (`str`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `*args` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-- `**kwargs` (`object`; required) — input consumed according to its annotation and the implementation's explicit guards. Nullability and accepted values are exactly those enforced by the guards listed below.
-
-**Returns**
-
-- Declared return type: `io.BytesIO`. Observed return expression(s): `_response(_metadata_content(dataset_id))`; `_response(_feature_collection())`.
-
-**Algorithm**
-
-1. Checks `url.endswith('/exports/geojson')`. When true: Returns `_response(_feature_collection())`.
-2. Returns `_response(_metadata_content(dataset_id))`.
-
-**Validation and invariants**
-
-- No direct `if`-guarded raise is present; invariants may be delegated to called validators listed below.
-
-**Exceptions**
-
-- No explicit raise expression; failures originate from called contracts or assertions where applicable.
-
-**Side effects**
-
-- No direct network or filesystem mutation call is visible. In-memory mutation, if any, is determined by the exact assignments and called functions above.
-
-**Calls**
-
-- `_feature_collection`, `_metadata_content`, `_response`, `url.endswith`.
-
-**Known repository callers**
-
-No direct repository caller found.
-
-**Tests**
-
-- No direct name-resolved test call found; module-level or higher-level tests may exercise it through a public entry point.
-
-**Business interpretation**
-
-This symbol contributes to the `test` layer only through the exact factual, proxy, diagnostic, policy, or validation role described above.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_valid_source_config_loads`
-
-**Signature**
-
-```python
-def test_valid_source_config_loads(source_config: RteOdreSourceConfig) -> None:
-```
-
-**Purpose**
-
-Protects the `valid source config loads` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `source_config`.
-- Contains 0 explicit setup/context statement(s).
-
-**Action**
-
-- Calls only local assertions/expressions.
-
-**Expected result**
-
-- Direct assertions: `assert source_config.provider == 'RTE'`; `assert source_config.portal == 'ODRE'`; `assert source_config.datasets.sites.dataset_id == 'postes-electriques-rte'`; `assert source_config.cache.max_age_hours == 168`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `valid source config loads` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- No calls.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_missing_dataset_id_fails`
-
-**Signature**
-
-```python
-def test_missing_dataset_id_fails() -> None:
-```
-
-**Purpose**
-
-Protects the `missing dataset id fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 2 explicit setup/context statement(s).
-- Computes `config_data` from `_config_data()`.
-- Enters managed context(s) `pytest.raises(ValidationError)` and executes: Calls `RteOdreSourceConfig.model_validate(config_data)` for its validation or side effect.
-
-**Action**
-
-- Calls `RteOdreSourceConfig.model_validate`, `_config_data`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ValidationError): RteOdreSourceConfig.model_validate(config_data)`.
-
-**Regression protected**
-
-- Protects the exact `missing dataset id fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `RteOdreSourceConfig.model_validate`, `_config_data`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_empty_base_url_fails`
-
-**Signature**
-
-```python
-def test_empty_base_url_fails() -> None:
-```
-
-**Purpose**
-
-Protects the `empty base url fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `config_data` from `_config_data()`.
-- Computes `config_data['api']['base_url']` from `''`.
-- Enters managed context(s) `pytest.raises(ValidationError)` and executes: Calls `RteOdreSourceConfig.model_validate(config_data)` for its validation or side effect.
-
-**Action**
-
-- Calls `RteOdreSourceConfig.model_validate`, `_config_data`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ValidationError): RteOdreSourceConfig.model_validate(config_data)`.
-
-**Regression protected**
-
-- Protects the exact `empty base url fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `RteOdreSourceConfig.model_validate`, `_config_data`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_api_base_is_pinned_to_the_official_https_origin_and_path`
-
-**Signature**
-
-```python
-def test_api_base_is_pinned_to_the_official_https_origin_and_path(
-    base_url: str,
-) -> None:
-```
-
-**Purpose**
-
-Protects the `api base is pinned to the official https origin and path` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `base_url`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `config_data` from `_config_data()`.
-- Computes `config_data['api']['base_url']` from `base_url`.
-- Enters managed context(s) `pytest.raises(ValidationError)` and executes: Calls `RteOdreSourceConfig.model_validate(config_data)` for its validation or side effect.
-
-**Action**
-
-- Calls `RteOdreSourceConfig.model_validate`, `_config_data`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ValidationError): RteOdreSourceConfig.model_validate(config_data)`.
-
-**Regression protected**
-
-- Protects the exact `api base is pinned to the official https origin and path` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `RteOdreSourceConfig.model_validate`, `_config_data`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
-
-### `test_mutated_loaded_api_origin_is_rejected_before_metadata_network`
-
-**Signature**
-
-```python
-def test_mutated_loaded_api_origin_is_rejected_before_metadata_network(
-    source_config: RteOdreSourceConfig,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-```
-
-**Purpose**
-
-Protects the `mutated loaded api origin is rejected before metadata network` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `source_config`, `monkeypatch`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `source_config.api.base_url` from `HttpUrl('https://unrelated.example/api/explore/v2.1')`.
-- Computes `network_calls` from `0`.
-- Enters managed context(s) `pytest.raises(RteOdreDownloadError, match='config|official|origin')` and executes: Calls `fetch_rte_odre_dataset_metadata(source_config, 'sites')` for its validation or side effect.
-
-**Action**
-
-- Calls `AssertionError`, `HttpUrl`, `fetch_rte_odre_dataset_metadata`, `monkeypatch.setattr`.
-
-**Expected result**
-
-- Direct assertions: `assert network_calls == 0`.
-- Expected exception contexts: `with pytest.raises(RteOdreDownloadError, match='config|official|origin'): fetch_rte_odre_dataset_metadata(source_config, 'sites')`.
-
-**Regression protected**
-
-- Protects the exact `mutated loaded api origin is rejected before metadata network` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `AssertionError`, `HttpUrl`, `fetch_rte_odre_dataset_metadata`, `monkeypatch.setattr`, `pytest.raises`.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_negative_cache_age_fails`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+config_data = _config_data()
+config_data["cache"]["max_age_hours"] = -1
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ValidationError):
+        RteOdreSourceConfig.model_validate(config_data)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_negative_cache_age_fails() -> None:
+    config_data = _config_data()
+    config_data["cache"]["max_age_hours"] = -1
+
+    with pytest.raises(ValidationError):
+        RteOdreSourceConfig.model_validate(config_data)
 ```
-
-**Purpose**
-
-Protects the `negative cache age fails` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `config_data` from `_config_data()`.
-- Computes `config_data['cache']['max_age_hours']` from `-1`.
-- Enters managed context(s) `pytest.raises(ValidationError)` and executes: Calls `RteOdreSourceConfig.model_validate(config_data)` for its validation or side effect.
-
-**Action**
-
-- Calls `RteOdreSourceConfig.model_validate`, `_config_data`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ValidationError): RteOdreSourceConfig.model_validate(config_data)`.
-
-**Regression protected**
-
-- Protects the exact `negative cache age fails` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `RteOdreSourceConfig.model_validate`, `_config_data`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_unsupported_export_format_fails`
 
-**Signature**
-
-```python
-def test_unsupported_export_format_fails() -> None:
-```
-
 **Purpose**
 
-Protects the `unsupported export format fails` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `config_data` from `_config_data()`.
-- Computes `config_data['datasets']['sites']['preferred_format']` from `'csv'`.
-- Enters managed context(s) `pytest.raises(ValidationError)` and executes: Calls `RteOdreSourceConfig.model_validate(config_data)` for its validation or side effect.
+```python
+config_data = _config_data()
+config_data["datasets"]["sites"]["preferred_format"] = "csv"
+```
 
 **Action**
 
-- Calls `RteOdreSourceConfig.model_validate`, `_config_data`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ValidationError): RteOdreSourceConfig.model_validate(config_data)`.
+```python
+with pytest.raises(ValidationError):
+        RteOdreSourceConfig.model_validate(config_data)
+```
 
 **Regression protected**
 
-- Protects the exact `unsupported export format fails` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- In-memory/local unit boundary defined entirely by the reproduced setup.
 
-**Calls**
+**Complete test implementation**
 
-- `RteOdreSourceConfig.model_validate`, `_config_data`, `pytest.raises`.
+```python
+def test_unsupported_export_format_fails() -> None:
+    config_data = _config_data()
+    config_data["datasets"]["sites"]["preferred_format"] = "csv"
 
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    with pytest.raises(ValidationError):
+        RteOdreSourceConfig.model_validate(config_data)
+```
 
 ### `test_build_export_url`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: `dataset_id`, `logical_name`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+url = build_rte_odre_export_url(source_config, logical_name)
+```
+
+**Expected result**
+
+```python
+assert url == f"{BASE_URL}/catalog/datasets/{dataset_id}/exports/geojson"
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_build_export_url(
     source_config: RteOdreSourceConfig, logical_name: str, dataset_id: str
 ) -> None:
+    url = build_rte_odre_export_url(source_config, logical_name)  # type: ignore[arg-type]
+
+    assert url == f"{BASE_URL}/catalog/datasets/{dataset_id}/exports/geojson"
 ```
-
-**Purpose**
-
-Protects the `build export url` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `source_config`, `logical_name`, `dataset_id`.
-- Contains 1 explicit setup/context statement(s).
-- Computes `url` from `build_rte_odre_export_url(source_config, logical_name)`.
-
-**Action**
-
-- Calls `DATASET_IDS.items`, `build_rte_odre_export_url`.
-
-**Expected result**
-
-- Direct assertions: `assert url == f'{BASE_URL}/catalog/datasets/{dataset_id}/exports/geojson'`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `build export url` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `DATASET_IDS.items`, `build_rte_odre_export_url`, `list`, `pytest.mark.parametrize`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_build_metadata_url`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+assert build_rte_odre_metadata_url(source_config, "sites") == (
+        f"{BASE_URL}/catalog/datasets/postes-electriques-rte"
+    )
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- In-memory/local unit boundary defined entirely by the reproduced setup.
+
+**Complete test implementation**
 
 ```python
 def test_build_metadata_url(source_config: RteOdreSourceConfig) -> None:
+    assert build_rte_odre_metadata_url(source_config, "sites") == (
+        f"{BASE_URL}/catalog/datasets/postes-electriques-rte"
+    )
 ```
-
-**Purpose**
-
-Protects the `build metadata url` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `source_config`.
-- Contains 0 explicit setup/context statement(s).
-
-**Action**
-
-- Calls `build_rte_odre_metadata_url`.
-
-**Expected result**
-
-- Direct assertions: `assert build_rte_odre_metadata_url(source_config, 'sites') == f'{BASE_URL}/catalog/datasets/postes-electriques-rte'`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `build metadata url` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `build_rte_odre_metadata_url`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_export_url_uses_configured_dataset_id`
 
-**Signature**
-
-```python
-def test_export_url_uses_configured_dataset_id() -> None:
-```
-
 **Purpose**
 
-Protects the `export url uses configured dataset id` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: none.
-- Contains 3 explicit setup/context statement(s).
-- Computes `config_data` from `_config_data()`.
-- Computes `config_data['datasets']['sites']['dataset_id']` from `'configured-sites'`.
-- Computes `config` from `RteOdreSourceConfig.model_validate(config_data)`.
+```python
+config_data = _config_data()
+config_data["datasets"]["sites"]["dataset_id"] = "configured-sites"
+config = RteOdreSourceConfig.model_validate(config_data)
+```
 
 **Action**
 
-- Calls `RteOdreSourceConfig.model_validate`, `_config_data`, `build_rte_odre_export_url`, `build_rte_odre_export_url(config, 'sites').endswith`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: `assert build_rte_odre_export_url(config, 'sites').endswith('/catalog/datasets/configured-sites/exports/geojson')`.
-- Expected exception contexts: none.
+```python
+assert build_rte_odre_export_url(config, "sites").endswith(
+        "/catalog/datasets/configured-sites/exports/geojson"
+    )
+```
 
 **Regression protected**
 
-- Protects the exact `export url uses configured dataset id` contract against a future change that would violate these assertions or controlled-failure expectations.
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
 
 **Test boundary**
 
-- in-memory synthetic data and local calls only. No live external source is implied unless the setup explicitly opens one.
+- In-memory/local unit boundary defined entirely by the reproduced setup.
 
-**Calls**
+**Complete test implementation**
 
-- `RteOdreSourceConfig.model_validate`, `_config_data`, `build_rte_odre_export_url`, `build_rte_odre_export_url(config, 'sites').endswith`.
+```python
+def test_export_url_uses_configured_dataset_id() -> None:
+    config_data = _config_data()
+    config_data["datasets"]["sites"]["dataset_id"] = "configured-sites"
+    config = RteOdreSourceConfig.model_validate(config_data)
 
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    assert build_rte_odre_export_url(config, "sites").endswith(
+        "/catalog/datasets/configured-sites/exports/geojson"
+    )
+```
 
 ### `test_metadata_is_captured_without_fabrication`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+content = _metadata_content(DATASET_IDS["sites"])
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https", return_value=_response(content)
+    ):
+        metadata = fetch_rte_odre_dataset_metadata(source_config, "sites")
+```
+
+**Expected result**
+
+```python
+assert metadata.title == "Official RTE dataset"
+assert metadata.publisher == "RTE"
+assert metadata.modified == "2026-06-16T12:00:00+00:00"
+assert metadata.data_processed == "2026-06-16T12:01:00+00:00"
+assert metadata.metadata_processed == "2026-06-16T12:01:01+00:00"
+assert metadata.license == "Licence Ouverte v2.0 (Etalab)"
+assert metadata.records_count == 2
+assert metadata.geometry_precision_status == "GENERALIZED_OR_RESTRICTED"
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_metadata_is_captured_without_fabrication(
     source_config: RteOdreSourceConfig,
 ) -> None:
+    content = _metadata_content(DATASET_IDS["sites"])
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https", return_value=_response(content)
+    ):
+        metadata = fetch_rte_odre_dataset_metadata(source_config, "sites")
+
+    assert metadata.title == "Official RTE dataset"
+    assert metadata.publisher == "RTE"
+    assert metadata.modified == "2026-06-16T12:00:00+00:00"
+    assert metadata.data_processed == "2026-06-16T12:01:00+00:00"
+    assert metadata.metadata_processed == "2026-06-16T12:01:01+00:00"
+    assert metadata.license == "Licence Ouverte v2.0 (Etalab)"
+    assert metadata.records_count == 2
+    assert metadata.geometry_precision_status == "GENERALIZED_OR_RESTRICTED"
 ```
-
-**Purpose**
-
-Protects the `metadata is captured without fabrication` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `source_config`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `content` from `_metadata_content(DATASET_IDS['sites'])`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', return_value=_response(content))` and executes: Computes `metadata` from `fetch_rte_odre_dataset_metadata(source_config, 'sites')`.
-
-**Action**
-
-- Calls `_metadata_content`, `_response`, `fetch_rte_odre_dataset_metadata`.
-
-**Expected result**
-
-- Direct assertions: `assert metadata.title == 'Official RTE dataset'`; `assert metadata.publisher == 'RTE'`; `assert metadata.modified == '2026-06-16T12:00:00+00:00'`; `assert metadata.data_processed == '2026-06-16T12:01:00+00:00'`; `assert metadata.metadata_processed == '2026-06-16T12:01:01+00:00'`; `assert metadata.license == 'Licence Ouverte v2.0 (Etalab)'`; `assert metadata.records_count == 2`; `assert metadata.geometry_precision_status == 'GENERALIZED_OR_RESTRICTED'`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `metadata is captured without fabrication` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_metadata_content`, `_response`, `fetch_rte_odre_dataset_metadata`, `patch`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_successful_download`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+export_content = _feature_collection()
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(export_content),
+        ],
+    ):
+        result = download_rte_odre_dataset("sites", source_config, tmp_path)
+```
+
+**Expected result**
+
+```python
+assert result.logical_name == "sites"
+assert result.dataset_id == dataset_id
+assert result.provider == "RTE"
+assert result.portal == "ODRE"
+assert result.export_format == "geojson"
+assert result.path.read_bytes() == export_content
+assert result.file_size == len(export_content)
+assert result.sha256 == sha256(export_content).hexdigest()
+assert result.cache_hit is False
+assert result.dataset_metadata.title == "Official RTE dataset"
+assert result.dataset_metadata.records_count == result.export_summary.feature_count
+assert result.export_summary == RteOdreExportSummary(
+        feature_count=2,
+        null_geometry_count=1,
+        non_null_geometry_count=1,
+        geometry_types=("Point",),
+    )
+```
+
+**Regression protected**
+
+Pins verified cache reuse and ensures the successful local path avoids the external operation asserted by the test.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_successful_download(
     tmp_path: Path, source_config: RteOdreSourceConfig
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    export_content = _feature_collection()
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(export_content),
+        ],
+    ):
+        result = download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert result.logical_name == "sites"
+    assert result.dataset_id == dataset_id
+    assert result.provider == "RTE"
+    assert result.portal == "ODRE"
+    assert result.export_format == "geojson"
+    assert result.path.read_bytes() == export_content
+    assert result.file_size == len(export_content)
+    assert result.sha256 == sha256(export_content).hexdigest()
+    assert result.cache_hit is False
+    assert result.dataset_metadata.title == "Official RTE dataset"
+    assert result.dataset_metadata.records_count == result.export_summary.feature_count
+    assert result.export_summary == RteOdreExportSummary(
+        feature_count=2,
+        null_geometry_count=1,
+        non_null_geometry_count=1,
+        geometry_types=("Point",),
+    )
 ```
-
-**Purpose**
-
-Protects the `successful download` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `source_config`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Computes `export_content` from `_feature_collection()`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(export_content)])` and executes: Computes `result` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-
-**Action**
-
-- Calls `RteOdreExportSummary`, `_feature_collection`, `_metadata_content`, `_response`, `download_rte_odre_dataset`, `result.path.read_bytes`, `sha256`, `sha256(export_content).hexdigest`.
-
-**Expected result**
-
-- Direct assertions: `assert result.logical_name == 'sites'`; `assert result.dataset_id == dataset_id`; `assert result.provider == 'RTE'`; `assert result.portal == 'ODRE'`; `assert result.export_format == 'geojson'`; `assert result.path.read_bytes() == export_content`; `assert result.file_size == len(export_content)`; `assert result.sha256 == sha256(export_content).hexdigest()`; `assert result.cache_hit is False`; `assert result.dataset_metadata.title == 'Official RTE dataset'`; `assert result.dataset_metadata.records_count == result.export_summary.feature_count`; `assert result.export_summary == RteOdreExportSummary(feature_count=2, null_geometry_count=1, non_null_geometry_count=1, geometry_types=('Point',))`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `successful download` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `RteOdreExportSummary`, `_feature_collection`, `_metadata_content`, `_response`, `download_rte_odre_dataset`, `len`, `patch`, `result.path.read_bytes`, `sha256`, `sha256(export_content).hexdigest`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_metadata_export_record_count_mismatch_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: `records_count`.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with (
+        patch(
+            "landscout.sources.rte_odre_fr.open_safe_https",
+            side_effect=[
+                _response(_metadata_content(dataset_id, records_count)),
+                _response(_feature_collection()),
+            ],
+        ),
+        pytest.raises(RteOdreDownloadError, match="records_count"),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+assert not list(tmp_path.glob("*.geojson"))
+assert not list(tmp_path.glob("*.part"))
+assert not list(tmp_path.glob("*.bak"))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_metadata_export_record_count_mismatch_is_rejected(
@@ -1981,139 +1401,203 @@ def test_metadata_export_record_count_mismatch_is_rejected(
     source_config: RteOdreSourceConfig,
     records_count: int,
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with (
+        patch(
+            "landscout.sources.rte_odre_fr.open_safe_https",
+            side_effect=[
+                _response(_metadata_content(dataset_id, records_count)),
+                _response(_feature_collection()),
+            ],
+        ),
+        pytest.raises(RteOdreDownloadError, match="records_count"),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert not list(tmp_path.glob("*.geojson"))
+    assert not list(tmp_path.glob("*.part"))
+    assert not list(tmp_path.glob("*.bak"))
 ```
-
-**Purpose**
-
-Protects the `metadata export record count mismatch is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `source_config`, `records_count`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id, records_count)), _response(_feature_collection())]), pytest.raises(RteOdreDownloadError, match='records_count')` and executes: Calls `download_rte_odre_dataset('sites', source_config, tmp_path)` for its validation or side effect.
-
-**Action**
-
-- Calls `_feature_collection`, `_metadata_content`, `_response`, `download_rte_odre_dataset`, `tmp_path.glob`.
-
-**Expected result**
-
-- Direct assertions: `assert not list(tmp_path.glob('*.geojson'))`; `assert not list(tmp_path.glob('*.part'))`; `assert not list(tmp_path.glob('*.bak'))`.
-- Expected exception contexts: `with patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id, records_count)), _response(_feature_collection())]), pytest.raises(RteOdreDownloadError, match='records_count'): download_rte_odre_dataset('sites', source_config, tmp_path)`.
-
-**Regression protected**
-
-- Protects the exact `metadata export record count mismatch is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_feature_collection`, `_metadata_content`, `_response`, `download_rte_odre_dataset`, `list`, `patch`, `pytest.mark.parametrize`, `pytest.raises`, `tmp_path.glob`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_unavailable_metadata_record_count_is_accepted`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id, records_count=None)),
+            _response(_feature_collection()),
+        ],
+    ):
+        result = download_rte_odre_dataset("sites", source_config, tmp_path)
+```
+
+**Expected result**
+
+```python
+assert result.dataset_metadata.records_count is None
+assert result.export_summary.feature_count == 2
+```
+
+**Regression protected**
+
+Pins the exact output, preservation, call-count, or lineage invariant expressed by the reproduced assertions; changing that invariant requires an intentional contract update.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_unavailable_metadata_record_count_is_accepted(
     tmp_path: Path, source_config: RteOdreSourceConfig
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id, records_count=None)),
+            _response(_feature_collection()),
+        ],
+    ):
+        result = download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert result.dataset_metadata.records_count is None
+    assert result.export_summary.feature_count == 2
 ```
-
-**Purpose**
-
-Protects the `unavailable metadata record count is accepted` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `source_config`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id, records_count=None)), _response(_feature_collection())])` and executes: Computes `result` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-
-**Action**
-
-- Calls `_feature_collection`, `_metadata_content`, `_response`, `download_rte_odre_dataset`.
-
-**Expected result**
-
-- Direct assertions: `assert result.dataset_metadata.records_count is None`; `assert result.export_summary.feature_count == 2`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `unavailable metadata record count is accepted` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_feature_collection`, `_metadata_content`, `_response`, `download_rte_odre_dataset`, `patch`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_negative_source_record_count_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with (
+        patch(
+            "landscout.sources.rte_odre_fr.open_safe_https",
+            return_value=_response(_metadata_content(dataset_id, records_count=-1)),
+        ),
+        pytest.raises(RteOdreDownloadError, match="must not be negative"),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+assert not list(tmp_path.glob("*.part"))
+assert not list(tmp_path.glob("*.bak"))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_negative_source_record_count_is_rejected(
     tmp_path: Path, source_config: RteOdreSourceConfig
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with (
+        patch(
+            "landscout.sources.rte_odre_fr.open_safe_https",
+            return_value=_response(_metadata_content(dataset_id, records_count=-1)),
+        ),
+        pytest.raises(RteOdreDownloadError, match="must not be negative"),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert not list(tmp_path.glob("*.part"))
+    assert not list(tmp_path.glob("*.bak"))
 ```
-
-**Purpose**
-
-Protects the `negative source record count is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `source_config`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', return_value=_response(_metadata_content(dataset_id, records_count=-1))), pytest.raises(RteOdreDownloadError, match='must not be negative')` and executes: Calls `download_rte_odre_dataset('sites', source_config, tmp_path)` for its validation or side effect.
-
-**Action**
-
-- Calls `_metadata_content`, `_response`, `download_rte_odre_dataset`, `tmp_path.glob`.
-
-**Expected result**
-
-- Direct assertions: `assert not list(tmp_path.glob('*.part'))`; `assert not list(tmp_path.glob('*.bak'))`.
-- Expected exception contexts: `with patch('landscout.sources.rte_odre_fr.open_safe_https', return_value=_response(_metadata_content(dataset_id, records_count=-1))), pytest.raises(RteOdreDownloadError, match='must not be negative'): download_rte_odre_dataset('sites', source_config, tmp_path)`.
-
-**Regression protected**
-
-- Protects the exact `negative source record count is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_metadata_content`, `_response`, `download_rte_odre_dataset`, `list`, `patch`, `pytest.raises`, `tmp_path.glob`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_export_summary_rejects_invalid_geometry_counts`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: none.
+- `pytest.mark.parametrize` arguments: `feature_count`, `non_null_geometry_count`, `null_geometry_count`.
+
+**Setup**
+
+```python
+# No separate setup statement.
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(ValueError):
+        RteOdreExportSummary(
+            feature_count=feature_count,
+            null_geometry_count=null_geometry_count,
+            non_null_geometry_count=non_null_geometry_count,
+            geometry_types=(),
+        )
+```
+
+**Regression protected**
+
+Pins true-null handling and prevents textual or malformed null-like values from changing the contract.
+
+**Test boundary**
+
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_export_summary_rejects_invalid_geometry_counts(
@@ -2121,346 +1605,707 @@ def test_export_summary_rejects_invalid_geometry_counts(
     null_geometry_count: int,
     non_null_geometry_count: int,
 ) -> None:
+    with pytest.raises(ValueError):
+        RteOdreExportSummary(
+            feature_count=feature_count,
+            null_geometry_count=null_geometry_count,
+            non_null_geometry_count=non_null_geometry_count,
+            geometry_types=(),
+        )
 ```
-
-**Purpose**
-
-Protects the `export summary rejects invalid geometry counts` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `feature_count`, `null_geometry_count`, `non_null_geometry_count`.
-- Contains 1 explicit setup/context statement(s).
-- Enters managed context(s) `pytest.raises(ValueError)` and executes: Calls `RteOdreExportSummary(feature_count=feature_count, null_geometry_count=null_geometry_count, non_null_geometry_count=non_null_geometry_count, geometry_types=())` for its validation or side effect.
-
-**Action**
-
-- Calls `RteOdreExportSummary`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(ValueError): RteOdreExportSummary(feature_count=feature_count, null_geometry_count=null_geometry_count, non_null_geometry_count=non_null_geometry_count, geometry_types=())`.
-
-**Regression protected**
-
-- Protects the exact `export summary rejects invalid geometry counts` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `RteOdreExportSummary`, `pytest.mark.parametrize`, `pytest.raises`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_fresh_cache_is_reused`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(_feature_collection()),
+        ],
+    ) as opener:
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+        second = download_rte_odre_dataset("sites", source_config, tmp_path)
+```
+
+**Expected result**
+
+```python
+assert opener.call_count == 2
+assert first.cache_hit is False
+assert second.cache_hit is True
+assert second.download_timestamp == first.download_timestamp
+assert second.sha256 == first.sha256
+```
+
+**Regression protected**
+
+Pins verified cache reuse and ensures the successful local path avoids the external operation asserted by the test.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_fresh_cache_is_reused(
     tmp_path: Path, source_config: RteOdreSourceConfig
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(_feature_collection()),
+        ],
+    ) as opener:
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+        second = download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert opener.call_count == 2
+    assert first.cache_hit is False
+    assert second.cache_hit is True
+    assert second.download_timestamp == first.download_timestamp
+    assert second.sha256 == first.sha256
 ```
-
-**Purpose**
-
-Protects the `fresh cache is reused` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `source_config`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(_feature_collection())])` and executes: Computes `first` from `download_rte_odre_dataset('sites', source_config, tmp_path)`. Computes `second` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-
-**Action**
-
-- Calls `_feature_collection`, `_metadata_content`, `_response`, `download_rte_odre_dataset`.
-
-**Expected result**
-
-- Direct assertions: `assert opener.call_count == 2`; `assert first.cache_hit is False`; `assert second.cache_hit is True`; `assert second.download_timestamp == first.download_timestamp`; `assert second.sha256 == first.sha256`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `fresh cache is reused` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_feature_collection`, `_metadata_content`, `_response`, `download_rte_odre_dataset`, `patch`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_expired_cache_is_refreshed`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+initial_content = _feature_collection()
+refreshed_payload = json.loads(initial_content)
+refreshed_payload["features"].append(
+        {"type": "Feature", "properties": {"code": "C"}, "geometry": None}
+    )
+refreshed_content = json.dumps(refreshed_payload).encode("utf-8")
+_expire_cache(_metadata_path(tmp_path, dataset_id))
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(initial_content),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id, records_count=3)),
+            _response(refreshed_content),
+        ],
+    ) as opener:
+        refreshed = download_rte_odre_dataset("sites", source_config, tmp_path)
+```
+
+**Expected result**
+
+```python
+assert opener.call_count == 2
+assert refreshed.cache_hit is False
+assert refreshed.path.read_bytes() == refreshed_content
+assert refreshed.sha256 != first.sha256
+assert refreshed.export_summary.feature_count == 3
+assert not list(tmp_path.glob("*.bak"))
+assert not list(tmp_path.glob("*.part"))
+```
+
+**Regression protected**
+
+Pins verified cache reuse and ensures the successful local path avoids the external operation asserted by the test.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_expired_cache_is_refreshed(
     tmp_path: Path, source_config: RteOdreSourceConfig
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    initial_content = _feature_collection()
+    refreshed_payload = json.loads(initial_content)
+    refreshed_payload["features"].append(
+        {"type": "Feature", "properties": {"code": "C"}, "geometry": None}
+    )
+    refreshed_content = json.dumps(refreshed_payload).encode("utf-8")
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(initial_content),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+    _expire_cache(_metadata_path(tmp_path, dataset_id))
+
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id, records_count=3)),
+            _response(refreshed_content),
+        ],
+    ) as opener:
+        refreshed = download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.cache_hit is False
+    assert refreshed.path.read_bytes() == refreshed_content
+    assert refreshed.sha256 != first.sha256
+    assert refreshed.export_summary.feature_count == 3
+    assert not list(tmp_path.glob("*.bak"))
+    assert not list(tmp_path.glob("*.part"))
 ```
-
-**Purpose**
-
-Protects the `expired cache is refreshed` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `source_config`.
-- Contains 6 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Computes `initial_content` from `_feature_collection()`.
-- Computes `refreshed_payload` from `json.loads(initial_content)`.
-- Computes `refreshed_content` from `json.dumps(refreshed_payload).encode('utf-8')`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(initial_content)])` and executes: Computes `first` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id, records_count=3)), _response(refreshed_content)])` and executes: Computes `refreshed` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-
-**Action**
-
-- Calls `_expire_cache`, `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `download_rte_odre_dataset`, `json.dumps`, `json.dumps(refreshed_payload).encode`, `json.loads`, `refreshed.path.read_bytes`, `refreshed_payload['features'].append`, `tmp_path.glob`.
-
-**Expected result**
-
-- Direct assertions: `assert opener.call_count == 2`; `assert refreshed.cache_hit is False`; `assert refreshed.path.read_bytes() == refreshed_content`; `assert refreshed.sha256 != first.sha256`; `assert refreshed.export_summary.feature_count == 3`; `assert not list(tmp_path.glob('*.bak'))`; `assert not list(tmp_path.glob('*.part'))`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `expired cache is refreshed` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_expire_cache`, `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `download_rte_odre_dataset`, `json.dumps`, `json.dumps(refreshed_payload).encode`, `json.loads`, `list`, `patch`, `refreshed.path.read_bytes`, `refreshed_payload['features'].append`, `tmp_path.glob`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_http_failure_raises_and_cleans_temporary_files`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+error = HTTPError(source_url, 503, "Unavailable", hdrs=None, fp=None)
+```
+
+**Action**
+
+```python
+source_url = build_rte_odre_export_url(source_config, "sites")
+```
+
+**Expected result**
+
+```python
+with (
+        patch(
+            "landscout.sources.rte_odre_fr.open_safe_https",
+            side_effect=[_response(_metadata_content(dataset_id)), error],
+        ),
+        pytest.raises(RteOdreDownloadError),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+assert not list(tmp_path.glob("*.part"))
+assert not list(tmp_path.glob("*.geojson"))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_http_failure_raises_and_cleans_temporary_files(
     tmp_path: Path, source_config: RteOdreSourceConfig
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    source_url = build_rte_odre_export_url(source_config, "sites")
+    error = HTTPError(source_url, 503, "Unavailable", hdrs=None, fp=None)
+    with (
+        patch(
+            "landscout.sources.rte_odre_fr.open_safe_https",
+            side_effect=[_response(_metadata_content(dataset_id)), error],
+        ),
+        pytest.raises(RteOdreDownloadError),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert not list(tmp_path.glob("*.part"))
+    assert not list(tmp_path.glob("*.geojson"))
 ```
-
-**Purpose**
-
-Protects the `http failure raises and cleans temporary files` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `source_config`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Computes `source_url` from `build_rte_odre_export_url(source_config, 'sites')`.
-- Computes `error` from `HTTPError(source_url, 503, 'Unavailable', hdrs=None, fp=None)`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), error]), pytest.raises(RteOdreDownloadError)` and executes: Calls `download_rte_odre_dataset('sites', source_config, tmp_path)` for its validation or side effect.
-
-**Action**
-
-- Calls `HTTPError`, `_metadata_content`, `_response`, `build_rte_odre_export_url`, `download_rte_odre_dataset`, `tmp_path.glob`.
-
-**Expected result**
-
-- Direct assertions: `assert not list(tmp_path.glob('*.part'))`; `assert not list(tmp_path.glob('*.geojson'))`.
-- Expected exception contexts: `with patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), error]), pytest.raises(RteOdreDownloadError): download_rte_odre_dataset('sites', source_config, tmp_path)`.
-
-**Regression protected**
-
-- Protects the exact `http failure raises and cleans temporary files` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `HTTPError`, `_metadata_content`, `_response`, `build_rte_odre_export_url`, `download_rte_odre_dataset`, `list`, `patch`, `pytest.raises`, `tmp_path.glob`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_failed_refresh_preserves_previous_valid_cache`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+original_archive = first.path.read_bytes()
+metadata_path = _metadata_path(tmp_path, dataset_id)
+original_metadata = metadata_path.read_bytes()
+_expire_cache(metadata_path)
+expired_metadata = metadata_path.read_bytes()
+error = HTTPError(metadata_url, 503, "Unavailable", hdrs=None, fp=None)
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(_feature_collection()),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+metadata_url = build_rte_odre_metadata_url(source_config, "sites")
+```
+
+**Expected result**
+
+```python
+with (
+        patch("landscout.sources.rte_odre_fr.open_safe_https", side_effect=error),
+        pytest.raises(RteOdreDownloadError),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+assert first.path.read_bytes() == original_archive
+assert metadata_path.read_bytes() == expired_metadata
+assert metadata_path.read_bytes() != original_metadata
+assert not list(tmp_path.glob("*.part"))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_failed_refresh_preserves_previous_valid_cache(
     tmp_path: Path, source_config: RteOdreSourceConfig
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(_feature_collection()),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+    original_archive = first.path.read_bytes()
+    metadata_path = _metadata_path(tmp_path, dataset_id)
+    original_metadata = metadata_path.read_bytes()
+    _expire_cache(metadata_path)
+    expired_metadata = metadata_path.read_bytes()
+    metadata_url = build_rte_odre_metadata_url(source_config, "sites")
+    error = HTTPError(metadata_url, 503, "Unavailable", hdrs=None, fp=None)
+
+    with (
+        patch("landscout.sources.rte_odre_fr.open_safe_https", side_effect=error),
+        pytest.raises(RteOdreDownloadError),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert first.path.read_bytes() == original_archive
+    assert metadata_path.read_bytes() == expired_metadata
+    assert metadata_path.read_bytes() != original_metadata
+    assert not list(tmp_path.glob("*.part"))
 ```
-
-**Purpose**
-
-Protects the `failed refresh preserves previous valid cache` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `source_config`.
-- Contains 9 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(_feature_collection())])` and executes: Computes `first` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-- Computes `original_archive` from `first.path.read_bytes()`.
-- Computes `metadata_path` from `_metadata_path(tmp_path, dataset_id)`.
-- Computes `original_metadata` from `metadata_path.read_bytes()`.
-- Computes `expired_metadata` from `metadata_path.read_bytes()`.
-- Computes `metadata_url` from `build_rte_odre_metadata_url(source_config, 'sites')`.
-- Computes `error` from `HTTPError(metadata_url, 503, 'Unavailable', hdrs=None, fp=None)`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=error), pytest.raises(RteOdreDownloadError)` and executes: Calls `download_rte_odre_dataset('sites', source_config, tmp_path)` for its validation or side effect.
-
-**Action**
-
-- Calls `HTTPError`, `_expire_cache`, `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `build_rte_odre_metadata_url`, `download_rte_odre_dataset`, `first.path.read_bytes`, `metadata_path.read_bytes`, `tmp_path.glob`.
-
-**Expected result**
-
-- Direct assertions: `assert first.path.read_bytes() == original_archive`; `assert metadata_path.read_bytes() == expired_metadata`; `assert metadata_path.read_bytes() != original_metadata`; `assert not list(tmp_path.glob('*.part'))`.
-- Expected exception contexts: `with patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=error), pytest.raises(RteOdreDownloadError): download_rte_odre_dataset('sites', source_config, tmp_path)`.
-
-**Regression protected**
-
-- Protects the exact `failed refresh preserves previous valid cache` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `HTTPError`, `_expire_cache`, `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `build_rte_odre_metadata_url`, `download_rte_odre_dataset`, `first.path.read_bytes`, `list`, `metadata_path.read_bytes`, `patch`, `pytest.raises`, `tmp_path.glob`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_corrupted_refresh_preserves_previous_valid_cache`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+original_archive = first.path.read_bytes()
+metadata_path = _metadata_path(tmp_path, dataset_id)
+_expire_cache(metadata_path)
+expired_metadata = metadata_path.read_bytes()
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(_feature_collection()),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+```
+
+**Expected result**
+
+```python
+with (
+        patch(
+            "landscout.sources.rte_odre_fr.open_safe_https",
+            side_effect=[
+                _response(_metadata_content(dataset_id)),
+                _response(b"{corrupted"),
+            ],
+        ),
+        pytest.raises(RteOdreDownloadError),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+assert first.path.read_bytes() == original_archive
+assert metadata_path.read_bytes() == expired_metadata
+assert not list(tmp_path.glob("*.part"))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_corrupted_refresh_preserves_previous_valid_cache(
     tmp_path: Path, source_config: RteOdreSourceConfig
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(_feature_collection()),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+    original_archive = first.path.read_bytes()
+    metadata_path = _metadata_path(tmp_path, dataset_id)
+    _expire_cache(metadata_path)
+    expired_metadata = metadata_path.read_bytes()
+
+    with (
+        patch(
+            "landscout.sources.rte_odre_fr.open_safe_https",
+            side_effect=[
+                _response(_metadata_content(dataset_id)),
+                _response(b"{corrupted"),
+            ],
+        ),
+        pytest.raises(RteOdreDownloadError),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert first.path.read_bytes() == original_archive
+    assert metadata_path.read_bytes() == expired_metadata
+    assert not list(tmp_path.glob("*.part"))
 ```
-
-**Purpose**
-
-Protects the `corrupted refresh preserves previous valid cache` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `source_config`.
-- Contains 6 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(_feature_collection())])` and executes: Computes `first` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-- Computes `original_archive` from `first.path.read_bytes()`.
-- Computes `metadata_path` from `_metadata_path(tmp_path, dataset_id)`.
-- Computes `expired_metadata` from `metadata_path.read_bytes()`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(b'{corrupted')]), pytest.raises(RteOdreDownloadError)` and executes: Calls `download_rte_odre_dataset('sites', source_config, tmp_path)` for its validation or side effect.
-
-**Action**
-
-- Calls `_expire_cache`, `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `download_rte_odre_dataset`, `first.path.read_bytes`, `metadata_path.read_bytes`, `tmp_path.glob`.
-
-**Expected result**
-
-- Direct assertions: `assert first.path.read_bytes() == original_archive`; `assert metadata_path.read_bytes() == expired_metadata`; `assert not list(tmp_path.glob('*.part'))`.
-- Expected exception contexts: `with patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(b'{corrupted')]), pytest.raises(RteOdreDownloadError): download_rte_odre_dataset('sites', source_config, tmp_path)`.
-
-**Regression protected**
-
-- Protects the exact `corrupted refresh preserves previous valid cache` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_expire_cache`, `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `download_rte_odre_dataset`, `first.path.read_bytes`, `list`, `metadata_path.read_bytes`, `patch`, `pytest.raises`, `tmp_path.glob`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_metadata_publication_failure_restores_previous_pair`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+metadata_path = _metadata_path(tmp_path, dataset_id)
+_expire_cache(metadata_path)
+old_archive = first.path.read_bytes()
+old_metadata = metadata_path.read_bytes()
+temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+original_replace = rte_odre_fr._replace_file
+failure_injected = False
+def fail_metadata_publication(source: Path, target: Path) -> None:
+        nonlocal failure_injected
+        if source == temporary_metadata and target == metadata_path:
+            failure_injected = True
+            raise PermissionError("simulated persistent metadata file lock")
+        original_replace(source, target)
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(_feature_collection()),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+```
+
+**Expected result**
+
+```python
+with (
+        patch(
+            "landscout.sources.rte_odre_fr.open_safe_https",
+            side_effect=[
+                _response(_metadata_content(dataset_id)),
+                _response(_feature_collection(all_null_geometry=True)),
+            ],
+        ),
+        patch.object(
+            rte_odre_fr,
+            "_replace_file",
+            side_effect=fail_metadata_publication,
+        ),
+        pytest.raises(RteOdreDownloadError),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+assert failure_injected
+assert first.path.read_bytes() == old_archive
+assert metadata_path.read_bytes() == old_metadata
+assert not list(tmp_path.glob("*.part"))
+assert not list(tmp_path.glob("*.bak"))
+```
+
+**Regression protected**
+
+Pins true-null handling and prevents textual or malformed null-like values from changing the contract.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_metadata_publication_failure_restores_previous_pair(
     tmp_path: Path, source_config: RteOdreSourceConfig
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(_feature_collection()),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+    metadata_path = _metadata_path(tmp_path, dataset_id)
+    _expire_cache(metadata_path)
+    old_archive = first.path.read_bytes()
+    old_metadata = metadata_path.read_bytes()
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    original_replace = rte_odre_fr._replace_file
+    failure_injected = False
+
+    def fail_metadata_publication(source: Path, target: Path) -> None:
+        nonlocal failure_injected
+        if source == temporary_metadata and target == metadata_path:
+            failure_injected = True
+            raise PermissionError("simulated persistent metadata file lock")
+        original_replace(source, target)
+
+    with (
+        patch(
+            "landscout.sources.rte_odre_fr.open_safe_https",
+            side_effect=[
+                _response(_metadata_content(dataset_id)),
+                _response(_feature_collection(all_null_geometry=True)),
+            ],
+        ),
+        patch.object(
+            rte_odre_fr,
+            "_replace_file",
+            side_effect=fail_metadata_publication,
+        ),
+        pytest.raises(RteOdreDownloadError),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert failure_injected
+    assert first.path.read_bytes() == old_archive
+    assert metadata_path.read_bytes() == old_metadata
+    assert not list(tmp_path.glob("*.part"))
+    assert not list(tmp_path.glob("*.bak"))
+```
+
+### `test_metadata_publication_failure_restores_previous_pair.fail_metadata_publication`
+
+**Exact signature**
+
+```python
+def fail_metadata_publication(source: Path, target: Path) -> None:
 ```
 
 **Purpose**
 
-Protects the `metadata publication failure restores previous pair` behavior encoded by this regression's setup, action, and assertions.
+Private `test` helper for fail metadata publication; its complete implementation below is the authoritative behavioral contract.
 
-**Setup**
+**Return contract**
 
-- Uses parameters/fixtures: `tmp_path`, `source_config`.
-- Contains 9 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(_feature_collection())])` and executes: Computes `first` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-- Computes `metadata_path` from `_metadata_path(tmp_path, dataset_id)`.
-- Computes `old_archive` from `first.path.read_bytes()`.
-- Computes `old_metadata` from `metadata_path.read_bytes()`.
-- Computes `temporary_metadata` from `metadata_path.with_suffix(f'{metadata_path.suffix}.part')`.
-- Computes `original_replace` from `rte_odre_fr._replace_file`.
-- Computes `failure_injected` from `False`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(_feature_collection(all_null_geometry=True))]), patch.object(rte_odre_fr, '_replace_file', side_effect=fail_metadata_publication), pytest.raises(RteOdreDownloadError)` and executes: Calls `download_rte_odre_dataset('sites', source_config, tmp_path)` for its validation or side effect.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Action**
+**Validation and exceptions**
 
-- Calls `PermissionError`, `_expire_cache`, `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `download_rte_odre_dataset`, `first.path.read_bytes`, `metadata_path.read_bytes`, `metadata_path.with_suffix`, `original_replace`, `tmp_path.glob`.
+- Guard with a raise path: `source == temporary_metadata and target == metadata_path`.
+- Explicit raise expressions: `PermissionError('simulated persistent metadata file lock')`.
 
-**Expected result**
+**Side effects**
 
-- Direct assertions: `assert failure_injected`; `assert first.path.read_bytes() == old_archive`; `assert metadata_path.read_bytes() == old_metadata`; `assert not list(tmp_path.glob('*.part'))`; `assert not list(tmp_path.glob('*.bak'))`.
-- Expected exception contexts: `with patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(_feature_collection(all_null_geometry=True))]), patch.object(rte_odre_fr, '_replace_file', side_effect=fail_metadata_publication), pytest.raises(RteOdreDownloadError): download_rte_odre_dataset('sites', source_config, tmp_path)`.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Regression protected**
+**Repository interfaces and consumers**
 
-- Protects the exact `metadata publication failure restores previous pair` contract against a future change that would violate these assertions or controlled-failure expectations.
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `patch('landscout.sources.cadastre_fr._replace_file', side_effect=fail_metadata_publication)`.
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_first_metadata_publication_failure_leaves_no_half_pair` via `patch('landscout.sources.cadastre_fr._replace_file', side_effect=fail_metadata_publication)`.
+- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_metadata_publication_failure_restores_previous_cache_pair` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_metadata_publication)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_metadata_publication_failure_restores_previous_pair` via `patch.object(rte_odre_fr, '_replace_file', side_effect=fail_metadata_publication)`.
 
-**Test boundary**
+**Complete source-ordered implementation**
 
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
+```python
+def fail_metadata_publication(source: Path, target: Path) -> None:
+        nonlocal failure_injected
+        if source == temporary_metadata and target == metadata_path:
+            failure_injected = True
+            raise PermissionError("simulated persistent metadata file lock")
+        original_replace(source, target)
+```
 
-**Calls**
-
-- `PermissionError`, `_expire_cache`, `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `download_rte_odre_dataset`, `first.path.read_bytes`, `list`, `metadata_path.read_bytes`, `metadata_path.with_suffix`, `original_replace`, `patch`, `patch.object`, `pytest.raises`, `tmp_path.glob`.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_invalid_geojson_download_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: `invalid_content`.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with (
+        patch(
+            "landscout.sources.rte_odre_fr.open_safe_https",
+            side_effect=[
+                _response(_metadata_content(dataset_id)),
+                _response(invalid_content),
+            ],
+        ),
+        pytest.raises(RteOdreDownloadError),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+assert not list(tmp_path.glob("*.part"))
+assert not list(tmp_path.glob("*.geojson"))
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_invalid_geojson_download_is_rejected(
@@ -2468,187 +2313,332 @@ def test_invalid_geojson_download_is_rejected(
     source_config: RteOdreSourceConfig,
     invalid_content: bytes,
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with (
+        patch(
+            "landscout.sources.rte_odre_fr.open_safe_https",
+            side_effect=[
+                _response(_metadata_content(dataset_id)),
+                _response(invalid_content),
+            ],
+        ),
+        pytest.raises(RteOdreDownloadError),
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert not list(tmp_path.glob("*.part"))
+    assert not list(tmp_path.glob("*.geojson"))
 ```
-
-**Purpose**
-
-Protects the `invalid geojson download is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `source_config`, `invalid_content`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(invalid_content)]), pytest.raises(RteOdreDownloadError)` and executes: Calls `download_rte_odre_dataset('sites', source_config, tmp_path)` for its validation or side effect.
-
-**Action**
-
-- Calls `_metadata_content`, `_response`, `download_rte_odre_dataset`, `json.dumps`, `json.dumps({'type': 'FeatureCollection'}).encode`, `json.dumps({'type': 'Point', 'coordinates': [1, 2]}).encode`, `tmp_path.glob`.
-
-**Expected result**
-
-- Direct assertions: `assert not list(tmp_path.glob('*.part'))`; `assert not list(tmp_path.glob('*.geojson'))`.
-- Expected exception contexts: `with patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(invalid_content)]), pytest.raises(RteOdreDownloadError): download_rte_odre_dataset('sites', source_config, tmp_path)`.
-
-**Regression protected**
-
-- Protects the exact `invalid geojson download is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_metadata_content`, `_response`, `download_rte_odre_dataset`, `json.dumps`, `json.dumps({'type': 'FeatureCollection'}).encode`, `json.dumps({'type': 'Point', 'coordinates': [1, 2]}).encode`, `list`, `patch`, `pytest.mark.parametrize`, `pytest.raises`, `tmp_path.glob`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_malformed_geojson_feature_or_geometry_is_rejected`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `feature`.
+
+**Setup**
+
+```python
+path = tmp_path / "malformed.geojson"
+path.write_text(
+        json.dumps({"type": "FeatureCollection", "features": [feature]}),
+        encoding="utf-8",
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(RteOdreDownloadError):
+        rte_odre_fr._validate_geojson(path)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_malformed_geojson_feature_or_geometry_is_rejected(
     tmp_path: Path,
     feature: object,
 ) -> None:
+    path = tmp_path / "malformed.geojson"
+    path.write_text(
+        json.dumps({"type": "FeatureCollection", "features": [feature]}),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RteOdreDownloadError):
+        rte_odre_fr._validate_geojson(path)
 ```
-
-**Purpose**
-
-Protects the `malformed geojson feature or geometry is rejected` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `feature`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `path` from `tmp_path / 'malformed.geojson'`.
-- Enters managed context(s) `pytest.raises(RteOdreDownloadError)` and executes: Calls `rte_odre_fr._validate_geojson(path)` for its validation or side effect.
-
-**Action**
-
-- Calls `json.dumps`, `path.write_text`, `rte_odre_fr._validate_geojson`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(RteOdreDownloadError): rte_odre_fr._validate_geojson(path)`.
-
-**Regression protected**
-
-- Protects the exact `malformed geojson feature or geometry is rejected` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `json.dumps`, `path.write_text`, `pytest.mark.parametrize`, `pytest.raises`, `rte_odre_fr._validate_geojson`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_standard_geojson_geometry_types_are_summarized`
 
-**Signature**
-
-```python
-def test_standard_geojson_geometry_types_are_summarized(tmp_path: Path) -> None:
-```
-
 **Purpose**
 
-Protects the `standard geojson geometry types are summarized` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `coordinate_types` from `{'Point': [1, 2], 'MultiPoint': [[1, 2]], 'LineString': [[1, 2], [2, 3]], 'MultiLineString': [[[1, 2], [2, 3]]], 'Polygon': [[[1, 2], [2, 3], [1, 2]]], 'MultiPolygon': [[[[1, 2], [2, 3], [1, 2]]]]}`.
-- Computes `features` from `[{'type': 'Feature', 'geometry': {'type': geometry_type, 'coordinates': coordinates}} for geometry_type, coordinates in coordinate_types.items()]`.
-- Computes `path` from `tmp_path / 'valid.geojson'`.
-- Computes `summary` from `rte_odre_fr._validate_geojson(path)`.
+```python
+coordinate_types = {
+        "Point": [1, 2],
+        "MultiPoint": [[1, 2]],
+        "LineString": [[1, 2], [2, 3]],
+        "MultiLineString": [[[1, 2], [2, 3]]],
+        "Polygon": [[[1, 2], [2, 3], [1, 2]]],
+        "MultiPolygon": [[[[1, 2], [2, 3], [1, 2]]]],
+    }
+features = [
+        {
+            "type": "Feature",
+            "geometry": {"type": geometry_type, "coordinates": coordinates},
+        }
+        for geometry_type, coordinates in coordinate_types.items()
+    ]
+features.extend(
+        [
+            {
+                "type": "Feature",
+                "geometry": {"type": "GeometryCollection", "geometries": []},
+            },
+            {"type": "Feature", "geometry": None},
+        ]
+    )
+path = tmp_path / "valid.geojson"
+path.write_text(
+        json.dumps({"type": "FeatureCollection", "features": features}),
+        encoding="utf-8",
+    )
+summary = rte_odre_fr._validate_geojson(path)
+```
 
 **Action**
 
-- Calls `coordinate_types.items`, `features.extend`, `json.dumps`, `path.write_text`, `rte_odre_fr._validate_geojson`, `sorted`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: `assert summary.feature_count == 8`; `assert summary.null_geometry_count == 1`; `assert summary.non_null_geometry_count == 7`; `assert summary.geometry_types == tuple(sorted((*coordinate_types, 'GeometryCollection')))`.
-- Expected exception contexts: none.
+```python
+assert summary.feature_count == 8
+assert summary.null_geometry_count == 1
+assert summary.non_null_geometry_count == 7
+assert summary.geometry_types == tuple(sorted((*coordinate_types, "GeometryCollection")))
+```
 
 **Regression protected**
 
-- Protects the exact `standard geojson geometry types are summarized` contract against a future change that would violate these assertions or controlled-failure expectations.
+Pins true-null handling and prevents textual or malformed null-like values from changing the contract.
 
 **Test boundary**
 
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
+- Uses a temporary synthetic filesystem/source.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
 
-**Calls**
+**Complete test implementation**
 
-- `coordinate_types.items`, `features.extend`, `json.dumps`, `path.write_text`, `rte_odre_fr._validate_geojson`, `sorted`, `tuple`.
+```python
+def test_standard_geojson_geometry_types_are_summarized(tmp_path: Path) -> None:
+    coordinate_types = {
+        "Point": [1, 2],
+        "MultiPoint": [[1, 2]],
+        "LineString": [[1, 2], [2, 3]],
+        "MultiLineString": [[[1, 2], [2, 3]]],
+        "Polygon": [[[1, 2], [2, 3], [1, 2]]],
+        "MultiPolygon": [[[[1, 2], [2, 3], [1, 2]]]],
+    }
+    features = [
+        {
+            "type": "Feature",
+            "geometry": {"type": geometry_type, "coordinates": coordinates},
+        }
+        for geometry_type, coordinates in coordinate_types.items()
+    ]
+    features.extend(
+        [
+            {
+                "type": "Feature",
+                "geometry": {"type": "GeometryCollection", "geometries": []},
+            },
+            {"type": "Feature", "geometry": None},
+        ]
+    )
+    path = tmp_path / "valid.geojson"
+    path.write_text(
+        json.dumps({"type": "FeatureCollection", "features": features}),
+        encoding="utf-8",
+    )
 
-**Does NOT prove**
+    summary = rte_odre_fr._validate_geojson(path)
 
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    assert summary.feature_count == 8
+    assert summary.null_geometry_count == 1
+    assert summary.non_null_geometry_count == 7
+    assert summary.geometry_types == tuple(sorted((*coordinate_types, "GeometryCollection")))
+```
 
 ### `test_point_requires_a_finite_numeric_position`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `coordinates`.
+
+**Setup**
+
+```python
+path = tmp_path / "bad-point.geojson"
+path.write_text(
+        json.dumps(
+            {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {"type": "Point", "coordinates": coordinates},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(RteOdreDownloadError, match="coordinate|Point|finite"):
+        rte_odre_fr._validate_geojson(path)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_point_requires_a_finite_numeric_position(
     tmp_path: Path,
     coordinates: object,
 ) -> None:
+    path = tmp_path / "bad-point.geojson"
+    path.write_text(
+        json.dumps(
+            {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {"type": "Point", "coordinates": coordinates},
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RteOdreDownloadError, match="coordinate|Point|finite"):
+        rte_odre_fr._validate_geojson(path)
 ```
-
-**Purpose**
-
-Protects the `point requires a finite numeric position` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `coordinates`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `path` from `tmp_path / 'bad-point.geojson'`.
-- Enters managed context(s) `pytest.raises(RteOdreDownloadError, match='coordinate|Point|finite')` and executes: Calls `rte_odre_fr._validate_geojson(path)` for its validation or side effect.
-
-**Action**
-
-- Calls `float`, `json.dumps`, `path.write_text`, `rte_odre_fr._validate_geojson`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(RteOdreDownloadError, match='coordinate|Point|finite'): rte_odre_fr._validate_geojson(path)`.
-
-**Regression protected**
-
-- Protects the exact `point requires a finite numeric position` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `float`, `json.dumps`, `path.write_text`, `pytest.mark.parametrize`, `pytest.raises`, `rte_odre_fr._validate_geojson`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_nested_coordinate_geometries_reject_obvious_invalid_structure`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `coordinates`, `geometry_type`.
+
+**Setup**
+
+```python
+path = tmp_path / "bad-nested.geojson"
+path.write_text(
+        json.dumps(
+            {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": geometry_type,
+                            "coordinates": coordinates,
+                        },
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(RteOdreDownloadError, match="coordinate|structure|finite"):
+        rte_odre_fr._validate_geojson(path)
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Uses a temporary synthetic filesystem/source.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+
+**Complete test implementation**
 
 ```python
 def test_nested_coordinate_geometries_reject_obvious_invalid_structure(
@@ -2656,187 +2646,365 @@ def test_nested_coordinate_geometries_reject_obvious_invalid_structure(
     geometry_type: str,
     coordinates: object,
 ) -> None:
+    path = tmp_path / "bad-nested.geojson"
+    path.write_text(
+        json.dumps(
+            {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": geometry_type,
+                            "coordinates": coordinates,
+                        },
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(RteOdreDownloadError, match="coordinate|structure|finite"):
+        rte_odre_fr._validate_geojson(path)
 ```
-
-**Purpose**
-
-Protects the `nested coordinate geometries reject obvious invalid structure` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `geometry_type`, `coordinates`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `path` from `tmp_path / 'bad-nested.geojson'`.
-- Enters managed context(s) `pytest.raises(RteOdreDownloadError, match='coordinate|structure|finite')` and executes: Calls `rte_odre_fr._validate_geojson(path)` for its validation or side effect.
-
-**Action**
-
-- Calls `float`, `json.dumps`, `path.write_text`, `rte_odre_fr._validate_geojson`.
-
-**Expected result**
-
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(RteOdreDownloadError, match='coordinate|structure|finite'): rte_odre_fr._validate_geojson(path)`.
-
-**Regression protected**
-
-- Protects the exact `nested coordinate geometries reject obvious invalid structure` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; actual in-memory geometry. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `float`, `json.dumps`, `path.write_text`, `pytest.mark.parametrize`, `pytest.raises`, `rte_odre_fr._validate_geojson`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_geometry_collection_members_are_validated_recursively`
 
-**Signature**
-
-```python
-def test_geometry_collection_members_are_validated_recursively(tmp_path: Path) -> None:
-```
-
 **Purpose**
 
-Protects the `geometry collection members are validated recursively` behavior encoded by this regression's setup, action, and assertions.
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
 
 **Setup**
 
-- Uses parameters/fixtures: `tmp_path`.
-- Contains 2 explicit setup/context statement(s).
-- Computes `path` from `tmp_path / 'bad-collection.geojson'`.
-- Enters managed context(s) `pytest.raises(RteOdreDownloadError, match='coordinate|Point')` and executes: Calls `rte_odre_fr._validate_geojson(path)` for its validation or side effect.
+```python
+path = tmp_path / "bad-collection.geojson"
+path.write_text(
+        json.dumps(
+            {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "GeometryCollection",
+                            "geometries": [
+                                {"type": "Point", "coordinates": None}
+                            ],
+                        },
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+```
 
 **Action**
 
-- Calls `json.dumps`, `path.write_text`, `rte_odre_fr._validate_geojson`.
+```python
+# Action is embedded in the assertion/raises context below.
+```
 
 **Expected result**
 
-- Direct assertions: none; the expected failure is expressed through a context manager.
-- Expected exception contexts: `with pytest.raises(RteOdreDownloadError, match='coordinate|Point'): rte_odre_fr._validate_geojson(path)`.
+```python
+with pytest.raises(RteOdreDownloadError, match="coordinate|Point"):
+        rte_odre_fr._validate_geojson(path)
+```
 
 **Regression protected**
 
-- Protects the exact `geometry collection members are validated recursively` contract against a future change that would violate these assertions or controlled-failure expectations.
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
 
 **Test boundary**
 
-- synthetic filesystem. No live external source is implied unless the setup explicitly opens one.
+- Uses a temporary synthetic filesystem/source.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
 
-**Calls**
+**Complete test implementation**
 
-- `json.dumps`, `path.write_text`, `pytest.raises`, `rte_odre_fr._validate_geojson`.
+```python
+def test_geometry_collection_members_are_validated_recursively(tmp_path: Path) -> None:
+    path = tmp_path / "bad-collection.geojson"
+    path.write_text(
+        json.dumps(
+            {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "GeometryCollection",
+                            "geometries": [
+                                {"type": "Point", "coordinates": None}
+                            ],
+                        },
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
 
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+    with pytest.raises(RteOdreDownloadError, match="coordinate|Point"):
+        rte_odre_fr._validate_geojson(path)
+```
 
 ### `test_null_feature_geometries_are_accepted`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+export_content = _feature_collection(all_null_geometry=True)
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(export_content),
+        ],
+    ):
+        result = download_rte_odre_dataset("sites", source_config, tmp_path)
+```
+
+**Expected result**
+
+```python
+assert result.path.is_file()
+assert result.dataset_metadata.geometry_precision_status == "MISSING"
+assert result.export_summary == RteOdreExportSummary(
+        feature_count=2,
+        null_geometry_count=2,
+        non_null_geometry_count=0,
+        geometry_types=(),
+    )
+```
+
+**Regression protected**
+
+Pins true-null handling and prevents textual or malformed null-like values from changing the contract.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_null_feature_geometries_are_accepted(
     tmp_path: Path, source_config: RteOdreSourceConfig
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    export_content = _feature_collection(all_null_geometry=True)
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(export_content),
+        ],
+    ):
+        result = download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert result.path.is_file()
+    assert result.dataset_metadata.geometry_precision_status == "MISSING"
+    assert result.export_summary == RteOdreExportSummary(
+        feature_count=2,
+        null_geometry_count=2,
+        non_null_geometry_count=0,
+        geometry_types=(),
+    )
 ```
-
-**Purpose**
-
-Protects the `null feature geometries are accepted` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `source_config`.
-- Contains 3 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Computes `export_content` from `_feature_collection(all_null_geometry=True)`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(export_content)])` and executes: Computes `result` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-
-**Action**
-
-- Calls `RteOdreExportSummary`, `_feature_collection`, `_metadata_content`, `_response`, `download_rte_odre_dataset`, `result.path.is_file`.
-
-**Expected result**
-
-- Direct assertions: `assert result.path.is_file()`; `assert result.dataset_metadata.geometry_precision_status == 'MISSING'`; `assert result.export_summary == RteOdreExportSummary(feature_count=2, null_geometry_count=2, non_null_geometry_count=0, geometry_types=())`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `null feature geometries are accepted` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `RteOdreExportSummary`, `_feature_collection`, `_metadata_content`, `_response`, `download_rte_odre_dataset`, `patch`, `result.path.is_file`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_lineage_sidecar_records_integrity`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+export_content = _feature_collection()
+metadata_path = _metadata_path(tmp_path, dataset_id)
+lineage = json.loads(metadata_path.read_text(encoding="utf-8"))
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(export_content),
+        ],
+    ):
+        result = download_rte_odre_dataset("sites", source_config, tmp_path)
+```
+
+**Expected result**
+
+```python
+assert lineage["source_url"] == result.source_url
+assert lineage["file_size"] == len(export_content)
+assert lineage["sha256"] == sha256(export_content).hexdigest()
+assert lineage["dataset_metadata"]["publisher"] == "RTE"
+assert lineage["export_summary"] == {
+        "feature_count": 2,
+        "geometry_types": ["Point"],
+        "non_null_geometry_count": 1,
+        "null_geometry_count": 1,
+    }
+assert (
+        lineage["export_summary"]["null_geometry_count"]
+        + lineage["export_summary"]["non_null_geometry_count"]
+        == lineage["export_summary"]["feature_count"]
+    )
+assert "path" not in lineage
+assert "cache_hit" not in lineage
+```
+
+**Regression protected**
+
+Pins verified cache reuse and ensures the successful local path avoids the external operation asserted by the test.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_lineage_sidecar_records_integrity(
     tmp_path: Path, source_config: RteOdreSourceConfig
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    export_content = _feature_collection()
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(export_content),
+        ],
+    ):
+        result = download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    metadata_path = _metadata_path(tmp_path, dataset_id)
+    lineage = json.loads(metadata_path.read_text(encoding="utf-8"))
+    assert lineage["source_url"] == result.source_url
+    assert lineage["file_size"] == len(export_content)
+    assert lineage["sha256"] == sha256(export_content).hexdigest()
+    assert lineage["dataset_metadata"]["publisher"] == "RTE"
+    assert lineage["export_summary"] == {
+        "feature_count": 2,
+        "geometry_types": ["Point"],
+        "non_null_geometry_count": 1,
+        "null_geometry_count": 1,
+    }
+    assert (
+        lineage["export_summary"]["null_geometry_count"]
+        + lineage["export_summary"]["non_null_geometry_count"]
+        == lineage["export_summary"]["feature_count"]
+    )
+    assert "path" not in lineage
+    assert "cache_hit" not in lineage
 ```
-
-**Purpose**
-
-Protects the `lineage sidecar records integrity` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `source_config`.
-- Contains 5 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Computes `export_content` from `_feature_collection()`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(export_content)])` and executes: Computes `result` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-- Computes `metadata_path` from `_metadata_path(tmp_path, dataset_id)`.
-- Computes `lineage` from `json.loads(metadata_path.read_text(encoding='utf-8'))`.
-
-**Action**
-
-- Calls `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `download_rte_odre_dataset`, `json.loads`, `metadata_path.read_text`, `sha256`, `sha256(export_content).hexdigest`.
-
-**Expected result**
-
-- Direct assertions: `assert lineage['source_url'] == result.source_url`; `assert lineage['file_size'] == len(export_content)`; `assert lineage['sha256'] == sha256(export_content).hexdigest()`; `assert lineage['dataset_metadata']['publisher'] == 'RTE'`; `assert lineage['export_summary'] == {'feature_count': 2, 'geometry_types': ['Point'], 'non_null_geometry_count': 1, 'null_geometry_count': 1}`; `assert lineage['export_summary']['null_geometry_count'] + lineage['export_summary']['non_null_geometry_count'] == lineage['export_summary']['feature_count']`; `assert 'path' not in lineage`; `assert 'cache_hit' not in lineage`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `lineage sidecar records integrity` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `download_rte_odre_dataset`, `json.loads`, `len`, `metadata_path.read_text`, `patch`, `sha256`, `sha256(export_content).hexdigest`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_invalid_cached_record_count_invalidates_cache`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: `cached_records_count`.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+valid_content = _feature_collection()
+metadata_path = _metadata_path(tmp_path, dataset_id)
+lineage = json.loads(metadata_path.read_text(encoding="utf-8"))
+lineage["dataset_metadata"]["records_count"] = cached_records_count
+metadata_path.write_text(json.dumps(lineage), encoding="utf-8")
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ) as opener:
+        refreshed = download_rte_odre_dataset("sites", source_config, tmp_path)
+```
+
+**Expected result**
+
+```python
+assert opener.call_count == 2
+assert refreshed.cache_hit is False
+assert refreshed.path.read_bytes() == first.path.read_bytes()
+assert refreshed.dataset_metadata.records_count == 2
+```
+
+**Regression protected**
+
+Pins verified cache reuse and ensures the successful local path avoids the external operation asserted by the test.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_invalid_cached_record_count_invalidates_cache(
@@ -2844,153 +3012,309 @@ def test_invalid_cached_record_count_invalidates_cache(
     source_config: RteOdreSourceConfig,
     cached_records_count: int,
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    valid_content = _feature_collection()
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+    metadata_path = _metadata_path(tmp_path, dataset_id)
+    lineage = json.loads(metadata_path.read_text(encoding="utf-8"))
+    lineage["dataset_metadata"]["records_count"] = cached_records_count
+    metadata_path.write_text(json.dumps(lineage), encoding="utf-8")
+
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ) as opener:
+        refreshed = download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.cache_hit is False
+    assert refreshed.path.read_bytes() == first.path.read_bytes()
+    assert refreshed.dataset_metadata.records_count == 2
 ```
-
-**Purpose**
-
-Protects the `invalid cached record count invalidates cache` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `source_config`, `cached_records_count`.
-- Contains 7 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Computes `valid_content` from `_feature_collection()`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(valid_content)])` and executes: Computes `first` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-- Computes `metadata_path` from `_metadata_path(tmp_path, dataset_id)`.
-- Computes `lineage` from `json.loads(metadata_path.read_text(encoding='utf-8'))`.
-- Computes `lineage['dataset_metadata']['records_count']` from `cached_records_count`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(valid_content)])` and executes: Computes `refreshed` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-
-**Action**
-
-- Calls `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `download_rte_odre_dataset`, `first.path.read_bytes`, `json.dumps`, `json.loads`, `metadata_path.read_text`, `metadata_path.write_text`, `refreshed.path.read_bytes`.
-
-**Expected result**
-
-- Direct assertions: `assert opener.call_count == 2`; `assert refreshed.cache_hit is False`; `assert refreshed.path.read_bytes() == first.path.read_bytes()`; `assert refreshed.dataset_metadata.records_count == 2`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `invalid cached record count invalidates cache` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `download_rte_odre_dataset`, `first.path.read_bytes`, `json.dumps`, `json.loads`, `metadata_path.read_text`, `metadata_path.write_text`, `patch`, `pytest.mark.parametrize`, `refreshed.path.read_bytes`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_cached_export_summary_mismatch_invalidates_cache`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+valid_content = _feature_collection()
+metadata_path = _metadata_path(tmp_path, dataset_id)
+lineage = json.loads(metadata_path.read_text(encoding="utf-8"))
+lineage["export_summary"]["null_geometry_count"] = 2
+lineage["export_summary"]["non_null_geometry_count"] = 0
+lineage["export_summary"]["geometry_types"] = []
+metadata_path.write_text(json.dumps(lineage), encoding="utf-8")
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ) as opener:
+        refreshed = download_rte_odre_dataset("sites", source_config, tmp_path)
+```
+
+**Expected result**
+
+```python
+assert opener.call_count == 2
+assert refreshed.cache_hit is False
+assert refreshed.export_summary.geometry_types == ("Point",)
+```
+
+**Regression protected**
+
+Pins verified cache reuse and ensures the successful local path avoids the external operation asserted by the test.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Uses real in-memory Shapely/GeoPandas geometry operations unless the target is patched.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_cached_export_summary_mismatch_invalidates_cache(
     tmp_path: Path, source_config: RteOdreSourceConfig
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    valid_content = _feature_collection()
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+    metadata_path = _metadata_path(tmp_path, dataset_id)
+    lineage = json.loads(metadata_path.read_text(encoding="utf-8"))
+    lineage["export_summary"]["null_geometry_count"] = 2
+    lineage["export_summary"]["non_null_geometry_count"] = 0
+    lineage["export_summary"]["geometry_types"] = []
+    metadata_path.write_text(json.dumps(lineage), encoding="utf-8")
+
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ) as opener:
+        refreshed = download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.cache_hit is False
+    assert refreshed.export_summary.geometry_types == ("Point",)
 ```
-
-**Purpose**
-
-Protects the `cached export summary mismatch invalidates cache` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `source_config`.
-- Contains 9 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Computes `valid_content` from `_feature_collection()`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(valid_content)])` and executes: Calls `download_rte_odre_dataset('sites', source_config, tmp_path)` for its validation or side effect.
-- Computes `metadata_path` from `_metadata_path(tmp_path, dataset_id)`.
-- Computes `lineage` from `json.loads(metadata_path.read_text(encoding='utf-8'))`.
-- Computes `lineage['export_summary']['null_geometry_count']` from `2`.
-- Computes `lineage['export_summary']['non_null_geometry_count']` from `0`.
-- Computes `lineage['export_summary']['geometry_types']` from `[]`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(valid_content)])` and executes: Computes `refreshed` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-
-**Action**
-
-- Calls `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `download_rte_odre_dataset`, `json.dumps`, `json.loads`, `metadata_path.read_text`, `metadata_path.write_text`.
-
-**Expected result**
-
-- Direct assertions: `assert opener.call_count == 2`; `assert refreshed.cache_hit is False`; `assert refreshed.export_summary.geometry_types == ('Point',)`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `cached export summary mismatch invalidates cache` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `download_rte_odre_dataset`, `json.dumps`, `json.loads`, `metadata_path.read_text`, `metadata_path.write_text`, `patch`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_corrupted_cached_export_triggers_refresh`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+valid_content = _feature_collection()
+first.path.write_bytes(b"corrupted")
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ) as opener:
+        refreshed = download_rte_odre_dataset("sites", source_config, tmp_path)
+```
+
+**Expected result**
+
+```python
+assert opener.call_count == 2
+assert refreshed.cache_hit is False
+assert refreshed.path.read_bytes() == valid_content
+```
+
+**Regression protected**
+
+Pins verified cache reuse and ensures the successful local path avoids the external operation asserted by the test.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_corrupted_cached_export_triggers_refresh(
     tmp_path: Path, source_config: RteOdreSourceConfig
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    valid_content = _feature_collection()
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+    first.path.write_bytes(b"corrupted")
+
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(valid_content),
+        ],
+    ) as opener:
+        refreshed = download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert opener.call_count == 2
+    assert refreshed.cache_hit is False
+    assert refreshed.path.read_bytes() == valid_content
 ```
-
-**Purpose**
-
-Protects the `corrupted cached export triggers refresh` behavior encoded by this regression's setup, action, and assertions.
-
-**Setup**
-
-- Uses parameters/fixtures: `tmp_path`, `source_config`.
-- Contains 4 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Computes `valid_content` from `_feature_collection()`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(valid_content)])` and executes: Computes `first` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(valid_content)])` and executes: Computes `refreshed` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-
-**Action**
-
-- Calls `_feature_collection`, `_metadata_content`, `_response`, `download_rte_odre_dataset`, `first.path.write_bytes`, `refreshed.path.read_bytes`.
-
-**Expected result**
-
-- Direct assertions: `assert opener.call_count == 2`; `assert refreshed.cache_hit is False`; `assert refreshed.path.read_bytes() == valid_content`.
-- Expected exception contexts: none.
-
-**Regression protected**
-
-- Protects the exact `corrupted cached export triggers refresh` contract against a future change that would violate these assertions or controlled-failure expectations.
-
-**Test boundary**
-
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
-
-**Calls**
-
-- `_feature_collection`, `_metadata_content`, `_response`, `download_rte_odre_dataset`, `first.path.write_bytes`, `patch`, `refreshed.path.read_bytes`.
-
-**Does NOT prove**
-
-- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_double_failure_preserves_recovery_and_next_run_uses_zero_network`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+metadata_path = _metadata_path(tmp_path, dataset_id)
+_expire_cache(metadata_path)
+old_archive = first.path.read_bytes()
+old_metadata = metadata_path.read_bytes()
+temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
+metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+original_replace = rte_odre_fr._replace_file
+def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("publication failed")
+        if source == archive_backup and target == first.path:
+            raise OSError("rollback failed")
+        original_replace(source, target)
+def response_for_url(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        if url.endswith("/exports/geojson"):
+            return _response(_feature_collection())
+        return _response(_metadata_content(dataset_id))
+monkeypatch.setattr(rte_odre_fr, "_replace_file", fail_publication_and_rollback)
+monkeypatch.setattr(rte_odre_fr, "open_safe_https", response_for_url)
+archive_recovery = archive_backup.read_bytes()
+metadata_recovery = metadata_backup.read_bytes()
+network_calls: list[str] = []
+def fail_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        network_calls.append(url)
+        raise AssertionError("manual recovery state must fail before HTTP")
+monkeypatch.setattr(rte_odre_fr, "open_safe_https", fail_network)
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(_feature_collection()),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+```
+
+**Expected result**
+
+```python
+with pytest.raises(RteOdreDownloadError, match="rollback"):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+assert archive_backup.read_bytes() == old_archive
+assert metadata_backup.read_bytes() == old_metadata
+with pytest.raises(RteOdreDownloadError, match="backup|recovery|manual"):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+assert network_calls == []
+assert archive_backup.read_bytes() == archive_recovery
+assert metadata_backup.read_bytes() == metadata_recovery
+```
+
+**Regression protected**
+
+Prevents failed cache publication and failed rollback from deleting the last recoverable backup bytes.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_double_failure_preserves_recovery_and_next_run_uses_zero_network(
@@ -2998,57 +3322,316 @@ def test_double_failure_preserves_recovery_and_next_run_uses_zero_network(
     source_config: RteOdreSourceConfig,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(_feature_collection()),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+    metadata_path = _metadata_path(tmp_path, dataset_id)
+    _expire_cache(metadata_path)
+    old_archive = first.path.read_bytes()
+    old_metadata = metadata_path.read_bytes()
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
+    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    original_replace = rte_odre_fr._replace_file
+
+    def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("publication failed")
+        if source == archive_backup and target == first.path:
+            raise OSError("rollback failed")
+        original_replace(source, target)
+
+    def response_for_url(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        if url.endswith("/exports/geojson"):
+            return _response(_feature_collection())
+        return _response(_metadata_content(dataset_id))
+
+    monkeypatch.setattr(rte_odre_fr, "_replace_file", fail_publication_and_rollback)
+    monkeypatch.setattr(rte_odre_fr, "open_safe_https", response_for_url)
+
+    with pytest.raises(RteOdreDownloadError, match="rollback"):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert archive_backup.read_bytes() == old_archive
+    assert metadata_backup.read_bytes() == old_metadata
+    archive_recovery = archive_backup.read_bytes()
+    metadata_recovery = metadata_backup.read_bytes()
+    network_calls: list[str] = []
+
+    def fail_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        network_calls.append(url)
+        raise AssertionError("manual recovery state must fail before HTTP")
+
+    monkeypatch.setattr(rte_odre_fr, "open_safe_https", fail_network)
+
+    with pytest.raises(RteOdreDownloadError, match="backup|recovery|manual"):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert network_calls == []
+    assert archive_backup.read_bytes() == archive_recovery
+    assert metadata_backup.read_bytes() == metadata_recovery
+```
+
+### `test_double_failure_preserves_recovery_and_next_run_uses_zero_network.fail_publication_and_rollback`
+
+**Exact signature**
+
+```python
+def fail_publication_and_rollback(source: Path, target: Path) -> None:
 ```
 
 **Purpose**
 
-Protects the `double failure preserves recovery and next run uses zero network` behavior encoded by this regression's setup, action, and assertions.
+Private `test` helper for fail publication and rollback; its complete implementation below is the authoritative behavioral contract.
 
-**Setup**
+**Return contract**
 
-- Uses parameters/fixtures: `tmp_path`, `source_config`, `monkeypatch`.
-- Contains 14 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(_feature_collection())])` and executes: Computes `first` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-- Computes `metadata_path` from `_metadata_path(tmp_path, dataset_id)`.
-- Computes `old_archive` from `first.path.read_bytes()`.
-- Computes `old_metadata` from `metadata_path.read_bytes()`.
-- Computes `temporary_metadata` from `metadata_path.with_suffix(f'{metadata_path.suffix}.part')`.
-- Computes `archive_backup` from `first.path.with_suffix(f'{first.path.suffix}.bak')`.
-- Computes `metadata_backup` from `metadata_path.with_suffix(f'{metadata_path.suffix}.bak')`.
-- Computes `original_replace` from `rte_odre_fr._replace_file`.
-- Enters managed context(s) `pytest.raises(RteOdreDownloadError, match='rollback')` and executes: Calls `download_rte_odre_dataset('sites', source_config, tmp_path)` for its validation or side effect.
-- Computes `archive_recovery` from `archive_backup.read_bytes()`.
-- Computes `metadata_recovery` from `metadata_backup.read_bytes()`.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Action**
+**Validation and exceptions**
 
-- Calls `AssertionError`, `OSError`, `_expire_cache`, `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `archive_backup.read_bytes`, `download_rte_odre_dataset`, `first.path.read_bytes`, `first.path.with_suffix`, `metadata_backup.read_bytes`, `metadata_path.read_bytes`, `metadata_path.with_suffix`, `monkeypatch.setattr`, `network_calls.append`, `original_replace`, `url.endswith`.
+- Guard with a raise path: `source == temporary_metadata and target == metadata_path`.
+- Guard with a raise path: `source == archive_backup and target == first.path`.
+- Explicit raise expressions: `OSError('publication failed')`, `OSError('rollback failed')`.
 
-**Expected result**
+**Side effects**
 
-- Direct assertions: `assert archive_backup.read_bytes() == old_archive`; `assert metadata_backup.read_bytes() == old_metadata`; `assert network_calls == []`; `assert archive_backup.read_bytes() == archive_recovery`; `assert metadata_backup.read_bytes() == metadata_recovery`.
-- Expected exception contexts: `with pytest.raises(RteOdreDownloadError, match='rollback'): download_rte_odre_dataset('sites', source_config, tmp_path)`; `with pytest.raises(RteOdreDownloadError, match='backup|recovery|manual'): download_rte_odre_dataset('sites', source_config, tmp_path)`.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Regression protected**
+**Repository interfaces and consumers**
 
-- Protects the exact `double failure preserves recovery and next run uses zero network` contract against a future change that would violate these assertions or controlled-failure expectations.
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(cadastre_fr, '_replace_file', fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `monkeypatch.setattr(inpn, '_replace_file', fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
 
-**Test boundary**
+**Complete source-ordered implementation**
 
-- synthetic filesystem; monkeypatches/mocks; fake/blocked network. No live external source is implied unless the setup explicitly opens one.
+```python
+def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("publication failed")
+        if source == archive_backup and target == first.path:
+            raise OSError("rollback failed")
+        original_replace(source, target)
+```
 
-**Calls**
+**Business boundary**
 
-- `AssertionError`, `OSError`, `_expire_cache`, `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `archive_backup.read_bytes`, `download_rte_odre_dataset`, `first.path.read_bytes`, `first.path.with_suffix`, `metadata_backup.read_bytes`, `metadata_path.read_bytes`, `metadata_path.with_suffix`, `monkeypatch.setattr`, `network_calls.append`, `original_replace`, `patch`, `pytest.raises`, `url.endswith`.
+- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
-**Does NOT prove**
+### `test_double_failure_preserves_recovery_and_next_run_uses_zero_network.response_for_url`
+
+**Exact signature**
+
+```python
+def response_for_url(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+```
+
+**Purpose**
+
+Private `test` helper for response for url; its complete implementation below is the authoritative behavioral contract.
+
+**Return contract**
+
+- Declared return annotation: `io.BytesIO`.
+- Every observed return expression is reproduced without truncation:
+```python
+_response(_metadata_content(dataset_id))
+
+_response(_feature_collection())
+```
+
+**Validation and exceptions**
+
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
+
+**Side effects**
+
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+
+**Repository interfaces and consumers**
+
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', response_for_url)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', response_for_url)`.
+
+**Complete source-ordered implementation**
+
+```python
+def response_for_url(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        if url.endswith("/exports/geojson"):
+            return _response(_feature_collection())
+        return _response(_metadata_content(dataset_id))
+```
+
+**Business boundary**
+
+- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+
+### `test_double_failure_preserves_recovery_and_next_run_uses_zero_network.fail_network`
+
+**Exact signature**
+
+```python
+def fail_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+```
+
+**Purpose**
+
+Private `test` helper for fail network; its complete implementation below is the authoritative behavioral contract.
+
+**Return contract**
+
+- Declared return annotation: `io.BytesIO`.
+- No explicit return; normal completion returns `None`.
+
+**Validation and exceptions**
+
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `AssertionError('manual recovery state must fail before HTTP')`.
+
+**Side effects**
+
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+
+**Repository interfaces and consumers**
+
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
+
+**Complete source-ordered implementation**
+
+```python
+def fail_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        network_calls.append(url)
+        raise AssertionError("manual recovery state must fail before HTTP")
+```
+
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_temporary_link_or_junction_cannot_modify_target_before_rte_network`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: `link_kind`, `temporary_role`.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+archive_path = tmp_path / f"{dataset_id}.geojson"
+metadata_path = _metadata_path(tmp_path, dataset_id)
+temporary_paths = {
+        "archive": archive_path.with_suffix(f"{archive_path.suffix}.part"),
+        "metadata": metadata_path.with_suffix(f"{metadata_path.suffix}.part"),
+    }
+unsafe_path = temporary_paths[temporary_role]
+sentinel = tmp_path / "do-not-overwrite.txt"
+sentinel_bytes = b"irreplaceable RTE sentinel"
+sentinel.write_bytes(sentinel_bytes)
+original_is_symlink = Path.is_symlink
+original_is_junction = Path.is_junction
+original_open = Path.open
+def simulated_is_symlink(path: Path) -> bool:
+        return (
+            link_kind == "symlink" and path == unsafe_path
+        ) or original_is_symlink(path)
+def simulated_is_junction(path: Path) -> bool:
+        return (
+            link_kind == "junction" and path == unsafe_path
+        ) or original_is_junction(path)
+def simulated_symlink_open(
+        path: Path, *args: object, **kwargs: object
+    ) -> object:
+        if path == unsafe_path:
+            return original_open(sentinel, *args, **kwargs)
+        return original_open(path, *args, **kwargs)
+network_calls = 0
+def record_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        nonlocal network_calls
+        network_calls += 1
+        if url.endswith("/exports/geojson"):
+            return _response(_feature_collection())
+        return _response(_metadata_content(dataset_id))
+monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
+monkeypatch.setattr(Path, "is_junction", simulated_is_junction)
+monkeypatch.setattr(Path, "open", simulated_symlink_open)
+monkeypatch.setattr(rte_odre_fr, "open_safe_https", record_network)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(RteOdreDownloadError, match="temporary|link|cache"):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+assert network_calls == 0
+assert sentinel.read_bytes() == sentinel_bytes
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_temporary_link_or_junction_cannot_modify_target_before_rte_network(
@@ -3058,57 +3641,344 @@ def test_temporary_link_or_junction_cannot_modify_target_before_rte_network(
     temporary_role: str,
     link_kind: str,
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    archive_path = tmp_path / f"{dataset_id}.geojson"
+    metadata_path = _metadata_path(tmp_path, dataset_id)
+    temporary_paths = {
+        "archive": archive_path.with_suffix(f"{archive_path.suffix}.part"),
+        "metadata": metadata_path.with_suffix(f"{metadata_path.suffix}.part"),
+    }
+    unsafe_path = temporary_paths[temporary_role]
+    sentinel = tmp_path / "do-not-overwrite.txt"
+    sentinel_bytes = b"irreplaceable RTE sentinel"
+    sentinel.write_bytes(sentinel_bytes)
+    original_is_symlink = Path.is_symlink
+    original_is_junction = Path.is_junction
+    original_open = Path.open
+
+    def simulated_is_symlink(path: Path) -> bool:
+        return (
+            link_kind == "symlink" and path == unsafe_path
+        ) or original_is_symlink(path)
+
+    def simulated_is_junction(path: Path) -> bool:
+        return (
+            link_kind == "junction" and path == unsafe_path
+        ) or original_is_junction(path)
+
+    def simulated_symlink_open(
+        path: Path, *args: object, **kwargs: object
+    ) -> object:
+        if path == unsafe_path:
+            return original_open(sentinel, *args, **kwargs)
+        return original_open(path, *args, **kwargs)
+
+    network_calls = 0
+
+    def record_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        nonlocal network_calls
+        network_calls += 1
+        if url.endswith("/exports/geojson"):
+            return _response(_feature_collection())
+        return _response(_metadata_content(dataset_id))
+
+    monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
+    monkeypatch.setattr(Path, "is_junction", simulated_is_junction)
+    monkeypatch.setattr(Path, "open", simulated_symlink_open)
+    monkeypatch.setattr(rte_odre_fr, "open_safe_https", record_network)
+
+    with pytest.raises(RteOdreDownloadError, match="temporary|link|cache"):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert network_calls == 0
+    assert sentinel.read_bytes() == sentinel_bytes
+```
+
+### `test_temporary_link_or_junction_cannot_modify_target_before_rte_network.simulated_is_symlink`
+
+**Exact signature**
+
+```python
+def simulated_is_symlink(path: Path) -> bool:
 ```
 
 **Purpose**
 
-Protects the `temporary link or junction cannot modify target before rte network` behavior encoded by this regression's setup, action, and assertions.
+Private `test` helper for simulated is symlink; its complete implementation below is the authoritative behavioral contract.
 
-**Setup**
+**Return contract**
 
-- Uses parameters/fixtures: `tmp_path`, `source_config`, `monkeypatch`, `temporary_role`, `link_kind`.
-- Contains 12 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Computes `archive_path` from `tmp_path / f'{dataset_id}.geojson'`.
-- Computes `metadata_path` from `_metadata_path(tmp_path, dataset_id)`.
-- Computes `temporary_paths` from `{'archive': archive_path.with_suffix(f'{archive_path.suffix}.part'), 'metadata': metadata_path.with_suffix(f'{metadata_path.suffix}.part')}`.
-- Computes `unsafe_path` from `temporary_paths[temporary_role]`.
-- Computes `sentinel` from `tmp_path / 'do-not-overwrite.txt'`.
-- Computes `sentinel_bytes` from `b'irreplaceable RTE sentinel'`.
-- Computes `original_is_symlink` from `Path.is_symlink`.
-- Computes `original_is_junction` from `Path.is_junction`.
-- Computes `original_open` from `Path.open`.
-- Computes `network_calls` from `0`.
-- Enters managed context(s) `pytest.raises(RteOdreDownloadError, match='temporary|link|cache')` and executes: Calls `download_rte_odre_dataset('sites', source_config, tmp_path)` for its validation or side effect.
+- Declared return annotation: `bool`.
+- Every observed return expression is reproduced without truncation:
+```python
+link_kind == 'symlink' and path == unsafe_path or original_is_symlink(path)
+```
 
-**Action**
+**Validation and exceptions**
 
-- Calls `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `archive_path.with_suffix`, `download_rte_odre_dataset`, `metadata_path.with_suffix`, `monkeypatch.setattr`, `original_is_junction`, `original_is_symlink`, `original_open`, `sentinel.read_bytes`, `sentinel.write_bytes`, `url.endswith`.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
-**Expected result**
+**Side effects**
 
-- Direct assertions: `assert network_calls == 0`; `assert sentinel.read_bytes() == sentinel_bytes`.
-- Expected exception contexts: `with pytest.raises(RteOdreDownloadError, match='temporary|link|cache'): download_rte_odre_dataset('sites', source_config, tmp_path)`.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Regression protected**
+**Repository interfaces and consumers**
 
-- Protects the exact `temporary link or junction cannot modify target before rte network` contract against a future change that would violate these assertions or controlled-failure expectations.
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
 
-**Test boundary**
+**Complete source-ordered implementation**
 
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
+```python
+def simulated_is_symlink(path: Path) -> bool:
+        return (
+            link_kind == "symlink" and path == unsafe_path
+        ) or original_is_symlink(path)
+```
 
-**Calls**
+**Business boundary**
 
-- `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `archive_path.with_suffix`, `download_rte_odre_dataset`, `metadata_path.with_suffix`, `monkeypatch.setattr`, `original_is_junction`, `original_is_symlink`, `original_open`, `pytest.mark.parametrize`, `pytest.raises`, `sentinel.read_bytes`, `sentinel.write_bytes`, `url.endswith`.
+- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
-**Does NOT prove**
+### `test_temporary_link_or_junction_cannot_modify_target_before_rte_network.simulated_is_junction`
+
+**Exact signature**
+
+```python
+def simulated_is_junction(path: Path) -> bool:
+```
+
+**Purpose**
+
+Private `test` helper for simulated is junction; its complete implementation below is the authoritative behavioral contract.
+
+**Return contract**
+
+- Declared return annotation: `bool`.
+- Every observed return expression is reproduced without truncation:
+```python
+link_kind == 'junction' and path == unsafe_path or original_is_junction(path)
+```
+
+**Validation and exceptions**
+
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
+
+**Side effects**
+
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+
+**Repository interfaces and consumers**
+
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'is_junction', simulated_is_junction)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'is_junction', simulated_is_junction)`.
+
+**Complete source-ordered implementation**
+
+```python
+def simulated_is_junction(path: Path) -> bool:
+        return (
+            link_kind == "junction" and path == unsafe_path
+        ) or original_is_junction(path)
+```
+
+**Business boundary**
+
+- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+
+### `test_temporary_link_or_junction_cannot_modify_target_before_rte_network.simulated_symlink_open`
+
+**Exact signature**
+
+```python
+def simulated_symlink_open(
+        path: Path, *args: object, **kwargs: object
+    ) -> object:
+```
+
+**Purpose**
+
+Private `test` helper for simulated symlink open; its complete implementation below is the authoritative behavioral contract.
+
+**Return contract**
+
+- Declared return annotation: `object`.
+- Every observed return expression is reproduced without truncation:
+```python
+original_open(path, *args, **kwargs)
+
+original_open(sentinel, *args, **kwargs)
+```
+
+**Validation and exceptions**
+
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
+
+**Side effects**
+
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+
+**Repository interfaces and consumers**
+
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'open', simulated_symlink_open)`.
+
+**Complete source-ordered implementation**
+
+```python
+def simulated_symlink_open(
+        path: Path, *args: object, **kwargs: object
+    ) -> object:
+        if path == unsafe_path:
+            return original_open(sentinel, *args, **kwargs)
+        return original_open(path, *args, **kwargs)
+```
+
+**Business boundary**
+
+- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+
+### `test_temporary_link_or_junction_cannot_modify_target_before_rte_network.record_network`
+
+**Exact signature**
+
+```python
+def record_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+```
+
+**Purpose**
+
+Private `test` helper for record network; its complete implementation below is the authoritative behavioral contract.
+
+**Return contract**
+
+- Declared return annotation: `io.BytesIO`.
+- Every observed return expression is reproduced without truncation:
+```python
+_response(_metadata_content(dataset_id))
+
+_response(_feature_collection())
+```
+
+**Validation and exceptions**
+
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
+
+**Side effects**
+
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+
+**Repository interfaces and consumers**
+
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', record_network)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(gpu, 'open_safe_https', record_network)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', record_network)`.
+
+**Complete source-ordered implementation**
+
+```python
+def record_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        nonlocal network_calls
+        network_calls += 1
+        if url.endswith("/exports/geojson"):
+            return _response(_feature_collection())
+        return _response(_metadata_content(dataset_id))
+```
+
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_broken_recovery_symlink_rejects_rte_before_network`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+archive_path = tmp_path / f"{dataset_id}.geojson"
+recovery_path = archive_path.with_suffix(f"{archive_path.suffix}.bak")
+original_is_symlink = Path.is_symlink
+def simulated_is_symlink(path: Path) -> bool:
+        return path == recovery_path or original_is_symlink(path)
+network_calls: list[str] = []
+def fail_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        network_calls.append(url)
+        raise AssertionError("broken recovery link must fail before HTTP")
+monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
+monkeypatch.setattr(rte_odre_fr, "open_safe_https", fail_network)
+```
+
+**Action**
+
+```python
+# Action is embedded in the assertion/raises context below.
+```
+
+**Expected result**
+
+```python
+with pytest.raises(RteOdreDownloadError, match="backup|recovery|manual"):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+assert network_calls == []
+```
+
+**Regression protected**
+
+Prevents the malformed/adversarial setup reproduced below from reaching a success path; the public boundary must raise the asserted controlled error.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_broken_recovery_symlink_rejects_rte_before_network(
@@ -3116,51 +3986,219 @@ def test_broken_recovery_symlink_rejects_rte_before_network(
     source_config: RteOdreSourceConfig,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    archive_path = tmp_path / f"{dataset_id}.geojson"
+    recovery_path = archive_path.with_suffix(f"{archive_path.suffix}.bak")
+    original_is_symlink = Path.is_symlink
+
+    def simulated_is_symlink(path: Path) -> bool:
+        return path == recovery_path or original_is_symlink(path)
+
+    network_calls: list[str] = []
+
+    def fail_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        network_calls.append(url)
+        raise AssertionError("broken recovery link must fail before HTTP")
+
+    monkeypatch.setattr(Path, "is_symlink", simulated_is_symlink)
+    monkeypatch.setattr(rte_odre_fr, "open_safe_https", fail_network)
+
+    with pytest.raises(RteOdreDownloadError, match="backup|recovery|manual"):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert network_calls == []
+```
+
+### `test_broken_recovery_symlink_rejects_rte_before_network.simulated_is_symlink`
+
+**Exact signature**
+
+```python
+def simulated_is_symlink(path: Path) -> bool:
 ```
 
 **Purpose**
 
-Protects the `broken recovery symlink rejects rte before network` behavior encoded by this regression's setup, action, and assertions.
+Private `test` helper for simulated is symlink; its complete implementation below is the authoritative behavioral contract.
 
-**Setup**
+**Return contract**
 
-- Uses parameters/fixtures: `tmp_path`, `source_config`, `monkeypatch`.
-- Contains 6 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Computes `archive_path` from `tmp_path / f'{dataset_id}.geojson'`.
-- Computes `recovery_path` from `archive_path.with_suffix(f'{archive_path.suffix}.bak')`.
-- Computes `original_is_symlink` from `Path.is_symlink`.
-- Defines `network_calls` with annotation `list[str]` from `[]`.
-- Enters managed context(s) `pytest.raises(RteOdreDownloadError, match='backup|recovery|manual')` and executes: Calls `download_rte_odre_dataset('sites', source_config, tmp_path)` for its validation or side effect.
+- Declared return annotation: `bool`.
+- Every observed return expression is reproduced without truncation:
+```python
+path == recovery_path or original_is_symlink(path)
+```
 
-**Action**
+**Validation and exceptions**
 
-- Calls `AssertionError`, `archive_path.with_suffix`, `download_rte_odre_dataset`, `monkeypatch.setattr`, `network_calls.append`, `original_is_symlink`.
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
 
-**Expected result**
+**Side effects**
 
-- Direct assertions: `assert network_calls == []`.
-- Expected exception contexts: `with pytest.raises(RteOdreDownloadError, match='backup|recovery|manual'): download_rte_odre_dataset('sites', source_config, tmp_path)`.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Regression protected**
+**Repository interfaces and consumers**
 
-- Protects the exact `broken recovery symlink rejects rte before network` contract against a future change that would violate these assertions or controlled-failure expectations.
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_preexisting_temporary_archive_symlink_cannot_modify_target` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_broken_download_recovery_symlink_is_rejected` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_temporary_link_or_junction_cannot_modify_target_before_rte_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(Path, 'is_symlink', simulated_is_symlink)`.
 
-**Test boundary**
+**Complete source-ordered implementation**
 
-- synthetic filesystem; monkeypatches/mocks; fake/blocked network. No live external source is implied unless the setup explicitly opens one.
+```python
+def simulated_is_symlink(path: Path) -> bool:
+        return path == recovery_path or original_is_symlink(path)
+```
 
-**Calls**
+**Business boundary**
 
-- `AssertionError`, `archive_path.with_suffix`, `download_rte_odre_dataset`, `monkeypatch.setattr`, `network_calls.append`, `original_is_symlink`, `pytest.raises`.
+- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
-**Does NOT prove**
+### `test_broken_recovery_symlink_rejects_rte_before_network.fail_network`
+
+**Exact signature**
+
+```python
+def fail_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+```
+
+**Purpose**
+
+Private `test` helper for fail network; its complete implementation below is the authoritative behavioral contract.
+
+**Return contract**
+
+- Declared return annotation: `io.BytesIO`.
+- No explicit return; normal completion returns `None`.
+
+**Validation and exceptions**
+
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: `AssertionError('broken recovery link must fail before HTTP')`.
+
+**Side effects**
+
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+
+**Repository interfaces and consumers**
+
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_broken_recovery_symlink_is_rejected_before_network` via `monkeypatch.setattr(cadastre_fr, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_mutated_loaded_api_origin_is_rejected_before_discovery_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_download_rejects_forged_written_file_provenance_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_stale_recovery_backup_rejects_cache_before_network` via `monkeypatch.setattr(gpu, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_mutated_loaded_api_origin_is_rejected_before_metadata_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_broken_recovery_symlink_rejects_rte_before_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', fail_network)`.
+
+**Complete source-ordered implementation**
+
+```python
+def fail_network(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        network_calls.append(url)
+        raise AssertionError("broken recovery link must fail before HTTP")
+```
+
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
 ### `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error`
 
-**Signature**
+**Purpose**
+
+Exercises the concrete setup, action, and assertions reproduced below; the protected regression is derived from those operations rather than the test name alone.
+
+**Pytest argument classification**
+
+- Fixture-injected arguments: `tmp_path` (pytest/plugin or imported fixture), `source_config` (local fixture, scope `function`), `monkeypatch` (pytest/plugin or imported fixture).
+- `pytest.mark.parametrize` arguments: none.
+
+**Setup**
+
+```python
+dataset_id = DATASET_IDS["sites"]
+metadata_path = _metadata_path(tmp_path, dataset_id)
+_expire_cache(metadata_path)
+old_archive = first.path.read_bytes()
+old_metadata = metadata_path.read_bytes()
+temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
+metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+original_replace = rte_odre_fr._replace_file
+original_unlink = Path.unlink
+rollback_failed = False
+def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        nonlocal rollback_failed
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("publication failed")
+        if source == archive_backup and target == first.path:
+            rollback_failed = True
+            raise OSError("rollback failed")
+        original_replace(source, target)
+def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
+        if rollback_failed and path == temporary_metadata:
+            raise PermissionError("temporary cleanup failed")
+        original_unlink(path, missing_ok=missing_ok)
+def response_for_url(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        if url.endswith("/exports/geojson"):
+            return _response(_feature_collection())
+        return _response(_metadata_content(dataset_id))
+monkeypatch.setattr(rte_odre_fr, "open_safe_https", response_for_url)
+monkeypatch.setattr(rte_odre_fr, "_replace_file", fail_publication_and_rollback)
+monkeypatch.setattr(Path, "unlink", fail_temporary_cleanup)
+```
+
+**Action**
+
+```python
+with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(_feature_collection()),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+```
+
+**Expected result**
+
+```python
+with pytest.raises(RteOdreDownloadError, match="rollback"):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+assert archive_backup.read_bytes() == old_archive
+assert metadata_backup.read_bytes() == old_metadata
+```
+
+**Regression protected**
+
+Prevents failed cache publication and failed rollback from deleting the last recoverable backup bytes.
+
+**Test boundary**
+
+- Mocks/monkeypatches replace the exact callbacks visible in the source; no unshown production path is implied.
+- Uses a temporary synthetic filesystem/source.
+- Network behavior is fake/blocked and does not contact the live source.
+
+**Complete test implementation**
 
 ```python
 def test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error(
@@ -3168,109 +4206,264 @@ def test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error(
     source_config: RteOdreSourceConfig,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    dataset_id = DATASET_IDS["sites"]
+    with patch(
+        "landscout.sources.rte_odre_fr.open_safe_https",
+        side_effect=[
+            _response(_metadata_content(dataset_id)),
+            _response(_feature_collection()),
+        ],
+    ):
+        first = download_rte_odre_dataset("sites", source_config, tmp_path)
+    metadata_path = _metadata_path(tmp_path, dataset_id)
+    _expire_cache(metadata_path)
+    old_archive = first.path.read_bytes()
+    old_metadata = metadata_path.read_bytes()
+    temporary_metadata = metadata_path.with_suffix(f"{metadata_path.suffix}.part")
+    archive_backup = first.path.with_suffix(f"{first.path.suffix}.bak")
+    metadata_backup = metadata_path.with_suffix(f"{metadata_path.suffix}.bak")
+    original_replace = rte_odre_fr._replace_file
+    original_unlink = Path.unlink
+    rollback_failed = False
+
+    def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        nonlocal rollback_failed
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("publication failed")
+        if source == archive_backup and target == first.path:
+            rollback_failed = True
+            raise OSError("rollback failed")
+        original_replace(source, target)
+
+    def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
+        if rollback_failed and path == temporary_metadata:
+            raise PermissionError("temporary cleanup failed")
+        original_unlink(path, missing_ok=missing_ok)
+
+    def response_for_url(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        if url.endswith("/exports/geojson"):
+            return _response(_feature_collection())
+        return _response(_metadata_content(dataset_id))
+
+    monkeypatch.setattr(rte_odre_fr, "open_safe_https", response_for_url)
+    monkeypatch.setattr(rte_odre_fr, "_replace_file", fail_publication_and_rollback)
+    monkeypatch.setattr(Path, "unlink", fail_temporary_cleanup)
+
+    with pytest.raises(RteOdreDownloadError, match="rollback"):
+        download_rte_odre_dataset("sites", source_config, tmp_path)
+
+    assert archive_backup.read_bytes() == old_archive
+    assert metadata_backup.read_bytes() == old_metadata
+```
+
+### `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.fail_publication_and_rollback`
+
+**Exact signature**
+
+```python
+def fail_publication_and_rollback(source: Path, target: Path) -> None:
 ```
 
 **Purpose**
 
-Protects the `rte cleanup failure does not mask double failure recovery error` behavior encoded by this regression's setup, action, and assertions.
+Private `test` helper for fail publication and rollback; its complete implementation below is the authoritative behavioral contract.
 
-**Setup**
+**Return contract**
 
-- Uses parameters/fixtures: `tmp_path`, `source_config`, `monkeypatch`.
-- Contains 12 explicit setup/context statement(s).
-- Computes `dataset_id` from `DATASET_IDS['sites']`.
-- Enters managed context(s) `patch('landscout.sources.rte_odre_fr.open_safe_https', side_effect=[_response(_metadata_content(dataset_id)), _response(_feature_collection())])` and executes: Computes `first` from `download_rte_odre_dataset('sites', source_config, tmp_path)`.
-- Computes `metadata_path` from `_metadata_path(tmp_path, dataset_id)`.
-- Computes `old_archive` from `first.path.read_bytes()`.
-- Computes `old_metadata` from `metadata_path.read_bytes()`.
-- Computes `temporary_metadata` from `metadata_path.with_suffix(f'{metadata_path.suffix}.part')`.
-- Computes `archive_backup` from `first.path.with_suffix(f'{first.path.suffix}.bak')`.
-- Computes `metadata_backup` from `metadata_path.with_suffix(f'{metadata_path.suffix}.bak')`.
-- Computes `original_replace` from `rte_odre_fr._replace_file`.
-- Computes `original_unlink` from `Path.unlink`.
-- Computes `rollback_failed` from `False`.
-- Enters managed context(s) `pytest.raises(RteOdreDownloadError, match='rollback')` and executes: Calls `download_rte_odre_dataset('sites', source_config, tmp_path)` for its validation or side effect.
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
 
-**Action**
+**Validation and exceptions**
 
-- Calls `OSError`, `PermissionError`, `_expire_cache`, `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `archive_backup.read_bytes`, `download_rte_odre_dataset`, `first.path.read_bytes`, `first.path.with_suffix`, `metadata_backup.read_bytes`, `metadata_path.read_bytes`, `metadata_path.with_suffix`, `monkeypatch.setattr`, `original_replace`, `original_unlink`, `url.endswith`.
+- Guard with a raise path: `source == temporary_metadata and target == metadata_path`.
+- Guard with a raise path: `source == archive_backup and target == first.path`.
+- Explicit raise expressions: `OSError('publication failed')`, `OSError('rollback failed')`.
 
-**Expected result**
+**Side effects**
 
-- Direct assertions: `assert archive_backup.read_bytes() == old_archive`; `assert metadata_backup.read_bytes() == old_metadata`.
-- Expected exception contexts: `with pytest.raises(RteOdreDownloadError, match='rollback'): download_rte_odre_dataset('sites', source_config, tmp_path)`.
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
 
-**Regression protected**
+**Repository interfaces and consumers**
 
-- Protects the exact `rte cleanup failure does not mask double failure recovery error` contract against a future change that would violate these assertions or controlled-failure expectations.
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_publication_and_rollback_failure_preserves_recovery_backup` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_next_run_after_double_failure_preserves_recovery_before_network` via `patch.object(cadastre_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(cadastre_fr, '_replace_file', fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(gpu, '_replace_file', fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_publication_and_rollback_failure_preserves_exact_recovery_backups` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(ign_bdtopo_fr, '_replace_file', side_effect=fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_inpn_protected_areas_fr.py::test_rollback_failure_preserves_recovery_material` via `monkeypatch.setattr(inpn, '_replace_file', fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, '_replace_file', fail_publication_and_rollback)`.
 
-**Test boundary**
+**Complete source-ordered implementation**
 
-- synthetic filesystem; monkeypatches/mocks. No live external source is implied unless the setup explicitly opens one.
+```python
+def fail_publication_and_rollback(source: Path, target: Path) -> None:
+        nonlocal rollback_failed
+        if source == temporary_metadata and target == metadata_path:
+            raise OSError("publication failed")
+        if source == archive_backup and target == first.path:
+            rollback_failed = True
+            raise OSError("rollback failed")
+        original_replace(source, target)
+```
 
-**Calls**
-
-- `OSError`, `PermissionError`, `_expire_cache`, `_feature_collection`, `_metadata_content`, `_metadata_path`, `_response`, `archive_backup.read_bytes`, `download_rte_odre_dataset`, `first.path.read_bytes`, `first.path.with_suffix`, `metadata_backup.read_bytes`, `metadata_path.read_bytes`, `metadata_path.with_suffix`, `monkeypatch.setattr`, `original_replace`, `original_unlink`, `patch`, `pytest.raises`, `url.endswith`.
-
-**Does NOT prove**
+**Business boundary**
 
 - The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
 
+### `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.fail_temporary_cleanup`
+
+**Exact signature**
+
+```python
+def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
+```
+
+**Purpose**
+
+Private `test` helper for fail temporary cleanup; its complete implementation below is the authoritative behavioral contract.
+
+**Return contract**
+
+- Declared return annotation: `None`.
+- No explicit return; normal completion returns `None`.
+
+**Validation and exceptions**
+
+- Guard with a raise path: `rollback_failed and path == temporary_metadata`.
+- Explicit raise expressions: `PermissionError('temporary cleanup failed')`.
+
+**Side effects**
+
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+
+**Repository interfaces and consumers**
+
+- callback/function object: `tests/unit/test_cadastre_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
+- callback/function object: `tests/unit/test_gpu_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
+- callback/function object: `tests/unit/test_ign_bdtopo_fr.py::test_cleanup_failure_does_not_mask_double_failure_recovery_error` via `patch.object(Path, 'unlink', new=fail_temporary_cleanup)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(Path, 'unlink', fail_temporary_cleanup)`.
+
+**Complete source-ordered implementation**
+
+```python
+def fail_temporary_cleanup(path: Path, *, missing_ok: bool = False) -> None:
+        if rollback_failed and path == temporary_metadata:
+            raise PermissionError("temporary cleanup failed")
+        original_unlink(path, missing_ok=missing_ok)
+```
+
+**Business boundary**
+
+- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+
+### `test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error.response_for_url`
+
+**Exact signature**
+
+```python
+def response_for_url(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+```
+
+**Purpose**
+
+Private `test` helper for response for url; its complete implementation below is the authoritative behavioral contract.
+
+**Return contract**
+
+- Declared return annotation: `io.BytesIO`.
+- Every observed return expression is reproduced without truncation:
+```python
+_response(_metadata_content(dataset_id))
+
+_response(_feature_collection())
+```
+
+**Validation and exceptions**
+
+- No local `if` branch directly contains a raise; called validators and exception handlers remain visible in the complete implementation.
+- Explicit raise expressions: none.
+
+**Side effects**
+
+- Network I/O: none directly visible.
+- Filesystem read: none directly visible.
+- Filesystem write: none directly visible.
+- CRS/geometry calculation: none directly visible.
+- Hashing: none directly visible.
+- Environment/process effects: none directly visible.
+- In-memory mutation: none directly visible.
+- Input mutation: none detected; copy/preservation behavior is shown in the implementation.
+
+**Repository interfaces and consumers**
+
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_double_failure_preserves_recovery_and_next_run_uses_zero_network` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', response_for_url)`.
+- callback/function object: `tests/unit/test_rte_odre_fr.py::test_rte_cleanup_failure_does_not_mask_double_failure_recovery_error` via `monkeypatch.setattr(rte_odre_fr, 'open_safe_https', response_for_url)`.
+
+**Complete source-ordered implementation**
+
+```python
+def response_for_url(url: str, *args: object, **kwargs: object) -> io.BytesIO:
+        if url.endswith("/exports/geojson"):
+            return _response(_feature_collection())
+        return _response(_metadata_content(dataset_id))
+```
+
+**Business boundary**
+
+- The test proves only the exercised synthetic or mocked contract; it does not substitute for live-source or legal validation.
+
+
 ## 7. Data contracts
 
-The following exact strings are used as frame columns, constructor/schema keys, or keyed domain labels. Rows explicitly marked as mapping/domain keys are not claimed to be DataFrame columns. Central ordered column and dtype constants in the Constants section remain authoritative.
+No module-level canonical frame schema, mapping, or dtype declaration is present. Any frame interaction is recoverable from the complete function implementations below; no string literal is promoted to a column merely because it appears in code.
 
-| Column or keyed label | Contract observed here | Semantic boundary |
-|---|---|---|
-| `api` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `base_url` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `cache` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `dataset_id` | Logical dtype: nullable-string/string dtype as declared. Nullability: normally non-null for portable identity; exact validator is authoritative. | portable identity used for deterministic joins and source/relation agreement. Consumers and exact calculations are the functions that reference this column above. |
-| `dataset_metadata` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `datasets` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `download_timestamp` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `export_summary` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `feature_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `features` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `file_size` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `geometry_types` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `max_age_hours` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `non_null_geometry_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `null_geometry_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `preferred_format` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `publisher` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `records_count` | Logical dtype: Int64 or strict integer as declared. Nullability: determined by the owning schema/dtype map and explicit null guards. | count of the entities named by the field. Consumers and exact calculations are the functions that reference this column above. |
-| `sha256` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `sites` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
-| `source_url` | Logical dtype: schema-defined Pandas dtype. Nullability: determined by the owning schema/dtype map and explicit null guards. | exact named field; factual/proxy/policy/diagnostic role follows the introducing function; introduced or consumed by the functions and ordered schemas in this module. Consumers and exact calculations are the functions that reference this column above. |
+No enum/status/Literal value is classified as a column unless it is separately present in a canonical schema declaration. Mapping keys, JSON keys, dataclass fields, and configuration leaves remain distinct categories.
 
 ## 8. Interfaces
 
-Known static callers, internal calls, and tests are listed for every symbol. Package-level availability is controlled by this module's `__all__` and the relevant package `__init__.py`; private helpers are not a stable public API.
+This module does not define `__all__`; no package-export guarantee is inferred from its absence. Symbols can still be imported directly or re-exported by a separate package initializer, as shown by the reference lists.
 
 ## 9. Error handling
 
-Every explicit raise and guarded condition is listed with its function. Public boundaries translate malformed source/configuration/input conditions into the controlled exception classes shown by those functions and tests; raw implementation errors are not promised as API.
+Controlled exceptions, local raise guards, delegated validators, and framework assertions are documented per exact function implementation. No broader error guarantee is inferred.
 
 ## 10. Side effects
 
-Per-function side effects are derived from actual calls. Source adapters may perform guarded network, cache, archive, or filesystem operations; stages normally operate on copies unless their preservation validators state otherwise; tests use the boundaries stated per test.
+Network I/O, filesystem reads/writes, in-memory mutation, input mutation, geometry/CRS calculations, hashing, and process/environment effects are listed separately for every function.
 
 ## 11. Security / trust boundaries
 
-Trust claims are limited to the explicit byte, schema, lineage, source-complete, path, URL, geometry, or policy checks implemented by this file and its callees. Textual lineage is not treated as physical proof unless the function revalidates the physical source.
+Textual URL/provider/hash fields are provenance claims, not physical proof. Physical proof exists only where the reproduced implementation revalidates transport, bytes, archive structure, source layers, geometry, or result hashes.
+
 
 ## 12. GIS / CRS rules
 
-GIS rules apply only where geometry/CRS calls or columns are listed above. Storage geometry is not silently repaired; metric work uses the explicit CRS transformations and calculation copies visible in the algorithm. Files without GIS calls impose no CRS contract.
+Only the explicit CRS/geometry validators and calculation copies in this module establish GIS behavior. No geometry repair, reprojection, or metric meaning is inferred from a field name alone.
 
 ## 13. Provenance rules
 
-Provenance is carried only through exact source/configuration/hash fields shown by the models, constants, and frame columns. Consult `docs/code/SOURCE_TRUST_MODEL.md` for the cross-adapter chain.
+Configured identity, row lineage, byte identity, cache metadata, and source-complete revalidation are separate levels. This companion claims only the levels implemented above.
 
 ## 14. Business meaning
 
-This file contributes to LandScout's `test` evidence flow as described by its purpose and public symbols. It preserves the distinction among fact, proxy evidence, policy interpretation, diagnostic status, and parcel precheck.
+The module contributes to the test flow through the exact facts, proxy evidence, policy results, diagnostics, or prechecks identified above.
 
 ## 15. Explicit non-goals
 
@@ -3278,8 +4471,8 @@ This file contributes to LandScout's `test` evidence flow as described by its pu
 
 ## 16. Tests
 
-Direct name-resolved tests appear under each symbol. Higher-level tests may exercise private helpers through a public source-complete function; companion documents for all test files describe their fixtures, actions, assertions, and boundaries.
+Test consumers and framework invocation are included in per-symbol interfaces. Test modules distinguish fixture injection from parameterized values and reproduce setup/action/assertion source.
 
 ## 17. Change impact
 
-Changing this file requires reviewing its static callers, package exports, directly mapped tests, relevant schema/hash/version constants, source locks, persisted artifact contracts, and the corresponding pipeline/cross-cutting documents. Any byte change makes the SHA256 above stale and requires regenerating this companion.
+Any source-byte change invalidates the SHA above. Review exact exports, aliases, canonical frame schemas/dtypes, configured source/policy identities, callers, framework hooks, artifacts, and all linked tests before updating this companion.
