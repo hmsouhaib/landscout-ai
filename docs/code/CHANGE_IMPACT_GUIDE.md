@@ -1,0 +1,63 @@
+# Change impact guide
+
+Use the relevant file companions first: they list exact callers, tests, constants, fields, raises, and algorithms for the current source SHA.
+
+## Changing a source adapter
+
+Review the adapter config YAML/model, package exports, shared safe HTTPS boundary, cache sidecar/result dataclasses, archive/extraction validation, physical-source consumers, and all adapter tests. Preserve the ordering of cache checks versus network, before/after hashing, controlled errors, and source-complete consumers. Cadastre changes affect normalization; IGN changes affect grid/road/coverage; GPU changes affect every planning branch; INPN changes affect the environment inventory foundation; RTE changes affect its source envelopes.
+
+## Changing source configuration
+
+Review strict Pydantic fields/validators, duplicate/extra-key handling, URL origin/path locks, expected size/SHA/checksum, cache identity, logical layer match tokens, source lineage copied to frames/results, tests that mutate loaded config, and any persisted source/result hashes. Configuration mutation must be revalidated at public boundaries.
+
+## Changing `safe_http`
+
+Review all five adapter call sites and `test_safe_http.py`. Preserve HTTPS-only identity, localhost/numeric-IP handling, all-address DNS validation, no re-resolution, numeric socket endpoint, peer verification, default TLS verification, original SNI/Host, header validation, proxy independence, redirect ownership, 2xx-only completion, streaming, and response/connection cleanup. Run every source-adapter suite because transport error translation occurs there.
+
+## Changing CRS or geometry logic
+
+Review `geo/crs.py`, `geo/geometry.py`, all normalization stages, both proximity/coverage pairs, planning zoning/features, aggregation parcel-area checks, and geometry tests. Distinguish stored versus calculation copies. Check CRS equality/canonical-representation expectations, force-2D location, Z preservation, valid geometry kinds, null/empty/invalid behavior, WKB preservation, units, minimum rotated rectangle, centroid semantics, overlay tolerance, and boundary equality.
+
+## Changing a normalized schema
+
+Search for the exact ordered column constants and dtype maps. Review builders, intrinsic validators, source-complete validators, code resolver, policy application, aggregation, hashes/schema signatures, Parquet manifests, empty-frame builders, and every test that removes/reorders/retypes a column. A validation-only change must not cast malformed loaded artifacts or alter valid output hashes.
+
+## Changing DataFrame columns
+
+Review introduction, exact dtype/nullability/domain, index/CRS/geometry preservation, relation-to-feature comparisons, canonical frame hashing, artifact schema signatures, selectors/profilers, package exports, and companion data-contract tables. Search exact string occurrences across `src` and `tests`; do not rely only on Python imports.
+
+## Changing a public stage signature
+
+Review `src/landscout/stages/__init__.py`, all direct tests/callers, source-complete ownership, call-count regressions, mocks patched at the consuming module, and documentation flows. Do not reintroduce weaker overloads accepting arbitrary normalized frames, caller proximity results, caller coverage, or compiled policy objects where current APIs own those sources.
+
+## Changing planning source locks
+
+Review GPU document/archive/spatial/written-file identity, planning index/structure locks, exact source excerpts/page/offset/fragment hashes, zoning/feature input hashes, policy config source locks, complete result hashes, artifact manifests, and source-complete rebuild tests. Source locks describe approved evidence; changing them requires independent source verification, not only updated expected values.
+
+## Changing policy YAML
+
+Review the relevant compiler's strict model, evidence sources, exact pair/chapter/route completeness, precedence, official meaning agreement, applicability/context, interpretation/legal flags, policy byte hash, result hashes, downstream application/aggregation, ignored generated artifacts, and permanent source-excerpt tests. Do not update expected hashes merely to silence a semantic failure.
+
+## Changing a policy schema
+
+Review Pydantic schema-version Literals/validators, checked-in YAML, result schema/hash versions, artifact manifest source locks, loaders, compatibility validators, older-version rejection tests, docs, and migration strategy. A new schema version is a compatibility contract and must not be used for validation-only hardening without need.
+
+## Changing a hash schema
+
+Review canonicalization, null/geometry/index/dtype serialization, component ordering, complete-result closure, manifest roles, source lock comparison, artifact loaders, exact pinned hashes, and all coordinated-mutation tests. Keep physical-byte hashes distinct from canonical frame/content hashes.
+
+## Changing cache metadata
+
+Review strict schema/version/type validation, duplicate-key handling, timestamp rules, source/config identity, size/SHA equality, current physical validation, cache-hit reconstruction, invalid-cache refresh tests, and compatibility with existing verified caches. Cache metadata cannot authorize bytes that fail current physical checks.
+
+## Changing recovery logic
+
+Review final/archive/metadata existence combinations, `.part` link/junction/directory handling, exclusive creation, stale `.bak` fail-closed behavior, first publication, replacement, partial publication, rollback success, rollback failure, useful backup byte preservation, next-run zero-network behavior, cleanup precedence, and recovery-state tests for Cadastre/RTE/IGN/GPU/INPN.
+
+## Changing tests
+
+Preserve the contract being tested, not only pass status. Ensure a mutation is otherwise coherent when it is meant to isolate a semantic/source gap. Keep network fully fake/blocked unless authorized. Avoid tests that pass for a cheaper stale hash/schema/summary defect. Update the companion test section and rerun focused plus required full/static gates.
+
+## Changing documentation
+
+Recompute companion SHA256 after any source/project-file byte change. Re-run file/symbol/test completeness audits, verify links/Mermaid/Markdown conflict markers, and remember that `docs/DEV_LOG.md` is historical evidence rather than current implementation authority.

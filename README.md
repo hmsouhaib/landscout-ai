@@ -19,3 +19,7 @@ semantics.
 The project remains under active development. Final scoring, owner/contact
 identification, delivery workflows, and autonomous production operation are not
 yet complete.
+
+## Technical documentation
+
+See [the living file-by-file technical reference](docs/code/README.md).

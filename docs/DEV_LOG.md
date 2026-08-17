@@ -3,10 +3,23 @@
 ## Current project state
 
 - Current phase: Cross-stage source-trust and policy-integrity hardening
-- Latest completed step: STEP 7F.1A.2.1
+- Latest completed step: STEP 7F.1A.3
 - Current branch: `main`
 - Python version: `3.12.13`
-- Next step waiting for review: independent review of STEP 7F.1A.2.1; no functional step selected
+- Next step waiting for review: independent review of STEP 7F.1A.3; no functional step selected
+
+## STEP 7F.1A.3 — Build complete living code documentation
+
+- Status: Complete. This documentation-only step creates a source-accurate technical reference under `docs/code/` without changing production code, checked-in configuration semantics, tests, dependencies, or dependency resolution.
+- Coverage: all 100 tracked project/source files present before the documentation tree have exactly one companion under `docs/code/files/<original path>.md`. The set includes 45 production Python files, 33 test files, 11 checked-in configuration files, project metadata, history, dependency lock, and generated-directory placeholders.
+- Architecture reference: 15 navigation and cross-cutting documents cover the AI reading order, architecture, data flow, source trust, GIS/CRS, adapter-specific cache/recovery, Cadastre, grid, road, planning, current environment acquisition, testing, glossary, change impact, and the complete file index. Required Mermaid diagrams are included with explanatory prose.
+- Source binding: every companion starts with the exact repository path and SHA256 of current source bytes. The independent completeness audit found 100 companions, zero missing/extra companions, zero hash mismatches, and zero missing standard file-document sections.
+- Symbol and test coverage: source-derived documentation covers 2,460 functions/methods (including private, nested, callback, fixture, validator, and test functions), 227 classes/models/dataclasses, and all 1,258 `test_*` functions. Exact signatures, inputs/returns, source-ordered algorithms, guards, raises, calls, static callers, mapped tests, fields, constants, direct column contracts, side effects, trust boundaries, business meaning, and explicit non-goals are retained in companions.
+- Data contracts: companion and pipeline documents record current DataFrame/GeoDataFrame column references, canonical ordered schema/dtype constants, model fields, CRS/geometry rules, physical versus textual lineage, factual/proxy/policy/diagnostic boundaries, and source/result/artifact validation levels.
+- AI workflow: `docs/code/README.md` instructs future agents to read architecture/data flow/pipeline documents, compare source SHA256, inspect relevant companion/test source, treat current source as authority, preserve UNKNOWN evidence and source-complete boundaries, and update companions with source changes. The root README links to this reference.
+- Validation: the single full repository run passed 2,842 tests with 5 expected warnings in 661.43 seconds. Repository Ruff passed; mypy reported no issues in 45 source files; `uv lock --check` resolved 48 packages; `uv pip check` verified 49 compatible installed packages; the final source/SHA/symbol/config/test/Markdown completeness audit and `git diff --check` passed.
+- Boundary: no source, business, policy, scoring, planning, grid, road, Cadastre, or environmental behavior changed. No protected-area category interpretation, parcel intersection, Natura 2000/ZNIEFF analysis, scoring, ranking, owner/contact, or export workflow was introduced.
+- Known issues: None.
 
 ## STEP 7F.1A.2.1 — Complete source cache-recovery safety parity
 
